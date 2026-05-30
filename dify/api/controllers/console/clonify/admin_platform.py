@@ -162,11 +162,14 @@ class AdminImpersonateApi(Resource):
             token_str[:8] + "...",
         )
 
+        tenant = db.session.execute(select(Tenant).where(Tenant.id == data.tenant_id)).scalar_one_or_none()
+        tenant_name = tenant.name if tenant else data.tenant_id
+
         return {
             "impersonation_id": log.id,
             "token": token_str,
             "tenant_id": data.tenant_id,
-            "tenant_name": data.tenant_id,
+            "tenant_name": tenant_name,
             "expires_at": expires.isoformat(),
             "message": "Impersonation started — use X-Impersonate-Token header. 30 minute timeout.",
         }, 200
@@ -208,18 +211,20 @@ class AdminStopImpersonateApi(Resource):
 
 
 def _is_platform_admin(account_id: str) -> bool:
+    from models.account import Account
+
+    account = db.session.execute(
+        select(Account).where(Account.id == account_id)
+    ).scalar_one_or_none()
+
+    if account and hasattr(account, "is_platform_admin") and account.is_platform_admin:
+        return True
+
+    # Fallback: OWNER of any tenant is platform admin (legacy behavior)
     stmt = select(TenantAccountJoin).where(
         TenantAccountJoin.account_id == account_id,
         TenantAccountJoin.role == TenantAccountRole.OWNER,
     )
     result = db.session.execute(stmt).scalar_one_or_none()
-    if result is not None:
-        return True
-
-    from models.account import Account
-    account = db.session.execute(
-        select(Account).where(Account.id == account_id)
-    ).scalar_one_or_none()
-    if account and hasattr(account, "is_platform_admin"):
-        return bool(account.is_platform_admin)
+    return result is not None
     return False

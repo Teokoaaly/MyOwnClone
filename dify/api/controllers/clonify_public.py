@@ -270,7 +270,7 @@ def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
         email.classification = "consulta"
 
 
-def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> None:
+def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
     memories = db.session.execute(
         select(CreatorMemory).where(
             CreatorMemory.clone_id == clone_id,
@@ -281,6 +281,8 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> None:
     if memories:
         mem_text = "\n".join(f"- {m.content}" for m in memories)
         base_prompt += f"\n\nInformación importante que debes recordar:\n{mem_text}"
+
+    return base_prompt
 
 
 @clonify_public_bp.route("/clones/<string:slug>/chat-simple", methods=["POST"])

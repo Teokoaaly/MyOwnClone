@@ -116,7 +116,7 @@ class CloneConfigListApi(Resource):
         db.session.add(clone)
         db.session.flush()
 
-        for silo in CloneSilo:
+        for silo in CloneSilo.__members__.values():
             prompt = CloneModePrompt(
                 clone_id=clone.id,
                 mode=silo.value,
