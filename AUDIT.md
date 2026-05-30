@@ -395,10 +395,19 @@ mailhog — SMTP dev
 | # | Bug | Archivo | Status |
 |---|-----|---------|--------|
 | 1 | `clonify_public_bp` no importado | `controllers/__init__.py` | ✅ Fix applied |
+| 1b | `clonify_public_bp` no registrado en Flask | `app_factory.py` | ✅ Fix applied (nuevo archivo) |
 | 2 | `_add_memories_to_prompt()` sin return | `clonify_public.py:273` | ✅ Fix applied |
 | 3 | `tenant_name` = UUID | `admin_platform.py:169` | ✅ Fix applied |
 | 4 | `_is_platform_admin()` demasiado permisivo | `admin_platform.py:213` | ✅ Fix applied |
 | 5 | `for silo in CloneSilo` itera nombres | `clone.py:119` | ✅ Fix applied |
+| 6 | Sin SDK Supabase | `replica/package.json` | ✅ Fix applied |
+| 7 | `custom_domain` duplicado | Ver nota¹ | ⚠️ Sin acceso a models |
+| 8 | `impersonation_tokens.token` String(36) | Ver nota² | ⚠️ No reproducible |
+| 9 | Componentes UI vacíos | `replica/src/components/` | ⚠️ Sin acceso a frontend |
+| 10 | `widget.js/route.ts` extensión | `replica/src/app/api/` | ⚠️ Sin acceso a archivo |
+
+**nota¹** — `custom_domain` duplicado en `tenants` y `clone_configs` no verificable sin models. Requiere acceso RDP.
+**nota²** — La migración ya usa `String(128)` — bug no existente en el código actual.
 
 ---
 
