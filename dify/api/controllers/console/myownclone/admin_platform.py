@@ -1,4 +1,4 @@
-"""Clonify admin platform API — multi-tenant management, impersonation, MRR dashboard.
+"""MyOwnClone admin platform API — multi-tenant management, impersonation, MRR dashboard.
 
 Requires platform_admin role. Used by the platform admin panel.
 """
@@ -17,7 +17,7 @@ from controllers.console.wraps import account_initialization_required, setup_req
 from extensions.ext_database import db
 from libs.login import current_account_with_tenant, login_required
 from models.account import Tenant, TenantAccountJoin, TenantAccountRole
-from models.clonify import CloneConfig, CostTracking, ImpersonationLog, ImpersonationToken
+from models.myownclone import CloneConfig, CostTracking, ImpersonationLog, ImpersonationToken
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class CourtesyPayload(BaseModel):
 register_schema_models(console_ns, ImpersonatePayload, CourtesyPayload)
 
 
-@console_ns.route("/clonify/admin/overview")
+@console_ns.route("/myownclone/admin/overview")
 class AdminOverviewApi(Resource):
     @login_required
     @account_initialization_required
@@ -86,7 +86,7 @@ class AdminOverviewApi(Resource):
         }, 200
 
 
-@console_ns.route("/clonify/admin/tenants")
+@console_ns.route("/myownclone/admin/tenants")
 class AdminTenantsApi(Resource):
     @login_required
     @account_initialization_required
@@ -120,7 +120,7 @@ class AdminTenantsApi(Resource):
         ], 200
 
 
-@console_ns.route("/clonify/admin/impersonate")
+@console_ns.route("/myownclone/admin/impersonate")
 class AdminImpersonateApi(Resource):
     @login_required
     @account_initialization_required
@@ -175,7 +175,7 @@ class AdminImpersonateApi(Resource):
         }, 200
 
 
-@console_ns.route("/clonify/admin/impersonate/stop")
+@console_ns.route("/myownclone/admin/impersonate/stop")
 class AdminStopImpersonateApi(Resource):
     @login_required
     @account_initialization_required

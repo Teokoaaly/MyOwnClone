@@ -86,8 +86,8 @@ from .auth import (
     oauth_server,
 )
 
-# Import clonify controllers
-from .clonify import admin_platform as clonify_admin, analytics as clonify_analytics, booking as clonify_booking, clone as clonify_clone, creator_memory as clonify_creator_memory, feedback as clonify_feedback, inbox as clonify_inbox, stripe_ctrl as clonify_stripe
+# Import myownclone controllers
+from .myownclone import admin_platform as myownclone_admin, analytics as myownclone_analytics, booking as myownclone_booking, clone as myownclone_clone, creator_memory as myownclone_creator_memory, feedback as myownclone_feedback, inbox as myownclone_inbox, stripe_ctrl as myownclone_stripe
 
 # Import billing controllers
 from .billing import billing, compliance
@@ -160,12 +160,12 @@ __all__ = [
     "banner",
     "billing",
     "bp",
-    "clonify_analytics",
-    "clonify_clone",
-    "clonify_creator_memory",
-    "clonify_feedback",
-    "clonify_inbox",
-    "clonify_stripe",
+    "myownclone_analytics",
+    "myownclone_clone",
+    "myownclone_creator_memory",
+    "myownclone_feedback",
+    "myownclone_inbox",
+    "myownclone_stripe",
     "completion",
     "compliance",
     "console_ns",

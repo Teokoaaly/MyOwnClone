@@ -4,17 +4,17 @@ This endpoint receives raw email data from SendGrid's Inbound Parse feature.
 SendGrid sends multipart/form-data with the raw email in the "email" field.
 
 Configure SendGrid's Inbound Parse to POST to:
-    https://api.replica.tudominio.com/api/clonify/public/inbound-email
+    https://api.replica.tudominio.com/api/myownclone/public/inbound-email
 """
 
 import logging
 
 from flask import Blueprint, request, jsonify
 
-from core.clonify.email_ai import _get_clone_context, classify_email, generate_draft_reply
-from core.clonify.email_processor import parse_inbound_email, resolve_clone_by_domain
+from core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
+from core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
 from extensions.ext_database import db
-from models.clonify import (
+from models.myownclone import (
     CloneConfig,
     CreatorMemory,
     CreatorMemoryType,
@@ -27,10 +27,10 @@ from models.clonify import (
 
 logger = logging.getLogger(__name__)
 
-clonify_public_bp = Blueprint("clonify_public", __name__, url_prefix="/api/clonify/public")
+myownclone_public_bp = Blueprint("myownclone_public", __name__, url_prefix="/api/myownclone/public")
 
 
-@clonify_public_bp.route("/inbound-email", methods=["POST"])
+@myownclone_public_bp.route("/inbound-email", methods=["POST"])
 def inbound_email():
     raw_email = None
 
@@ -87,11 +87,11 @@ def inbound_email():
     return jsonify({"status": "received", "id": email.id}), 200
 
 
-@clonify_public_bp.route("/clones/<string:slug>", methods=["GET"])
+@myownclone_public_bp.route("/clones/<string:slug>", methods=["GET"])
 def get_clone_public(slug: str):
     """Public endpoint — no auth — returns basic clone info for the public chat page."""
     from sqlalchemy import select
-    from models.clonify import CloneConfig
+    from models.myownclone import CloneConfig
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -116,17 +116,17 @@ def get_clone_public(slug: str):
     }), 200
 
 
-@clonify_public_bp.route("/clones/<string:slug>/chat", methods=["POST"])
+@myownclone_public_bp.route("/clones/<string:slug>/chat", methods=["POST"])
 def chat_public(slug: str):
     """Public chat endpoint — streaming SSE response."""
     import json
     from flask import Response, stream_with_context
     from sqlalchemy import select
 
-    from core.clonify.retrieval import retrieve_from_silo
-    from core.clonify.silos import CloneSilo
+    from core.myownclone.retrieval import retrieve_from_silo
+    from core.myownclone.silos import CloneSilo
     from core.rag.retrieval.retrieval_methods import RetrievalMethod
-    from models.clonify import CloneConfig, CloneModePrompt
+    from models.myownclone import CloneConfig, CloneModePrompt
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -285,7 +285,7 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
     return base_prompt
 
 
-@clonify_public_bp.route("/clones/<string:slug>/chat-simple", methods=["POST"])
+@myownclone_public_bp.route("/clones/<string:slug>/chat-simple", methods=["POST"])
 def chat_public_simple(slug: str):
     """Public chat endpoint — non-streaming JSON response (mock for now).
 
@@ -299,7 +299,7 @@ def chat_public_simple(slug: str):
     """
     from sqlalchemy import select
 
-    from models.clonify import CloneConfig
+    from models.myownclone import CloneConfig
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -335,11 +335,11 @@ def chat_public_simple(slug: str):
     }), 200
 
 
-@clonify_public_bp.route("/clones/<string:slug>/meeting-types", methods=["GET"])
+@myownclone_public_bp.route("/clones/<string:slug>/meeting-types", methods=["GET"])
 def get_meeting_types_public(slug: str):
     """Public endpoint — returns active meeting types for a clone."""
     from sqlalchemy import select
-    from models.clonify import CloneConfig, MeetingType_
+    from models.myownclone import CloneConfig, MeetingType_
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -370,11 +370,11 @@ def get_meeting_types_public(slug: str):
     ]), 200
 
 
-@clonify_public_bp.route("/clones/<string:slug>/bookings", methods=["POST"])
+@myownclone_public_bp.route("/clones/<string:slug>/bookings", methods=["POST"])
 def create_booking_public(slug: str):
     """Public endpoint — creates a booking for a clone."""
     from sqlalchemy import select
-    from models.clonify import CloneConfig, Booking, MeetingType_
+    from models.myownclone import CloneConfig, Booking, MeetingType_
 
     data = request.get_json(silent=True) or {}
     meeting_type_id = data.get("meeting_type_id")

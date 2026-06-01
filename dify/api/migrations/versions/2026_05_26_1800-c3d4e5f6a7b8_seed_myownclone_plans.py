@@ -1,6 +1,6 @@
-"""seed Clonify default plans
+"""seed MyOwnClone default plans
 
-Inserts the four standard plans (Básico, Pro, Escala, Enterprise) into clonify_plans.
+Inserts the four standard plans (Básico, Pro, Escala, Enterprise) into myownclone_plans.
 
 Revision ID: c3d4e5f6a7b8
 Revises: b2c3d4e5f6a7
@@ -73,7 +73,7 @@ PLANS = [
 
 def upgrade():
     table = sa.table(
-        "clonify_plans",
+        "myownclone_plans",
         sa.column("id", sa.String(36)),
         sa.column("name", sa.String(50)),
         sa.column("price_cents", sa.Integer()),
@@ -100,4 +100,4 @@ def upgrade():
 
 
 def downgrade():
-    op.execute("DELETE FROM clonify_plans")
+    op.execute("DELETE FROM myownclone_plans")

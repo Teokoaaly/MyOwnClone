@@ -1,4 +1,4 @@
-"""Clonify creator memory API — CRUD for memories, signatures, and templates."""
+"""MyOwnClone creator memory API — CRUD for memories, signatures, and templates."""
 
 import logging
 
@@ -13,7 +13,7 @@ from controllers.console.wraps import account_initialization_required, setup_req
 from extensions.ext_database import db
 from fields.base import ResponseModel
 from libs.login import current_account_with_tenant, login_required
-from models.clonify import CloneConfig, CreatorMemory, CreatorMemoryType
+from models.myownclone import CloneConfig, CreatorMemory, CreatorMemoryType
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ register_schema_models(console_ns, MemoryPayload)
 register_response_schema_models(console_ns, MemoryResponse)
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>/memories")
+@console_ns.route("/myownclone/clones/<string:clone_id>/memories")
 class CreatorMemoryListApi(Resource):
     @login_required
     @account_initialization_required
@@ -79,7 +79,7 @@ class CreatorMemoryListApi(Resource):
         return _serialize_memory(memory), 201
 
 
-@console_ns.route("/clonify/memories/<string:memory_id>")
+@console_ns.route("/myownclone/memories/<string:memory_id>")
 class CreatorMemoryApi(Resource):
     @login_required
     @account_initialization_required

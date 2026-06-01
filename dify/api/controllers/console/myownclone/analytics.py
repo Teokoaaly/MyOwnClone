@@ -1,4 +1,4 @@
-"""Clonify analytics API — questions, gaps, and usage data for the creator dashboard."""
+"""MyOwnClone analytics API — questions, gaps, and usage data for the creator dashboard."""
 
 import logging
 
@@ -11,7 +11,7 @@ from controllers.console.wraps import account_initialization_required, setup_req
 from extensions.ext_database import db
 from fields.base import ResponseModel
 from libs.login import current_account_with_tenant, login_required
-from models.clonify import AnalyticsGap, AnalyticsQuestion, CostTracking, CloneConfig
+from models.myownclone import AnalyticsGap, AnalyticsQuestion, CostTracking, CloneConfig
 from models.model import App, Conversation, Message
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ register_response_schema_models(
 )
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>/analytics/overview")
+@console_ns.route("/myownclone/clones/<string:clone_id>/analytics/overview")
 class AnalyticsOverviewApi(Resource):
     @login_required
     @account_initialization_required
@@ -125,7 +125,7 @@ class AnalyticsOverviewApi(Resource):
         }, 200
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>/analytics/top-questions")
+@console_ns.route("/myownclone/clones/<string:clone_id>/analytics/top-questions")
 class TopQuestionsApi(Resource):
     @login_required
     @account_initialization_required
@@ -145,7 +145,7 @@ class TopQuestionsApi(Resource):
         ], 200
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>/analytics/gaps")
+@console_ns.route("/myownclone/clones/<string:clone_id>/analytics/gaps")
 class AnalyticsGapsApi(Resource):
     @login_required
     @account_initialization_required
@@ -195,7 +195,7 @@ class AnalyticsGapsApi(Resource):
         }, 201
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>/analytics/costs")
+@console_ns.route("/myownclone/clones/<string:clone_id>/analytics/costs")
 class CostBreakdownApi(Resource):
     @login_required
     @account_initialization_required

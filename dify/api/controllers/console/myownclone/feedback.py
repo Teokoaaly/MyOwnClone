@@ -1,4 +1,4 @@
-"""Clonify feedback API — thumbs up/down on clone responses."""
+"""MyOwnClone feedback API — thumbs up/down on clone responses."""
 
 import logging
 from flask import request
@@ -11,7 +11,7 @@ from controllers.console import console_ns
 from controllers.console.wraps import account_initialization_required, setup_required
 from extensions.ext_database import db
 from libs.login import current_account_with_tenant, login_required
-from models.clonify import Feedback
+from models.myownclone import Feedback
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class FeedbackPayload(BaseModel):
 register_schema_models(console_ns, FeedbackPayload)
 
 
-@console_ns.route("/clonify/feedback")
+@console_ns.route("/myownclone/feedback")
 class FeedbackApi(Resource):
     @login_required
     @account_initialization_required
@@ -55,7 +55,7 @@ class FeedbackApi(Resource):
         return {"status": "received", "rating": data.rating}, 200
 
 
-@console_ns.route("/clonify/feedback/stats")
+@console_ns.route("/myownclone/feedback/stats")
 class FeedbackStatsApi(Resource):
     @login_required
     @account_initialization_required

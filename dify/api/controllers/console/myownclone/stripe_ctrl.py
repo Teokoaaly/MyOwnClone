@@ -1,6 +1,6 @@
-"""Clonify Stripe integration — checkout, webhooks, and plan management.
+"""MyOwnClone Stripe integration — checkout, webhooks, and plan management.
 
-Uses the same Stripe key as Dify but adds Clonify-specific product/price handling.
+Uses the same Stripe key as Dify but adds MyOwnClone-specific product/price handling.
 """
 
 import logging
@@ -17,7 +17,7 @@ from controllers.console import console_ns
 from controllers.console.wraps import account_initialization_required, setup_required
 from extensions.ext_database import db
 from libs.login import current_account_with_tenant, login_required
-from models.clonify import Plan
+from models.myownclone import Plan
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class CheckoutPayload(BaseModel):
 register_schema_models(console_ns, CheckoutPayload)
 
 
-@console_ns.route("/clonify/plans")
+@console_ns.route("/myownclone/plans")
 class PlansApi(Resource):
     @login_required
     @account_initialization_required
@@ -63,7 +63,7 @@ class PlansApi(Resource):
         ], 200
 
 
-@console_ns.route("/clonify/stripe/checkout")
+@console_ns.route("/myownclone/stripe/checkout")
 class StripeCheckoutApi(Resource):
     @login_required
     @account_initialization_required
@@ -108,7 +108,7 @@ class StripeCheckoutApi(Resource):
             return {"error": str(e)}, 400
 
 
-@console_ns.route("/clonify/stripe/billing")
+@console_ns.route("/myownclone/stripe/billing")
 class StripeBillingApi(Resource):
     @login_required
     @account_initialization_required

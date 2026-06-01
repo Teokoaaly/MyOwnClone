@@ -18,12 +18,12 @@ from sqlalchemy import func, select
 from controllers.common.schema import register_response_schema_models, register_schema_models
 from controllers.console import console_ns
 from controllers.console.wraps import account_initialization_required, setup_required
-from core.clonify.email_ai import _get_clone_context, classify_email, generate_draft_reply
-from core.clonify.email_processor import parse_inbound_email, resolve_clone_by_domain
+from core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
+from core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
 from extensions.ext_database import db
 from fields.base import ResponseModel
 from libs.login import current_account_with_tenant, login_required
-from models.clonify import (
+from models.myownclone import (
     CloneConfig,
     EmailInbound,
     EmailInboundStatus,
@@ -58,7 +58,7 @@ register_schema_models(console_ns, EmailDraftPayload, EmailSendPayload)
 register_response_schema_models(console_ns, EmailListItem)
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>/inbox")
+@console_ns.route("/myownclone/clones/<string:clone_id>/inbox")
 class InboxListApi(Resource):
     @login_required
     @account_initialization_required
@@ -99,7 +99,7 @@ class InboxListApi(Resource):
         ], 200
 
 
-@console_ns.route("/clonify/inbox/<string:email_id>")
+@console_ns.route("/myownclone/inbox/<string:email_id>")
 class InboxDetailApi(Resource):
     @login_required
     @account_initialization_required
@@ -166,7 +166,7 @@ class InboxDetailApi(Resource):
         return "", 204
 
 
-@console_ns.route("/clonify/inbox/<string:email_id>/generate-draft")
+@console_ns.route("/myownclone/inbox/<string:email_id>/generate-draft")
 class InboxGenerateDraftApi(Resource):
     @login_required
     @account_initialization_required

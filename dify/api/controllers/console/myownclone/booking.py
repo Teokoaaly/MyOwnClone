@@ -1,4 +1,4 @@
-"""Clonify booking & meeting API — CRUD for meeting types, availability, and bookings."""
+"""MyOwnClone booking & meeting API — CRUD for meeting types, availability, and bookings."""
 
 import logging
 from datetime import date as date_type, time as time_type
@@ -14,7 +14,7 @@ from controllers.console import console_ns
 from controllers.console.wraps import account_initialization_required, setup_required
 from extensions.ext_database import db
 from libs.login import current_account_with_tenant, login_required
-from models.clonify import Availability, Booking, CloneConfig, MeetingType_, Product
+from models.myownclone import Availability, Booking, CloneConfig, MeetingType_, Product
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ register_schema_models(
 
 
 # Meeting Types
-@console_ns.route("/clonify/clones/<string:clone_id>/meeting-types")
+@console_ns.route("/myownclone/clones/<string:clone_id>/meeting-types")
 class MeetingTypeApi(Resource):
     @login_required
     @account_initialization_required
@@ -92,7 +92,7 @@ class MeetingTypeApi(Resource):
 
 
 # Availability
-@console_ns.route("/clonify/clones/<string:clone_id>/availability")
+@console_ns.route("/myownclone/clones/<string:clone_id>/availability")
 class AvailabilityApi(Resource):
     @login_required
     @account_initialization_required
@@ -124,7 +124,7 @@ class AvailabilityApi(Resource):
 
 
 # Products
-@console_ns.route("/clonify/clones/<string:clone_id>/products")
+@console_ns.route("/myownclone/clones/<string:clone_id>/products")
 class ProductsApi(Resource):
     @login_required
     @account_initialization_required
@@ -140,7 +140,7 @@ class ProductsApi(Resource):
 
 
 # Bookings
-@console_ns.route("/clonify/clones/<string:clone_id>/bookings")
+@console_ns.route("/myownclone/clones/<string:clone_id>/bookings")
 class BookingsApi(Resource):
     @login_required
     @account_initialization_required

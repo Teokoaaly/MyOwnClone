@@ -1,11 +1,11 @@
-"""add Clonify core tables — clone_configs, knowledge_silos, email_inbound, meetings, etc.
+"""add MyOwnClone core tables — clone_configs, knowledge_silos, email_inbound, meetings, etc.
 
-Creates the 14 new tables that form the Clonify data layer on top of Dify:
+Creates the 14 new tables that form the MyOwnClone data layer on top of Dify:
 clone_configs, clone_mode_prompts, creator_memory, email_inbound, email_templates,
 meeting_types, availability, bookings, products, cost_tracking, analytics_questions,
 analytics_gaps, impersonation_log, plans.
 
-Every Clonify table is scoped to a Dify tenant so the multi-tenant boundary is preserved
+Every MyOwnClone table is scoped to a Dify tenant so the multi-tenant boundary is preserved
 without touching Dify's core models.
 
 Revision ID: a1b2c3d4e5f6
@@ -37,7 +37,7 @@ def upgrade():
 
     # ─── plans ───────────────────────────────────────────────────────────
     op.create_table(
-        'clonify_plans',
+        'myownclone_plans',
         _uuid('id', is_postgres, pk=True),
         sa.Column('name', sa.String(50), nullable=False),
         sa.Column('price_cents', sa.Integer(), nullable=False),
@@ -289,7 +289,7 @@ def downgrade():
     op.drop_table('creator_memory')
     op.drop_table('clone_mode_prompts')
     op.drop_table('clone_configs')
-    op.drop_table('clonify_plans')
+    op.drop_table('myownclone_plans')
 
 
 # ─── helpers ────────────────────────────────────────────────────────────────

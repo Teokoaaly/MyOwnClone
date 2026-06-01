@@ -1,4 +1,4 @@
-"""Clonify clone configuration API — CRUD for clone identity, personality, and mode prompts."""
+"""MyOwnClone clone configuration API — CRUD for clone identity, personality, and mode prompts."""
 
 import logging
 from datetime import datetime
@@ -15,10 +15,10 @@ from controllers.console.wraps import account_initialization_required, setup_req
 from extensions.ext_database import db
 from fields.base import ResponseModel
 from libs.login import current_account_with_tenant, login_required
-from models.clonify import CloneConfig, CloneModePrompt, CloneSilo
+from models.myownclone import CloneConfig, CloneModePrompt, CloneSilo
 
 logger = logging.getLogger(__name__)
-clonify_ns = console_ns  # Reuse the console namespace
+myownclone_ns = console_ns  # Reuse the console namespace
 
 
 class CloneConfigPayload(BaseModel):
@@ -76,12 +76,12 @@ register_response_schema_models(
 )
 
 
-@console_ns.route("/clonify/clones")
+@console_ns.route("/myownclone/clones")
 class CloneConfigListApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
-    @console_ns.doc("clonify_list_clones")
+    @console_ns.doc("myownclone_list_clones")
     @console_ns.response(200, "Success", [CloneConfigResponse])
     def get(self):
         account, tenant_id = current_account_with_tenant()
@@ -96,7 +96,7 @@ class CloneConfigListApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
-    @console_ns.doc("clonify_create_clone")
+    @console_ns.doc("myownclone_create_clone")
     @console_ns.expect(CloneConfigPayload, location="json", validate=True)
     @console_ns.response(201, "Created", CloneConfigResponse)
     def post(self):
@@ -129,12 +129,12 @@ class CloneConfigListApi(Resource):
         return _serialize_clone(clone), 201
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>")
+@console_ns.route("/myownclone/clones/<string:clone_id>")
 class CloneConfigApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
-    @console_ns.doc("clonify_get_clone")
+    @console_ns.doc("myownclone_get_clone")
     @console_ns.response(200, "Success", CloneConfigResponse)
     def get(self, clone_id: str):
         account, tenant_id = current_account_with_tenant()
@@ -151,7 +151,7 @@ class CloneConfigApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
-    @console_ns.doc("clonify_update_clone")
+    @console_ns.doc("myownclone_update_clone")
     @console_ns.response(200, "Success", CloneConfigResponse)
     def put(self, clone_id: str):
         account, tenant_id = current_account_with_tenant()
@@ -181,7 +181,7 @@ class CloneConfigApi(Resource):
         return _serialize_clone(clone), 200
 
 
-@console_ns.route("/clonify/clones/<string:clone_id>/prompts")
+@console_ns.route("/myownclone/clones/<string:clone_id>/prompts")
 class CloneModePromptApi(Resource):
     @login_required
     @account_initialization_required

@@ -1,4 +1,4 @@
-"""add Clonify columns to existing Dify tables — documents, messages, tenants, accounts
+"""add MyOwnClone columns to existing Dify tables — documents, messages, tenants, accounts
 
 Adds silo/context/speaker metadata on documents, silo/context on messages,
 slug/plan/subscription fields on tenants, and role on accounts.
