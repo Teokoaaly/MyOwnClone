@@ -37,7 +37,7 @@ export default async function ClonePage({ params, searchParams }: PageProps) {
 
 async function fetchCloneConfig(slug: string) {
   try {
-    const apiUrl = process.env.DIFY_API_URL || 'http://localhost:5001'
+    const apiUrl = process.env.MYOWNCLONE_API_URL || 'http://localhost:5001'
     const res = await fetch(`${apiUrl}/api/myownclone/clones/${slug}`, {
       cache: 'no-store',
     })

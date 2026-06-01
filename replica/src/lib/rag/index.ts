@@ -1,4 +1,4 @@
-// @deprecated — RAG is handled by the Dify backend (api/core/myownclone/retrieval.py).
+// @deprecated — RAG is handled by the MyOwnClone backend (api/core/myownclone/retrieval.py).
 // This module is kept for reference only. Do not use in new code.
 export { chunkText, generateEmbeddings, generateEmbedding } from "./ingest";
 export { searchSimilar } from "./retrieve";

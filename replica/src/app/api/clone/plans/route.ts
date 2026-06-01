@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001"
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
 const CLONE_ID = process.env.DEFAULT_CLONE_ID || ""
 
-async function proxyToDify(request: NextRequest, path: string) {
+async function proxyToMyOwnClone(request: NextRequest, path: string) {
   const session = await auth()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -16,7 +16,7 @@ async function proxyToDify(request: NextRequest, path: string) {
 
   try {
     const body = request.method !== "GET" ? await request.json().catch(() => null) : undefined
-    const res = await fetch(`${DIFY_BACKEND}/console/api/myownclone/${path}`, {
+    const res = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/${path}`, {
       method: request.method,
       headers: { "Content-Type": "application/json", Cookie: cookieHeader },
       body: body ? JSON.stringify(body) : undefined,
@@ -40,4 +40,4 @@ async function proxyToDify(request: NextRequest, path: string) {
   }
 }
 
-export async function GET(request: NextRequest) { return proxyToDify(request, "plans") }
+export async function GET(request: NextRequest) { return proxyToMyOwnClone(request, "plans") }

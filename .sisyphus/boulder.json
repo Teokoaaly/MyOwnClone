@@ -1,0 +1,23 @@
+{
+  "active_plan": "C:\\Users\\haxth3\\Documents\\MyOwnClone\\.sisyphus\\plans\\myownclone-fix-broken-imports.md",
+  "started_at": "2026-06-01T10:58:21.528Z",
+  "session_ids": [
+    "ses_17d34d884ffeTncMyCSmQXYVWo"
+  ],
+  "session_origins": {
+    "ses_17d34d884ffeTncMyCSmQXYVWo": "direct"
+  },
+  "plan_name": "myownclone-fix-broken-imports",
+  "agent": "atlas",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Fix app_factory.py import",
+      "session_id": "ses_17d2a0adeffensMzWIRN1s4eWN",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-06-01T10:59:54.324Z"
+    }
+  }
+}

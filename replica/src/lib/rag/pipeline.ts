@@ -1,4 +1,4 @@
-// @ts-nocheck — deprecated module, RAG handled by Dify backend
+// @ts-nocheck — deprecated module, RAG handled by MyOwnClone backend
 import { generateEmbedding } from "./ingest";
 import { searchSimilar } from "./retrieve";
 import { buildSystemPrompt, generateResponse } from "./generate";

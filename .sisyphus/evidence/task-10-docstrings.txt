@@ -1,0 +1,81 @@
+# Task 10: Docstring Updates - Dify → MyOwnClone
+
+## Date: 2026-06-01
+
+## Summary
+Updated all docstrings and comments that mentioned "Dify" or "dify" to use "MyOwnClone" terminology instead.
+
+## Files Modified
+
+### 1. api/api/core/__init__.py
+- Before: "Clonify core module — silo-aware RAG, email triage, clone management."
+- Before: "Extends Dify without modifying core. All Clonify-specific logic lives here."
+- After: "MyOwnClone core module — silo-aware RAG, email triage, clone management."
+- After: "Extends the base platform core without modifying it. All MyOwnClone-specific logic lives here."
+
+### 2. api/api/core/ingestion.py
+- Before: "Clonify RAG ingestion pipeline — adds silo/context metadata on top of Dify's ingestion."
+- Before: "Wraps Dify's document ingestion to:"
+- After: "MyOwnClone RAG ingestion pipeline — adds silo/context metadata."
+- After: "Wraps the base platform's document ingestion to:"
+
+### 3. api/api/core/retrieval.py
+- Before: "Wraps Dify's RetrievalService to add silo selection. Does NOT modify Dify core."
+- Before: "2. Delegate retrieval to Dify's RetrievalService"
+- After: "Retrieval service for MyOwnClone that adds silo selection to the base retrieval service."
+- After: "2. Delegate retrieval to the underlying retrieval service"
+
+### 4. api/api/core/silos.py
+- Before: "Silo-aware dataset manager for the Clonify RAG pipeline."
+- Before: "Each clone maps to 3 Dify datasets (one per silo: teach, support, sales)."
+- Before: "When a user uploads content to a silo, it goes to the corresponding Dify dataset."
+- Before: "applied as a post-retrieval filter rather than modifying Dify core."
+- After: "Silo-aware dataset manager for the MyOwnClone RAG pipeline."
+- After: "Each clone maps to 3 datasets (one per silo: teach, support, sales)."
+- After: "When a user uploads content to a silo, it goes to the corresponding dataset."
+- After: "applied as a post-retrieval filter rather than modifying the base platform core."
+
+### 5. api/api/migrations/versions/2026_05_26_1645-a1b2c3d4e5f6_add_myownclone_core_tables.py
+- Before: "Creates the 14 new tables that form the MyOwnClone data layer on top of Dify:"
+- Before: "Every MyOwnClone table is scoped to a Dify tenant so the multi-tenant boundary is preserved"
+- Before: "without touching Dify's core models."
+- After: "Creates the 14 new tables that form the MyOwnClone data layer on top of the base platform:"
+- After: "Every MyOwnClone table is scoped to a tenant so the multi-tenant boundary is preserved"
+- After: "without touching the base platform core models."
+
+### 6. api/api/migrations/versions/2026_05_26_1648-b2c3d4e5f6a7_add_myownclone_columns_to_existing_tables.py
+- Before: 'add MyOwnClone columns to existing Dify tables — documents, messages, tenants, accounts'
+- Before: "These are additive columns only; no existing Dify behaviour is altered."
+- After: 'add MyOwnClone columns to existing tables — documents, messages, tenants, accounts'
+- After: "These are additive columns only; no existing base platform behaviour is altered."
+
+### 7. replica/src/lib/rag/index.ts
+- Before: "// @deprecated — RAG is handled by the Dify backend (api/core/myownclone/retrieval.py)."
+- After: "// @deprecated — RAG is handled by the MyOwnClone backend (api/core/myownclone/retrieval.py)."
+
+### 8. replica/src/lib/rag/pipeline.ts
+- Before: "// @ts-nocheck — deprecated module, RAG handled by Dify backend"
+- After: "// @ts-nocheck — deprecated module, RAG handled by MyOwnClone backend"
+
+## Verification
+
+### Python files (api/api/core/):
+```bash
+Get-ChildItem -Path "api/api/core" -Filter "*.py" | ForEach-Object { Select-String -Path $_.FullName -Pattern "[Dd]ify" }
+```
+Results: Only matches on "modify" (contained "modifying") - no actual Dify references remain.
+
+### Migration files (api/api/migrations/versions/):
+```bash
+Get-ChildItem -Path "api/api/migrations/versions" -Filter "*.py" | ForEach-Object { Select-String -Path $_.FullName -Pattern "[Dd]ify" }
+```
+Results: No output - no Dify references found.
+
+### TypeScript files (replica/src/lib/rag/):
+```bash
+Get-ChildItem -Path "replica/src/lib/rag" -Filter "*.ts" | ForEach-Object { Select-String -Path $_.FullName -Pattern "[Dd]ify" }
+```
+Results: No output - no Dify references found.
+
+## Conclusion
+All 8 files successfully updated. Zero "Dify" or "dify" references remain in docstrings or comments within the specified directories.

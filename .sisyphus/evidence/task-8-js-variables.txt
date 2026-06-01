@@ -1,0 +1,25 @@
+
+replica\src\app\(clonify)\[slug]\page.tsx:40:    const apiUrl = process.env.MYOWNCLONE_API_URL || 'http://localhost:5001'
+replica\src\app\api\admin\[...path]\route.ts:3:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\admin\[...path]\route.ts:15:    const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/admin/${endpoint}${searchParams ? `?${searchParams}` : ""}`
+replica\src\app\api\admin\[...path]\route.ts:50:    const res = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/admin/${endpoint}`, {
+replica\src\app\api\clone\[...path]\route.ts:5:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\clone\[...path]\route.ts:52:  let url = `${MYOWNCLONE_BACKEND}/console/api/myownclone`
+replica\src\app\api\clone\[slug]\chat\route.ts:3:const MYOWNCLONE_BACKEND_URL = process.env.MYOWNCLONE_API_URL || 'http://localhost:5001'
+replica\src\app\api\clone\[slug]\chat\route.ts:22:    const backendRes = await fetch(`${MYOWNCLONE_BACKEND_URL}/api/myownclone/public/clones/${slug}/chat`, {
+replica\src\app\api\clone\billing\route.ts:4:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\clone\billing\route.ts:15:    const res = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/stripe/billing`, {
+replica\src\app\api\clone\inbox\[id]\generate-draft\route.ts:4:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\clone\inbox\[id]\generate-draft\route.ts:13:  const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/inbox/${id}/generate-draft`
+replica\src\app\api\clone\inbox\[id]\route.ts:4:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\clone\inbox\[id]\route.ts:12:  const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/${path}`
+replica\src\app\api\clone\inbox\list\route.ts:4:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\clone\inbox\list\route.ts:12:  const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/${path}`
+replica\src\app\api\clone\inbox\list\route.ts:54:  const clonesRes = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/clones`, {
+replica\src\app\api\clone\plans\route.ts:4:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\clone\plans\route.ts:19:    const res = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/${path}`, {
+replica\src\app\api\clone\stripe\checkout\route.ts:4:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
+replica\src\app\api\clone\stripe\checkout\route.ts:16:    const res = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/stripe/checkout`, {
+replica\src\app\api\inbound-email\route.ts:3:const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001";
+replica\src\app\api\inbound-email\route.ts:21:    const res = await fetch(`${MYOWNCLONE_BACKEND}/api/myownclone/public/inbound-email`, {
+

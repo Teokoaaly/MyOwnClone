@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001"
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const { id } = await params
-  const url = `${DIFY_BACKEND}/console/api/myownclone/inbox/${id}/generate-draft`
+  const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/inbox/${id}/generate-draft`
   const cookieHeader = request.headers.get("cookie") || ""
 
   const controller = new AbortController()

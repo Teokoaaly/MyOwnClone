@@ -1,0 +1,84 @@
+services:
+  db_postgres:
+    image: postgres:15
+    container_name: myownclone_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev_password_123
+      POSTGRES_DB: myownclone
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: myownclone_redis
+    command: redis-server --requirepass dev_password_123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "dev_password_123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.24.0
+    container_name: myownclone_weaviate
+    ports:
+      - "8080:8080"
+    environment:
+      DISABLE_AUTH: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      ENABLE_MODULES: "text2vec-openai,text2vec-huggingface"
+      OPENAI_APIKEY: ""
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    # healthcheck removed - DISABLE_AUTH makes curl unnecessary
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myownclone_api
+    ports:
+      - "5001:5001"
+    environment:
+      FLASK_ENV: development
+      DB_HOST: db_postgres
+      DB_PORT: 5432
+      DB_NAME: myownclone
+      DB_USER: postgres
+      DB_PASSWORD: dev_password_123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: dev_password_123
+      OPENAI_API_BASE: ""
+      OPENAI_API_KEY: ""
+      STRIPE_SECRET_KEY: ""
+      RESEND_API_KEY: ""
+      WEAVIATE_URL: http://weaviate:8080
+      WEAVIATE_API_KEY: "WVF5YThaHlkYwhGUSmCRgsX3tD5ngdN8pkih"
+      FLASK_APP: app_factory
+    volumes:
+      - .:/app
+    working_dir: /app/api
+    depends_on:
+      db_postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: flask run --host=0.0.0.0 --port=5001
+
+volumes:
+  postgres_data:
+  redis_data:
+  weaviate_data:

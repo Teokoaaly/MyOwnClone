@@ -1,0 +1,31 @@
+# Task 11 - CLAUDE.md Update Evidence
+
+## Changes Made
+
+1. Docker command updated: `cd api && docker compose up -d` → `cd api/api && docker compose up -d`
+2. DB_PASSWORD: `difyai123456` → `dev_password_123`
+3. REDIS_PASSWORD: `difyai123456` → `dev_password_123`
+4. DB credential: `postgres / difyai123456` → `postgres / dev_password_123`
+
+## Verification
+
+### Check for remaining "dify" references
+```
+Select-String -Pattern "dify" -CaseSensitive:$false
+Result: (no output) - ZERO matches
+```
+
+### Check updated docker command
+```
+Select-String -Pattern "api/api"
+Result: Line 48 shows "cd api/api && docker compose up -d" - CONFIRMED
+```
+
+## Status
+
+- [x] All "dify" references removed
+- [x] All paths updated to api/api structure
+- [x] Commands updated
+- [x] Credentials updated to dev_password_123
+
+Task COMPLETE.

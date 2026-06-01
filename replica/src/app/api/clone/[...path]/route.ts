@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { checkLimit, type PlanName } from "@/lib/quotas"
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001"
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
 const CLONE_ID = process.env.DEFAULT_CLONE_ID || ""
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
@@ -49,7 +49,7 @@ async function proxy(request: NextRequest, params: { path: string[] }) {
     }
   }
 
-  let url = `${DIFY_BACKEND}/console/api/myownclone`
+  let url = `${MYOWNCLONE_BACKEND}/console/api/myownclone`
 
   if (path.startsWith("memories")) {
     const memoryId = params.path[1]

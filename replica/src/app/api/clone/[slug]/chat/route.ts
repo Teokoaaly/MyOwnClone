@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 
-const DIFY_BACKEND_URL = process.env.DIFY_API_URL || 'http://localhost:5001'
+const MYOWNCLONE_BACKEND_URL = process.env.MYOWNCLONE_API_URL || 'http://localhost:5001'
 
 export async function POST(
   request: NextRequest,
@@ -19,7 +19,7 @@ export async function POST(
   const timeoutId = setTimeout(() => controller.abort(), 30000)
 
   try {
-    const backendRes = await fetch(`${DIFY_BACKEND_URL}/api/myownclone/public/clones/${slug}/chat`, {
+    const backendRes = await fetch(`${MYOWNCLONE_BACKEND_URL}/api/myownclone/public/clones/${slug}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

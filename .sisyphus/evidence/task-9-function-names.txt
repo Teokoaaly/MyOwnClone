@@ -1,0 +1,8 @@
+route.ts (6): async function proxyToMyOwnClone(request: NextRequest, path: string) {
+route.ts (70): return proxyToMyOwnClone(request, `clones/${cloneId}/inbox?${new URL(request.url).searchParams.toString()}`)
+route.ts (6): async function proxyToMyOwnClone(request: NextRequest, path: string, method: string) {
+route.ts (48): return proxyToMyOwnClone(request, `inbox/${(await params).id}?${new URL(request.url).searchParams.toString()}`, "GET")
+route.ts (52): return proxyToMyOwnClone(request, `inbox/${(await params).id}`, "PUT")
+route.ts (56): return proxyToMyOwnClone(request, `inbox/${(await params).id}`, "DELETE")
+route.ts (7): async function proxyToMyOwnClone(request: NextRequest, path: string) {
+route.ts (43): export async function GET(request: NextRequest) { return proxyToMyOwnClone(request, "plans") }

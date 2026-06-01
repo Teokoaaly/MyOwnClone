@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001"
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
 
-async function proxyToDify(request: NextRequest, path: string, method: string) {
+async function proxyToMyOwnClone(request: NextRequest, path: string, method: string) {
   const session = await auth()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const url = `${DIFY_BACKEND}/console/api/myownclone/${path}`
+  const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/${path}`
   const cookieHeader = request.headers.get("cookie") || ""
 
   const controller = new AbortController()
@@ -45,13 +45,13 @@ async function proxyToDify(request: NextRequest, path: string, method: string) {
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return proxyToDify(request, `inbox/${(await params).id}?${new URL(request.url).searchParams.toString()}`, "GET")
+  return proxyToMyOwnClone(request, `inbox/${(await params).id}?${new URL(request.url).searchParams.toString()}`, "GET")
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return proxyToDify(request, `inbox/${(await params).id}`, "PUT")
+  return proxyToMyOwnClone(request, `inbox/${(await params).id}`, "PUT")
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return proxyToDify(request, `inbox/${(await params).id}`, "DELETE")
+  return proxyToMyOwnClone(request, `inbox/${(await params).id}`, "DELETE")
 }

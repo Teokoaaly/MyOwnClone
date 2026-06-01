@@ -1,0 +1,19 @@
+=== TASK-6 EVIDENCE: DIFY_* → MYOWNCLONE_* Rename ===
+Date: 2026-06-01 12:06
+
+=== FILES MODIFIED ===
+1. replica/.env - Line 42: DIFY_API_URL → MYOWNCLONE_API_URL
+2. replica/.env.local - Line 9: DIFY_API_URL → MYOWNCLONE_API_URL
+3. replica/.env.example - Line 50: DIFY_API_URL → MYOWNCLONE_API_URL
+
+=== VERIFICATION ===
+1. DIFY_ references in .env files: NONE (grep result: no matches)
+2. MYOWNCLONE_ references present in all 3 files: YES
+
+=== UNCHANGED (per requirements) ===
+- DB_PASSWORD / REDIS_PASSWORD: Not present in replica env files
+- API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.): NOT modified
+- DATABASE_URL: NOT modified (references difyai123456 but is generic dev value)
+
+=== QA RESULT ===
+PASS - All DIFY_ variables renamed to MYOWNCLONE_

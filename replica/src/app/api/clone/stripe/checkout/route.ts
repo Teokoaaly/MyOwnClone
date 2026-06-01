@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001"
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   const timeoutId = setTimeout(() => controller.abort(), 30000)
 
   try {
-    const res = await fetch(`${DIFY_BACKEND}/console/api/myownclone/stripe/checkout`, {
+    const res = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/stripe/checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Cookie: cookieHeader },
       body: JSON.stringify(body),

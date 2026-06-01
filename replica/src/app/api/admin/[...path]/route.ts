@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001"
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
 const ADMIN_TOKEN = process.env.PLATFORM_ADMIN_TOKEN || ""
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const timeoutId = setTimeout(() => controller.abort(), 30000)
 
   try {
-    const url = `${DIFY_BACKEND}/console/api/myownclone/admin/${endpoint}${searchParams ? `?${searchParams}` : ""}`
+    const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/admin/${endpoint}${searchParams ? `?${searchParams}` : ""}`
     const res = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const timeoutId = setTimeout(() => controller.abort(), 30000)
 
   try {
-    const res = await fetch(`${DIFY_BACKEND}/console/api/myownclone/admin/${endpoint}`, {
+    const res = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/admin/${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

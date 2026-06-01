@@ -30,8 +30,8 @@
 ## Deps críticas
 
 - `OPENAI_API_BASE` — proveedor LLM (DeepSeek por defecto)
-- `DB_HOST=db_postgres`, `DB_PASSWORD=difyai123456`
-- `REDIS_PASSWORD=difyai123456`
+- `DB_HOST=db_postgres`, `DB_PASSWORD=dev_password_123`
+- `REDIS_PASSWORD=dev_password_123`
 - `STRIPE_SECRET_KEY` — billing
 - `RESEND_API_KEY` — envío email
 
@@ -45,7 +45,7 @@
 
 ```bash
 # Backend
-cd api && docker compose up -d
+cd api/api && docker compose up -d
 docker compose exec api flask db upgrade
 
 # Frontend
@@ -57,7 +57,7 @@ python test_login.py
 
 ## Credenciales
 
-- DB: `postgres / difyai123456` (host `db_postgres`)
+- DB: `postgres / dev_password_123` (host `db_postgres`)
 - Admin default: `admin@myownclone.com / admin123`
 - Weaviate API key: `WVF5YThaHlkYwhGUSmCRgsX3tD5ngdN8pkih`
 - Plugin daemon key: `lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+...`

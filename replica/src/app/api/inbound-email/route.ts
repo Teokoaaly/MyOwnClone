@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001";
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-    const res = await fetch(`${DIFY_BACKEND}/api/myownclone/public/inbound-email`, {
+    const res = await fetch(`${MYOWNCLONE_BACKEND}/api/myownclone/public/inbound-email`, {
       method: "POST",
       headers: { "Content-Type": contentType },
       body,

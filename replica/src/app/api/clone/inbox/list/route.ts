@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
-const DIFY_BACKEND = process.env.DIFY_API_URL || "http://localhost:5001"
+const MYOWNCLONE_BACKEND = process.env.MYOWNCLONE_API_URL || "http://localhost:5001"
 
-async function proxyToDify(request: NextRequest, path: string) {
+async function proxyToMyOwnClone(request: NextRequest, path: string) {
   const session = await auth()
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const url = `${DIFY_BACKEND}/console/api/myownclone/${path}`
+  const url = `${MYOWNCLONE_BACKEND}/console/api/myownclone/${path}`
   const cookieHeader = request.headers.get("cookie") || ""
 
   const controller = new AbortController()
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Get user's clone_id from backend - use first clone for now
-  const clonesRes = await fetch(`${DIFY_BACKEND}/console/api/myownclone/clones`, {
+  const clonesRes = await fetch(`${MYOWNCLONE_BACKEND}/console/api/myownclone/clones`, {
     headers: {
       Cookie: request.headers.get("cookie") || "",
     },
@@ -67,5 +67,5 @@ export async function GET(request: NextRequest) {
   }
 
   const cloneId = clones[0].id
-  return proxyToDify(request, `clones/${cloneId}/inbox?${new URL(request.url).searchParams.toString()}`)
+  return proxyToMyOwnClone(request, `clones/${cloneId}/inbox?${new URL(request.url).searchParams.toString()}`)
 }
