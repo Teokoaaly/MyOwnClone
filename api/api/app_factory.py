@@ -26,6 +26,9 @@ from models.myownclone import (
 # Import public blueprint
 from controllers.myownclone_public import myownclone_public_bp
 
+# Import CLI commands
+from commands.seed import seed_demo_data
+
 migrate = Migrate()
 
 
@@ -51,6 +54,9 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     CORS(app)
+
+    # Register CLI commands
+    app.cli.add_command(seed_demo_data)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)
