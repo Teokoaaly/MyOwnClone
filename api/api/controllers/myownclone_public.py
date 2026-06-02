@@ -163,7 +163,7 @@ def chat_public(slug: str):
         "Eres un asistente útil. Responde basándote en el contenido proporcionado."
     )
 
-    _add_memories_to_prompt(clone.id, system_prompt)
+    system_prompt = _add_memories_to_prompt(clone.id, system_prompt)
 
     result = retrieve_from_silo(
         session=db.session,
