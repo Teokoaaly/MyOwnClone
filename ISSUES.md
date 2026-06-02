@@ -1,4 +1,4 @@
-# Clonify — Issues Report
+# myownclone — Issues Report
 
 Generated: 2026-05-30
 Source: Auditoría completa del repositorio (dify + replica + migrations)
@@ -7,13 +7,13 @@ Source: Auditoría completa del repositorio (dify + replica + migrations)
 
 ## CRÍTICO
 
-### 1. `clonify_public_bp` NO registrado — endpoints públicos no funcionan
+### 1. `myownclone_public_bp` NO registrado — endpoints públicos no funcionan
 
-**Archivo:** `dify/api/controllers/clonify_public.py`
+**Archivo:** `dify/api/controllers/myownclone_public.py`
 **Línea:** Blueprint definido en línea 30 pero nunca registrado en la app Flask.
 
 ```python
-clonify_public_bp = Blueprint("clonify_public", __name__, url_prefix="/api/clonify/public")
+myownclone_public_bp = Blueprint("myownclone_public", __name__, url_prefix="/api/myownclone/public")
 ```
 
 Este blueprint existe pero no se importa ni se registra en:
@@ -21,19 +21,19 @@ Este blueprint existe pero no se importa ni se registra en:
 - `dify/extensions/ext_blueprints.py`
 - `dify/api/controllers/__init__.py`
 
-**Impacto:** Los endpoints `/api/clonify/public/clones/<slug>/chat`, `/api/clonify/public/inbound-email`, etc. NO responden — 404.
+**Impacto:** Los endpoints `/api/myownclone/public/clones/<slug>/chat`, `/api/myownclone/public/inbound-email`, etc. NO responden — 404.
 
 **Fix:** Importar y registrar en `app_factory.py` o en `ext_blueprints.py`:
 ```python
-from controllers.clonify_public import clonify_public_bp
-app.register_blueprint(clonify_public_bp)
+from controllers.myownclone_public import myownclone_public_bp
+app.register_blueprint(myownclone_public_bp)
 ```
 
 ---
 
 ### 2. `_add_memories_to_prompt` no retorna — memorias del creador nunca se injectan
 
-**Archivo:** `dify/api/controllers/clonify_public.py`
+**Archivo:** `dify/api/controllers/myownclone_public.py`
 **Líneas:** 273-283
 
 ```python
@@ -62,7 +62,7 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
 
 ### 3. `admin_platform.py` devuelve `tenant_id` como nombre de tenant
 
-**Archivo:** `dify/api/controllers/console/clonify/admin_platform.py`
+**Archivo:** `dify/api/controllers/console/myownclone/admin_platform.py`
 **Línea:** ~169
 
 ```python
@@ -75,7 +75,7 @@ El nombre del tenant se muestra como UUID en el dashboard admin en lugar del nom
 
 ### 4. `_is_platform_admin` demasiado permisivo
 
-**Archivo:** `dify/api/controllers/console/clonify/admin_platform.py`
+**Archivo:** `dify/api/controllers/console/myownclone/admin_platform.py`
 **Línea:** ~50-55
 
 ```python
@@ -113,7 +113,7 @@ El mismo concepto en dos sitios diferentes. Posible inconsistencia si un tenant 
 
 **Migration:** `e5f6a7b8c9d0`
 
-Todas las demás tablas Clonify usan UUID como PK/FK. Esta tabla usa `String(36)` para `id`, `admin_id`, `tenant_id`. Inconsistente.
+Todas las demás tablas myownclone usan UUID como PK/FK. Esta tabla usa `String(36)` para `id`, `admin_id`, `tenant_id`. Inconsistente.
 
 ---
 
@@ -144,7 +144,7 @@ Los route handlers de Next.js App Router son `.ts`/`.tsx`, no `.js`. Este archiv
 ## NOTES
 
 - SMB access bloqueado (`NT_STATUS_ACCOUNT_LOCKED_OUT`) durante auditoría. Parte del código no pudo ser recuperada para revisión directa.
-- `clonify_public.py` auditado completamente — 447 líneas, 7 endpoints, bug confirmado.
+- `myownclone_public.py` auditado completamente — 447 líneas, 7 endpoints, bug confirmado.
 - Migrations verificadas — 5 archivos, 15 tablas, cadena correcta.
 - API controllers verificados — 36 endpoints totales.
 - Frontend auditado — 19 páginas, 18 API routes, i18n es/es, NextAuth 5.

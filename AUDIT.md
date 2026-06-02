@@ -1,14 +1,14 @@
 # MyOwnClone — Auditoría Completa
 
 > Fecha: 2026-05-30
-> Host auditado: Windows (100.111.183.23) — `C:\Users\haxth3\Documents\clonify_completo`
+> Host auditado: Windows (100.111.183.23) — `C:\Users\haxth3\Documents\myownclone_completo`
 > Auditor: Hermes Agent
 
 ---
 
 ## 1. Resumen Ejecutivo
 
-**Proyecto:** MyOwnClone (clon de "Replica" / Clonify) — plataforma SaaS de clones IA personalizados para creadores de contenido.
+**Proyecto:** MyOwnClone (clon de "Replica" / myownclone) — plataforma SaaS de clones IA personalizados para creadores de contenido.
 
 **Stack:**
 - Backend: Python/Flask + Dify framework, SQLAlchemy, PostgreSQL, Redis, Weaviate
@@ -23,13 +23,13 @@
 ## 2. Estructura de Archivos Auditados
 
 ```
-clonify_completo/
+myownclone_completo/
 ├── dify/
 │   ├── api/
 │   │   ├── controllers/
-│   │   │   ├── clonify_public.py       ← 7 endpoints públicos (NO REGISTRADOS)
+│   │   │   ├── myownclone_public.py       ← 7 endpoints públicos (NO REGISTRADOS)
 │   │   │   ├── console/
-│   │   │   │   └── clonify/
+│   │   │   │   └── myownclone/
 │   │   │   │       ├── __init__.py
 │   │   │   │       ├── admin_platform.py  ← bugs #3 y #4
 │   │   │   │       ├── analytics.py
@@ -39,13 +39,13 @@ clonify_completo/
 │   │   │   │       ├── feedback.py
 │   │   │   │       ├── inbox.py
 │   │   │   │       └── stripe_ctrl.py
-│   │   │   └── __init__.py              ← vacío, clonify_public no importado
+│   │   │   └── __init__.py              ← vacío, myownclone_public no importado
 │   │   ├── models/ ← inaccesible (SMB bloqueado)
 │   │   ├── core/                        ← inaccesible (SMB bloqueado)
 │   │   ├── services/                    ← inaccesible (SMB bloqueado)
 │   │   ├── migrations/
 │   │   │   └── versions/
-│   │   │       ├── 2026_05_26_1645-...  ←15 tablas clonify
+│   │   │       ├── 2026_05_26_1645-...  ←15 tablas myownclone
 │   │   │       ├── 2026_05_26_1648-...  ← columnas adicionales
 │   │   │       └── 2026_05_26_1800-...  ← seed plans (starter/pro/growth)
 │   │   └── docker/
@@ -73,25 +73,25 @@ clonify_completo/
 
 ## 3. Bugs Críticos
 
-### 🔴 BUG #1 — `clonify_public_bp` no registrado (CRÍTICO)
+### 🔴 BUG #1 — `myownclone_public_bp` no registrado (CRÍTICO)
 
 **Archivo:** `dify/api/controllers/__init__.py` (línea 89)
 
-**Problema:** El Blueprint `clonify_public_bp` existe y define 7 endpoints públicos pero nunca se importa ni se registra en la aplicación Flask. Todos los endpoints `/api/clonify/public/*` devuelven **404**.
+**Problema:** El Blueprint `myownclone_public_bp` existe y define 7 endpoints públicos pero nunca se importa ni se registra en la aplicación Flask. Todos los endpoints `/api/myownclone/public/*` devuelven **404**.
 
 **Endpoints afectados:**
-- `POST /api/clonify/public/inbound-email` — receptor de emails SendGrid
-- `POST /api/clonify/public/clones/<slug>/chat-simple` — chat público
-- `POST /api/clonify/public/clones/<slug>/chat` — chat streaming
-- `GET /api/clonify/public/clones/<slug>` — info pública del clone
-- `POST /api/clonify/public/clones/<slug>/book` — booking público
-- `GET /api/clonify/public/clones/<slug>/availability` — disponibilidad
-- `POST /api/clonify/public/clones/<slug>/analytics/track` — tracking
+- `POST /api/myownclone/public/inbound-email` — receptor de emails SendGrid
+- `POST /api/myownclone/public/clones/<slug>/chat-simple` — chat público
+- `POST /api/myownclone/public/clones/<slug>/chat` — chat streaming
+- `GET /api/myownclone/public/clones/<slug>` — info pública del clone
+- `POST /api/myownclone/public/clones/<slug>/book` — booking público
+- `GET /api/myownclone/public/clones/<slug>/availability` — disponibilidad
+- `POST /api/myownclone/public/clones/<slug>/analytics/track` — tracking
 
 **Fix aplicado:**
 ```python
 # En dify/api/controllers/__init__.py — línea ~89
-from . import clonify_public as clonify_public
+from . import myownclone_public as myownclone_public
 ```
 
 **Pendiente:** Registrar el blueprint en `app_factory.py` o `ext_blueprints.py` (no localizados en el dump parcial).
@@ -100,7 +100,7 @@ from . import clonify_public as clonify_public
 
 ### 🔴 BUG #2 — `_add_memories_to_prompt()` no retorna (CRÍTICO)
 
-**Archivo:** `dify/api/controllers/clonify_public.py:273`
+**Archivo:** `dify/api/controllers/myownclone_public.py:273`
 
 **Problema:** La función modifica `base_prompt` (string local) sin retornarlo. En Python los strings son inmutables; `base_prompt += ...` solo cambia la variable local que se pierde al salir de la función. **Las memorias del creador nunca se injectan al prompt del modelo IA.**
 
@@ -131,7 +131,7 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
 
 ### 🟡 BUG #3 — `tenant_name` muestra UUID en vez de nombre
 
-**Archivo:** `dify/api/controllers/console/clonify/admin_platform.py:169`
+**Archivo:** `dify/api/controllers/console/myownclone/admin_platform.py:169`
 
 **Problema:** En la respuesta de `/admin/impersonate/start`, el campo `tenant_name` devuelve `data.tenant_id` (el UUID del tenant) en vez del nombre real.
 
@@ -145,7 +145,7 @@ tenant_name = tenant.name if tenant else data.tenant_id
 
 ### 🟡 BUG #4 — `_is_platform_admin()` demasiado permisivo
 
-**Archivo:** `dify/api/controllers/console/clonify/admin_platform.py:213`
+**Archivo:** `dify/api/controllers/console/myownclone/admin_platform.py:213`
 
 **Problema:** La función permite a CUALQUIER owner de CUALQUIER tenant ser admin de plataforma. Un usuario que solo tiene un tenant propio (normal en SaaS multi-tenant) puede acceder a paneles de admin de otros tenants.
 
@@ -175,7 +175,7 @@ def _is_platform_admin(account_id: str) -> bool:
 
 ### 🟡 BUG #5 — `for silo in CloneSilo` itera sobre miembros del Enum
 
-**Archivo:** `dify/api/controllers/console/clonify/clone.py:119`
+**Archivo:** `dify/api/controllers/console/myownclone/clone.py:119`
 
 **Problema:** `for silo in CloneSilo` itera sobre los nombres del Enum (`"TEACH"`, `"SUPPORT"`, etc.), no sobre los valores. Esto causa que se creen `CloneModePrompt` con `mode=silo.value` donde `silo` es un string, no un member del Enum.
 
@@ -225,47 +225,47 @@ for silo in CloneSilo.__members__.values():
 
 | Método | Path | Descripción |
 |--------|------|-------------|
-| GET | `/console/api/clonify/clones` | Listar clones del tenant |
-| POST | `/console/api/clonify/clones` | Crear clone |
-| GET | `/console/api/clonify/clones/<id>` | Detalle clone |
-| PUT | `/console/api/clonify/clones/<id>` | Actualizar clone |
-| DELETE | `/console/api/clonify/clones/<id>` | Eliminar clone |
-| GET | `/console/api/clonify/clones/<id>/prompts` | Obtener prompts por modo |
-| PUT | `/console/api/clonify/clones/<id>/prompts` | Actualizar prompts |
-| POST | `/console/api/clonify/clones/<id>/clone` | Clonar un clone |
-| GET | `/console/api/clonify/clones/<id>/analytics` | Analytics |
-| GET | `/console/api/clonify/clones/<id>/inbox` | Bandeja de entrada |
-| GET | `/console/api/clonify/clones/<id>/inbox/<email_id>` | Detalle email |
-| POST | `/console/api/clonify/clones/<id>/inbox/<email_id>/reply` | Generar respuesta |
-| POST | `/console/api/clonify/clones/<id>/inbox/<email_id>/classify` | Clasificar email |
-| GET | `/console/api/clonify/clones/<id>/bookings` | Listar bookings |
-| POST | `/console/api/clonify/clones/<id>/bookings` | Crear booking |
-| GET | `/console/api/clonify/clones/<id>/availability` | Disponibilidad |
-| POST | `/console/api/clonify/clones/<id>/availability` | Configurar disponibilidad |
-| GET | `/console/api/clonify/clones/<id>/feedback` | Feedback |
-| POST | `/console/api/clonify/clones/<id>/feedback` | Enviar feedback |
-| GET | `/console/api/clonify/memories` | Listar memorias |
-| POST | `/console/api/clonify/memories` | Crear memoria |
-| DELETE | `/console/api/clonify/memories/<id>` | Eliminar memoria |
-| GET | `/console/api/clonify/admin/platform-stats` | Stats plataforma |
-| GET | `/console/api/clonify/admin/tenants` | Listar tenants |
-| POST | `/console/api/clonify/admin/impersonate/start` | Iniciar impersonation |
-| POST | `/console/api/clonify/admin/impersonate/stop` | Detener impersonation |
-| POST | `/console/api/clonify/stripe/connect` | Stripe Connect |
-| GET | `/console/api/clonify/stripe/connect/callback` | Stripe callback |
+| GET | `/console/api/myownclone/clones` | Listar clones del tenant |
+| POST | `/console/api/myownclone/clones` | Crear clone |
+| GET | `/console/api/myownclone/clones/<id>` | Detalle clone |
+| PUT | `/console/api/myownclone/clones/<id>` | Actualizar clone |
+| DELETE | `/console/api/myownclone/clones/<id>` | Eliminar clone |
+| GET | `/console/api/myownclone/clones/<id>/prompts` | Obtener prompts por modo |
+| PUT | `/console/api/myownclone/clones/<id>/prompts` | Actualizar prompts |
+| POST | `/console/api/myownclone/clones/<id>/clone` | Clonar un clone |
+| GET | `/console/api/myownclone/clones/<id>/analytics` | Analytics |
+| GET | `/console/api/myownclone/clones/<id>/inbox` | Bandeja de entrada |
+| GET | `/console/api/myownclone/clones/<id>/inbox/<email_id>` | Detalle email |
+| POST | `/console/api/myownclone/clones/<id>/inbox/<email_id>/reply` | Generar respuesta |
+| POST | `/console/api/myownclone/clones/<id>/inbox/<email_id>/classify` | Clasificar email |
+| GET | `/console/api/myownclone/clones/<id>/bookings` | Listar bookings |
+| POST | `/console/api/myownclone/clones/<id>/bookings` | Crear booking |
+| GET | `/console/api/myownclone/clones/<id>/availability` | Disponibilidad |
+| POST | `/console/api/myownclone/clones/<id>/availability` | Configurar disponibilidad |
+| GET | `/console/api/myownclone/clones/<id>/feedback` | Feedback |
+| POST | `/console/api/myownclone/clones/<id>/feedback` | Enviar feedback |
+| GET | `/console/api/myownclone/memories` | Listar memorias |
+| POST | `/console/api/myownclone/memories` | Crear memoria |
+| DELETE | `/console/api/myownclone/memories/<id>` | Eliminar memoria |
+| GET | `/console/api/myownclone/admin/platform-stats` | Stats plataforma |
+| GET | `/console/api/myownclone/admin/tenants` | Listar tenants |
+| POST | `/console/api/myownclone/admin/impersonate/start` | Iniciar impersonation |
+| POST | `/console/api/myownclone/admin/impersonate/stop` | Detener impersonation |
+| POST | `/console/api/myownclone/stripe/connect` | Stripe Connect |
+| GET | `/console/api/myownclone/stripe/connect/callback` | Stripe callback |
 | POST | `/console/api/webhook/stripe` | Webhook Stripe |
 
 ### Public API (sin auth)
 
 | Método | Path | Descripción |
 |--------|------|-------------|
-| POST | `/api/clonify/public/inbound-email` | Receptor SendGrid |
-| POST | `/api/clonify/public/clones/<slug>/chat-simple` | Chat simple |
-| POST | `/api/clonify/public/clones/<slug>/chat` | Chat streaming |
-| GET | `/api/clonify/public/clones/<slug>` | Info pública clone |
-| POST | `/api/clonify/public/clones/<slug>/book` | Booking público |
-| GET | `/api/clonify/public/clones/<slug>/availability` | Disponibilidad |
-| POST | `/api/clonify/public/clones/<slug>/analytics/track` | Tracking |
+| POST | `/api/myownclone/public/inbound-email` | Receptor SendGrid |
+| POST | `/api/myownclone/public/clones/<slug>/chat-simple` | Chat simple |
+| POST | `/api/myownclone/public/clones/<slug>/chat` | Chat streaming |
+| GET | `/api/myownclone/public/clones/<slug>` | Info pública clone |
+| POST | `/api/myownclone/public/clones/<slug>/book` | Booking público |
+| GET | `/api/myownclone/public/clones/<slug>/availability` | Disponibilidad |
+| POST | `/api/myownclone/public/clones/<slug>/analytics/track` | Tracking |
 
 ---
 
@@ -325,10 +325,10 @@ app/(dashboard)/clones/[id]/inbox/
 app/(dashboard)/clones/[id]/settings/
 app/(dashboard)/bookings/
 app/api/auth/[...nextauth]/
-app/api/clonify/clones/
-app/api/clonify/clones/[id]/
-app/api/clonify/clones/[id]/inbox/
-app/api/clonify/clones/[id]/analytics/
+app/api/myownclone/clones/
+app/api/myownclone/clones/[id]/
+app/api/myownclone/clones/[id]/inbox/
+app/api/myownclone/clones/[id]/analytics/
 app/api/clones/[slug]/chat/
 app/api/clones/[slug]/book/
 ```
@@ -336,15 +336,15 @@ app/api/clones/[slug]/book/
 ### API Routes (18)
 ```
 app/api/auth/[...nextauth]/route.ts
-app/api/clonify/clones/route.ts
-app/api/clonify/clones/[id]/route.ts
-app/api/clonify/clones/[id]/inbox/route.ts
-app/api/clonify/clones/[id]/analytics/route.ts
-app/api/clonify/clones/[id]/prompts/route.ts
-app/api/clonify/memories/route.ts
-app/api/clonify/stripe/route.ts
-app/api/clonify/stripe/connect/route.ts
-app/api/clonify/stripe/webhook/route.ts
+app/api/myownclone/clones/route.ts
+app/api/myownclone/clones/[id]/route.ts
+app/api/myownclone/clones/[id]/inbox/route.ts
+app/api/myownclone/clones/[id]/analytics/route.ts
+app/api/myownclone/clones/[id]/prompts/route.ts
+app/api/myownclone/memories/route.ts
+app/api/myownclone/stripe/route.ts
+app/api/myownclone/stripe/connect/route.ts
+app/api/myownclone/stripe/webhook/route.ts
 app/api/clones/[slug]/route.ts
 app/api/clones/[slug]/chat/route.ts
 app/api/clones/[slug]/book/route.ts
@@ -375,8 +375,8 @@ mailhog — SMTP dev
 
 | Path | Motivo |
 |------|--------|
-| `dify/api/models/clonify/` | ACCESS DENIED |
-| `dify/api/core/clonify/` | ACCESS DENIED |
+| `dify/api/models/myownclone/` | ACCESS DENIED |
+| `dify/api/core/myownclone/` | ACCESS DENIED |
 | `dify/api/services/` | ACCESS DENIED |
 | `dify/docker/.env` | ACCESS DENIED |
 | `dify/docker/docker-compose.yaml` | ACCESS DENIED |
@@ -394,9 +394,9 @@ mailhog — SMTP dev
 
 | # | Bug | Archivo | Status |
 |---|-----|---------|--------|
-| 1 | `clonify_public_bp` no importado | `controllers/__init__.py` | ✅ Fix applied |
-| 1b | `clonify_public_bp` no registrado en Flask | `app_factory.py` | ✅ Fix applied (nuevo archivo) |
-| 2 | `_add_memories_to_prompt()` sin return | `clonify_public.py:273` | ✅ Fix applied |
+| 1 | `myownclone_public_bp` no importado | `controllers/__init__.py` | ✅ Fix applied |
+| 1b | `myownclone_public_bp` no registrado en Flask | `app_factory.py` | ✅ Fix applied (nuevo archivo) |
+| 2 | `_add_memories_to_prompt()` sin return | `myownclone_public.py:273` | ✅ Fix applied |
 | 3 | `tenant_name` = UUID | `admin_platform.py:169` | ✅ Fix applied |
 | 4 | `_is_platform_admin()` demasiado permisivo | `admin_platform.py:213` | ✅ Fix applied |
 | 5 | `for silo in CloneSilo` itera nombres | `clone.py:119` | ✅ Fix applied |
@@ -414,7 +414,7 @@ mailhog — SMTP dev
 ## 11. Recomendaciones
 
 1. **Desbloquear SMB o usar RDP** para recuperar el resto del código (models, core, services, frontend completo, docker-compose)
-2. **Registrar `clonify_public_bp`** en `app_factory.py` — el blueprint existe pero falta el registro en la aplicación Flask
+2. **Registrar `myownclone_public_bp`** en `app_factory.py` — el blueprint existe pero falta el registro en la aplicación Flask
 3. **Añadir Supabase SDK** a `package.json` si la integración está planificada
 4. **Implementar componentes UI vacíos** (`admin/`, `booking/`, `analytics/`)
 5. **Renombrar `widget.js/route.ts`** → `route.ts` para consistencia App Router
