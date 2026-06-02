@@ -163,7 +163,11 @@ class AdminImpersonateApi(Resource):
         )
 
         tenant = db.session.execute(select(Tenant).where(Tenant.id == data.tenant_id)).scalar_one_or_none()
-        tenant_name = tenant.name if tenant else data.tenant_id
+        if tenant:
+            tenant_name = tenant.name
+        else:
+            logger.warning("Tenant not found for id=%s, using fallback", data.tenant_id)
+            tenant_name = f"Unknown tenant ({data.tenant_id})"
 
         return {
             "impersonation_id": log.id,
