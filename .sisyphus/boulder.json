@@ -1,23 +1,23 @@
 {
-  "active_plan": "C:\\Users\\haxth3\\Documents\\MyOwnClone\\.sisyphus\\plans\\myownclone-fix-broken-imports.md",
-  "started_at": "2026-06-01T10:58:21.528Z",
+  "active_plan": "C:\\Users\\haxth3\\Documents\\MyOwnClone\\.sisyphus\\plans\\myownclone-launch.md",
+  "started_at": "2026-06-02T21:25:13.388Z",
   "session_ids": [
-    "ses_17d34d884ffeTncMyCSmQXYVWo"
+    "ses_17728a9f6ffexar2b3kHgnjGZp"
   ],
   "session_origins": {
-    "ses_17d34d884ffeTncMyCSmQXYVWo": "direct"
+    "ses_17728a9f6ffexar2b3kHgnjGZp": "direct"
   },
-  "plan_name": "myownclone-fix-broken-imports",
+  "plan_name": "myownclone-launch",
   "agent": "atlas",
   "task_sessions": {
-    "todo:1": {
-      "task_key": "todo:1",
-      "task_label": "1",
-      "task_title": "Fix app_factory.py import",
-      "session_id": "ses_17d2a0adeffensMzWIRN1s4eWN",
+    "todo:5": {
+      "task_key": "todo:5",
+      "task_label": "5",
+      "task_title": "Rename `(clonify)` folder → `(public)`",
+      "session_id": "ses_175bccedaffee6C6YrFF8m6c8V",
       "agent": "Sisyphus-Junior",
       "category": "quick",
-      "updated_at": "2026-06-01T10:59:54.324Z"
+      "updated_at": "2026-06-02T21:36:56.137Z"
     }
   }
 }
