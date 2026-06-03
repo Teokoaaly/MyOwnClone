@@ -18,9 +18,9 @@ from email.policy import default as email_default_policy
 
 from sqlalchemy import select
 
-from extensions.ext_database import db
-from models.myownclone import CloneConfig, EmailInbound, EmailInboundStatus
-from models.myownclone.clone import CloneSilo
+from api.extensions.ext_database import db
+from api.models.myownclone import CloneConfig, EmailInbound, EmailInboundStatus
+from api.models.myownclone.clone import CloneSilo
 
 logger = logging.getLogger(__name__)
 

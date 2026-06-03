@@ -13,9 +13,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.rag.datasource.retrieval_service import RetrievalService
-from core.rag.retrieval.retrieval_methods import RetrievalMethod
-from core.myownclone.silos import CloneSilo, filter_segments_by_context, get_dataset_id_for_silo
+from api.core.rag.datasource.retrieval_service import RetrievalService
+from api.core.rag.retrieval.retrieval_methods import RetrievalMethod
+from api.core.myownclone.silos import CloneSilo, filter_segments_by_context, get_dataset_id_for_silo
 
 logger = logging.getLogger(__name__)
 

@@ -11,13 +11,13 @@ from flask_restx import Resource
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from configs import myownclone_config
-from controllers.common.schema import register_schema_models
-from controllers.console import console_ns
-from controllers.console.wraps import account_initialization_required, setup_required
-from extensions.ext_database import db
-from libs.login import current_account_with_tenant, login_required
-from models.myownclone import Plan
+from api.configs import myownclone_config
+from api.controllers.common.schema import register_schema_models
+from api.controllers.console import console_ns
+from api.controllers.console.wraps import account_initialization_required, setup_required
+from api.extensions.ext_database import db
+from api.libs.login import current_account_with_tenant, login_required
+from api.models.myownclone import Plan
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class StripeBillingApi(Resource):
     @setup_required
     def get(self):
         account, tenant_id = current_account_with_tenant()
-        from models.account import Tenant
+        from api.models.account import Tenant
 
         tenant = db.session.execute(
             select(Tenant).where(Tenant.id == tenant_id)

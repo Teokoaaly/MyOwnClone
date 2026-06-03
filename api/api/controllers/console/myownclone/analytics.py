@@ -5,14 +5,14 @@ import logging
 from flask_restx import Resource
 from sqlalchemy import func, select
 
-from controllers.common.schema import register_response_schema_models
-from controllers.console import console_ns
-from controllers.console.wraps import account_initialization_required, setup_required
-from extensions.ext_database import db
-from fields.base import ResponseModel
-from libs.login import current_account_with_tenant, login_required
-from models.myownclone import AnalyticsGap, AnalyticsQuestion, CostTracking, CloneConfig
-from models.model import App, Conversation, Message
+from api.controllers.common.schema import register_response_schema_models
+from api.controllers.console import console_ns
+from api.controllers.console.wraps import account_initialization_required, setup_required
+from api.extensions.ext_database import db
+from api.fields.base import ResponseModel
+from api.libs.login import current_account_with_tenant, login_required
+from api.models.myownclone import AnalyticsGap, AnalyticsQuestion, CostTracking, CloneConfig
+from api.models.model import App, Conversation, Message
 
 logger = logging.getLogger(__name__)
 

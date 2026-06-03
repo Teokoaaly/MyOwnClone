@@ -11,10 +11,10 @@ import logging
 
 from flask import Blueprint, request, jsonify
 
-from core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
-from core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
-from extensions.ext_database import db
-from models.myownclone import (
+from api.core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
+from api.core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
+from api.extensions.ext_database import db
+from api.models.myownclone import (
     CloneConfig,
     CreatorMemory,
     CreatorMemoryType,
@@ -91,7 +91,7 @@ def inbound_email():
 def get_clone_public(slug: str):
     """Public endpoint — no auth — returns basic clone info for the public chat page."""
     from sqlalchemy import select
-    from models.myownclone import CloneConfig
+    from api.models.myownclone import CloneConfig
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -123,10 +123,10 @@ def chat_public(slug: str):
     from flask import Response, stream_with_context
     from sqlalchemy import select
 
-    from core.myownclone.retrieval import retrieve_from_silo
-    from core.myownclone.silos import CloneSilo
-    from core.rag.retrieval.retrieval_methods import RetrievalMethod
-    from models.myownclone import CloneConfig, CloneModePrompt
+    from api.core.myownclone.retrieval import retrieve_from_silo
+    from api.core.myownclone.silos import CloneSilo
+    from api.core.rag.retrieval.retrieval_methods import RetrievalMethod
+    from api.models.myownclone import CloneConfig, CloneModePrompt
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -188,7 +188,7 @@ Pregunta del usuario: {message}"""
 
     def generate():
         try:
-            from core.model_manager import ModelManager
+            from api.core.model_manager import ModelManager
             from graphon.model_runtime.entities.model_entities import ModelType
 
             model_manager = ModelManager()
@@ -223,7 +223,7 @@ Pregunta del usuario: {message}"""
 
 def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
     try:
-        from core.model_manager import ModelManager
+        from api.core.model_manager import ModelManager
         from graphon.model_runtime.entities.model_entities import ModelType
 
         clone = db.session.execute(
@@ -299,7 +299,7 @@ def chat_public_simple(slug: str):
     """
     from sqlalchemy import select
 
-    from models.myownclone import CloneConfig
+    from api.models.myownclone import CloneConfig
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -339,7 +339,7 @@ def chat_public_simple(slug: str):
 def get_meeting_types_public(slug: str):
     """Public endpoint — returns active meeting types for a clone."""
     from sqlalchemy import select
-    from models.myownclone import CloneConfig, MeetingType_
+    from api.models.myownclone import CloneConfig, MeetingType_
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -374,7 +374,7 @@ def get_meeting_types_public(slug: str):
 def create_booking_public(slug: str):
     """Public endpoint — creates a booking for a clone."""
     from sqlalchemy import select
-    from models.myownclone import CloneConfig, Booking, MeetingType_
+    from api.models.myownclone import CloneConfig, Booking, MeetingType_
 
     data = request.get_json(silent=True) or {}
     meeting_type_id = data.get("meeting_type_id")

@@ -4,10 +4,8 @@ services:
     container_name: myownclone_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: dev_password_123
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: myownclone
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,13 +17,11 @@ services:
   redis:
     image: redis:7-alpine
     container_name: myownclone_redis
-    command: redis-server --requirepass dev_password_123
-    ports:
-      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "dev_password_123", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -57,10 +53,10 @@ services:
       DB_PORT: 5432
       DB_NAME: myownclone
       DB_USER: postgres
-      DB_PASSWORD: dev_password_123
+      DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: dev_password_123
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       OPENAI_API_BASE: ""
       OPENAI_API_KEY: ""
       STRIPE_SECRET_KEY: ""

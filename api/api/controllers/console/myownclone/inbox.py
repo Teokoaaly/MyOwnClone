@@ -15,15 +15,15 @@ from flask_restx import Resource
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from controllers.common.schema import register_response_schema_models, register_schema_models
-from controllers.console import console_ns
-from controllers.console.wraps import account_initialization_required, setup_required
-from core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
-from core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
-from extensions.ext_database import db
-from fields.base import ResponseModel
-from libs.login import current_account_with_tenant, login_required
-from models.myownclone import (
+from api.controllers.common.schema import register_response_schema_models, register_schema_models
+from api.controllers.console import console_ns
+from api.controllers.console.wraps import account_initialization_required, setup_required
+from api.core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
+from api.core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
+from api.extensions.ext_database import db
+from api.fields.base import ResponseModel
+from api.libs.login import current_account_with_tenant, login_required
+from api.models.myownclone import (
     CloneConfig,
     EmailInbound,
     EmailInboundStatus,

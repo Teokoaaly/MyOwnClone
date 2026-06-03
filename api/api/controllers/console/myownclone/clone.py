@@ -9,13 +9,13 @@ from flask_restx import Resource
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from controllers.common.schema import register_response_schema_models, register_schema_models
-from controllers.console import console_ns
-from controllers.console.wraps import account_initialization_required, setup_required
-from extensions.ext_database import db
-from fields.base import ResponseModel
-from libs.login import current_account_with_tenant, login_required
-from models.myownclone import CloneConfig, CloneModePrompt, CloneSilo
+from api.controllers.common.schema import register_response_schema_models, register_schema_models
+from api.controllers.console import console_ns
+from api.controllers.console.wraps import account_initialization_required, setup_required
+from api.extensions.ext_database import db
+from api.fields.base import ResponseModel
+from api.libs.login import current_account_with_tenant, login_required
+from api.models.myownclone import CloneConfig, CloneModePrompt, CloneSilo
 
 logger = logging.getLogger(__name__)
 myownclone_ns = console_ns  # Reuse the console namespace

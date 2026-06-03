@@ -6,8 +6,8 @@ import sqlalchemy as sa
 from sqlalchemy import BigInteger, DateTime, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from libs.datetime_utils import naive_utc_now
-from libs.uuid_utils import uuidv7
+from api.libs.datetime_utils import naive_utc_now
+from api.libs.uuid_utils import uuidv7
 
 from ..base import DefaultFieldsDCMixin, TypeBase
 from ..types import LongText

@@ -8,8 +8,8 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from extensions import db
-from models import (
+from api.extensions import db
+from api.models import (
     Availability,
     Booking,
     CloneConfig,
@@ -24,25 +24,61 @@ from models import (
 )
 
 # Import public blueprint
-from controllers.myownclone_public import myownclone_public_bp
+from api.controllers.myownclone_public import myownclone_public_bp
 
 # Import console blueprint
-from controllers.console import bp as console_bp
+from api.controllers.console import bp as console_bp
 
 # Import CLI commands
-from commands.seed import seed_demo_data
+from api.commands.seed import seed_demo_data
 
 migrate = Migrate()
 
 
+def _validate_required_env():
+    """Fail fast if required environment variables are missing.
+
+    Security: DB_PASSWORD and REDIS_PASSWORD are OBLIGATORY.
+    API keys can be empty for development mode.
+    """
+    missing = []
+
+    db_password = os.getenv("DB_PASSWORD")
+    if not db_password:
+        missing.append("DB_PASSWORD")
+    elif db_password in ("postgres", "changeit"):
+        raise ValueError(
+            "SECURITY ERROR: DB_PASSWORD cannot be 'postgres' or 'changeit'. "
+            "Set a strong password in environment variable."
+        )
+
+    redis_password = os.getenv("REDIS_PASSWORD")
+    if not redis_password:
+        missing.append("REDIS_PASSWORD")
+    elif redis_password == "changeit":
+        raise ValueError(
+            "SECURITY ERROR: REDIS_PASSWORD cannot be 'changeit'. "
+            "Set a strong password in environment variable."
+        )
+
+    if missing:
+        raise EnvironmentError(
+            f"FATAL: Required environment variables are missing: {', '.join(missing)}. "
+            "The application cannot start without these credentials. "
+            "See .env.example for required variables."
+        )
+
+
 def create_app():
     """Create and configure the Flask application."""
+    # SECURITY: Validate config before doing anything else (fail-fast)
+    _validate_required_env()
     app = Flask(__name__)
 
     # Database configuration
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         f"postgresql://{os.getenv('DB_USER', 'postgres')}:"
-        f"{os.getenv('DB_PASSWORD', 'postgres')}@"
+        f"{os.getenv('DB_PASSWORD')}@"  # No fallback - validated above
         f"{os.getenv('DB_HOST', 'localhost')}:"
         f"{os.getenv('DB_PORT', '5432')}/"
         f"{os.getenv('DB_NAME', 'myownclone')}"

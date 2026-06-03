@@ -3,8 +3,8 @@
 import click
 from datetime import time
 
-from extensions import db
-from models.myownclone import CloneConfig, MeetingType_, Availability
+from api.extensions import db
+from api.models.myownclone import CloneConfig, MeetingType_, Availability
 
 
 # Demo data IDs (hardcoded as per task requirements)

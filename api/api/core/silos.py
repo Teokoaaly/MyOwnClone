@@ -17,8 +17,8 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models.myownclone.clone import CloneSilo
-from models.dataset import Dataset, DocumentSegment
+from api.models.myownclone.clone import CloneSilo
+from api.models.dataset import Dataset, DocumentSegment
 
 logger = logging.getLogger(__name__)
 

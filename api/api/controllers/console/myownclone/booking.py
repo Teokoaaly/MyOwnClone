@@ -9,12 +9,12 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from werkzeug.exceptions import NotFound
 
-from controllers.common.schema import register_response_schema_models, register_schema_models
-from controllers.console import console_ns
-from controllers.console.wraps import account_initialization_required, setup_required
-from extensions.ext_database import db
-from libs.login import current_account_with_tenant, login_required
-from models.myownclone import Availability, Booking, CloneConfig, MeetingType_, Product
+from api.controllers.common.schema import register_response_schema_models, register_schema_models
+from api.controllers.console import console_ns
+from api.controllers.console.wraps import account_initialization_required, setup_required
+from api.extensions.ext_database import db
+from api.libs.login import current_account_with_tenant, login_required
+from api.models.myownclone import Availability, Booking, CloneConfig, MeetingType_, Product
 
 logger = logging.getLogger(__name__)
 

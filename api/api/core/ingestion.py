@@ -9,7 +9,7 @@ Wraps the base platform's document ingestion to:
 import logging
 from typing import Any, Optional
 
-from core.myownclone.silos import CloneSilo, dataset_name_for_silo
+from api.core.myownclone.silos import CloneSilo, dataset_name_for_silo
 
 logger = logging.getLogger(__name__)
 
