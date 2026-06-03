@@ -1,0 +1,9 @@
+Fix: app_factory.py import path correction
+File: api/api/app_factory.py
+Line 5 changed from:
+  from api.api.controllers.myownclone_public import myownclone_public_bp
+To:
+  from controllers.myownclone_public import myownclone_public_bp
+
+Verified: Line 5 now reads 'from controllers.myownclone_public import myownclone_public_bp'
+Timestamp: 2026-06-01 12:59:26

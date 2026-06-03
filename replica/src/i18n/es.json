@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "title": "Réplica - Multiplícate",
+    "description": "Crea un clon de IA entrenado con tu contenido. Atiende 24/7 en modo pedagogía, ventas y soporte."
+  },
+  "nav": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "dashboard": "Panel de control",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "loginTitle": "Inicia sesión en Réplica",
+    "registerTitle": "Crea tu cuenta en Réplica",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "tu@email.com",
+    "sendLink": "Enviar enlace mágico",
+    "checkEmail": "Revisa tu correo electrónico",
+    "checkEmailDesc": "Te hemos enviado un enlace de acceso a {email}",
+    "googleButton": "Continuar con Google",
+    "orContinue": "o continúa con",
+    "nameLabel": "Nombre completo",
+    "namePlaceholder": "Tu nombre",
+    "verifyEmail": "Verificar email",
+    "verifyEmailDesc": "Introduce el código que enviamos a tu correo"
+  },
+  "onboarding": {
+    "title": "Configura tu Réplica",
+    "slugLabel": "Elige tu subdominio",
+    "slugPlaceholder": "tunombre",
+    "slugSuffix": ".replica.tudominio.com",
+    "cloneNameLabel": "Nombre de tu clon",
+    "cloneNamePlaceholder": "ej. Asistente de Juan",
+    "cloneDescriptionLabel": "Descripción de tu clon",
+    "cloneDescriptionPlaceholder": "¿Qué hace tu clon? ¿A quién ayuda?",
+    "continue": "Continuar",
+    "skip": "Configurar después"
+  },
+  "dashboard": {
+    "biblioteca": "Biblioteca",
+    "cerebro": "Cerebro",
+    "inbox": "Inbox",
+    "productos": "Productos",
+    "reuniones": "Reuniones",
+    "analiticas": "Analíticas",
+    "facturacion": "Facturación",
+    "configuracion": "Configuración",
+    "resumen": "Resumen",
+    "cloneSelector": "Seleccionar clon"
+  },
+  "clone": {
+    "publicTitle": "Habla con {name}",
+    "publicSubtitle": "Un clon de IA entrenado para ayudarte",
+    "placeholder": "Escribe tu mensaje aquí...",
+    "send": "Enviar",
+    "newConversation": "Nueva conversación",
+    "thinking": "Pensando...",
+    "notEnoughInfo": "No tengo suficiente información para responder a esta pregunta. ¿Te gustaría que notifique al equipo?",
+    "feedbackThanks": "Gracias por tu feedback",
+    "modes": {
+      "pedagogy": "Pedagogía",
+      "sales": "Ventas",
+      "support": "Soporte"
+    }
+  },
+  "errors": {
+    "generic": "Algo salió mal. Intenta de nuevo.",
+    "notFound": "Página no encontrada",
+    "unauthorized": "No tienes acceso a esta página",
+    "rateLimit": "Demasiadas solicitudes. Espera un momento."
+  },
+  "plans": {
+    "basic": "Básico",
+    "pro": "Pro",
+    "scale": "Escala",
+    "enterprise": "Enterprise",
+    "currentPlan": "Plan actual",
+    "upgrade": "Mejorar plan",
+    "manageBilling": "Gestionar facturación",
+    "trialDaysLeft": "Te quedan {days} días de prueba gratuita",
+    "trialEnded": "Tu prueba gratuita ha terminado"
+  }
+}

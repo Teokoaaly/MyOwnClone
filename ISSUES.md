@@ -1,7 +1,6 @@
-# myownclone — Issues Report
+# MyOwnClone — Issues Report
 
 Generated: 2026-05-30
-Source: Auditoría completa del repositorio (dify + replica + migrations)
 
 ---
 
@@ -9,7 +8,7 @@ Source: Auditoría completa del repositorio (dify + replica + migrations)
 
 ### 1. `myownclone_public_bp` NO registrado — endpoints públicos no funcionan
 
-**Archivo:** `dify/api/controllers/myownclone_public.py`
+**Archivo:** `api/controllers/myownclone_public.py`
 **Línea:** Blueprint definido en línea 30 pero nunca registrado en la app Flask.
 
 ```python
@@ -17,9 +16,9 @@ myownclone_public_bp = Blueprint("myownclone_public", __name__, url_prefix="/api
 ```
 
 Este blueprint existe pero no se importa ni se registra en:
-- `dify/api/app_factory.py`
-- `dify/extensions/ext_blueprints.py`
-- `dify/api/controllers/__init__.py`
+- `api/app_factory.py`
+- `api/extensions/ext_blueprints.py`
+- `api/controllers/__init__.py`
 
 **Impacto:** Los endpoints `/api/myownclone/public/clones/<slug>/chat`, `/api/myownclone/public/inbound-email`, etc. NO responden — 404.
 
@@ -33,7 +32,7 @@ app.register_blueprint(myownclone_public_bp)
 
 ### 2. `_add_memories_to_prompt` no retorna — memorias del creador nunca se injectan
 
-**Archivo:** `dify/api/controllers/myownclone_public.py`
+**Archivo:** `api/controllers/myownclone_public.py`
 **Líneas:** 273-283
 
 ```python
@@ -45,9 +44,7 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> None:
     # NO RETURN — base_prompt se modifica localmente pero se pierde
 ```
 
-Python strings son inmutables. `base_prompt += ...` crea una nueva variable local que se destruye al salir de la función. El caller en línea 166 llama `system_prompt = _add_memories_to_prompt(clone.id, system_prompt)` pero ignora el return (que es None).
-
-**Impacto:** El contexto de memorias del creador nunca llega al modelo IA — el clone no recuerda información personalizada.
+**Impacto:** El contexto de memorias del creador nunca llega al modelo IA.
 
 **Fix:**
 ```python
@@ -62,20 +59,18 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
 
 ### 3. `admin_platform.py` devuelve `tenant_id` como nombre de tenant
 
-**Archivo:** `dify/api/controllers/console/myownclone/admin_platform.py`
+**Archivo:** `api/controllers/console/myownclone/admin_platform.py`
 **Línea:** ~169
 
 ```python
 "tenant_name": data.tenant_id,  # debería ser data.tenant.name
 ```
 
-El nombre del tenant se muestra como UUID en el dashboard admin en lugar del nombre real.
-
 ---
 
 ### 4. `_is_platform_admin` demasiado permisivo
 
-**Archivo:** `dify/api/controllers/console/myownclone/admin_platform.py`
+**Archivo:** `api/controllers/console/myownclone/admin_platform.py`
 **Línea:** ~50-55
 
 ```python
@@ -83,7 +78,7 @@ def _is_platform_admin(account) -> bool:
     return account.role == TenantAccountRole.OWNER
 ```
 
-Cualquier usuario OWNER de cualquier tenant es considerado admin de plataforma. Un owner de un plan Básico puede ver el MRR, impersonar tenants, etc.
+Cualquier usuario OWNER de cualquier tenant es considerado admin de plataforma.
 
 ---
 
@@ -93,7 +88,7 @@ Cualquier usuario OWNER de cualquier tenant es considerado admin de plataforma. 
 for silo in CloneSilo:  # Esto itera sobre el Enum class, no sobre sus valores
 ```
 
-En Python, `for silo in CloneSilo` itera sobre los miembros del Enum (miembros con nombres como TEACH, SUPPORT, SALES), no sobre los valores. Para iterar sobre valores usar `CloneSilo.__members__.values()` o `[s for s in CloneSilo]`.
+Para iterar sobre valores usar `CloneSilo.__members__.values()`.
 
 ---
 
@@ -101,50 +96,10 @@ En Python, `for silo in CloneSilo` itera sobre los miembros del Enum (miembros c
 
 ### 6. `custom_domain` duplicado en `tenants` y `clone_configs`
 
-**Migrations:**
-- `b2c3d4e5f6a7` añade `custom_domain` a `tenants`
-- `d4e5f6a7b8c9` añade `custom_domain` a `clone_configs`
-
-El mismo concepto en dos sitios diferentes. Posible inconsistencia si un tenant tiene múltiples clones con diferentes domains.
-
----
-
 ### 7. `impersonation_tokens` usa `String(36)` en vez de `UUID`
-
-**Migration:** `e5f6a7b8c9d0`
-
-Todas las demás tablas myownclone usan UUID como PK/FK. Esta tabla usa `String(36)` para `id`, `admin_id`, `tenant_id`. Inconsistente.
-
----
 
 ### 8. Componentes UI vacíos
 
-**Directorios:** `replica/src/components/admin/`, `components/booking/`, `components/clone/`, `components/dashboard/`, `components/inbox/`, `components/ui/`
-
-Todos estos directorios están vacíos (solo `.` y `..`). Los componentes reales probablemente están inline en las páginas o en otros lugares.
-
----
-
 ### 9. Sin SDK Supabase
 
-**Archivo:** `replica/package.json`
-
-`.env.example` referencia variables de Supabase (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) pero no hay `@supabase/supabase-js` en dependencies. El código usa `pg` raw para conexiones PostgreSQL.
-
----
-
 ### 10. `widget.js/route.ts` estructura no estándar
-
-**Archivo:** `replica/src/app/widget.js/route.ts`
-
-Los route handlers de Next.js App Router son `.ts`/`.tsx`, no `.js`. Este archivo debería renombrarse a `route.ts`.
-
----
-
-## NOTES
-
-- SMB access bloqueado (`NT_STATUS_ACCOUNT_LOCKED_OUT`) durante auditoría. Parte del código no pudo ser recuperada para revisión directa.
-- `myownclone_public.py` auditado completamente — 447 líneas, 7 endpoints, bug confirmado.
-- Migrations verificadas — 5 archivos, 15 tablas, cadena correcta.
-- API controllers verificados — 36 endpoints totales.
-- Frontend auditado — 19 páginas, 18 API routes, i18n es/es, NextAuth 5.

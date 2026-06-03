@@ -1,0 +1,63 @@
+# Task 3: admin_platform.py Bug Fix Evidence
+
+## Date: 2026-06-01
+
+## Bug 1: Unreachable return False
+**Location:** admin_platform.py line ~230
+**Before:**
+```python
+    result = db.session.execute(stmt).scalar_one_or_none()
+    return result is not None
+    return False  # DEAD CODE - unreachable
+```
+**After:** Removed dead code block
+
+## Bug 2: Overly Permissive _is_platform_admin()
+**Location:** admin_platform.py `_is_platform_admin()` function (lines 213-230)
+**Before:**
+```python
+def _is_platform_admin(account_id: str) -> bool:
+    from models.account import Account
+
+    account = db.session.execute(
+        select(Account).where(Account.id == account_id)
+    ).scalar_one_or_none()
+
+    if account and hasattr(account, "is_platform_admin") and account.is_platform_admin:
+        return True
+
+    # Fallback: OWNER of any tenant is platform admin (legacy behavior)
+    stmt = select(TenantAccountJoin).where(
+        TenantAccountJoin.account_id == account_id,
+        TenantAccountJoin.role == TenantAccountRole.OWNER,
+    )
+    result = db.session.execute(stmt).scalar_one_or_none()
+    return result is not None
+    return False
+```
+**After:**
+```python
+def _is_platform_admin(account_id: str) -> bool:
+    from models.account import Account
+
+    account = db.session.execute(
+        select(Account).where(Account.id == account_id)
+    ).scalar_one_or_none()
+
+    if account and hasattr(account, "is_platform_admin") and account.is_platform_admin:
+        return True
+
+    # Explicit platform admin check only - no fallback to tenant ownership
+    return False
+```
+
+## Changes Made
+1. Removed unreachable `return False` statement after `return result is not None`
+2. Removed fallback logic that allowed ANY tenant owner to be platform admin
+3. Function now only checks for explicit `is_platform_admin` flag on account
+4. Removed unused imports `TenantAccountJoin` and `TenantAccountRole`
+
+## Verification
+- Python syntax: Valid (verified via ast.parse)
+- Function logic: Now strictly checks `account.is_platform_admin` flag
+- No dead code remaining

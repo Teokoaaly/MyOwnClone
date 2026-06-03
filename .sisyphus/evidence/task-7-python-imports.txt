@@ -1,0 +1,40 @@
+# Task 7 - Python Imports Update Evidence
+
+## Summary
+Updated Python imports from `dify` to `api` after directory rename from `dify/` to `api/`.
+
+## Files Modified
+
+### 1. api/api/app_factory.py (line 5)
+- Before: `from dify.api.controllers.myownclone_public import myownclone_public_bp`
+- After: `from api.api.controllers.myownclone_public import myownclone_public_bp`
+
+### 2. api/api/controllers/console/myownclone/stripe_ctrl.py (line 14)
+- Before: `from configs import dify_config`
+- After: `from configs import myownclone_config`
+
+### 3. api/api/controllers/console/myownclone/stripe_ctrl.py (line 24)
+- Before: `stripe.api_key = getattr(dify_config, "STRIPE_SECRET_KEY", None) or ""`
+- After: `stripe.api_key = getattr(myownclone_config, "STRIPE_SECRET_KEY", None) or ""`
+
+## Verification Results
+
+### grep "from dify|import dify|dify_config" in api/api/
+Result: No matches (all dify imports removed)
+
+### grep "from configs import" in api/api/controllers/
+Result: api\api\controllers\console\myownclone\stripe_ctrl.py:14:from configs import myownclone_config (correct)
+
+### python -m py_compile on modified files
+Result: Success (no errors)
+
+## Non-Dify References (intentional - documentation/comments)
+These remain unchanged as they reference Dify's external product name, not our imports:
+- stripe_ctrl.py line 3: "Uses the same Stripe key as Dify but adds MyOwnClone-specific..."
+- core/__init__.py line 3: "Extends Dify without modifying core..."
+- core/ingestion.py line 1: "Clonify RAG ingestion pipeline - adds silo/context metadata on top of Dify's ingestion."
+- core/retrieval.py line 3: "Wraps Dify's RetrievalService..."
+- core/silos.py line 3: "Each clone maps to 3 Dify datasets..."
+- migrations: References to Dify tables remain in migration comments
+
+## Task Status: COMPLETE

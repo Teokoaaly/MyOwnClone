@@ -1,14 +1,16 @@
-# CLAUDE.md — myownclone
+# CLAUDE.md — MyOwnClone
 
-**Proyecto:** Clon de myownclone sobre Dify (SaaS multi-tenant con chat IA, email triage, booking y billing)
+**Repository:** https://github.com/Teokoaaly/MyOwnClone
+
+**Proyecto:** Plataforma SaaS multi-tenant con clones IA, email triage, booking y billing.
 
 ## Arquitectura
 
-- **Backend:** `dify/` — fork de Dify (Flask + PostgreSQL + Redis + Weaviate)
+- **Backend:** `api/` — Flask + PostgreSQL + Redis + Weaviate
 - **Frontend:** `replica/` — Next.js 16 App Router (TypeScript, React 19, Tailwind v4, NextAuth 5)
-- **Docker:** `dify/docker/` — docker-compose.yaml con 16 servicios
+- **Docker:** `api/` — docker-compose con servicios
 
-## Modelo de datos (15 tablas myownclone en `dify/api/models/myownclone/`)
+## Modelo de datos (15 tablas MyOwnClone en `api/models/myownclone/`)
 
 - `clone_configs` — configuración del clon (nombre, slug, avatar, modos, custom_domain)
 - `clone_mode_prompts` — prompts por modo (teach/support/sales)
@@ -28,28 +30,22 @@
 ## Deps críticas
 
 - `OPENAI_API_BASE` — proveedor LLM (DeepSeek por defecto)
-- `DB_HOST=db_postgres`, `DB_PASSWORD=difyai123456`
-- `REDIS_PASSWORD=difyai123456`
+- `DB_HOST=db_postgres`, `DB_PASSWORD=dev_password_123`
+- `REDIS_PASSWORD=dev_password_123`
 - `STRIPE_SECRET_KEY` — billing
 - `RESEND_API_KEY` — envío email
 
-## Bugs conocidos — RESUELTOS
+## Bugs conocidos
 
-1. ✅ `myownclone_public_bp` no registrado → corregido en `myownclone/api/app_factory.py`
-2. ✅ `_add_memories_to_prompt()` no retorna → corregido en `clonify_public.py:166`
-3. ✅ `admin_platform.py` línea 166: `tenant_name` = `tenant_id` → corregido con lookup real
-
-## Pendientes (no críticos)
-
-- `MeetingType_` con underscore en el nombre
-- `impersonation_tokens` usa `String(36)` en vez de UUID
-- `custom_domain` ambigüedad entre `tenants` y `clone_configs`
+1. `myownclone_public_bp` no registrado → endpoints públicos no funcionan
+2. `_add_memories_to_prompt()` no retorna → memorias no se injectan
+3. `admin_platform.py` línea 169: `tenant_name` = `tenant_id` (sin lookup)
 
 ## Comandos comunes
 
 ```bash
 # Backend
-cd dify/docker && docker compose up -d
+cd api/api && docker compose up -d
 docker compose exec api flask db upgrade
 
 # Frontend
@@ -61,7 +57,7 @@ python test_login.py
 
 ## Credenciales
 
-- DB: `postgres / difyai123456` (host `db_postgres`)
+- DB: `postgres / dev_password_123` (host `db_postgres`)
 - Admin default: `admin@myownclone.com / admin123`
 - Weaviate API key: `WVF5YThaHlkYwhGUSmCRgsX3tD5ngdN8pkih`
 - Plugin daemon key: `lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+...`

@@ -1,0 +1,21 @@
+=== Task 4: ImpersonationToken.token Column Fix ===
+Date: 2026-06-01 11:57:00
+
+FILE MODIFIED:
+  dify/api/models/analytics.py
+
+CHANGE:
+  Line 152: token column changed from String(128) to String(64)
+
+REASON:
+  secrets.token_urlsafe(32) produces 43-character tokens
+  String(64) is sufficient to hold full tokens without truncation
+
+VERIFICATION:
+  - Python syntax check: PASSED
+  - Token length (secrets.token_urlsafe(32)): 43 characters
+  - New column capacity: 64 characters
+  - No other columns modified
+
+BEFORE: token: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+AFTER:  token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
