@@ -57,8 +57,8 @@ python test_login.py
 
 ## Credenciales
 
-- DB: `postgres / dev_password_123` (host `db_postgres`)
-- Admin default: `admin@myownclone.com / admin123`
-- Weaviate API key: `WVF5YThaHlkYwhGUSmCRgsX3tD5ngdN8pkih`
-- Plugin daemon key: `lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+...`
-- Plugin inner API key: `QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1`
+- DB: `postgres / <DB_PASSWORD>` (host `db_postgres`)
+- Admin default: `admin@myownclone.com / <ADMIN_PASSWORD>`
+- Weaviate API key: `<WEAVIATE_API_KEY>`
+- Plugin daemon key: `<PLUGIN_DAEMON_KEY>`
+- Plugin inner API key: `<INNER_API_KEY>`

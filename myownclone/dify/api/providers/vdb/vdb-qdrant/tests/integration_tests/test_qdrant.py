@@ -17,7 +17,7 @@ class QdrantVectorTest(AbstractVectorTest):
             group_id=self.dataset_id,
             config=QdrantConfig(
                 endpoint="http://127.0.0.1:6333",
-                api_key="difyai123456",
+                api_key="<DB_PASSWORD>",
             ),
         )
         # Additional doc IDs for multi-keyword search tests

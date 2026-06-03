@@ -7,7 +7,7 @@ def test_init_client_with_valid_config():
     """Test successful client initialization with valid configuration."""
     config = WeaviateConfig(
         endpoint="http://localhost:8080",
-        api_key="WVF5YThaHlkYwhGUSmCRgsX3tD5ngdN8pkih",
+        api_key="<WEAVIATE_API_KEY>",
     )
 
     with patch("weaviate.connect_to_custom") as mock_connect:

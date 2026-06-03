@@ -18,7 +18,7 @@ def oceanbase_vector():
             port=2881,
             user="root",
             database="test",
-            password="difyai123456",
+            password="<DB_PASSWORD>",
             enable_hybrid_search=True,
             batch_size=10,
         ),
