@@ -1,23 +1,50 @@
 {
-  "active_plan": "C:\\Users\\haxth3\\Documents\\MyOwnClone\\.sisyphus\\plans\\myownclone-launch.md",
-  "started_at": "2026-06-02T21:25:13.388Z",
+  "active_plan": "C:\\Users\\haxth3\\Documents\\MyOwnClone\\.sisyphus\\plans\\audit-remediation.md",
+  "started_at": "2026-06-03T06:56:48.662Z",
   "session_ids": [
     "ses_17728a9f6ffexar2b3kHgnjGZp"
   ],
   "session_origins": {
     "ses_17728a9f6ffexar2b3kHgnjGZp": "direct"
   },
-  "plan_name": "myownclone-launch",
+  "plan_name": "audit-remediation",
   "agent": "atlas",
   "task_sessions": {
-    "todo:5": {
-      "task_key": "todo:5",
-      "task_label": "5",
-      "task_title": "Rename `(clonify)` folder → `(public)`",
-      "session_id": "ses_175bccedaffee6C6YrFF8m6c8V",
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "**Investigar estructura de models del base platform**",
+      "session_id": "ses_173b92e5effe2Mm8GD0YxhthA1",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-06-03T07:01:27.074Z"
+    },
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "**Crear/vincular base.py y types.py para models**",
+      "session_id": "ses_1739fd85affePGtrDKmHlxoSP5",
       "agent": "Sisyphus-Junior",
       "category": "quick",
-      "updated_at": "2026-06-02T21:36:56.137Z"
+      "updated_at": "2026-06-03T07:26:56.693Z"
+    },
+    "todo:3": {
+      "task_key": "todo:3",
+      "task_label": "3",
+      "task_title": "**Corregir imports en models/__init__.py**",
+      "session_id": "ses_1739e89d1ffeZyCgmpjpOPHleV",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-06-03T07:28:35.636Z"
+    },
+    "todo:6": {
+      "task_key": "todo:6",
+      "task_label": "6",
+      "task_title": "**Verificar Flask app inicia sin errores**",
+      "session_id": "ses_173966597ffeVUkasdTlB6sG0a",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-06-03T07:38:10.441Z"
     }
   }
 }

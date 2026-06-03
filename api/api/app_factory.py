@@ -9,7 +9,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from extensions import db
-from models.myownclone import (
+from models import (
     Availability,
     Booking,
     CloneConfig,
@@ -25,6 +25,9 @@ from models.myownclone import (
 
 # Import public blueprint
 from controllers.myownclone_public import myownclone_public_bp
+
+# Import console blueprint
+from controllers.console import bp as console_bp
 
 # Import CLI commands
 from commands.seed import seed_demo_data
@@ -67,6 +70,7 @@ def create_app():
 def register_myownclone_blueprints(app):
     """Register all MyOwnClone blueprints with the Flask app."""
     app.register_blueprint(myownclone_public_bp)
+    app.register_blueprint(console_bp)
 
 
 # Flask uses this when FLASK_APP=app_factory

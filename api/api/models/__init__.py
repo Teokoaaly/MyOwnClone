@@ -1,4 +1,4 @@
-from models.myownclone.analytics import (
+from .analytics import (
     AnalyticsGap,
     AnalyticsQuestion,
     CostCategory,
@@ -9,15 +9,15 @@ from models.myownclone.analytics import (
     ImpersonationToken,
     Plan,
 )
-from models.myownclone.clone import (
+from .clone import (
     CloneConfig,
     CloneModePrompt,
     CloneSilo,
     CreatorMemory,
     CreatorMemoryType,
 )
-from models.myownclone.email import EmailInbound, EmailInboundStatus, EmailTemplate
-from models.myownclone.meeting import (
+from .email import EmailInbound, EmailInboundStatus, EmailTemplate
+from .meeting import (
     Availability,
     Booking,
     BookingStatus,
