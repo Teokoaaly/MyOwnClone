@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "title": "Réplica - Multiply Yourself",
+    "description": "Create an AI clone trained with your content. Available 24/7 in pedagogy, sales, and support modes."
+  },
+  "nav": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "dashboard": "Dashboard",
+    "logout": "Sign out"
+  },
+  "auth": {
+    "loginTitle": "Sign in to Réplica",
+    "registerTitle": "Create your Réplica account",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@email.com",
+    "sendLink": "Send magic link",
+    "checkEmail": "Check your email",
+    "checkEmailDesc": "We sent a login link to {email}",
+    "googleButton": "Continue with Google",
+    "orContinue": "or continue with",
+    "nameLabel": "Full name",
+    "namePlaceholder": "Your name",
+    "verifyEmail": "Verify email",
+    "verifyEmailDesc": "Enter the code we sent to your email"
+  },
+  "onboarding": {
+    "title": "Set up your Réplica",
+    "slugLabel": "Choose your subdomain",
+    "slugPlaceholder": "yourname",
+    "slugSuffix": ".replica.yourdomain.com",
+    "cloneNameLabel": "Your clone's name",
+    "cloneNamePlaceholder": "e.g. Juan's Assistant",
+    "cloneDescriptionLabel": "Your clone's description",
+    "cloneDescriptionPlaceholder": "What does your clone do? Who does it help?",
+    "continue": "Continue",
+    "skip": "Set up later"
+  },
+  "dashboard": {
+    "biblioteca": "Library",
+    "cerebro": "Brain",
+    "inbox": "Inbox",
+    "productos": "Products",
+    "reuniones": "Meetings",
+    "analiticas": "Analytics",
+    "facturacion": "Billing",
+    "configuracion": "Settings",
+    "resumen": "Overview",
+    "cloneSelector": "Select clone"
+  },
+  "clone": {
+    "publicTitle": "Chat with {name}",
+    "publicSubtitle": "An AI clone trained to help you",
+    "placeholder": "Type your message here...",
+    "send": "Send",
+    "newConversation": "New conversation",
+    "thinking": "Thinking...",
+    "notEnoughInfo": "I don't have enough information to answer this question accurately. Would you like me to notify the team?",
+    "feedbackThanks": "Thanks for your feedback",
+    "modes": {
+      "pedagogy": "Pedagogy",
+      "sales": "Sales",
+      "support": "Support"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Page not found",
+    "unauthorized": "You don't have access to this page",
+    "rateLimit": "Too many requests. Please wait a moment."
+  },
+  "plans": {
+    "basic": "Basic",
+    "pro": "Pro",
+    "scale": "Scale",
+    "enterprise": "Enterprise",
+    "currentPlan": "Current plan",
+    "upgrade": "Upgrade plan",
+    "manageBilling": "Manage billing",
+    "trialDaysLeft": "{days} days left in your free trial",
+    "trialEnded": "Your free trial has ended"
+  }
+}
