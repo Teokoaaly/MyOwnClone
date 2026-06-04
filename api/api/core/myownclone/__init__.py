@@ -1,0 +1,1 @@
+"""MyOwnClone core package."""
