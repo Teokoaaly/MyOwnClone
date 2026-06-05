@@ -1,179 +1,238 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface FeedbackEntry {
+interface AdminFeedback {
   id: string;
-  message: string;
-  rating?: number;
-  userId?: string;
-  createdAt: string;
+  clone_id: string;
+  clone_name: string | null;
+  tenant_id: string | null;
+  tenant_name: string | null;
+  rating: "up" | "down";
+  comment: string | null;
+  created_at: string | null;
 }
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+const RATING_OPTIONS = [
+  { value: "", label: "Todas" },
+  { value: "up", label: "Positivas" },
+  { value: "down", label: "Negativas" },
+];
+
 export default function AdminFeedbackPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  const [feedback, setFeedback] = useState<FeedbackEntry[]>([]);
+  const [feedback, setFeedback] = useState<AdminFeedback[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rating, setRating] = useState("");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("page", String(pagination.page));
+    params.set("limit", String(pagination.limit));
+    if (rating) params.set("rating", rating);
+    if (search) params.set("search", search);
+    return params.toString();
+  }, [pagination.page, pagination.limit, rating, search]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
-
-    async function fetchFeedback() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch("/api/admin/feedback");
-        if (!res.ok) throw new Error(`Error ${res.status}`);
-        const data = await res.json();
-        setFeedback(Array.isArray(data) ? data : data.feedback || []);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Error al cargar el feedback"
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/admin/feedback?${queryString}`, { cache: "no-store" })
+      .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          return null;
+        }
+        if (!res.ok) throw new Error(`Backend error ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!data || cancelled) return;
+        setFeedback(data.items ?? []);
+        setPagination(
+          data.pagination ?? { page: 1, limit: 20, total: 0, pages: 0 },
         );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchFeedback();
-  }, [status]);
-
-  const filtered = feedback.filter((f) =>
-    f.message.toLowerCase().includes(search.toLowerCase())
-  );
-
-  if (status === "loading" || loading) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-          Feedback de Plataforma
-        </h1>
-        <div className="flex h-64 items-center justify-center">
-          <div className="flex gap-1">
-            <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-          Feedback de Plataforma
-        </h1>
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-red-200 dark:border-red-800 p-6">
-          <div className="text-center py-12">
-            <p className="text-red-600 dark:text-red-400 font-medium">
-              Error al cargar el feedback
-            </p>
-            <p className="mt-1 text-sm text-gray-500">{error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message ?? "Error");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [queryString, router]);
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-        Feedback de Plataforma
-      </h1>
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+          Feedback de plataforma
+        </h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">
+          {pagination.total} respuestas de los usuarios
+        </p>
+      </header>
 
-      {feedback.length === 0 ? (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              No hay feedback todavía
-            </h3>
-            <p className="mt-2 text-gray-500 dark:text-gray-400">
-              El feedback de los usuarios aparecerá aquí.
-            </p>
+      <div className="card flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <label className="stat-label">Buscar</label>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setPagination((p) => ({ ...p, page: 1 }));
+              setSearch(e.target.value);
+            }}
+            placeholder="Comentario o nombre de clon…"
+            className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
+          />
+        </div>
+        <div>
+          <label className="stat-label">Valoración</label>
+          <select
+            value={rating}
+            onChange={(e) => {
+              setPagination((p) => ({ ...p, page: 1 }));
+              setRating(e.target.value);
+            }}
+            className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
+          >
+            {RATING_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {error ? (
+        <div className="card border-red-200 bg-red-50/40">
+          <p className="text-sm font-medium text-red-700">Error cargando feedback</p>
+          <p className="mt-1 text-xs text-red-600">{error}</p>
+        </div>
+      ) : loading ? (
+        <div className="card flex h-48 items-center justify-center">
+          <div className="flex gap-1">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:150ms]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:300ms]" />
           </div>
         </div>
+      ) : feedback.length === 0 ? (
+        <div className="card text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-2)]">
+            <svg
+              className="h-6 w-6 text-[var(--text-muted)]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+              />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-[var(--text-primary)]">
+            Sin feedback todavía
+          </p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            Las respuestas de los usuarios aparecerán aquí.
+          </p>
+        </div>
       ) : (
-        <>
-          <div className="mb-4">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar feedback..."
-              className="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-            />
-          </div>
-
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Mensaje
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Rating
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Fecha
-                  </th>
+        <div className="card overflow-hidden p-0">
+          <table className="w-full text-sm">
+            <thead className="table-header">
+              <tr>
+                <th className="px-4 py-2.5 text-left">Tenant / Clon</th>
+                <th className="px-4 py-2.5 text-left">Comentario</th>
+                <th className="px-4 py-2.5 text-left">Rating</th>
+                <th className="px-4 py-2.5 text-left">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {feedback.map((f) => (
+                <tr key={f.id} className="table-row">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-[var(--text-primary)]">
+                      {f.tenant_name ?? "—"}
+                    </div>
+                    {f.clone_name && (
+                      <div className="text-xs text-[var(--text-muted)]">
+                        {f.clone_name}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">
+                    {f.comment ?? <em className="text-[var(--text-faint)]">(sin comentario)</em>}
+                  </td>
+                  <td className="px-4 py-3">
+                    {f.rating === "up" ? (
+                      <span className="badge-active">Positiva</span>
+                    ) : (
+                      <span className="badge-error">Negativa</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
+                    {f.created_at
+                      ? new Date(f.created_at).toLocaleString("es-ES", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        })
+                      : "—"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                {filtered.map((entry) => (
-                  <tr key={entry.id}>
-                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 max-w-md truncate">
-                      {entry.message}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                      {entry.rating !== undefined
-                        ? `${entry.rating}/5`
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {new Date(entry.createdAt).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filtered.length === 0 && search && (
-              <div className="text-center py-8 text-sm text-gray-500">
-                No se encontraron resultados para &quot;{search}&quot;
-              </div>
-            )}
-          </div>
-        </>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {pagination.pages > 1 && (
+        <div className="flex items-center justify-end gap-2 text-xs text-[var(--text-muted)]">
+          <button
+            type="button"
+            disabled={pagination.page <= 1}
+            onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
+            className="btn-secondary text-xs disabled:opacity-40"
+          >
+            ← Anterior
+          </button>
+          <span>
+            {pagination.page} / {pagination.pages}
+          </span>
+          <button
+            type="button"
+            disabled={pagination.page >= pagination.pages}
+            onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
+            className="btn-secondary text-xs disabled:opacity-40"
+          >
+            Siguiente →
+          </button>
+        </div>
       )}
     </div>
   );
