@@ -10,7 +10,7 @@ from api.libs.datetime_utils import naive_utc_now
 from api.libs.uuid_utils import uuidv7
 
 from ..base import DefaultFieldsDCMixin, TypeBase
-from ..db_types import LongText, StringList
+from ..db_types import LongText
 
 
 class EmailInboundStatus(enum.StrEnum):
@@ -26,27 +26,22 @@ class EmailInbound(TypeBase):
     id: Mapped[str] = mapped_column(
         String(36),
         primary_key=True,
-        insert_default=lambda: str(uuidv7()),
-        default_factory=lambda: str(uuidv7()),
-        init=False,
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    from_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, default=None)
-    from_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, default=None)
-    subject: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, default=None)
-    body_text: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
-    body_html: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
-    draft_reply: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
+    from_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    from_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    subject: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    body_text: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    body_html: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    draft_reply: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
     status: Mapped[str] = mapped_column(String(20), server_default=text("'pending'"), default="pending")
-    labels: Mapped[Optional[list]] = mapped_column(StringList(), nullable=True, default=None)
+    labels: Mapped[Optional[str]] = mapped_column(sa.ARRAY(String(50)), nullable=True, default=None)
     classification: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default=None)
     thread_id: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, default=None)
     received_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
-        default_factory=naive_utc_now,
-        init=False,
         server_default=func.current_timestamp(),
     )
     responded_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=None)
@@ -57,6 +52,6 @@ class EmailTemplate(DefaultFieldsDCMixin, TypeBase):
 
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    subject: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, default=None)
-    body: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
-    trigger_keywords: Mapped[Optional[list]] = mapped_column(StringList(), nullable=True, default=None)
+    subject: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    body: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    trigger_keywords: Mapped[Optional[str]] = mapped_column(sa.ARRAY(String(100)), nullable=True)

@@ -94,7 +94,7 @@ def get_clone_public(slug: str):
     from api.models.myownclone import CloneConfig
 
     clone = db.session.execute(
-        select(CloneConfig).where(
+        db.select(CloneConfig).where(
             CloneConfig.slug == slug,
             CloneConfig.is_active.is_(True),
         )
@@ -129,7 +129,7 @@ def chat_public(slug: str):
     from api.models.myownclone import CloneConfig, CloneModePrompt
 
     clone = db.session.execute(
-        select(CloneConfig).where(
+        db.select(CloneConfig).where(
             CloneConfig.slug == slug,
             CloneConfig.is_active.is_(True),
         )
@@ -227,7 +227,7 @@ def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
         from graphon.model_runtime.entities.model_entities import ModelType
 
         clone = db.session.execute(
-            select(CloneConfig).where(CloneConfig.id == clone_id)
+            db.select(CloneConfig).where(CloneConfig.id == clone_id)
         ).scalar_one_or_none()
 
         if not clone:
@@ -302,7 +302,7 @@ def chat_public_simple(slug: str):
     from api.models.myownclone import CloneConfig
 
     clone = db.session.execute(
-        select(CloneConfig).where(
+        db.select(CloneConfig).where(
             CloneConfig.slug == slug,
             CloneConfig.is_active.is_(True),
         )
@@ -342,7 +342,7 @@ def get_meeting_types_public(slug: str):
     from api.models.myownclone import CloneConfig, MeetingType_
 
     clone = db.session.execute(
-        select(CloneConfig).where(
+        db.select(CloneConfig).where(
             CloneConfig.slug == slug,
             CloneConfig.is_active.is_(True),
         )
@@ -387,7 +387,7 @@ def create_booking_public(slug: str):
         return jsonify({"error": "meeting_type_id, visitor_name, visitor_email, and date are required"}), 400
 
     clone = db.session.execute(
-        select(CloneConfig).where(
+        db.select(CloneConfig).where(
             CloneConfig.slug == slug,
             CloneConfig.is_active.is_(True),
         )

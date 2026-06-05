@@ -8,7 +8,6 @@ from api.models import (
     AnalyticsQuestion, AnalyticsGap, GapStatus,
     ImpersonationLog, ImpersonationToken,
     Feedback,
-    AdminAuditLog,
 )
 __all__ = [
     'CloneConfig', 'CloneModePrompt', 'CloneSilo',
@@ -19,5 +18,4 @@ __all__ = [
     'AnalyticsQuestion', 'AnalyticsGap', 'GapStatus',
     'ImpersonationLog', 'ImpersonationToken',
     'Feedback',
-    'AdminAuditLog',
 ]
