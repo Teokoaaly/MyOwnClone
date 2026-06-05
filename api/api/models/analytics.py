@@ -31,8 +31,8 @@ class CostTracking(TypeBase):
     )
     tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
     category: Mapped[str] = mapped_column(String(20), nullable=False)
-    operation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    model: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    operation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, default=None)
+    model: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default=None)
     tokens_in: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
     cost_cents: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
@@ -78,7 +78,7 @@ class AnalyticsQuestion(TypeBase):
         init=False,
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
     count: Mapped[int] = mapped_column(Integer, server_default=text("1"), default=1)
     last_asked_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -101,7 +101,7 @@ class AnalyticsGap(TypeBase):
         init=False,
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
     count: Mapped[int] = mapped_column(Integer, server_default=text("1"), default=1)
     suggested_source: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, default=None)
     status: Mapped[str] = mapped_column(String(20), server_default=text("'open'"), default="open")
@@ -127,7 +127,7 @@ class ImpersonationLog(TypeBase):
     )
     admin_id: Mapped[str] = mapped_column(String(36), nullable=False)
     tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    reason: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    reason: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
     started_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -136,7 +136,7 @@ class ImpersonationLog(TypeBase):
         init=False,
         server_default=func.current_timestamp(),
     )
-    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=None)
 
 
 class ImpersonationToken(TypeBase):
@@ -166,8 +166,34 @@ class ImpersonationToken(TypeBase):
 class Feedback(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "clone_feedback"
 
-    clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    conversation_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
-    message_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     rating: Mapped[str] = mapped_column(String(10), nullable=False)  # "up" or "down"
-    comment: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    conversation_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, default=None)
+    message_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, default=None)
+    comment: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
+
+
+class AdminAuditLog(DefaultFieldsDCMixin, TypeBase):
+    """Append-only audit trail for sensitive platform-admin actions.
+
+    Recorded actions:
+      - impersonation_started / impersonation_stopped
+      - tenant_plan_updated
+      - tenant_status_updated
+      - tenant_created (courtesy signups)
+
+    `metadata_json` is a free-form payload used per action (e.g. before/after
+    plan, reason text, impersonation token prefix). Never store the full
+    impersonation token here — only a short prefix for correlation.
+    """
+
+    __tablename__ = "admin_audit_log"
+
+    actor_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    action: Mapped[str] = mapped_column(String(50), nullable=False)
+    target_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default=None)
+    target_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, default=None)
+    reason: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
+    metadata_json: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
+    ip_address: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, default=None)
+    user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, default=None)
