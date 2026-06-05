@@ -9,7 +9,7 @@ from api.libs.datetime_utils import naive_utc_now
 from api.libs.uuid_utils import uuidv7
 
 from ..base import DefaultFieldsDCMixin, TypeBase
-from ..db_types import LongText
+from ..db_types import LongText, StringList
 
 
 class CloneSilo(enum.StrEnum):
@@ -24,12 +24,12 @@ class CloneConfig(DefaultFieldsDCMixin, TypeBase):
     tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
-    avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    personality_tone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
+    avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, default=None)
+    personality_tone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default=None)
     language: Mapped[str] = mapped_column(String(10), server_default=text("'es'"), default="es")
     custom_domain: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, default=None)
-    active_modes: Mapped[Optional[str]] = mapped_column(sa.ARRAY(String(20)), nullable=True, default=None)
+    active_modes: Mapped[Optional[list]] = mapped_column(StringList(), nullable=True, default=None)
     is_active: Mapped[bool] = mapped_column(sa.Boolean, server_default=text("true"), default=True)
 
 
@@ -54,5 +54,5 @@ class CreatorMemory(DefaultFieldsDCMixin, TypeBase):
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     type: Mapped[str] = mapped_column(String(20), nullable=False)
     content: Mapped[str] = mapped_column(LongText, nullable=False)
-    trigger_condition: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+    trigger_condition: Mapped[Optional[str]] = mapped_column(LongText, nullable=True, default=None)
     priority: Mapped[int] = mapped_column(sa.Integer, server_default=text("0"), default=0)
