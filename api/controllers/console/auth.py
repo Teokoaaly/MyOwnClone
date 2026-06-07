@@ -20,7 +20,24 @@ def _get_db_conn():
 
 
 def _get_secret_key():
-    return os.environ.get("JWT_SECRET_KEY", "dev-secret-change-me")
+    """Return the JWT signing secret. Fails fast in production if unset."""
+    secret = os.environ.get("JWT_SECRET_KEY", "")
+    if not secret or secret == "dev-secret-change-me":
+        if os.environ.get("FLASK_ENV") == "production":
+            raise RuntimeError(
+                "SECURITY ERROR: JWT_SECRET_KEY must be set to a strong value in production. "
+                "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(64))'"
+            )
+        # Dev/test: log a warning and use a random per-process key
+        import secrets
+        return secrets.token_urlsafe(64)
+    if len(secret) < 32:
+        raise RuntimeError(
+            "SECURITY ERROR: JWT_SECRET_KEY must be at least 32 characters. "
+            f"Current length: {len(secret)}. Generate a stronger one with: "
+            "python -c 'import secrets; print(secrets.token_urlsafe(64))'"
+        )
+    return secret
 
 
 def _verify_token(token: str) -> dict | None:
