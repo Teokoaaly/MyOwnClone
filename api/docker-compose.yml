@@ -63,7 +63,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       FLASK_APP: app_factory
     env_file:
-      - ./api/.env
+      - .env
     depends_on:
       db_postgres:
         condition: service_healthy
