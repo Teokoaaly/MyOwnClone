@@ -30,9 +30,12 @@ services:
     image: cr.weaviate.io/semitechnologies/weaviate:1.24.0
     container_name: myownclone_weaviate
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
-      DISABLE_AUTH: "true"
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
+      AUTHENTICATION_APIKEY_ENABLED: "true"
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: "${WEAVIATE_API_KEY}"
+      AUTHENTICATION_APIKEY_USERS: "admin"
       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
       ENABLE_MODULES: "text2vec-openai,text2vec-huggingface"
     volumes:
@@ -40,7 +43,7 @@ services:
 
   api:
     build:
-      context: .
+      context: ./api
       dockerfile: Dockerfile
     container_name: myownclone_api
     ports:
@@ -57,10 +60,10 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       WEAVIATE_URL: http://weaviate:8080
       WEAVIATE_API_KEY: ${WEAVIATE_API_KEY}
-      FLASK_APP: api.app_factory
-    volumes:
-      - .:/app
-    working_dir: /app
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      FLASK_APP: app_factory
+    env_file:
+      - ./api/.env
     depends_on:
       db_postgres:
         condition: service_healthy
