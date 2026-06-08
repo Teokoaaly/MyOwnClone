@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { NavIcons } from "@/components/ui/dashboard-icons";
 import { DashboardTopbarSearch } from "@/components/dashboard/DashboardTopbarSearch";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {
