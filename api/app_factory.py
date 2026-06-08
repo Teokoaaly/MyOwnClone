@@ -40,8 +40,12 @@ def _validate_required_env():
     """Fail fast if required environment variables are missing.
 
     Security: DB_PASSWORD and REDIS_PASSWORD are OBLIGATORY.
+    JWT_SECRET_KEY must be set to a strong value (no hardcoded fallback).
     API keys can be empty for development mode.
     """
+    import secrets
+    import warnings
+
     missing = []
 
     db_password = os.getenv("DB_PASSWORD")
@@ -60,6 +64,22 @@ def _validate_required_env():
         raise ValueError(
             "SECURITY ERROR: REDIS_PASSWORD cannot be 'changeit'. "
             "Set a strong password in environment variable."
+        )
+
+    jwt_secret = os.getenv("JWT_SECRET_KEY", "")
+    if not jwt_secret or jwt_secret == "dev-secret-change-me":
+        if os.getenv("FLASK_ENV") == "production":
+            raise RuntimeError(
+                "SECURITY ERROR: JWT_SECRET_KEY must be set to a strong value in production. "
+                "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(64))'"
+            )
+        # Dev: auto-generate a random key so the app can start, but warn loudly.
+        generated = secrets.token_urlsafe(32)
+        os.environ["JWT_SECRET_KEY"] = generated
+        warnings.warn(
+            "WARNING: JWT_SECRET_KEY not set — using a randomly generated key for this session. "
+            "Set JWT_SECRET_KEY explicitly for consistent token validation across restarts.",
+            RuntimeWarning,
         )
 
     if missing:
