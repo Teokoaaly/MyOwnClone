@@ -34,18 +34,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd --system --gid 1001 app \
     && useradd --system --uid 1001 --gid app --no-create-home --shell /usr/sbin/nologin appuser
 
+# Layout: /app/api/ is the package. WORKDIR is /app so that
+# 'import api.*' resolves via /app being on sys.path (added by gunicorn).
 WORKDIR /app
 
 # Pull requirements first (cached layer)
 COPY --from=builder /wheels /wheels
-COPY requirements.txt .
-RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt gunicorn \
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r /app/requirements.txt gunicorn \
     && rm -rf /wheels
 
-# Copy application code (owned by appuser)
-COPY --chown=appuser:app . /app
+# Copy application code into /app/api/ so 'import api.*' works
+COPY --chown=appuser:app . /app/api/
 
 USER appuser
+
+# Add /app to PYTHONPATH so 'import api' works regardless of cwd
+ENV PYTHONPATH=/app
 
 EXPOSE 5001
 
@@ -53,8 +58,8 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:5001/console/api/ || exit 1
 
-# Default command — gunicorn for production, but keep a dev path
-# Note: `flask run` defaults to looking for `app.app_factory` which
-# doesn't exist (the file is `app_factory.py` at the root of /app/api).
-# Use `flask --app app_factory run` or gunicorn to point correctly.
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "app_factory:app"]
+# gunicorn with app at /app/api/app_factory.py → module is api.app_factory
+# Use the path-style import so we don't depend on sys.path manipulation
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "60", \
+     "--access-logfile", "-", "--error-logfile", "-", \
+     "api.app_factory:app"]
