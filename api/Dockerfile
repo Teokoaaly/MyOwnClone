@@ -52,6 +52,10 @@ USER appuser
 # Add /app to PYTHONPATH so 'import api' works regardless of cwd
 ENV PYTHONPATH=/app
 
+# gunicorn uses /home/<user> for tmp by default; create a writable scratch dir
+ENV TMPDIR=/tmp
+RUN mkdir -p /tmp && chown appuser:app /tmp
+
 EXPOSE 5001
 
 # Healthcheck
