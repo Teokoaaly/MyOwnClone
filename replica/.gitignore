@@ -26,3 +26,7 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# Database artifacts
+*.db
+instance/
