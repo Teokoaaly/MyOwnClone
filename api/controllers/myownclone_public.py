@@ -287,7 +287,7 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
 
 @myownclone_public_bp.route("/clones/<string:slug>/chat-simple", methods=["POST"])
 def chat_public_simple(slug: str):
-    """Public chat endpoint — non-streaming JSON response (mock for now).
+    """Public chat endpoint — non-streaming JSON response.
 
     Accepts:
         message: str (required)
@@ -295,11 +295,15 @@ def chat_public_simple(slug: str):
         conversation_id: str | None (optional)
 
     Returns:
-        JSON response with mock reply
+        JSON response with the LLM reply, sources, and usage metadata.
     """
+    import json
     from sqlalchemy import select
 
-    from api.models.myownclone import CloneConfig
+    from api.core.myownclone.retrieval import retrieve_from_silo
+    from api.core.myownclone.silos import CloneSilo
+    from api.core.rag.retrieval.retrieval_methods import RetrievalMethod
+    from api.models.myownclone import CloneConfig, CloneModePrompt
 
     clone = db.session.execute(
         select(CloneConfig).where(
@@ -319,20 +323,87 @@ def chat_public_simple(slug: str):
     if not message:
         return jsonify({"error": "message is required"}), 400
 
-    valid_modes = ["teach", "support", "sales"]
-    if mode not in valid_modes:
-        return jsonify({"error": f"invalid mode: {mode}. Must be one of {valid_modes}"}), 400
+    valid_silos = {s.value for s in CloneSilo}
+    if mode not in valid_silos:
+        return jsonify({"error": f"invalid mode: {mode}. Must be one of {sorted(valid_silos)}"}), 400
 
-    # Mock response — replace with real AI integration later
-    return jsonify({
-        "clone_id": clone.id,
-        "clone_name": clone.name,
-        "mode": mode,
-        "conversation_id": conversation_id,
-        "reply": f"Hola! Soy {clone.name}. Recibí tu mensaje: '{message}'. Estoy operando en modo {mode}. Esta es una respuesta mock — la IA real se conectará pronto.",
-        "sources": [],
-        "context_found": False,
-    }), 200
+    silo = CloneSilo(mode)
+
+    # Fetch mode-specific system prompt
+    mode_prompt = db.session.execute(
+        select(CloneModePrompt).where(
+            CloneModePrompt.clone_id == clone.id,
+            CloneModePrompt.mode == silo.value,
+            CloneModePrompt.is_active.is_(True),
+        )
+    ).scalar_one_or_none()
+
+    system_prompt = mode_prompt.system_prompt if mode_prompt else (
+        "Eres un asistente útil. Responde basándote en el contenido proporcionado."
+    )
+
+    system_prompt = _add_memories_to_prompt(clone.id, system_prompt)
+
+    # Retrieve relevant content from the clone's knowledge base
+    result = retrieve_from_silo(
+        session=db.session,
+        tenant_id=clone.tenant_id,
+        clone_id=clone.id,
+        query=message,
+        silo=silo,
+        context_id=conversation_id,
+        top_k=5,
+        score_threshold=0.7,
+        retrieval_method=RetrievalMethod.SEMANTIC_SEARCH,
+    )
+
+    context_text = result.to_context_string() if result.found else ""
+
+    full_prompt = f"""{system_prompt}
+
+{"CONTENIDO DE REFERENCIA:" if context_text else "No se encontró contenido relevante en la base de conocimiento."}
+{context_text}
+
+Pregunta del usuario: {message}"""
+
+    try:
+        from api.core.model_manager import ModelManager
+        from graphon.model_runtime.entities.model_entities import ModelType
+
+        model_manager = ModelManager()
+        model_instance = model_manager.get_default_model_instance(
+            tenant_id=clone.tenant_id, model_type=ModelType.LLM
+        )
+
+        # Non-streaming: accumulate chunks from the stream to get the full response
+        accumulated = ""
+        for chunk in model_instance.invoke_llm_stream(prompt=full_prompt):
+            accumulated += chunk
+
+        sources = [
+            {"content": c[:300], "score": round(s, 2)}
+            for c, s in zip(result.contents, result.scores)
+        ]
+        confidence = round(result.scores[0], 2) if result.scores else 0.0
+
+        return jsonify({
+            "clone_id": clone.id,
+            "clone_name": clone.name,
+            "mode": mode,
+            "conversation_id": conversation_id,
+            "reply": accumulated,
+            "sources": sources,
+            "context_found": result.found,
+            "silo": silo.value,
+            "confidence": confidence,
+        }), 200
+
+    except Exception:
+        logger.exception("Chat simple failed for clone=%s", clone.id)
+        return jsonify({
+            "error": "service_unavailable",
+            "message": "Lo siento, ha ocurrido un error al procesar tu mensaje. Inténtalo de nuevo.",
+        }), 503
 
 
 @myownclone_public_bp.route("/clones/<string:slug>/meeting-types", methods=["GET"])
