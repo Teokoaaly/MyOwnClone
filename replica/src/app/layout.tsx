@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
-import { themeInitScript } from "@/lib/theme-init";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -35,15 +34,7 @@ export default function RootLayout({
       className={`${dmSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        {/*
-          Inline script that runs BEFORE React hydrates. It reads the
-          stored theme from localStorage and applies the `.dark` class on
-          <html> so the first paint matches the chosen theme. This
-          prevents the "flash of unstyled / wrong-theme" content.
-        */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
+      <head />
       <body className="min-h-full flex flex-col antialiased">
         <Providers>{children}</Providers>
       </body>
