@@ -72,18 +72,6 @@ services:
     # CMD from Dockerfile is gunicorn; override only if you need dev hot-reload
     # command: flask --app app_factory run --host=0.0.0.0 --port=5001
 
-  frontend:
-    build:
-      context: ../MyOwnClone
-      dockerfile: Dockerfile
-    container_name: myownclone_frontend
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://api:5001
-    depends_on:
-      - api
 
 volumes:
   postgres_data:
