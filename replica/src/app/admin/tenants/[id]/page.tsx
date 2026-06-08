@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { LoadingState } from "@/components/ui/LoadingState";
@@ -76,9 +76,11 @@ export default function AdminTenantDetailPage() {
   const [patchSubmitting, setPatchSubmitting] = useState(false);
   const [patchError, setPatchError] = useState<string | null>(null);
 
-  async function fetchDetail() {
+  const cancelledRef = useRef(false);
+
+  const fetchDetail = useCallback(async () => {
     if (!id) return;
-    let cancelled = false;
+    cancelledRef.current = false;
     setLoading(true);
     setError(null);
     try {
@@ -94,25 +96,25 @@ export default function AdminTenantDetailPage() {
       }
       if (!res.ok) throw new Error(`Backend error ${res.status}`);
       const payload = (await res.json()) as TenantDetail;
-      if (!cancelled) {
+      if (!cancelledRef.current) {
         setData(payload);
         setPatchPlan(payload.tenant.plan ?? "");
         setPatchStatus(payload.tenant.status ?? "");
       }
     } catch (err) {
-      if (!cancelled) setError(err instanceof Error ? err.message : "Error");
+      if (!cancelledRef.current) setError(err instanceof Error ? err.message : "Error");
     } finally {
-      if (!cancelled) setLoading(false);
+      if (!cancelledRef.current) setLoading(false);
     }
-    return () => {
-      cancelled = true;
-    };
-  }
+  }, [id, router]);
 
   useEffect(() => {
     fetchDetail();
+    return () => {
+      cancelledRef.current = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, router]);
+  }, [fetchDetail]);
 
   async function submitPatch() {
     if (!id) return;
