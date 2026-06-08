@@ -1,15 +1,14 @@
 "use client"
 
-import { useState, Suspense, useCallback } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { LoadingState } from "@/components/ui/LoadingState"
 
 const SILOS = [
-  { id: "teach", label: "Pedagogía" },
-  { id: "support", label: "Soporte" },
-  { id: "sales", label: "Ventas" },
-] as const
+  { id: "teach", label: "Pedagogía", emoji: "📚" },
+  { id: "support", label: "Soporte", emoji: "💬" },
+  { id: "sales", label: "Ventas", emoji: "🛒" },
+]
 
 const TYPE_LABELS: Record<string, string> = {
   pdf: "Subir PDF",
@@ -19,31 +18,8 @@ const TYPE_LABELS: Record<string, string> = {
   interview: "Entrevista AI",
 }
 
-function CheckIcon({
-  className,
-  style,
-}: {
-  className?: string
-  style?: React.CSSProperties
-}) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={2}
-      stroke="currentColor"
-      className={className}
-      style={style}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-    </svg>
-  )
-}
-
 function NuevoContentPage() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
   const tipo = searchParams.get("tipo") || "text"
@@ -52,18 +28,8 @@ function NuevoContentPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  const handleBack = useCallback(() => {
-    if (window.history.length > 1) router.back()
-    else router.push("/biblioteca")
-  }, [router])
-
-  if (status === "loading") {
-    return <LoadingState label="Cargando…" rows={4} />
-  }
-  if (status === "unauthenticated") {
-    router.push("/login")
-    return null
-  }
+  if (status === "loading") return <div className="flex h-64 items-center justify-center"><div className="flex gap-1"><span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" /><span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" /><span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" /></div></div>
+  if (status === "unauthenticated") { router.push("/login"); return null }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,225 +50,79 @@ function NuevoContentPage() {
         setSuccess(true)
       }
     } catch {
-      // error handled by UI state
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
-      <button
-        type="button"
-        onClick={handleBack}
-        className="mb-4 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-      >
-        <span aria-hidden="true">←</span> Volver a la biblioteca
-      </button>
-      <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-        {TYPE_LABELS[tipo] || "Nuevo contenido"}
-      </h1>
-      <p className="mt-1 text-sm text-[var(--text-muted)]">
-        Añade contenido al conocimiento de tu clon.
-      </p>
+    <div className="p-8 max-w-2xl mx-auto">
+      <button onClick={() => router.back()} className="mb-4 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">← Volver a la biblioteca</button>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{TYPE_LABELS[tipo] || "Nuevo contenido"}</h1>
+      <p className="mt-1 text-gray-500 dark:text-gray-400">Añade contenido al conocimiento de tu clon.</p>
 
       {success ? (
-        <div
-          className="mt-8 rounded-xl p-8 text-center"
-          style={{
-            background: "var(--bg-shell)",
-            border: "1px solid var(--border-soft)",
-          }}
-        >
-          <div
-            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
-            style={{ background: "var(--color-accent-green)" }}
-            aria-hidden="true"
-          >
-            <CheckIcon className="h-6 w-6" style={{ color: "#FFFFFF" }} />
-          </div>
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-            Contenido añadido
-          </h2>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">
-            El contenido se está procesando. Tu clon podrá usarlo en unos minutos.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/biblioteca")}
-            className="mt-6 rounded-xl px-4 py-2 text-sm font-medium text-white transition"
-            style={{ background: "var(--color-accent-violet)" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--color-accent-pink)"
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "var(--color-accent-violet)"
-            }}
-          >
-            Volver a la biblioteca
-          </button>
+        <div className="mt-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-8 text-center">
+          <div className="text-4xl mb-4">✅</div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Contenido añadido</h3>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">El contenido se está procesando. Tu clon podrá usarlo en unos minutos.</p>
+          <button onClick={() => router.push("/biblioteca")} className="mt-6 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">Volver a la biblioteca</button>
         </div>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-xl p-6"
-          style={{
-            background: "var(--bg-shell)",
-            border: "1px solid var(--border-soft)",
-          }}
-          noValidate
-        >
-          <fieldset>
-            <legend className="mb-2 block text-sm font-medium text-[var(--text-primary)]">
-              Silo de contenido
-            </legend>
-            <div className="flex gap-2" role="radiogroup" aria-label="Silo de contenido">
-              {SILOS.map((s) => {
-                const isActive = silo === s.id
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={isActive}
-                    onClick={() => setSilo(s.id)}
-                    className="flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-violet)]"
-                    style={
-                      isActive
-                        ? {
-                            borderColor: "var(--color-accent-violet)",
-                            background: "var(--surface-2)",
-                            color: "var(--color-accent-violet)",
-                          }
-                        : {
-                            borderColor: "var(--border-soft)",
-                            color: "var(--text-secondary)",
-                          }
-                    }
-                  >
-                    {s.label}
-                  </button>
-                )
-              })}
+        <form onSubmit={handleSubmit} className="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Silo de contenido</label>
+            <div className="flex gap-2">
+              {SILOS.map((s) => (
+                <button key={s.id} type="button" onClick={() => setSilo(s.id)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${silo === s.id ? "border-purple-600 bg-purple-50 dark:bg-purple-950 text-purple-600" : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300"}`}>
+                  {s.emoji} {s.label}
+                </button>
+              ))}
             </div>
-          </fieldset>
+          </div>
 
           {tipo === "pdf" && (
             <div>
-              <label
-                htmlFor="source-file"
-                className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
-              >
-                Archivo PDF
-              </label>
-              <input
-                id="source-file"
-                type="file"
-                accept=".pdf,.doc,.docx,.txt"
-                className="w-full rounded-xl border px-4 py-3 text-sm transition focus:ring-2"
-                style={{
-                  background: "var(--surface-2)",
-                  borderColor: "var(--border-medium)",
-                  color: "var(--text-primary)",
-                }}
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Archivo PDF</label>
+              <input type="file" accept=".pdf,.doc,.docx,.txt" className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700" />
             </div>
           )}
 
           {(tipo === "youtube" || tipo === "web") && (
             <div>
-              <label
-                htmlFor="source-url"
-                className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
-              >
-                URL
-              </label>
-              <input
-                id="source-url"
-                type="url"
-                placeholder={tipo === "youtube" ? "https://youtube.com/watch?v=..." : "https://ejemplo.com/articulo"}
-                className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
-                style={{
-                  background: "var(--surface-2)",
-                  borderColor: "var(--border-medium)",
-                  color: "var(--text-primary)",
-                }}
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
+              <input type="url" placeholder={tipo === "youtube" ? "https://youtube.com/watch?v=..." : "https://ejemplo.com/articulo"} className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none" />
             </div>
           )}
 
           {tipo === "text" && (
             <div>
-              <label
-                htmlFor="source-content"
-                className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
-              >
-                Contenido
-              </label>
-              <textarea
-                id="source-content"
-                rows={8}
-                placeholder="Pega o escribe el contenido aquí..."
-                className="w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
-                style={{
-                  background: "var(--surface-2)",
-                  borderColor: "var(--border-medium)",
-                  color: "var(--text-primary)",
-                }}
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contenido</label>
+              <textarea rows={8} placeholder="Pega o escribe el contenido aquí..." className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none resize-none" />
             </div>
           )}
 
           {tipo === "interview" && (
-            <div
-              className="rounded-xl p-4"
-              style={{
-                background: "var(--surface-2)",
-                border: "1px solid var(--color-accent-violet)",
-              }}
-              role="status"
-            >
-              <p className="text-sm text-[var(--text-primary)]">
-                La entrevista AI es una conversación con tu clon donde él te hará
-                preguntas para extraer tu conocimiento automáticamente.
-              </p>
-              <p className="mt-2 text-xs text-[var(--text-muted)]">
-                Esta funcionalidad estará disponible próximamente.
-              </p>
+            <div className="bg-purple-50 dark:bg-purple-950 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+              <p className="text-sm text-purple-800 dark:text-purple-300">🎙️ La entrevista AI es una conversación con tu clon donde él te hará preguntas para extraer tu conocimiento automáticamente.</p>
+              <p className="mt-2 text-xs text-purple-600 dark:text-purple-400">Esta funcionalidad estará disponible próximamente.</p>
             </div>
           )}
 
           <div className="pt-2">
-            <button
-              type="submit"
-              disabled={loading || tipo === "interview"}
-              className="rounded-xl px-6 py-3 text-sm font-medium text-white transition disabled:opacity-50"
-              style={{ background: "var(--color-accent-violet)" }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.background = "var(--color-accent-pink)"
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "var(--color-accent-violet)"
-              }}
-            >
-              {loading
-                ? "Procesando..."
-                : tipo === "interview"
-                ? "Próximamente"
-                : "Añadir contenido"}
+            <button type="submit" disabled={loading || tipo === "interview"} className="px-6 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50">
+              {loading ? "Procesando..." : tipo === "interview" ? "Próximamente" : "Añadir contenido"}
             </button>
           </div>
         </form>
       )}
-    </main>
+    </div>
   )
 }
 
 export default function NuevoPage() {
   return (
-    <Suspense fallback={<LoadingState label="Cargando…" rows={4} />}>
+    <Suspense fallback={<div className="flex h-64 items-center justify-center"><div className="flex gap-1"><span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" /><span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" /><span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" /></div></div>}>
       <NuevoContentPage />
     </Suspense>
   )

@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         time,
         notes: null,
         status: "confirmed",
-      } as typeof schema.bookings.$inferInsert)
+      })
       .returning();
 
     const mt = await db.query.meetingTypes.findFirst({
@@ -100,11 +100,9 @@ export async function POST(request: NextRequest) {
         const meetingUrl = meeting.roomUrl || meeting.hostRoomUrl || "";
         if (meetingUrl) {
           await db.update(schema.bookings)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .set({ meetingUrl } as any)
+            .set({ meetingUrl })
             .where(eq(schema.bookings.id, booking[0].id));
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (booking[0] as any).meetingUrl = meetingUrl;
+          booking[0].meetingUrl = meetingUrl;
         }
       }
     } catch (e) {

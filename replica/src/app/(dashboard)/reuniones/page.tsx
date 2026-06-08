@@ -3,9 +3,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { LoadingState } from "@/components/ui/LoadingState"
-import { ErrorState } from "@/components/ui/ErrorState"
-import { EmptyState } from "@/components/ui/EmptyState"
 
 interface MeetingType {
   id: string
@@ -28,7 +25,7 @@ interface Availability {
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
 
 export default function ReunionesPage() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [cloneId, setCloneId] = useState<string | null>(null)
   const [meetingTypes, setMeetingTypes] = useState<MeetingType[]>([])
@@ -36,7 +33,6 @@ export default function ReunionesPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState<"meeting" | "availability" | null>(null)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const [formName, setFormName] = useState("")
   const [formDuration, setFormDuration] = useState(30)
@@ -66,14 +62,8 @@ export default function ReunionesPage() {
         fetch(`/api/clone/clones/${cid}/meeting-types`),
         fetch(`/api/clone/clones/${cid}/availability`),
       ])
-      if (mtRes.ok) {
-        const data = await mtRes.json()
-        setMeetingTypes(Array.isArray(data) ? data : data.items ?? [])
-      }
-      if (avRes.ok) {
-        const data = await avRes.json()
-        setAvailability(Array.isArray(data) ? data : data.items ?? [])
-      }
+      if (mtRes.ok) setMeetingTypes(await mtRes.json())
+      if (avRes.ok) setAvailability(await avRes.json())
     } catch {
       // Empty states
     } finally {
@@ -88,7 +78,6 @@ export default function ReunionesPage() {
   const createMeetingType = async () => {
     if (!cloneId || !formName.trim()) return
     setSaving(true)
-    setError(null)
     try {
       const res = await fetch(`/api/clone/clones/${cloneId}/meeting-types`, {
         method: "POST",
@@ -109,11 +98,9 @@ export default function ReunionesPage() {
         setFormPrice(0)
         setFormDesc("")
         fetchData()
-      } else {
-        throw new Error(`Error ${res.status}`)
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error")
+    } catch {
+      // Error
     } finally {
       setSaving(false)
     }
@@ -122,7 +109,6 @@ export default function ReunionesPage() {
   const createAvailability = async () => {
     if (!cloneId) return
     setSaving(true)
-    setError(null)
     try {
       const res = await fetch(`/api/clone/clones/${cloneId}/availability`, {
         method: "POST",
@@ -137,115 +123,90 @@ export default function ReunionesPage() {
       if (res.ok) {
         setShowForm(null)
         fetchData()
-      } else {
-        throw new Error(`Error ${res.status}`)
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error")
+    } catch {
+      // Error
     } finally {
       setSaving(false)
     }
   }
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando reuniones…" rows={3} />
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex gap-1">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" />
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Reuniones
           </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
+          <p className="mt-1 text-gray-500 dark:text-gray-400">
             Configura tipos de reunión y tu disponibilidad semanal.
           </p>
         </div>
         <div className="flex gap-2">
           <button
-            type="button"
             onClick={() => setShowForm(showForm === "meeting" ? null : "meeting")}
-            className="btn-primary text-xs"
+            className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
           >
             + Tipo de reunión
           </button>
           <button
-            type="button"
             onClick={() => setShowForm(showForm === "availability" ? null : "availability")}
-            className="btn-secondary text-xs"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             + Disponibilidad
           </button>
         </div>
-      </header>
+      </div>
 
       {showForm === "meeting" && (
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Nuevo tipo de reunión</h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="mb-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Nuevo tipo de reunión</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="stat-label" htmlFor="mt-name">Nombre</label>
-              <input
-                id="mt-name"
-                type="text"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre</label>
+              <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
             </div>
             <div>
-              <label className="stat-label" htmlFor="mt-duration">Duración (min)</label>
-              <input
-                id="mt-duration"
-                type="number"
-                value={formDuration}
-                onChange={(e) => setFormDuration(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duración (min)</label>
+              <input type="number" value={formDuration} onChange={(e) => setFormDuration(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
             </div>
             <div>
-              <label className="stat-label" htmlFor="mt-price">Precio (céntimos)</label>
-              <input
-                id="mt-price"
-                type="number"
-                value={formPrice}
-                onChange={(e) => setFormPrice(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Precio (céntimos)</label>
+              <input type="number" value={formPrice} onChange={(e) => setFormPrice(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
             </div>
             <div>
-              <label className="stat-label" htmlFor="mt-color">Color</label>
-              <input
-                id="mt-color"
-                type="color"
-                value={formColor}
-                onChange={(e) => setFormColor(e.target.value)}
-                className="mt-1 h-10 w-full rounded-lg border border-[var(--border-soft)] cursor-pointer"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
+              <input type="color" value={formColor} onChange={(e) => setFormColor(e.target.value)}
+                className="h-10 w-full rounded-lg border border-gray-300 dark:border-gray-700 cursor-pointer" />
             </div>
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="mt-desc">Descripción</label>
-              <input
-                id="mt-desc"
-                type="text"
-                value={formDesc}
-                onChange={(e) => setFormDesc(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción</label>
+              <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
             </div>
           </div>
-          {error && <div className="mt-3"><ErrorState message={error} /></div>}
           <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={createMeetingType}
-              disabled={saving}
-              className="btn-primary text-xs disabled:opacity-50"
-            >
-              {saving ? "Creando…" : "Crear"}
+            <button onClick={createMeetingType} disabled={saving}
+              className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50">
+              {saving ? "Creando..." : "Crear"}
             </button>
-            <button type="button" onClick={() => setShowForm(null)} className="btn-secondary text-xs">
+            <button onClick={() => setShowForm(null)}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
               Cancelar
             </button>
           </div>
@@ -253,127 +214,98 @@ export default function ReunionesPage() {
       )}
 
       {showForm === "availability" && (
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Nueva disponibilidad</h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="mb-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Nueva disponibilidad</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="stat-label" htmlFor="av-day">Día</label>
-              <select
-                id="av-day"
-                value={formDay}
-                onChange={(e) => setFormDay(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              >
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Día</label>
+              <select value={formDay} onChange={(e) => setFormDay(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm">
                 {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="stat-label" htmlFor="av-buffer">Buffer (min)</label>
-              <input
-                id="av-buffer"
-                type="number"
-                value={formBuffer}
-                onChange={(e) => setFormBuffer(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buffer (min)</label>
+              <input type="number" value={formBuffer} onChange={(e) => setFormBuffer(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
             </div>
             <div>
-              <label className="stat-label" htmlFor="av-start">Hora inicio</label>
-              <input
-                id="av-start"
-                type="time"
-                value={formStart}
-                onChange={(e) => setFormStart(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hora inicio</label>
+              <input type="time" value={formStart} onChange={(e) => setFormStart(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
             </div>
             <div>
-              <label className="stat-label" htmlFor="av-end">Hora fin</label>
-              <input
-                id="av-end"
-                type="time"
-                value={formEnd}
-                onChange={(e) => setFormEnd(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hora fin</label>
+              <input type="time" value={formEnd} onChange={(e) => setFormEnd(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
             </div>
           </div>
-          {error && <div className="mt-3"><ErrorState message={error} /></div>}
           <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={createAvailability}
-              disabled={saving}
-              className="btn-primary text-xs disabled:opacity-50"
-            >
-              {saving ? "Creando…" : "Crear"}
+            <button onClick={createAvailability} disabled={saving}
+              className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50">
+              {saving ? "Creando..." : "Crear"}
             </button>
-            <button type="button" onClick={() => setShowForm(null)} className="btn-secondary text-xs">
+            <button onClick={() => setShowForm(null)}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
               Cancelar
             </button>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Tipos de reunión</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Tipos de reunión</h3>
           {meetingTypes.length === 0 ? (
-            <EmptyState
-              title="No hay tipos de reunión"
-              description="Crea el primero con el botón de arriba."
-            />
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+              No hay tipos de reunión configurados.
+            </p>
           ) : (
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {meetingTypes.map((mt) => (
-                <li
-                  key={mt.id}
-                  className="flex items-center justify-between rounded-lg border border-[var(--border-soft)] p-3"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: mt.color }} />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-[var(--text-primary)] truncate">{mt.name}</p>
-                      <p className="text-xs text-[var(--text-muted)]">
+                <div key={mt.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: mt.color }} />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{mt.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {mt.duration_minutes} min · {mt.price_cents > 0 ? `${(mt.price_cents / 100).toFixed(2)}€` : "Gratis"}
                       </p>
                     </div>
                   </div>
                   {!mt.active && (
-                    <span className="badge-warning">Inactivo</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">
+                      Inactivo
+                    </span>
                   )}
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
 
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Disponibilidad semanal</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Disponibilidad semanal</h3>
           {availability.length === 0 ? (
-            <EmptyState
-              title="No hay horarios"
-              description="Configura tu disponibilidad con el botón de arriba."
-            />
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+              No hay horarios de disponibilidad configurados.
+            </p>
           ) : (
-            <ul className="space-y-2">
+            <div className="space-y-2">
               {availability.map((av) => (
-                <li
-                  key={av.id}
-                  className="flex items-center justify-between rounded-lg border border-[var(--border-soft)] p-3"
-                >
-                  <span className="text-sm font-medium text-[var(--text-primary)]">
+                <div key={av.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-800">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {DAYS[av.day_of_week]}
                   </span>
-                  <span className="font-mono text-sm text-[var(--text-secondary)]">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     {av.start_time?.slice(0, 5)} — {av.end_time?.slice(0, 5)}
                   </span>
-                  <span className="text-xs text-[var(--text-muted)] font-mono">
+                  <span className="text-xs text-gray-400">
                     +{av.buffer_minutes}min buffer
                   </span>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>

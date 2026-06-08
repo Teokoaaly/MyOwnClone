@@ -245,16 +245,3 @@ __all__ = [
     "register_schema_model",
     "register_schema_models",
 ]
-
-# ---- MONKEY-PATCH: Make flask-restx recognize pydantic BaseModel classes ----
-import pydantic
-from flask_restx.swagger import Swagger
-
-_original_serialize_schema = Swagger.serialize_schema
-
-def _patched_serialize_schema(self, model):
-    if isinstance(model, type) and issubclass(model, pydantic.BaseModel):
-        return _original_serialize_schema(self, model.__name__)
-    return _original_serialize_schema(self, model)
-
-Swagger.serialize_schema = _patched_serialize_schema

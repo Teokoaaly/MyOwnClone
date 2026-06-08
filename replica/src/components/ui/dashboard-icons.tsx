@@ -1,7 +1,6 @@
 import type { IconProps } from "@phosphor-icons/react";
-import type React from "react";
 import {
-  Archive,
+  ArchiveBox,
   ArrowSquareOut,
   ArrowsCounterClockwise,
   Books,
@@ -39,7 +38,7 @@ import {
   XCircle,
 } from "@phosphor-icons/react";
 
-export type DashboardIcon = React.ComponentType<IconProps>;
+export type DashboardIcon = (props: IconProps) => JSX.Element;
 
 export const NavIcons = {
   resumen: ChartBar,
@@ -66,7 +65,7 @@ export const ContentTypeIcons = {
   text: PencilSimple,
   web: GlobeHemisphereWest,
   interview: MicrophoneStage,
-  fallback: Archive,
+  fallback: ArchiveBox,
 } as const;
 
 export const SiloIcons = {

@@ -30,82 +30,49 @@ export function LoginForm() {
   }
 
   return (
-    <div
-      className="rounded-2xl p-8"
-      style={{
-        background: "var(--bg-shell)",
-        boxShadow:
-          "0 1px 2px rgba(15, 23, 42, 0.04), 0 24px 64px rgba(15, 23, 42, 0.10)",
-      }}
-    >
-      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div
-            role="alert"
-            className="rounded-lg p-3 text-sm"
-            style={{
-              background: "var(--surface-2)",
-              border: "1px solid var(--color-accent-pink)",
-              color: "var(--text-primary)",
-            }}
-          >
+          <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-300 rounded-lg">
             {error}
           </div>
         )}
         <div>
-          <label
-            htmlFor="login-email"
-            className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
-          >
-            Correo electrónico
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Correo electronico
           </label>
           <input
-            id="login-email"
+            id="email"
             name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="admin@myownclone.com"
             required
-            autoComplete="email"
-            className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
-            style={{
-              background: "var(--surface-2)",
-              borderColor: "var(--border-medium)",
-              color: "var(--text-primary)",
-            }}
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-colors"
           />
         </div>
         <div>
-          <label
-            htmlFor="login-password"
-            className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
-          >
-            Contraseña
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Contrasena
           </label>
           <input
-            id="login-password"
+            id="password"
             name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            autoComplete="current-password"
-            className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
-            style={{
-              background: "var(--surface-2)",
-              borderColor: "var(--border-medium)",
-              color: "var(--text-primary)",
-            }}
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-colors"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary w-full py-3 text-sm font-semibold disabled:opacity-50"
+          className="w-full py-3 px-4 text-white font-semibold bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-xl transition-colors"
         >
-          {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+          {loading ? "Iniciando sesion..." : "Iniciar sesion"}
         </button>
       </form>
     </div>

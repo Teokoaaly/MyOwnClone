@@ -10,7 +10,7 @@ from api.libs.datetime_utils import naive_utc_now
 from api.libs.uuid_utils import uuidv7
 
 from ..base import DefaultFieldsDCMixin, TypeBase
-from ..db_types import LongText
+from ..types import LongText
 
 
 class CostCategory(enum.StrEnum):
@@ -26,6 +26,8 @@ class CostTracking(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
+        default_factory=lambda: str(uuidv7()),
+        init=False,
     )
     tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
     category: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -38,11 +40,14 @@ class CostTracking(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
+        default_factory=naive_utc_now,
+        init=False,
         server_default=func.current_timestamp(),
     )
 
 
 class Plan(DefaultFieldsDCMixin, TypeBase):
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default_factory=lambda: str(uuidv7()), init=False)
     __tablename__ = "myownclone_plans"
 
     name: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -70,6 +75,8 @@ class AnalyticsQuestion(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
+        default_factory=lambda: str(uuidv7()),
+        init=False,
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
@@ -78,6 +85,8 @@ class AnalyticsQuestion(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
+        default_factory=naive_utc_now,
+        init=False,
         server_default=func.current_timestamp(),
     )
 
@@ -89,6 +98,8 @@ class AnalyticsGap(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
+        default_factory=lambda: str(uuidv7()),
+        init=False,
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
@@ -99,6 +110,8 @@ class AnalyticsGap(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
+        default_factory=naive_utc_now,
+        init=False,
         server_default=func.current_timestamp(),
     )
 
@@ -110,6 +123,8 @@ class ImpersonationLog(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
+        default_factory=lambda: str(uuidv7()),
+        init=False,
     )
     admin_id: Mapped[str] = mapped_column(String(36), nullable=False)
     tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
@@ -118,6 +133,8 @@ class ImpersonationLog(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
+        default_factory=naive_utc_now,
+        init=False,
         server_default=func.current_timestamp(),
     )
     ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -130,6 +147,8 @@ class ImpersonationToken(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
+        default_factory=lambda: str(uuidv7()),
+        init=False,
     )
     token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     admin_id: Mapped[str] = mapped_column(String(36), nullable=False)
@@ -139,11 +158,14 @@ class ImpersonationToken(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
+        default_factory=naive_utc_now,
+        init=False,
         server_default=func.current_timestamp(),
     )
 
 
 class Feedback(DefaultFieldsDCMixin, TypeBase):
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default_factory=lambda: str(uuidv7()), init=False)
     __tablename__ = "clone_feedback"
 
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
@@ -151,31 +173,3 @@ class Feedback(DefaultFieldsDCMixin, TypeBase):
     message_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     rating: Mapped[str] = mapped_column(String(10), nullable=False)  # "up" or "down"
     comment: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
-
-
-class AdminAuditLog(TypeBase):
-    """Append-only audit log for platform admin actions.
-
-    Exposes all fields except raw ip_address (stored but not surfaced via API).
-    """
-    __tablename__ = "admin_audit_log"
-
-    id: Mapped[str] = mapped_column(
-        String(36),
-        primary_key=True,
-        insert_default=lambda: str(uuidv7()),
-    )
-    actor_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    action: Mapped[str] = mapped_column(String(50), nullable=False)
-    target_type: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
-    target_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
-    reason: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
-    metadata_json: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)  # JSON string
-    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)  # IPv4/IPv6, stored but NOT surfaced in API
-    user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-        insert_default=naive_utc_now,
-        server_default=func.current_timestamp(),
-    )

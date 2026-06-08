@@ -10,12 +10,10 @@ describe('SiloToggle', () => {
     expect(screen.getByText('Ventas')).toBeDefined()
   })
 
-  it('highlights the active silo button via inline style', () => {
+  it('highlights the active silo button', () => {
     render(<SiloToggle active="support" onChange={() => {}} />)
-    const supportBtn = screen.getByText('Soporte').closest('button') as HTMLElement
-    expect(supportBtn.getAttribute('aria-pressed')).toBe('true')
-    const style = (supportBtn as HTMLElement).style
-    expect(style.background || style.cssText).toMatch(/color-accent-violet/)
+    const supportBtn = screen.getByText('Soporte').closest('button')
+    expect(supportBtn?.className).toContain('bg-violet-600')
   })
 
   it('calls onChange with silo id when clicked', () => {
@@ -25,13 +23,9 @@ describe('SiloToggle', () => {
     expect(onChange).toHaveBeenCalledWith('sales')
   })
 
-  it('non-active buttons have aria-pressed=false and no violet background', () => {
+  it('non-active buttons do not have bg-violet-600 class', () => {
     render(<SiloToggle active="teach" onChange={() => {}} />)
-    const supportBtn = screen.getByText('Soporte').closest('button') as HTMLElement
-    expect(supportBtn.getAttribute('aria-pressed')).toBe('false')
-    const style = (supportBtn as HTMLElement).style
-    // Inactive buttons have secondary text color, not the violet accent
-    expect(style.background || '').not.toMatch(/color-accent-violet/)
-    expect(style.color || '').toMatch(/text-secondary/)
+    const supportBtn = screen.getByText('Soporte').closest('button')
+    expect(supportBtn?.className).toContain('text-zinc-400')
   })
 })

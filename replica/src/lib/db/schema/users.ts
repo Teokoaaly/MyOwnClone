@@ -2,6 +2,7 @@ import {
   pgTable,
   text,
   timestamp,
+  varchar,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenants";
@@ -18,8 +19,8 @@ export const users = pgTable("users", {
   tenantId: text("tenant_id")
     .notNull()
     .references(() => tenants.id, { onDelete: "cascade" }),
-  name: text("name"),
-  email: text("email").notNull().unique(),
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash"),
   emailVerified: timestamp("email_verified"),
   image: text("image"),
@@ -33,21 +34,23 @@ export const accounts = pgTable("nextauth_accounts", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  type: text("type").notNull(),
-  provider: text("provider").notNull(),
-  providerAccountId: text("provider_account_id").notNull(),
+  type: varchar("type", { length: 255 }).notNull(),
+  provider: varchar("provider", { length: 255 }).notNull(),
+  providerAccountId: varchar("provider_account_id", {
+    length: 255,
+  }).notNull(),
   refreshToken: text("refresh_token"),
   accessToken: text("access_token"),
   expiresAt: timestamp("expires_at"),
-  tokenType: text("token_type"),
+  tokenType: varchar("token_type", { length: 255 }),
   scope: text("scope"),
   idToken: text("id_token"),
   sessionState: text("session_state"),
 });
 
 export const verificationTokens = pgTable("verification_tokens", {
-  identifier: text("identifier").notNull(),
-  token: text("token").notNull().unique(),
+  identifier: varchar("identifier", { length: 255 }).notNull(),
+  token: varchar("token", { length: 255 }).notNull().unique(),
   expires: timestamp("expires").notNull(),
 });
 
