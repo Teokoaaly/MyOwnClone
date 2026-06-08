@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm install --legacy-peer-deps
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_NO_TURBOPACK=1
 RUN npm run build
 
 # Stage 2: Production
