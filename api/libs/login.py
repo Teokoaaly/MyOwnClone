@@ -5,6 +5,8 @@ from functools import wraps
 from flask import g, request
 from typing import Callable, Any
 
+from api.libs.jwt_utils import _verify_token
+
 
 class _AccountProxy:
     def __getattr__(self, name: str) -> Any:
@@ -31,9 +33,6 @@ def current_account_with_tenant():
 def login_required(f: Callable) -> Callable:
     @wraps(f)
     def decorated(*args, **kwargs):
-        # Lazy import: avoids circular dependency with api.controllers.console.auth
-        from api.controllers.console.auth import _verify_token
-
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
             return {'error': 'Unauthorized — missing Bearer token'}, 401
