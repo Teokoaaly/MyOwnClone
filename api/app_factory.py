@@ -82,6 +82,22 @@ def _validate_required_env():
             RuntimeWarning,
         )
 
+    # IMPERSONATION_TOKEN_PEPPER — pepper for SHA-256 hashing of impersonation tokens
+    impersonation_pepper = os.getenv("IMPERSONATION_TOKEN_PEPPER", "dev-pepper-rotate-in-prod")
+    if impersonation_pepper in ("", "dev-pepper-rotate-in-prod"):
+        if os.getenv("FLASK_ENV") == "production":
+            raise RuntimeError(
+                "SECURITY ERROR: IMPERSONATION_TOKEN_PEPPER must be set to a strong value in production. "
+                "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        generated = secrets.token_urlsafe(32)
+        os.environ["IMPERSONATION_TOKEN_PEPPER"] = generated
+        warnings.warn(
+            "WARNING: IMPERSONATION_TOKEN_PEPPER not set — using a randomly generated key for this session. "
+            "Set IMPERSONATION_TOKEN_PEPPER explicitly for consistent token validation across restarts.",
+            RuntimeWarning,
+        )
+
     if missing:
         raise EnvironmentError(
             f"FATAL: Required environment variables are missing: {', '.join(missing)}. "
@@ -113,7 +129,12 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    CORS(app)
+    # CORS — restrict to allowed origins in production
+    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
+    if allowed_origins and allowed_origins[0]:
+        CORS(app, origins=allowed_origins, supports_credentials=True)
+    else:
+        CORS(app)  # dev fallback — en prod debe configurarse
 
     # Register CLI commands
     app.cli.add_command(seed_demo_data)
