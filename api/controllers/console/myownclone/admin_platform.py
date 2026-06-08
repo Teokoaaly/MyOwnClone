@@ -215,7 +215,7 @@ class AdminStopImpersonateApi(Resource):
 
 
 def _is_platform_admin(account_id: str) -> bool:
-    from models.account import Account
+    from api.models.account import Account
 
     account = db.session.execute(
         select(Account).where(Account.id == account_id)
