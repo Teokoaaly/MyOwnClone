@@ -1,4 +1,6 @@
 """MyOwnClone authentication primitives — JWT-based."""
+import hmac
+import os
 from functools import wraps
 from flask import g, request
 from typing import Callable, Any
@@ -50,4 +52,22 @@ def login_required(f: Callable) -> Callable:
     return decorated
 
 
-__all__ = ['current_account_with_tenant', 'login_required']
+def _check_service_token(provided: str, expected: str) -> bool:
+    """Timing-safe service token comparison using hmac.compare_digest.
+
+    Use this instead of == for comparing tokens from headers
+    (e.g. X-Admin-Token, service API keys) to prevent timing attacks.
+
+    Args:
+        provided: The token received from the request header.
+        expected: The expected token from environment/config.
+
+    Returns:
+        True if the tokens match, False otherwise.
+    """
+    if not provided or not expected:
+        return False
+    return hmac.compare_digest(provided.encode("utf-8"), expected.encode("utf-8"))
+
+
+__all__ = ['current_account_with_tenant', 'login_required', '_check_service_token']
