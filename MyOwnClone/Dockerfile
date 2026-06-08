@@ -6,7 +6,7 @@ RUN npm install --legacy-peer-deps
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_NO_TURBOPACK=1
-RUN npm run build
+RUN npm run build -- --no-turbo
 
 # Stage 2: Production
 FROM node:20-alpine AS runner
