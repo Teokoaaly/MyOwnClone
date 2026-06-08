@@ -26,8 +26,7 @@ class CostTracking(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
-        default_factory=lambda: str(uuidv7()),
-        init=False,
+        default=lambda: str(uuidv7()),
     )
     tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
     category: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -40,14 +39,13 @@ class CostTracking(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
-        default_factory=naive_utc_now,
-        init=False,
+        default=naive_utc_now,
         server_default=func.current_timestamp(),
     )
 
 
 class Plan(TypeBase):
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default_factory=lambda: str(uuidv7()), init=False)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default=lambda: str(uuidv7()))
     __tablename__ = "myownclone_plans"
 
     name: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -75,8 +73,7 @@ class AnalyticsQuestion(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
-        default_factory=lambda: str(uuidv7()),
-        init=False,
+        default=lambda: str(uuidv7()),
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
@@ -85,8 +82,7 @@ class AnalyticsQuestion(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
-        default_factory=naive_utc_now,
-        init=False,
+        default=naive_utc_now,
         server_default=func.current_timestamp(),
     )
 
@@ -98,8 +94,7 @@ class AnalyticsGap(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
-        default_factory=lambda: str(uuidv7()),
-        init=False,
+        default=lambda: str(uuidv7()),
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     question: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
@@ -110,8 +105,7 @@ class AnalyticsGap(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
-        default_factory=naive_utc_now,
-        init=False,
+        default=naive_utc_now,
         server_default=func.current_timestamp(),
     )
 
@@ -123,8 +117,7 @@ class ImpersonationLog(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
-        default_factory=lambda: str(uuidv7()),
-        init=False,
+        default=lambda: str(uuidv7()),
     )
     admin_id: Mapped[str] = mapped_column(String(36), nullable=False)
     tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
@@ -133,8 +126,7 @@ class ImpersonationLog(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
-        default_factory=naive_utc_now,
-        init=False,
+        default=naive_utc_now,
         server_default=func.current_timestamp(),
     )
     ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -147,8 +139,7 @@ class ImpersonationToken(TypeBase):
         String(36),
         primary_key=True,
         insert_default=lambda: str(uuidv7()),
-        default_factory=lambda: str(uuidv7()),
-        init=False,
+        default=lambda: str(uuidv7()),
     )
     token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     admin_id: Mapped[str] = mapped_column(String(36), nullable=False)
@@ -158,14 +149,13 @@ class ImpersonationToken(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
-        default_factory=naive_utc_now,
-        init=False,
+        default=naive_utc_now,
         server_default=func.current_timestamp(),
     )
 
 
 class Feedback(TypeBase):
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default_factory=lambda: str(uuidv7()), init=False)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default=lambda: str(uuidv7()))
     __tablename__ = "clone_feedback"
 
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
