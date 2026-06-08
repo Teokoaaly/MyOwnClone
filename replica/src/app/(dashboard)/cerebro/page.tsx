@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { LoadingState } from "@/components/ui/LoadingState"
+import { ErrorState } from "@/components/ui/ErrorState"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 interface Memory {
   id: string
@@ -17,35 +20,26 @@ interface Memory {
 
 type TabType = "memory" | "signature" | "template"
 
-const TABS: { id: TabType; label: string; emoji: string; desc: string }[] = [
+const TABS: { id: TabType; label: string; desc: string }[] = [
   {
     id: "memory",
     label: "Memorias",
-    emoji: "🧠",
     desc: "Fragmentos de información que tu clon recordará siempre. Datos clave, políticas o información personal.",
   },
   {
     id: "signature",
     label: "Firmas",
-    emoji: "✍️",
     desc: "Formato HTML que se aplicará al final de los emails enviados por tu clon.",
   },
   {
     id: "template",
     label: "Plantillas",
-    emoji: "📋",
     desc: "Respuestas predefinidas que tu clon usará cuando se cumplan ciertas condiciones.",
   },
 ]
 
-const EXAMPLE_CONTENT: Record<TabType, string> = {
-  memory: "Mi curso completo de marketing digital incluye 12 módulos, desde fundamentos hasta estrategias avanzadas de conversión.",
-  signature: '<div style="font-family: Arial; color: #666;">\n  <p>Saludos cordiales,</p>\n  <p><strong>[Nombre del creador]</strong></p>\n  <p style="font-size:12px;">[Cargo] | [Web]</p>\n</div>',
-  template: "Gracias por tu interés en el curso. Actualmente ofrecemos un descuento del 20% para nuevos estudiantes usando el código BIENVENIDA20.",
-}
-
 export default function CerebroPage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>("memory")
   const [memories, setMemories] = useState<Memory[]>([])
@@ -66,11 +60,10 @@ export default function CerebroPage() {
   const fetchMemories = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(
-        `/api/clone/memories?type=${activeTab}`
-      )
+      const res = await fetch(`/api/clone/memories?type=${activeTab}`)
       if (res.ok) {
-        setMemories(await res.json())
+        const data = await res.json()
+        setMemories(Array.isArray(data) ? data : data.items ?? [])
       }
     } catch {
       // Empty state handled below
@@ -88,18 +81,6 @@ export default function CerebroPage() {
     setFormContent("")
     setFormTrigger("")
     setFormPriority(0)
-    setError(null)
-  }
-
-  const startNew = () => {
-    resetForm()
-  }
-
-  const startEdit = (m: Memory) => {
-    setEditing(m)
-    setFormContent(m.content)
-    setFormTrigger(m.trigger_condition || "")
-    setFormPriority(m.priority)
     setError(null)
   }
 
@@ -143,92 +124,95 @@ export default function CerebroPage() {
   }
 
   if (status === "loading") {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex gap-1">
-          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:0ms]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" />
-        </div>
-      </div>
-    )
+    return <LoadingState label="Verificando sesión…" />
+  }
+
+  if (loading) {
+    return <LoadingState label="Cargando memoria…" rows={4} />
   }
 
   const activeTabInfo = TABS.find((t) => t.id === activeTab)!
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Cerebro
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {activeTabInfo.desc}
-          </p>
-        </div>
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+          Cerebro
+        </h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">
+          {activeTabInfo.desc}
+        </p>
+      </header>
+
+      <div className="flex gap-2 overflow-x-auto">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`tabpanel-${tab.id}`}
+              onClick={() => setActiveTab(tab.id)}
+              className={[
+                "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)]",
+                activeTab === tab.id
+                  ? "tab-active"
+                  : "border border-[var(--border-soft)] bg-[var(--surface-1)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]",
+              ].join(" ")}
+            >
+              {tab.label}
+            </button>
+          ))}
       </div>
 
-      <div className="flex gap-2 mb-6">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === tab.id
-                ? "bg-purple-600 text-white shadow-lg shadow-purple-600/25"
-                : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
-            }`}
-          >
-            <span>{tab.emoji}</span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-3">
-          {loading ? (
-            <div className="text-center py-12 text-gray-400">Cargando...</div>
-          ) : memories.length === 0 ? (
-            <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
-              <p className="text-gray-400">
-                No hay {activeTabInfo.label.toLowerCase()} todavía.
-              </p>
-            </div>
+          {memories.length === 0 ? (
+            <EmptyState
+              title={`No hay ${activeTabInfo.label.toLowerCase()} todavía`}
+              description="Crea la primera con el formulario de la derecha."
+            />
           ) : (
             memories.map((m) => (
               <div
                 key={m.id}
-                className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 group"
+                className="card group py-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
+                    <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">
                       {m.content}
                     </p>
                     {m.trigger_condition && (
-                      <p className="mt-1 text-xs text-purple-600 dark:text-purple-400">
+                      <p className="mt-1 text-xs text-[var(--color-accent-violet)]">
                         Gatillo: {m.trigger_condition}
                       </p>
                     )}
-                    <p className="mt-2 text-xs text-gray-400">
+                    <p className="mt-2 text-xs text-[var(--text-muted)] font-mono">
                       Prioridad: {m.priority} ·{" "}
                       {new Date(m.created_at * 1000).toLocaleDateString("es-ES")}
                     </p>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 transition-opacity">
                     <button
-                      onClick={() => startEdit(m)}
-                      className="p-1 text-gray-400 hover:text-purple-600 text-xs"
+                      type="button"
+                      onClick={() => {
+                        setEditing(m)
+                        setFormContent(m.content)
+                        setFormTrigger(m.trigger_condition || "")
+                        setFormPriority(m.priority)
+                        setError(null)
+                      }}
+                      className="btn-secondary text-xs"
                     >
-                      ✏️
+                      Editar
                     </button>
                     <button
+                      type="button"
                       onClick={() => remove(m.id)}
-                      className="p-1 text-gray-400 hover:text-red-500 text-xs"
+                      className="btn-secondary text-xs hover:text-[var(--color-accent-warm)]"
                     >
-                      🗑️
+                      Eliminar
                     </button>
                   </div>
                 </div>
@@ -237,17 +221,16 @@ export default function CerebroPage() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 sticky top-8">
-          <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-4">
+        <div className="card sticky top-4 self-start">
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">
             {editing ? "Editar" : "Nueva"} {activeTabInfo.label.slice(0, -1)}
           </h3>
 
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Contenido
-              </label>
+              <label className="stat-label" htmlFor="cb-content">Contenido</label>
               <textarea
+                id="cb-content"
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
                 rows={5}
@@ -258,33 +241,31 @@ export default function CerebroPage() {
                     ? "<div>Firma HTML...</div>"
                     : "Texto de la respuesta automática..."
                 }
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none"
+                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none resize-none"
               />
             </div>
 
             {activeTab === "template" && (
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Palabras clave (gatillo)
-                </label>
+                <label className="stat-label" htmlFor="cb-trigger">Palabras clave (gatillo)</label>
                 <input
+                  id="cb-trigger"
                   type="text"
                   value={formTrigger}
                   onChange={(e) => setFormTrigger(e.target.value)}
                   placeholder="ej: descuento, precio, oferta"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                  className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Prioridad
-              </label>
+              <label className="stat-label" htmlFor="cb-priority">Prioridad</label>
               <select
+                id="cb-priority"
                 value={formPriority}
                 onChange={(e) => setFormPriority(Number(e.target.value))}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
               >
                 <option value={0}>0 — Normal</option>
                 <option value={1}>1 — Alta</option>
@@ -294,23 +275,23 @@ export default function CerebroPage() {
             </div>
 
             {error && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-950 rounded-lg px-3 py-2">
-                {error}
-              </p>
+              <ErrorState title="Error" message={error} />
             )}
 
             <div className="flex gap-2 pt-2">
               <button
+                type="button"
                 onClick={save}
                 disabled={saving || !formContent.trim()}
-                className="flex-1 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary text-xs flex-1 disabled:opacity-50"
               >
-                {saving ? "Guardando..." : editing ? "Actualizar" : "Crear"}
+                {saving ? "Guardando…" : editing ? "Actualizar" : "Crear"}
               </button>
               {editing && (
                 <button
+                  type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="btn-secondary text-xs"
                 >
                   Cancelar
                 </button>

@@ -2,7 +2,6 @@ import {
   pgTable,
   text,
   timestamp,
-  varchar,
   pgEnum,
   json,
 } from "drizzle-orm/pg-core";
@@ -30,7 +29,7 @@ export const sources = pgTable("sources", {
     .notNull()
     .references(() => clones.id, { onDelete: "cascade" }),
   type: sourceTypeEnum("type").notNull(),
-  title: varchar("title", { length: 500 }).notNull(),
+  title: text("title").notNull(),
   url: text("url"),
   status: sourceStatusEnum("status").notNull().default("uploading"),
   metadata: json("metadata").$type<Record<string, unknown>>(),

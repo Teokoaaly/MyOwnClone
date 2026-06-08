@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { LoadingState } from "@/components/ui/LoadingState"
+import { ErrorState } from "@/components/ui/ErrorState"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 interface EmailListItem {
   id: string
@@ -24,22 +27,22 @@ interface EmailDetail extends EmailListItem {
 }
 
 const STATUS_FILTERS = [
-  { id: "all", label: "Todos", emoji: "📬" },
-  { id: "pending", label: "Pendientes", emoji: "📨" },
-  { id: "sent", label: "Enviados", emoji: "✅" },
-  { id: "discarded", label: "Descartados", emoji: "🗑️" },
+  { id: "all", label: "Todos" },
+  { id: "pending", label: "Pendientes" },
+  { id: "sent", label: "Enviados" },
+  { id: "discarded", label: "Descartados" },
 ]
 
 const CLASS_COLORS: Record<string, string> = {
-  consulta: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  queja: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
-  venta: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
-  soporte: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-  otro: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  consulta: "badge-trial",
+  queja: "badge-error",
+  venta: "badge-active",
+  soporte: "badge-warning",
+  otro: "badge-trial",
 }
 
 export default function InboxPage() {
-  const { data: session, status: authStatus } = useSession()
+  const { status: authStatus } = useSession()
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState("all")
   const [emails, setEmails] = useState<EmailListItem[]>([])
@@ -57,13 +60,19 @@ export default function InboxPage() {
 
   const fetchList = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams()
       if (activeFilter !== "all") params.set("status", activeFilter)
       const res = await fetch(`/api/clone/inbox/list?${params}`)
-      if (res.ok) setEmails(await res.json())
-    } catch {
-      // Empty
+      if (res.ok) {
+        const data = await res.json()
+        setEmails(Array.isArray(data) ? data : data.items ?? [])
+      } else {
+        throw new Error(`Error ${res.status}`)
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error al cargar")
     } finally {
       setLoading(false)
     }
@@ -117,7 +126,6 @@ export default function InboxPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           draft_reply: draftText,
-          status: undefined,
         }),
       })
       if (res.ok) {
@@ -164,30 +172,32 @@ export default function InboxPage() {
   }
 
   if (authStatus === "loading") {
-    return <div className="flex h-64 items-center justify-center"><div className="animate-spin h-6 w-6 border-2 border-purple-600 border-t-transparent rounded-full" /></div>
+    return <LoadingState label="Verificando sesión…" />
   }
 
   return (
-    <div className="flex h-[calc(100vh-0px)]">
+    <div className="flex h-[calc(100vh-0px)] gap-4">
       {/* Sidebar list */}
-      <div className="w-80 border-r border-gray-200 dark:border-gray-800 flex flex-col">
-        <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800">
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white">Inbox</h1>
+      <div className="w-80 shrink-0 flex flex-col card !p-0 overflow-hidden">
+        <div className="px-4 py-4 border-b border-[var(--border-soft)]">
+          <h1 className="text-lg font-semibold text-[var(--text-primary)]">Inbox</h1>
         </div>
 
         {/* Filters */}
-        <div className="px-3 py-2 flex gap-1 overflow-x-auto">
+        <div className="px-3 py-2 flex gap-1 overflow-x-auto border-b border-[var(--border-soft)]">
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.id}
+              type="button"
               onClick={() => setActiveFilter(f.id)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              aria-pressed={activeFilter === f.id}
+              className={[
+                "flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)]",
                 activeFilter === f.id
-                  ? "bg-purple-600 text-white"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
+                  ? "bg-[var(--color-accent-warm)] text-white"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]",
+              ].join(" ")}
             >
-              <span>{f.emoji}</span>
               {f.label}
             </button>
           ))}
@@ -195,46 +205,67 @@ export default function InboxPage() {
 
         {/* Email list */}
         <div className="flex-1 overflow-y-auto">
-          {loading ? (
-            <div className="text-center py-12 text-gray-400 text-sm">Cargando...</div>
+          {error ? (
+            <div className="p-4">
+              <ErrorState message={error} />
+            </div>
+          ) : loading ? (
+            <div className="p-4">
+              <LoadingState rows={4} />
+            </div>
           ) : emails.length === 0 ? (
-            <div className="text-center py-12 px-4">
-              <p className="text-2xl mb-2">📭</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                No hay emails{activeFilter !== "all" ? ` "${activeFilter}"` : ""}
-              </p>
+            <div className="p-4">
+              <EmptyState
+                title="No hay emails"
+                description={
+                  activeFilter !== "all"
+                    ? `Sin emails en estado "${activeFilter}".`
+                    : "Cuando lleguen correos a tu clon aparecerán aquí."
+                }
+              />
             </div>
           ) : (
             emails.map((email) => (
               <button
                 key={email.id}
+                type="button"
                 onClick={() => selectEmail(email.id)}
-                className={`w-full text-left px-4 py-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
-                  selected?.id === email.id ? "bg-purple-50 dark:bg-purple-950/20 border-l-2 border-l-purple-600" : ""
-                }`}
+                aria-current={selected?.id === email.id ? "true" : undefined}
+                className={[
+                  "w-full text-left px-4 py-3 border-b border-[var(--border-soft)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)]",
+                  selected?.id === email.id
+                    ? "bg-[var(--surface-2)] border-l-2 border-l-[var(--color-accent-warm)]"
+                    : "hover:bg-[var(--surface-2)]",
+                ].join(" ")}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                     {email.from_name || email.from_email || "Desconocido"}
                   </p>
                   {email.classification && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${CLASS_COLORS[email.classification] || ""}`}>
+                    <span className={CLASS_COLORS[email.classification] || "badge-trial"}>
                       {email.classification}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 truncate mt-0.5">
+                <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">
                   {email.subject || "(sin asunto)"}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   {email.has_draft && (
-                    <span className="text-[10px] text-purple-600 font-medium">✍️ Borrador</span>
+                    <span className="text-[10px] text-[var(--color-accent-violet)] font-medium">
+                      Borrador
+                    </span>
                   )}
                   {email.status === "sent" && (
-                    <span className="text-[10px] text-green-600 font-medium">✅ Enviado</span>
+                    <span className="text-[10px] text-[var(--color-accent-green)] font-medium">
+                      Enviado
+                    </span>
                   )}
-                  <span className="text-[10px] text-gray-400 ml-auto">
-                    {email.received_at ? new Date(email.received_at * 1000).toLocaleDateString("es-ES") : ""}
+                  <span className="text-[10px] text-[var(--text-muted)] ml-auto">
+                    {email.received_at
+                      ? new Date(email.received_at * 1000).toLocaleDateString("es-ES")
+                      : ""}
                   </span>
                 </div>
               </button>
@@ -244,33 +275,32 @@ export default function InboxPage() {
       </div>
 
       {/* Detail panel */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
+      <div className="flex-1 flex flex-col card !p-0 overflow-hidden">
         {!selected ? (
           <div className="flex-1 flex items-center justify-center text-center px-8">
             <div>
-              <p className="text-4xl mb-3">📧</p>
-              <p className="text-lg font-medium text-gray-900 dark:text-white">
+              <p className="text-base font-medium text-[var(--text-primary)]">
                 Selecciona un email
               </p>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-[var(--text-muted)]">
                 El clon propone respuestas. Tú revisas y envías.
               </p>
             </div>
           </div>
         ) : detailLoading ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin h-6 w-6 border-2 border-purple-600 border-t-transparent rounded-full" />
+            <LoadingState label="Cargando email…" rows={2} />
           </div>
         ) : (
           <>
             {/* Email header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="px-6 py-4 border-b border-[var(--border-soft)]">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                     {selected.subject || "(sin asunto)"}
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">
                     De: <strong>{selected.from_name || selected.from_email}</strong>
                     {" · "}
                     {selected.received_at
@@ -278,25 +308,26 @@ export default function InboxPage() {
                       : ""}
                   </p>
                   {selected.classification && (
-                    <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full font-medium ${CLASS_COLORS[selected.classification] || ""}`}>
+                    <span className={`inline-block mt-2 ${CLASS_COLORS[selected.classification] || "badge-trial"}`}>
                       {selected.classification}
                     </span>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={discardEmail}
-                    className="px-3 py-1.5 text-xs text-red-600 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-950"
+                    className="btn-secondary text-xs"
                   >
-                    🗑️ Descartar
+                    Descartar
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Email body */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 max-h-60 overflow-y-auto">
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+            <div className="px-6 py-4 border-b border-[var(--border-soft)] max-h-60 overflow-y-auto">
+              <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
                 {selected.body_text || "(sin contenido)"}
               </p>
             </div>
@@ -304,15 +335,16 @@ export default function InboxPage() {
             {/* Draft editor */}
             <div className="flex-1 flex flex-col p-6">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  ✍️ Respuesta propuesta
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                  Respuesta propuesta
                 </h3>
                 <button
+                  type="button"
                   onClick={generateDraft}
                   disabled={generating}
-                  className="px-3 py-1.5 text-xs font-medium text-purple-600 border border-purple-200 dark:border-purple-800 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950 disabled:opacity-50 transition-colors"
+                  className="btn-secondary text-xs disabled:opacity-50"
                 >
-                  {generating ? "Generando..." : "🤖 Generar con IA"}
+                  {generating ? "Generando…" : "Generar con IA"}
                 </button>
               </div>
 
@@ -321,27 +353,29 @@ export default function InboxPage() {
                 onChange={(e) => setDraftText(e.target.value)}
                 rows={10}
                 placeholder="La respuesta propuesta por el clon aparecerá aquí. Puedes editarla antes de enviar."
-                className="flex-1 w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none"
+                className="flex-1 w-full px-4 py-3 text-sm rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--color-accent-warm)] focus:outline-none resize-none"
               />
 
               {error && (
-                <p className="mt-2 text-xs text-red-500">{error}</p>
+                <p role="alert" className="mt-2 text-xs badge-error inline-block">{error}</p>
               )}
 
               <div className="flex gap-2 mt-4">
                 <button
+                  type="button"
                   onClick={sendEmail}
                   disabled={saving || !draftText.trim()}
-                  className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="btn-primary text-xs disabled:opacity-50"
                 >
-                  {saving ? "Enviando..." : "📤 Enviar respuesta"}
+                  {saving ? "Enviando…" : "Enviar respuesta"}
                 </button>
                 <button
+                  type="button"
                   onClick={saveDraft}
                   disabled={saving || !draftText.trim()}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                  className="btn-secondary text-xs disabled:opacity-50"
                 >
-                  💾 Guardar borrador
+                  Guardar borrador
                 </button>
               </div>
             </div>
