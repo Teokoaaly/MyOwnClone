@@ -9,9 +9,11 @@ import bcrypt from "bcryptjs";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   adapter: DrizzleAdapter(db, {
+    // @ts-expect-error
     usersTable: schema.users,
     // @ts-expect-error
     accountsTable: schema.accounts,
+    // @ts-expect-error
     verificationTokensTable: schema.verificationTokens,
   }),
   providers: [
@@ -39,7 +41,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          role: (user as any).role,
         };
       },
     }),
@@ -59,7 +62,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        token.role = (user as any).role;
         token.id = user.id;
       }
       return token;
@@ -67,6 +71,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).role = token.role as string;
       }
       return session;

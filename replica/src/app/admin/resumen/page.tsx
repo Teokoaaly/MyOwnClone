@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo } from "react";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { BarChart, ChartLegend } from "@/components/ui/BarChart";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { useAdminFetch } from "@/components/admin/useAdminFetch";
 
 interface AdminOverview {
   total_tenants: number;
@@ -25,81 +29,119 @@ const PLAN_LABEL_ES: Record<string, string> = {
   enterprise: "Enterprise",
 };
 
-export default function AdminResumenPage() {
-  const router = useRouter();
-  const [data, setData] = useState<AdminOverview | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const PLAN_COLOR: Record<string, string> = {
+  trial: "#06B6D4",
+  basic: "#2563EB",
+  pro: "#EA580C",
+  scale: "#8B5CF6",
+  enterprise: "#059669",
+};
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch("/api/admin/overview", { cache: "no-store" });
-        if (res.status === 401) {
-          router.push("/login");
-          return;
-        }
-        if (!res.ok) {
-          throw new Error(`Backend error ${res.status}`);
-        }
-        const payload = (await res.json()) as AdminOverview;
-        if (!cancelled) setData(payload);
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Error cargando datos");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
+export default function AdminResumenPage() {
+  const { data, loading, error, reload } = useAdminFetch<AdminOverview>(
+    "/api/admin/overview",
+  );
+
+  const planRows = useMemo(() => {
+    if (!data) return [];
+    return Object.entries(data.plan_breakdown).map(([plan, count]) => ({
+      label: PLAN_LABEL_ES[plan] ?? plan,
+      values: [
+        {
+          label: plan,
+          value: count,
+          color: PLAN_COLOR[plan] ?? "#94A3B8",
+        },
+      ],
+    }));
+  }, [data]);
+
+  const financeRows = useMemo(() => {
+    if (!data) return [];
+    return [
+      {
+        label: "MRR",
+        values: [{ label: "MRR", value: data.mrr_cents, color: "#10B981" }],
+      },
+      {
+        label: "Costes",
+        values: [
+          { label: "Costes", value: data.total_costs_cents, color: "#F97316" },
+        ],
+      },
+      {
+        label: "Margen",
+        values: [
+          {
+            label: "Margen",
+            value: data.margin_cents,
+            color: data.margin_cents >= 0 ? "#2563EB" : "#DC2626",
+          },
+        ],
+      },
+    ];
+  }, [data]);
 
   if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex gap-1">
-          <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:150ms]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:300ms]" />
-        </div>
-      </div>
-    );
+    return <LoadingState label="Cargando resumen…" rows={4} />;
   }
 
   if (error || !data) {
     return (
-      <div className="card border-red-200 bg-red-50/40">
-        <p className="text-sm font-medium text-red-700">No se pudo cargar el resumen</p>
-        <p className="mt-1 text-xs text-red-600">{error ?? "Sin datos"}</p>
-      </div>
+      <ErrorState
+        title="No se pudo cargar el resumen"
+        message={error ?? "Sin datos"}
+        action={
+          <button
+            type="button"
+            onClick={reload}
+            className="btn-secondary text-xs"
+          >
+            Reintentar
+          </button>
+        }
+      />
     );
   }
 
   const statCards = [
-    { label: "Tenants totales", value: data.total_tenants, subtitle: `${data.active_tenants} activos` },
-    { label: "Clones activos", value: data.total_clones, subtitle: "En producción" },
-    { label: "MRR", value: data.mrr_display, subtitle: `${data.mrr_cents} cents` },
-    { label: "Costes (30d)", value: data.total_costs_display, subtitle: "Últimos 30 días" },
+    {
+      label: "Tenants totales",
+      value: data.total_tenants,
+      subtitle: `${data.active_tenants} activos`,
+    },
+    {
+      label: "Clones activos",
+      value: data.total_clones,
+      subtitle: "En producción",
+    },
+    {
+      label: "MRR",
+      value: data.mrr_display,
+      subtitle: `${data.mrr_cents.toLocaleString("es-ES")} cents`,
+    },
+    {
+      label: "Costes (30d)",
+      value: data.total_costs_display,
+      subtitle: "Últimos 30 días",
+    },
   ];
+
+  const hasPlanData =
+    Object.keys(data.plan_breakdown).length > 0 &&
+    Object.values(data.plan_breakdown).some((v) => v > 0);
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Platform Overview
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Métricas agregadas de la plataforma · generado{" "}
-          <span className="font-mono">{data.generated_at}</span>
-        </p>
-      </header>
+      <PageHeader
+        title="Platform Overview"
+        subtitle={
+          <>
+            Métricas agregadas de la plataforma · generado{" "}
+            <span className="font-mono">{data.generated_at}</span>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((s) => (
@@ -107,7 +149,9 @@ export default function AdminResumenPage() {
             <div className="stat-label">{s.label}</div>
             <div className="stat-value mt-2">{s.value}</div>
             {s.subtitle && (
-              <div className="mt-1 text-xs text-[var(--text-muted)]">{s.subtitle}</div>
+              <div className="mt-1 text-xs text-[var(--text-muted)]">
+                {s.subtitle}
+              </div>
             )}
           </div>
         ))}
@@ -116,64 +160,71 @@ export default function AdminResumenPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Margin</h2>
-            <span className="text-xs text-[var(--text-muted)]">MRR − Costes (30d)</span>
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+              MRR · Costes · Margen (30d)
+            </h2>
+            <span className="text-xs text-[var(--text-muted)]">en cents</span>
           </div>
-          <div className="flex items-end gap-6">
-            <div>
-              <div className="stat-value text-[36px]">
-                <span
-                  className={
-                    data.margin_cents >= 0
-                      ? "text-[var(--color-accent-green)]"
-                      : "text-red-500"
-                  }
-                >
-                  {data.margin_display}
-                </span>
-              </div>
-              <div className="text-xs text-[var(--text-muted)]">
-                {data.margin_cents >= 0 ? "Margen positivo" : "Margen negativo"}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6 text-sm">
-              <div>
-                <div className="stat-label">Ingresos</div>
-                <div className="font-mono text-base text-[var(--text-primary)]">
-                  {data.mrr_display}
-                </div>
-              </div>
-              <div>
-                <div className="stat-label">Costes</div>
-                <div className="font-mono text-base text-[var(--text-primary)]">
-                  {data.total_costs_display}
-                </div>
-              </div>
+          <BarChart data={financeRows} unit="¢" height={240} />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <ChartLegend
+              items={[
+                { label: "Ingresos", color: "#10B981" },
+                { label: "Costes", color: "#F97316" },
+                {
+                  label: "Margen",
+                  color: data.margin_cents >= 0 ? "#2563EB" : "#DC2626",
+                },
+              ]}
+            />
+            <div
+              className={`text-base font-semibold ${
+                data.margin_cents >= 0
+                  ? "text-[var(--color-accent-green)]"
+                  : "text-[var(--color-accent-pink)]"
+              }`}
+            >
+              Margen: {data.margin_display}
             </div>
           </div>
         </div>
 
         <div className="card">
           <h2 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
-            Planes contratados
+            Distribución de planes
           </h2>
-          <div className="space-y-3">
-            {Object.entries(data.plan_breakdown).map(([plan, count]) => (
-              <div key={plan} className="flex items-center justify-between">
-                <span className="text-sm text-[var(--text-secondary)]">
-                  {PLAN_LABEL_ES[plan] ?? plan}
-                </span>
-                <span className="font-mono text-sm font-semibold text-[var(--text-primary)]">
-                  {count}
-                </span>
-              </div>
-            ))}
-            {Object.keys(data.plan_breakdown).length === 0 && (
-              <div className="text-xs text-[var(--text-muted)]">
-                Sin datos de planes todavía.
-              </div>
-            )}
-          </div>
+          {!hasPlanData ? (
+            <p className="text-xs text-[var(--text-muted)]">
+              Sin datos de planes todavía.
+            </p>
+          ) : (
+            <>
+              <BarChart
+                data={planRows}
+                height={180}
+                max={Math.max(...Object.values(data.plan_breakdown), 1) * 1.2}
+              />
+              <ul className="mt-3 space-y-1.5">
+                {Object.entries(data.plan_breakdown).map(([plan, count]) => (
+                  <li
+                    key={plan}
+                    className="flex items-center justify-between text-xs"
+                  >
+                    <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ background: PLAN_COLOR[plan] ?? "#94A3B8" }}
+                      />
+                      {PLAN_LABEL_ES[plan] ?? plan}
+                    </span>
+                    <span className="font-mono font-semibold text-[var(--text-primary)]">
+                      {count}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       </div>
     </div>

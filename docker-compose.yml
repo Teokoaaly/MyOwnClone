@@ -1,0 +1,74 @@
+services:
+  db_postgres:
+    image: postgres:15
+    container_name: myownclone_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: myownclone
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: myownclone_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.24.0
+    container_name: myownclone_weaviate
+    ports:
+      - "8080:8080"
+    environment:
+      DISABLE_AUTH: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      ENABLE_MODULES: "text2vec-openai,text2vec-huggingface"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myownclone_api
+    ports:
+      - "5001:5001"
+    environment:
+      FLASK_ENV: development
+      DB_HOST: db_postgres
+      DB_PORT: "5432"
+      DB_NAME: myownclone
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      WEAVIATE_URL: http://weaviate:8080
+      WEAVIATE_API_KEY: ${WEAVIATE_API_KEY:-}
+      # FLASK_APP is set to the inner package's app_factory, so the top-level
+      # `api` package (containing the live controllers) is on the import path.
+      FLASK_APP: app_factory
+    working_dir: /app/api
+    depends_on:
+      db_postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: flask --app app_factory run --host=0.0.0.0 --port=5001
+
+volumes:
+  postgres_data:
+  redis_data:
+  weaviate_data:
