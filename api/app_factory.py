@@ -4,6 +4,8 @@ Register all MyOwnClone blueprints here.
 """
 import os
 
+from api.libs.security_checks import assert_production_secrets
+
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -106,10 +108,37 @@ def _validate_required_env():
         )
 
 
+def _setup_dev_keys():
+    """Generate random keys for development mode when not set."""
+    import secrets
+    import warnings
+
+    jwt_secret = os.getenv("JWT_SECRET_KEY", "")
+    if not jwt_secret or jwt_secret == "dev-secret-change-me":
+        generated = secrets.token_urlsafe(32)
+        os.environ["JWT_SECRET_KEY"] = generated
+        warnings.warn(
+            "WARNING: JWT_SECRET_KEY not set — using a randomly generated key for this session. "
+            "Set JWT_SECRET_KEY explicitly for consistent token validation across restarts.",
+            RuntimeWarning,
+        )
+
+    impersonation_pepper = os.getenv("IMPERSONATION_TOKEN_PEPPER", "dev-pepper-rotate-in-prod")
+    if impersonation_pepper in ("", "dev-pepper-rotate-in-prod"):
+        generated = secrets.token_urlsafe(32)
+        os.environ["IMPERSONATION_TOKEN_PEPPER"] = generated
+        warnings.warn(
+            "WARNING: IMPERSONATION_TOKEN_PEPPER not set — using a randomly generated key for this session. "
+            "Set IMPERSONATION_TOKEN_PEPPER explicitly for consistent token validation across restarts.",
+            RuntimeWarning,
+        )
+
+
 def create_app():
     """Create and configure the Flask application."""
     # SECURITY: Validate config before doing anything else (fail-fast)
-    _validate_required_env()
+    assert_production_secrets()
+    _setup_dev_keys()
     app = Flask(__name__)
 
     # Database configuration
