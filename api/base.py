@@ -9,29 +9,44 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
+from sqlalchemy import String, DateTime
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
 
 def naive_utc_now() -> datetime:
     """Return naive datetime in UTC."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
-class TypeBase:
-    """Base class for all MyOwnClone models."""
+class TypeBase(DeclarativeBase):
+    """Base class for all MyOwnClone models.
 
-    id: str
-    created_at: datetime
-    updated_at: datetime
+    Provides the DeclarativeBase registry that SQLAlchemy needs
+    to recognize subclasses as mapped ORM entities.
+    Columns (id, created_at, updated_at) are declared on subclasses
+    or via DefaultFieldsDCMixin to avoid conflicts.
+    """
 
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    __abstract__ = True
 
 
 class DefaultFieldsDCMixin:
-    """Mixin providing created_at and updated_at fields."""
+    """Mixin providing id, created_at and updated_at fields.
 
-    created_at: datetime
-    updated_at: datetime
+    Use this mixin for models that need standard audit columns.
+    Models that define their own id/created_at/updated_at should
+    NOT inherit from this mixin.
+    """
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: uuidv7()
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=naive_utc_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=naive_utc_now, onupdate=naive_utc_now, nullable=False
+    )
 
 
 def uuidv7() -> str:

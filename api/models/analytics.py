@@ -46,7 +46,7 @@ class CostTracking(TypeBase):
     )
 
 
-class Plan(DefaultFieldsDCMixin, TypeBase):
+class Plan(TypeBase):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default_factory=lambda: str(uuidv7()), init=False)
     __tablename__ = "myownclone_plans"
 
@@ -164,7 +164,7 @@ class ImpersonationToken(TypeBase):
     )
 
 
-class Feedback(DefaultFieldsDCMixin, TypeBase):
+class Feedback(TypeBase):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, insert_default=lambda: str(uuidv7()), default_factory=lambda: str(uuidv7()), init=False)
     __tablename__ = "clone_feedback"
 
