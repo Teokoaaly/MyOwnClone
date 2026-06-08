@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+.tox
+
+# Virtual envs
+.venv
+venv
+env
+
+# Node / frontend (built elsewhere)
+replica/node_modules
+replica/.next
+replica/out
+replica/dist
+replica/build
+replica/.turbo
+replica/coverage
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Docs (kept in repo, not in image)
+*.md
+LICENSE
+
+# Test artifacts
+tests
+conftest.py
+pytest.ini
+
+# Secrets / env
+.env
+.env.local
+.env.*.local
+
+# Backups
+*.bak
+*.backup
+*.tar.gz
+*.zip
+
+# Compose overrides
+docker-compose.override.yml

@@ -98,11 +98,15 @@ class AdminTenantsApi(Resource):
 
         page = int(request.args.get("page", 1))
         limit = min(int(request.args.get("limit", 20)), 50)
-        search = request.args.get("search", "")
+        search = request.args.get("search", "").strip()
 
         stmt = select(Tenant).order_by(Tenant.created_at.desc())
         if search:
-            stmt = stmt.where(Tenant.name.ilike(f"%{search}%"))
+            # Escape SQL LIKE wildcards so a user typing '%' doesn't
+            # accidentally match every tenant. SQLAlchemy's ilike
+            # uses ESCAPE for this.
+            escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            stmt = stmt.where(Tenant.name.ilike(f"%{escaped}%", escape="\\"))
 
         stmt = stmt.offset((page - 1) * limit).limit(limit)
         tenants = db.session.execute(stmt).scalars().all()
