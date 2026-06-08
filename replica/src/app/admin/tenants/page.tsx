@@ -1,17 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { LoadingState } from "@/components/ui/LoadingState";
-import { ErrorState } from "@/components/ui/ErrorState";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { StatusBadge, statusToKind } from "@/components/ui/StatusBadge";
-import { CourtesyButton } from "@/components/admin/CourtesyButton";
-import { PageHeader } from "@/components/admin/PageHeader";
-import { Field, fieldControlClass } from "@/components/admin/Field";
-import { FilterBar } from "@/components/admin/FilterBar";
-import { Pagination } from "@/components/admin/Pagination";
-import { useAdminFetch } from "@/components/admin/useAdminFetch";
+import { useRouter } from "next/navigation";
 
 interface AdminTenant {
   id: string;
@@ -26,16 +17,11 @@ interface AdminTenant {
   updated_at: string | null;
 }
 
-interface Pagination_ {
+interface Pagination {
   page: number;
   limit: number;
   total: number;
   pages: number;
-}
-
-interface TenantsResponse {
-  items: AdminTenant[];
-  pagination: Pagination_;
 }
 
 const PLAN_OPTIONS = [
@@ -55,20 +41,38 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-function formatEur(cents: number) {
-  return `${(cents / 100).toFixed(2)}€`;
+function statusBadge(status: string | null) {
+  switch ((status ?? "").toLowerCase()) {
+    case "active":
+    case "normal":
+      return "badge-active";
+    case "trial":
+      return "badge-trial";
+    case "suspended":
+    case "warning":
+      return "badge-warning";
+    case "cancelled":
+    case "error":
+      return "badge-error";
+    default:
+      return "badge-trial";
+  }
 }
 
 export default function AdminTenantsPage() {
-  const [pagination, setPagination] = useState<Pagination_>({
+  const router = useRouter();
+  const [tenants, setTenants] = useState<AdminTenant[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 20,
     total: 0,
     pages: 0,
   });
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [plan, setPlan] = useState("");
   const [status, setStatus] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -80,47 +84,77 @@ export default function AdminTenantsPage() {
     return params.toString();
   }, [pagination.page, pagination.limit, search, plan, status]);
 
-  const { data, loading, error, reload } = useAdminFetch<TenantsResponse>(
-    `/api/admin/tenants?${queryString}`,
-  );
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/admin/tenants?${queryString}`, { cache: "no-store" })
+      .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          return null;
+        }
+        if (!res.ok) throw new Error(`Backend error ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!data || cancelled) return;
+        setTenants(data.items ?? []);
+        setPagination(
+          data.pagination ?? { page: 1, limit: 20, total: 0, pages: 0 },
+        );
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message ?? "Error");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [queryString, router]);
 
-  const tenants = data?.items ?? [];
-  const serverPagination = data?.pagination;
-  const total = serverPagination?.total ?? 0;
-
-  function resetPage() {
-    setPagination((p) => ({ ...p, page: 1 }));
+  function changePage(p: number) {
+    setPagination((prev) => ({ ...prev, page: p }));
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Tenants"
-        subtitle={`${total} cuentas en la plataforma`}
-        actions={<CourtesyButton onCreated={reload} />}
-      />
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+            Tenants
+          </h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            {pagination.total} cuentas en la plataforma
+          </p>
+        </div>
+      </header>
 
-      <FilterBar>
-        <Field label="Buscar" fill>
+      <div className="card flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <label className="stat-label">Buscar</label>
           <input
             type="text"
             value={search}
             onChange={(e) => {
-              resetPage();
+              setPagination((p) => ({ ...p, page: 1 }));
               setSearch(e.target.value);
             }}
             placeholder="Nombre o slug…"
-            className={fieldControlClass}
+            className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
           />
-        </Field>
-        <Field label="Plan">
+        </div>
+        <div>
+          <label className="stat-label">Plan</label>
           <select
             value={plan}
             onChange={(e) => {
-              resetPage();
+              setPagination((p) => ({ ...p, page: 1 }));
               setPlan(e.target.value);
             }}
-            className={fieldControlClass}
+            className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
           >
             {PLAN_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -128,15 +162,16 @@ export default function AdminTenantsPage() {
               </option>
             ))}
           </select>
-        </Field>
-        <Field label="Estado">
+        </div>
+        <div>
+          <label className="stat-label">Estado</label>
           <select
             value={status}
             onChange={(e) => {
-              resetPage();
+              setPagination((p) => ({ ...p, page: 1 }));
               setStatus(e.target.value);
             }}
-            className={fieldControlClass}
+            className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
           >
             {STATUS_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -144,133 +179,105 @@ export default function AdminTenantsPage() {
               </option>
             ))}
           </select>
-        </Field>
-      </FilterBar>
+        </div>
+      </div>
 
       {error ? (
-        <ErrorState
-          title="Error cargando tenants"
-          message={error}
-          action={
-            <button
-              type="button"
-              onClick={reload}
-              className="btn-secondary text-xs"
-            >
-              Reintentar
-            </button>
-          }
-        />
+        <div className="card border-red-200 bg-red-50/40">
+          <p className="text-sm font-medium text-red-700">Error cargando tenants</p>
+          <p className="mt-1 text-xs text-red-600">{error}</p>
+        </div>
       ) : loading ? (
-        <LoadingState label="Cargando tenants…" rows={6} />
-      ) : tenants.length === 0 ? (
-        <EmptyState
-          title="Sin tenants"
-          description={
-            search || plan || status
-              ? "No se encontraron tenants con esos filtros."
-              : "Aún no hay tenants en la plataforma. Crea el primero con el botón de arriba."
-          }
-        />
-      ) : (
-        <>
-          <div className="card hidden overflow-hidden p-0 md:block">
-            <table className="w-full text-sm">
-              <thead className="table-header">
-                <tr>
-                  <th className="px-4 py-2.5 text-left">Tenant</th>
-                  <th className="px-4 py-2.5 text-left">Plan</th>
-                  <th className="px-4 py-2.5 text-left">Estado</th>
-                  <th className="px-4 py-2.5 text-right">Clones</th>
-                  <th className="px-4 py-2.5 text-right">Costes 30d</th>
-                  <th className="px-4 py-2.5 text-left">Creado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tenants.map((t) => (
-                  <tr key={t.id} className="table-row">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/tenants/${t.id}`}
-                        className="font-medium text-[var(--text-primary)] hover:text-[var(--color-accent-warm)]"
-                      >
-                        {t.name}
-                      </Link>
-                      {t.slug && (
-                        <div className="text-xs text-[var(--text-muted)]">
-                          {t.slug}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--text-secondary)] capitalize">
-                      {t.plan ?? "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge
-                        kind={statusToKind(t.status)}
-                        label={t.status ?? "—"}
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)]">
-                      {t.clone_count}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)]">
-                      {formatEur(t.monthly_cost_cents)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
-                      {t.created_at
-                        ? new Date(t.created_at).toLocaleDateString("es-ES")
-                        : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="card flex h-48 items-center justify-center">
+          <div className="flex gap-1">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:150ms]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:300ms]" />
           </div>
-
-          <ul className="space-y-2 md:hidden">
-            {tenants.map((t) => (
-              <li key={t.id} className="card flex flex-col gap-2 py-3">
-                <Link
-                  href={`/admin/tenants/${t.id}`}
-                  className="font-medium text-[var(--text-primary)] hover:text-[var(--color-accent-warm)]"
-                >
-                  {t.name}
-                </Link>
-                {t.slug && (
-                  <p className="text-xs text-[var(--text-muted)]">{t.slug}</p>
-                )}
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <StatusBadge
-                    kind={statusToKind(t.status)}
-                    label={t.status ?? "—"}
-                  />
-                  <span className="text-xs text-[var(--text-secondary)] capitalize">
+        </div>
+      ) : tenants.length === 0 ? (
+        <div className="card text-center text-sm text-[var(--text-muted)]">
+          No se encontraron tenants con esos filtros.
+        </div>
+      ) : (
+        <div className="card overflow-hidden p-0">
+          <table className="w-full text-sm">
+            <thead className="table-header">
+              <tr>
+                <th className="px-4 py-2.5 text-left">Tenant</th>
+                <th className="px-4 py-2.5 text-left">Plan</th>
+                <th className="px-4 py-2.5 text-left">Estado</th>
+                <th className="px-4 py-2.5 text-right">Clones</th>
+                <th className="px-4 py-2.5 text-right">Costes 30d</th>
+                <th className="px-4 py-2.5 text-left">Creado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tenants.map((t) => (
+                <tr key={t.id} className="table-row">
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/tenants/${t.id}`}
+                      className="font-medium text-[var(--text-primary)] hover:text-[var(--color-accent-warm)]"
+                    >
+                      {t.name}
+                    </Link>
+                    {t.slug && (
+                      <div className="text-xs text-[var(--text-muted)]">
+                        {t.slug}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)] capitalize">
                     {t.plan ?? "—"}
-                  </span>
-                </div>
-                <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono">
-                  <span>{t.clone_count} clones</span>
-                  <span>{formatEur(t.monthly_cost_cents)} / 30d</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={statusBadge(t.status)}>
+                      {t.status ?? "—"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)]">
+                    {t.clone_count}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)]">
+                    {t.monthly_cost_cents}¢
+                  </td>
+                  <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
+                    {t.created_at
+                      ? new Date(t.created_at).toLocaleDateString("es-ES")
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {serverPagination && (
-        <Pagination
-          page={serverPagination.page}
-          pages={serverPagination.pages}
-          layout="spread"
-          onPrev={() =>
-            setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))
-          }
-          onNext={() =>
-            setPagination((p) => ({ ...p, page: p.page + 1 }))
-          }
-        />
+      {pagination.pages > 1 && (
+        <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+          <span>
+            Página {pagination.page} de {pagination.pages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={pagination.page <= 1}
+              onClick={() => changePage(pagination.page - 1)}
+              className="btn-secondary text-xs disabled:opacity-40"
+            >
+              ← Anterior
+            </button>
+            <button
+              type="button"
+              disabled={pagination.page >= pagination.pages}
+              onClick={() => changePage(pagination.page + 1)}
+              className="btn-secondary text-xs disabled:opacity-40"
+            >
+              Siguiente →
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

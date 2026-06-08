@@ -16,23 +16,15 @@ export default async function ClonePage({ params, searchParams }: PageProps) {
   const cloneData = await fetchCloneConfig(slug)
 
   return (
-    <main
-      className="mx-auto flex h-dvh max-w-4xl flex-col px-4"
-      style={{ background: "var(--bg-page)", color: "var(--text-primary)" }}
-    >
+    <main className="mx-auto flex h-dvh max-w-4xl flex-col px-4">
       {/* Header */}
-      <header
-        className="flex items-center gap-4 border-b px-2 py-4"
-        style={{ borderColor: "var(--border-soft)" }}
-      >
+      <header className="flex items-center gap-4 border-b border-zinc-800 px-2 py-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+          <h1 className="text-xl font-semibold tracking-tight">
             {cloneData?.name || slug}
           </h1>
           {cloneData?.description && (
-            <p className="text-sm text-[var(--text-muted)]">
-              {cloneData.description}
-            </p>
+            <p className="text-sm text-zinc-400">{cloneData.description}</p>
           )}
         </div>
       </header>

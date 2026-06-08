@@ -10,7 +10,7 @@ from api.libs.datetime_utils import naive_utc_now
 from api.libs.uuid_utils import uuidv7
 
 from ..base import DefaultFieldsDCMixin, TypeBase
-from ..db_types import LongText
+from ..types import LongText
 
 
 class MeetingType_(DefaultFieldsDCMixin, TypeBase):

@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { LoadingState } from "@/components/ui/LoadingState"
-import { EmptyState } from "@/components/ui/EmptyState"
 
 interface AnalyticsOverview {
   total_conversations: number
@@ -33,12 +31,8 @@ interface CostBreakdown {
   total_cents: number
 }
 
-function formatEur(cents: number) {
-  return `${(cents / 100).toFixed(2)}€`
-}
-
 export default function AnaliticasPage() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null)
   const [topQuestions, setTopQuestions] = useState<TopQuestion[]>([])
@@ -75,134 +69,137 @@ export default function AnaliticasPage() {
   }, [fetchData])
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando analíticas…" rows={4} />
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex gap-1">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" />
+        </div>
+      </div>
+    )
   }
 
-  const hasData =
-    overview &&
-    (overview.total_conversations > 0 ||
-      overview.questions_answered > 0 ||
-      overview.gaps_count > 0)
-
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Analíticas
         </h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
+        <p className="mt-1 text-gray-500 dark:text-gray-400">
           Descubre cómo interactúan los usuarios con tu clon.
         </p>
-      </header>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Conversaciones" value={overview?.total_conversations ?? 0} />
         <StatCard label="Mensajes" value={overview?.total_messages ?? 0} />
         <StatCard label="Preguntas respondidas" value={overview?.questions_answered ?? 0} />
-        <StatCard
-          label="Gaps de conocimiento"
-          value={overview?.gaps_count ?? 0}
-          highlight={!!overview?.gaps_count && overview.gaps_count > 0}
-        />
+        <StatCard label="Gaps de conocimiento" value={overview?.gaps_count ?? 0} highlight={!!overview?.gaps_count && overview.gaps_count > 0} />
       </div>
 
-      {!hasData ? (
-        <EmptyState
-          title="Sin datos todavía"
-          description="Las preguntas frecuentes, los gaps y los costes aparecerán cuando tu clon empiece a tener conversaciones."
-        />
-      ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="card">
-            <h3 className="font-semibold text-[var(--text-primary)] mb-4">
-              Preguntas frecuentes
-            </h3>
-            {topQuestions.length === 0 ? (
-              <p className="text-sm text-[var(--text-muted)] py-4">
-                Las preguntas más frecuentes aparecerán aquí cuando empieces a recibir consultas.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {topQuestions.map((q, i) => (
-                  <li key={i} className="flex items-center justify-between">
-                    <p className="text-sm text-[var(--text-secondary)] truncate flex-1 mr-4">
-                      {q.question}
-                    </p>
-                    <span className="badge-trial font-mono">
-                      {q.count}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div className="card">
-            <h3 className="font-semibold text-[var(--text-primary)] mb-4">
-              Gaps de conocimiento
-            </h3>
-            {gaps.length === 0 ? (
-              <p className="text-sm text-[var(--text-muted)] py-4">
-                Preguntas que tu clon no pudo responder. Añade contenido para cubrirlas.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {gaps.map((g) => (
-                  <li
-                    key={g.id}
-                    className="flex items-start gap-3 rounded-lg bg-[var(--surface-2)] p-3"
-                  >
-                    <span aria-hidden="true" className="text-[var(--color-accent-amber)] mt-0.5">⚠</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-[var(--text-secondary)]">
-                        {g.question}
-                      </p>
-                      <p className="mt-1 font-mono text-[10px] text-[var(--text-muted)]">
-                        {g.count} veces · {g.status === "open" ? "Pendiente" : "Resuelto"}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => router.push("/biblioteca")}
-                      className="text-xs text-[var(--color-accent-warm)] hover:underline whitespace-nowrap"
-                    >
-                      + Contenido
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+            Preguntas frecuentes
+          </h3>
+          {topQuestions.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4">
+              Las preguntas más frecuentes aparecerán aquí cuando empieces a recibir consultas.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {topQuestions.map((q, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 truncate flex-1 mr-4">
+                    {q.question}
+                  </p>
+                  <span className="text-xs font-medium text-purple-600 bg-purple-50 dark:bg-purple-950 px-2 py-1 rounded-full whitespace-nowrap">
+                    {q.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+            Gaps de conocimiento
+          </h3>
+          {gaps.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4">
+              Preguntas que tu clon no pudo responder. Añade contenido para cubrirlas.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {gaps.map((g) => (
+                <div
+                  key={g.id}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30"
+                >
+                  <span className="text-amber-500 mt-0.5">⚠️</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {g.question}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {g.count} veces · {g.status === "open" ? "Pendiente" : "Resuelto"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => router.push("/biblioteca")}
+                    className="text-xs text-purple-600 hover:text-purple-500 whitespace-nowrap"
+                  >
+                    + Contenido
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {costs && (
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] mb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
             Costes del mes actual
           </h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <CostCard
-              label="Respuestas del clon"
-              cents={costs.clone_response_cents}
-              note="Facturable al tenant"
-            />
-            <CostCard
-              label="Ingestión de contenido"
-              cents={costs.content_ingestion_cents}
-              note="Facturable al tenant"
-            />
-            <CostCard
-              label="Operaciones internas"
-              cents={costs.platform_ops_cents}
-              note="Lo paga la plataforma"
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Respuestas del clon
+              </p>
+              <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+                {(costs.clone_response_cents / 100).toFixed(2)}€
+              </p>
+              <p className="text-xs text-gray-400">Facturable al tenant</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Ingestión de contenido
+              </p>
+              <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+                {(costs.content_ingestion_cents / 100).toFixed(2)}€
+              </p>
+              <p className="text-xs text-gray-400">Facturable al tenant</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Operaciones internas
+              </p>
+              <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+                {(costs.platform_ops_cents / 100).toFixed(2)}€
+              </p>
+              <p className="text-xs text-gray-400">Lo paga la plataforma</p>
+            </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-[var(--border-soft)] flex items-center justify-between">
-            <span className="text-sm font-medium text-[var(--text-secondary)]">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Total del mes
             </span>
-            <span className="stat-value text-xl">
-              {formatEur(costs.total_cents)}
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
+              {(costs.total_cents / 100).toFixed(2)}€
             </span>
           </div>
         </div>
@@ -213,26 +210,11 @@ export default function AnaliticasPage() {
 
 function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
   return (
-    <div className={["card", highlight ? "border-[var(--color-accent-amber)]/40" : ""].join(" ")}>
-      <div className="stat-label">{label}</div>
-      <div
-        className={[
-          "stat-value mt-2",
-          highlight ? "text-[var(--color-accent-amber)]" : "",
-        ].join(" ")}
-      >
+    <div className={`bg-white dark:bg-gray-900 rounded-xl border p-6 ${highlight ? "border-amber-400/40" : "border-gray-200 dark:border-gray-800"}`}>
+      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+      <p className={`mt-2 text-3xl font-bold ${highlight ? "text-amber-600" : "text-gray-900 dark:text-white"}`}>
         {value.toLocaleString("es-ES")}
-      </div>
-    </div>
-  )
-}
-
-function CostCard({ label, cents, note }: { label: string; cents: number; note: string }) {
-  return (
-    <div>
-      <div className="stat-label">{label}</div>
-      <div className="stat-value mt-1 text-2xl">{formatEur(cents)}</div>
-      <p className="text-[10px] text-[var(--text-muted)] font-mono mt-1">{note}</p>
+      </p>
     </div>
   )
 }

@@ -2,6 +2,7 @@ import {
   pgTable,
   text,
   timestamp,
+  varchar,
   integer,
   boolean,
   pgEnum,
@@ -20,11 +21,11 @@ export const meetingTypes = pgTable("meeting_types", {
   cloneId: text("clone_id")
     .notNull()
     .references(() => clones.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
   duration: integer("duration").notNull(), // minutes
   price: integer("price").notNull().default(0), // cents
   description: text("description"),
-  color: text("color"), // hex color
+  color: varchar("color", { length: 7 }), // hex color
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -35,8 +36,8 @@ export const availability = pgTable("availability", {
     .notNull()
     .references(() => clones.id, { onDelete: "cascade" }),
   dayOfWeek: integer("day_of_week").notNull(), // 0=Sunday, 1=Monday, ...
-  startTime: text("start_time").notNull(), // "HH:MM"
-  endTime: text("end_time").notNull(), // "HH:MM"
+  startTime: varchar("start_time", { length: 5 }).notNull(), // "HH:MM"
+  endTime: varchar("end_time", { length: 5 }).notNull(), // "HH:MM"
 });
 
 export const bookings = pgTable("bookings", {
@@ -44,10 +45,10 @@ export const bookings = pgTable("bookings", {
   meetingTypeId: text("meeting_type_id")
     .notNull()
     .references(() => meetingTypes.id, { onDelete: "cascade" }),
-  visitorName: text("visitor_name").notNull(),
-  visitorEmail: text("visitor_email").notNull(),
-  date: text("date").notNull(), // "YYYY-MM-DD"
-  time: text("time").notNull(), // "HH:MM"
+  visitorName: varchar("visitor_name", { length: 255 }).notNull(),
+  visitorEmail: varchar("visitor_email", { length: 255 }).notNull(),
+  date: varchar("date", { length: 10 }).notNull(), // "YYYY-MM-DD"
+  time: varchar("time", { length: 5 }).notNull(), // "HH:MM"
   status: bookingStatusEnum("status").notNull().default("confirmed"),
   meetingUrl: text("meeting_url"),
   notes: text("notes"),

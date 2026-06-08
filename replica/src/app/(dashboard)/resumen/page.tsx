@@ -1,312 +1,164 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  StatsCard,
-  QuickActionCard,
-  OnboardingBanner,
-  HeaderBreadcrumb,
-} from "@/components/dashboard";
-import { ShortcutIcons } from "@/components/ui/dashboard-icons";
-import { LoadingState } from "@/components/ui/LoadingState";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorState } from "@/components/ui/ErrorState";
-import { BarChart, ChartLegend } from "@/components/ui/BarChart";
+import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 interface AnalyticsOverview {
-  total_conversations: number;
-  total_messages: number;
-  questions_answered: number;
-  gaps_count: number;
-  active_sessions?: number;
-  automation_rate?: number;
-  /** When the overview endpoint doesn't return these, we use 0. */
-  clones_count?: number;
-}
-
-interface InboxListItem {
-  id: string;
-  subject: string | null;
-  from_email: string | null;
-  status: string;
-  received_at: number | null;
+  total_conversations: number
+  total_messages: number
+  questions_answered: number
+  gaps_count: number
 }
 
 export default function DashboardResumenPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
-  const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [overview, setOverview] = useState<AnalyticsOverview | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (status === "unauthenticated") router.push("/login")
+  }, [status, router])
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
     try {
-      const [overviewRes, inboxRes] = await Promise.allSettled([
-        fetch("/api/clone/analytics/overview"),
-        fetch("/api/clone/inbox/list?limit=3"),
-      ]);
-
-      if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
-        setOverview(await overviewRes.value.json());
+      const res = await fetch("/api/clone/analytics/overview")
+      if (res.ok) {
+        setOverview(await res.json())
       }
-      if (inboxRes.status === "fulfilled" && inboxRes.value.ok) {
-        const data = await inboxRes.value.json();
-        setRecentInbox(Array.isArray(data) ? data : data.items ?? []);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error cargando datos");
+    } catch {
+      // Empty state
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData()
+  }, [fetchData])
+
+  const shortcuts = [
+    { href: "/biblioteca", label: "Subir contenido", emoji: "📚", desc: "PDFs, YouTube, texto", color: "from-purple-600 to-pink-600" },
+    { href: "/cerebro", label: "Añadir memoria", emoji: "🧠", desc: "Datos que el clon recordará", color: "from-blue-600 to-cyan-600" },
+    { href: "/inbox", label: "Revisar inbox", emoji: "📧", desc: "Emails pendientes de respuesta", color: "from-amber-600 to-orange-600" },
+    { href: "/analiticas", label: "Ver analíticas", emoji: "📈", desc: "Preguntas, gaps, costes", color: "from-green-600 to-emerald-600" },
+  ]
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando resumen…" rows={4} />;
-  }
-
-  if (error) {
     return (
-      <ErrorState
-        message={error}
-        action={
-          <button
-            type="button"
-            onClick={fetchData}
-            className="btn-secondary text-xs"
-          >
-            Reintentar
-          </button>
-        }
-      />
-    );
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex gap-1">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" />
+        </div>
+      </div>
+    )
   }
-
-  const stats = [
-    {
-      icon: ShortcutIcons.upload,
-      label: "AI Clones",
-      value: overview?.clones_count ?? 0,
-      emptyLabel: "No clones yet",
-    },
-    {
-      icon: ShortcutIcons.analytics,
-      label: "Active Sessions",
-      value: overview?.active_sessions ?? 0,
-      emptyLabel: "No active sessions",
-    },
-    {
-      icon: ShortcutIcons.analytics,
-      label: "Automation Rate",
-      value: overview?.automation_rate ?? 0,
-      suffix: "%",
-      emptyLabel: "Awaiting data",
-    },
-  ];
-
-  const quickActions = [
-    {
-      href: "/biblioteca",
-      icon: ShortcutIcons.upload,
-      label: "Upload Content",
-      description: "PDFs, YouTube, text and more",
-      iconColor: "text-[var(--color-accent-warm)]",
-    },
-    {
-      href: "/cerebro",
-      icon: ShortcutIcons.memory,
-      label: "Train Memory",
-      description: "Data your clone will remember",
-      iconColor: "text-[var(--color-accent-cyan)]",
-    },
-    {
-      href: "/inbox",
-      icon: ShortcutIcons.inbox,
-      label: "Review Inbox",
-      description: "Pending email responses",
-      iconColor: "text-[var(--color-accent-violet)]",
-    },
-    {
-      href: "/analiticas",
-      icon: ShortcutIcons.analytics,
-      label: "View Analytics",
-      description: "Questions, gaps and costs",
-      iconColor: "text-[var(--color-accent-green)]",
-    },
-  ];
-
-  // Sparkline-ish chart for the last 30 days. We synthesise a 7-bar
-  // view of `total_conversations`, `questions_answered`, `gaps_count`.
-  const sparkData = [
-    {
-      label: "Conversations",
-      values: [
-        { label: "Conversations", value: overview?.total_conversations ?? 0, color: "#EA580C" },
-      ],
-    },
-    {
-      label: "Questions",
-      values: [
-        { label: "Questions", value: overview?.questions_answered ?? 0, color: "#0891B2" },
-      ],
-    },
-    {
-      label: "Gaps",
-      values: [
-        { label: "Gaps", value: overview?.gaps_count ?? 0, color: "#8B5CF6" },
-      ],
-    },
-  ];
-
-  const sparkMax = Math.max(
-    1,
-    overview?.total_conversations ?? 0,
-    overview?.questions_answered ?? 0,
-    overview?.gaps_count ?? 0,
-  );
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <HeaderBreadcrumb
-        title="Workspace Overview"
-        breadcrumbs={["MyOwnClone", "Dashboard"]}
-        user={{
-          name: session?.user?.name,
-          email: session?.user?.email,
-          image: session?.user?.image ?? undefined,
-        }}
-        action={
-          <Link href="/configuracion" className="btn-primary text-xs">
-            Create Clone
-          </Link>
-        }
-      />
+    <div className="p-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          ¡Bienvenido{session?.user?.name ? `, ${session.user.name}` : ""}!
+        </h1>
+        <p className="mt-1 text-gray-500 dark:text-gray-400">
+          Gestiona tu clon de IA y descubre cómo interactúan tus clientes.
+        </p>
+      </div>
 
-      {/* Stats row */}
-      <section>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {stats.map((s) => (
-            <StatsCard
-              key={s.label}
-              icon={s.icon}
-              label={s.label}
-              value={s.value}
-              suffix={"suffix" in s ? s.suffix : undefined}
-              emptyLabel={s.emptyLabel}
-            />
-          ))}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Conversaciones
+          </p>
+          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+            {overview?.total_conversations ?? 0}
+          </p>
+          <p className="mt-1 text-xs text-gray-400">Últimos 30 días</p>
         </div>
-      </section>
-
-      {/* Activity chart */}
-      <section className="card">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            Actividad últimos 30 días
-          </h2>
-          <span className="text-xs text-[var(--text-muted)]">totales acumulados</span>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Mensajes
+          </p>
+          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+            {overview?.total_messages ?? 0}
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            <Link href="/biblioteca" className="text-purple-600 hover:text-purple-500">
+              Subir contenido →
+            </Link>
+          </p>
         </div>
-        {overview === null ||
-        (overview.total_conversations === 0 &&
-          overview.questions_answered === 0 &&
-          overview.gaps_count === 0) ? (
-          <EmptyState
-            title="Sin actividad todavía"
-            description="Cuando tu clon empiece a recibir conversaciones, verás aquí el resumen."
-          />
-        ) : (
-          <>
-            <BarChart data={sparkData} height={200} max={sparkMax * 1.2} />
-            <div className="mt-3">
-              <ChartLegend
-                items={[
-                  { label: "Conversations", color: "#EA580C" },
-                  { label: "Questions", color: "#0891B2" },
-                  { label: "Gaps", color: "#8B5CF6" },
-                ]}
-              />
-            </div>
-          </>
-        )}
-      </section>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Preguntas respondidas
+          </p>
+          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+            {overview?.questions_answered ?? "--"}
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            {overview?.questions_answered != null ? "Últimos 30 días" : "Sin datos aún"}
+          </p>
+        </div>
+      </div>
 
-      {/* Inbox preview */}
-      <section className="card">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            Inbox reciente
-          </h2>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        Acciones rápidas
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {shortcuts.map((s) => (
           <Link
-            href="/inbox"
-            className="text-xs text-[var(--color-accent-warm)] hover:underline"
+            key={s.href}
+            href={s.href}
+            className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg transition-all"
           >
-            Ver todo →
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl ${s.color} opacity-10 rounded-bl-full`} />
+            <div className="relative">
+              <span className="text-2xl">{s.emoji}</span>
+              <h3 className="mt-3 font-semibold text-gray-900 dark:text-white text-sm">
+                {s.label}
+              </h3>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {s.desc}
+              </p>
+            </div>
           </Link>
-        </div>
-        {recentInbox.length === 0 ? (
-          <EmptyState
-            title="Bandeja vacía"
-            description="Los correos que lleguen a tu clon aparecerán aquí."
-          />
-        ) : (
-          <ul className="space-y-2">
-            {recentInbox.slice(0, 3).map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between rounded-lg border border-[var(--border-soft)] bg-[var(--surface-1)] px-3 py-2 hover:border-[var(--border-medium)] transition-colors"
+        ))}
+      </div>
+
+      <div className="mt-8 bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-xl border border-purple-400/10 p-6">
+        <div className="flex gap-3 items-start">
+          <span className="text-2xl">🚀</span>
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+              Empieza a construir tu clon
+            </h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Sube contenido a la biblioteca, configura la personalidad de tu clon
+              y comparte tu enlace público para empezar a recibir consultas 24/7.
+            </p>
+            <div className="mt-3 flex gap-3">
+              <Link
+                href="/biblioteca"
+                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[var(--text-primary)]">
-                    {item.subject ?? "(sin asunto)"}
-                  </p>
-                  <p className="truncate text-xs text-[var(--text-muted)]">
-                    {item.from_email ?? "—"}
-                  </p>
-                </div>
-                <span className="ml-3 shrink-0 font-mono text-[10px] text-[var(--text-muted)]">
-                  {item.received_at
-                    ? new Date(item.received_at * 1000).toLocaleDateString("es-ES")
-                    : "—"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* Quick actions */}
-      <section>
-        <h2 className="section-label mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {quickActions.map((action) => (
-            <QuickActionCard
-              key={action.href}
-              href={action.href}
-              icon={action.icon}
-              label={action.label}
-              description={action.description}
-              iconColor={action.iconColor}
-            />
-          ))}
+                Subir primer contenido
+              </Link>
+              <Link
+                href="/configuracion"
+                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Configurar clon
+              </Link>
+            </div>
+          </div>
         </div>
-      </section>
-
-      {/* Onboarding banner */}
-      <OnboardingBanner completedSteps={0} totalSteps={4} />
+      </div>
     </div>
-  );
+  )
 }

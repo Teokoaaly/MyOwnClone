@@ -10,7 +10,7 @@ from api.libs.datetime_utils import naive_utc_now
 from api.libs.uuid_utils import uuidv7
 
 from ..base import DefaultFieldsDCMixin, TypeBase
-from ..db_types import LongText
+from ..types import LongText
 
 
 class EmailInboundStatus(enum.StrEnum):
@@ -26,6 +26,9 @@ class EmailInbound(TypeBase):
     id: Mapped[str] = mapped_column(
         String(36),
         primary_key=True,
+        insert_default=lambda: str(uuidv7()),
+        default_factory=lambda: str(uuidv7()),
+        init=False,
     )
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     from_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -42,6 +45,8 @@ class EmailInbound(TypeBase):
         DateTime,
         nullable=False,
         insert_default=naive_utc_now,
+        default_factory=naive_utc_now,
+        init=False,
         server_default=func.current_timestamp(),
     )
     responded_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=None)

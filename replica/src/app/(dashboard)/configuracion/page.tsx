@@ -3,9 +3,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { LoadingState } from "@/components/ui/LoadingState"
-import { EmptyState } from "@/components/ui/EmptyState"
-import { ThemeToggle } from "@/components/ui/ThemeToggle"
 
 interface CloneConfig {
   id: string
@@ -42,7 +39,7 @@ const TONE_OPTIONS = [
 ]
 
 export default function ConfiguracionPage() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [clone, setClone] = useState<CloneConfig | null>(null)
   const [loading, setLoading] = useState(true)
@@ -131,109 +128,93 @@ export default function ConfiguracionPage() {
   }
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando configuración…" rows={3} />
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex gap-1">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" />
+        </div>
+      </div>
+    )
   }
 
   if (!clone) {
     return (
-      <div className="space-y-6">
-        <header>
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Configuración
-          </h1>
-        </header>
-        <EmptyState
-          title="No se encontró ningún clon"
-          description="Crea tu primer clon para empezar a configurar el workspace."
-        />
+      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+        <p className="text-lg">No se encontró ningún clon.</p>
+        <p className="mt-2 text-sm">Crea tu primer clon para empezar.</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Configuración
         </h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
+        <p className="mt-1 text-gray-500 dark:text-gray-400">
           Personaliza tu clon: nombre, personalidad, tono y prompts por modo.
         </p>
-      </header>
+      </div>
 
       {saved && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="rounded-lg border border-[var(--color-accent-green)]/30 bg-[var(--color-accent-green)]/10 px-4 py-3 text-sm text-[var(--color-accent-green)]"
-        >
+        <div className="mb-4 rounded-lg border border-green-800 bg-green-950/50 px-4 py-3 text-sm text-green-300">
           Cambios guardados correctamente.
         </div>
       )}
 
-      <div className="space-y-4">
-        {/* Preferences: theme */}
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">
-            Apariencia
-          </h3>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-[var(--text-primary)]">Tema</p>
-              <p className="text-xs text-[var(--text-muted)]">
-                Claro u oscuro. Se guarda en este navegador.
-              </p>
-            </div>
-            <ThemeToggle showLabel />
-          </div>
-        </div>
-
-        {/* Identity */}
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Identidad del clon
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="stat-label" htmlFor="cfg-name">Nombre</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nombre
+              </label>
               <input
-                id="cfg-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-slug">Slug público</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Slug público
+              </label>
               <input
-                id="cfg-slug"
                 type="text"
                 value={clone.slug}
                 disabled
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--text-muted)] cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 outline-none cursor-not-allowed"
               />
-              <p className="mt-1 text-[10px] text-[var(--text-muted)] font-mono">
+              <p className="mt-1 text-xs text-gray-400">
                 {clone.slug}.myownclone.com
               </p>
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-desc">Descripción</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Descripción
+              </label>
               <textarea
-                id="cfg-desc"
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none resize-none"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none"
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-tone">Tono</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Tono
+              </label>
               <select
-                id="cfg-tone"
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
               >
                 {TONE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -243,45 +224,43 @@ export default function ConfiguracionPage() {
               </select>
             </div>
             <button
-              type="button"
               onClick={saveProfile}
               disabled={saving}
-              className="btn-primary text-xs disabled:opacity-50"
+              className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
-              {saving ? "Guardando…" : "Guardar cambios"}
+              {saving ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
         </div>
 
-        {/* Mode prompts */}
-        <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-2">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Prompts por modo
           </h3>
-          <p className="text-xs text-[var(--text-muted)] mb-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Define cómo se comporta tu clon en cada modo. Estos prompts se usan como sistema base para las respuestas.
           </p>
           <div className="space-y-4">
             {["teach", "support", "sales"].map((mode) => (
               <div key={mode}>
-                <label className="stat-label" htmlFor={`cfg-prompt-${mode}`}>{SILO_LABELS[mode] || mode}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {SILO_LABELS[mode] || mode}
+                </label>
                 <textarea
-                  id={`cfg-prompt-${mode}`}
                   rows={4}
                   value={prompts[mode] || ""}
                   onChange={(e) =>
                     setPrompts((prev) => ({ ...prev, [mode]: e.target.value }))
                   }
-                  className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none resize-none font-mono text-xs"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none font-mono text-xs"
                 />
                 <div className="mt-2 flex justify-end">
                   <button
-                    type="button"
                     onClick={() => savePrompt(mode)}
                     disabled={saving}
-                    className="btn-secondary text-xs disabled:opacity-50"
+                    className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                   >
-                    {saving ? "Guardando…" : "Guardar prompt"}
+                    {saving ? "Guardando..." : "Guardar prompt"}
                   </button>
                 </div>
               </div>

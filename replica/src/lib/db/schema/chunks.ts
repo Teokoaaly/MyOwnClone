@@ -16,7 +16,7 @@ export const chunks = pgTable(
       .notNull()
       .references(() => sources.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
-    embedding: (vector as (x: string) => { notNull(): any })("embedding").notNull(),
+    embedding: vector("embedding").notNull(),
     tokenCount: integer("token_count"),
     metadata: json("metadata").$type<{
       position?: number;

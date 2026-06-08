@@ -3,9 +3,6 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { LoadingState } from "@/components/ui/LoadingState"
-import { ErrorState } from "@/components/ui/ErrorState"
-import { StatusBadge, statusToKind } from "@/components/ui/StatusBadge"
 
 interface Plan {
   id: string
@@ -29,13 +26,23 @@ interface BillingInfo {
   portal_url: string | null
 }
 
+const FEATURE_ICONS: Record<string, string> = {
+  words_training_limit: "📝",
+  responses_month_limit: "💬",
+  modes_active: "🎯",
+  email_triage: "📧",
+  booking: "📅",
+  api_access: "🔌",
+  multi_clone: "👥",
+  whitelabel: "🎨",
+}
+
 export default function FacturacionPage() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [plans, setPlans] = useState<Plan[]>([])
   const [billing, setBilling] = useState<BillingInfo | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [checkingOut, setCheckingOut] = useState<string | null>(null)
 
   useEffect(() => {
@@ -44,8 +51,6 @@ export default function FacturacionPage() {
 
   useEffect(() => {
     async function load() {
-      setLoading(true)
-      setError(null)
       try {
         const [plansRes, billingRes] = await Promise.all([
           fetch("/api/clone/plans"),
@@ -53,11 +58,8 @@ export default function FacturacionPage() {
         ])
         if (plansRes.ok) setPlans(await plansRes.json())
         if (billingRes.ok) setBilling(await billingRes.json())
-        if (!plansRes.ok || !billingRes.ok) {
-          throw new Error("No se pudo cargar la información de facturación")
-        }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Error")
+      } catch {
+        // Empty
       } finally {
         setLoading(false)
       }
@@ -85,125 +87,108 @@ export default function FacturacionPage() {
   }
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando planes…" rows={4} />
-  }
-
-  if (error) {
-    return <ErrorState message={error} />
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="animate-spin h-6 w-6 border-2 border-purple-600 border-t-transparent rounded-full" />
+      </div>
+    )
   }
 
   const currentPlan = billing?.plan || "básico"
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Facturación
         </h1>
-        <div className="mt-1 flex items-center gap-2 text-sm text-[var(--text-muted)]">
-          <span>
-            Plan actual:{" "}
-            <span className="font-semibold text-[var(--color-accent-warm)] capitalize">
-              {currentPlan}
-            </span>
-          </span>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Plan actual: <span className="font-semibold text-purple-600 dark:text-purple-400 capitalize">{currentPlan}</span>
           {billing?.subscription_status && (
-            <StatusBadge
-              kind={statusToKind(billing.subscription_status)}
-              label={billing.subscription_status}
-            />
+            <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300">
+              {billing.subscription_status}
+            </span>
           )}
-        </div>
-      </header>
+        </p>
+      </div>
 
       {billing?.portal_url && (
-        <div>
+        <div className="mb-8 flex gap-3">
           <a
             href={billing.portal_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-primary text-xs"
+            className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
           >
-            Gestionar suscripción
-            <span aria-hidden="true" className="ml-1">↗</span>
-            <span className="sr-only"> (se abre en una pestaña nueva)</span>
+            💳 Gestionar suscripción
           </a>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {plans.map((plan) => {
           const isCurrent = currentPlan.toLowerCase() === plan.name.toLowerCase()
           const isRecommended = plan.name === "Pro"
           return (
             <div
               key={plan.id}
-              className={[
-                "card flex flex-col",
-                isCurrent ? "ring-1 ring-[var(--color-accent-warm)]" : "",
-                isRecommended ? "border-[var(--color-accent-warm)]" : "",
-              ].join(" ")}
+              className={`relative rounded-xl border-2 p-6 transition-all ${
+                isCurrent
+                  ? "border-purple-500 bg-purple-50/50 dark:bg-purple-950/20"
+                  : isRecommended
+                  ? "border-purple-400/40 bg-white dark:bg-gray-900"
+                  : "border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+              }`}
             >
               {isRecommended && (
-                <span className="badge-violet self-start">Recomendado</span>
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-full">
+                  Recomendado
+                </span>
               )}
 
-              <h3 className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-2">
                 {plan.name}
               </h3>
-              <p className="mt-2 stat-value text-2xl">
+              <p className="mt-2 text-3xl font-extrabold text-gray-900 dark:text-white">
                 {plan.price_display}
               </p>
               {plan.price_cents === 0 && (
-                <p className="text-xs text-[var(--text-muted)] mt-1">
-                  14 días de prueba con tarjeta
-                </p>
+                <p className="text-xs text-gray-400 mt-1">14 días de prueba con tarjeta</p>
               )}
 
-              <ul className="mt-5 space-y-2 text-sm text-[var(--text-secondary)] flex-1">
-                <li className="flex items-center gap-2">
-                  <span className="text-[var(--color-accent-green)]">✓</span>
+              <ul className="mt-5 space-y-2">
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>✅</span>
                   {plan.words_training_limit.toLocaleString("es-ES")} palabras training
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[var(--color-accent-green)]">✓</span>
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>✅</span>
                   {plan.responses_month_limit.toLocaleString("es-ES")} respuestas/mes
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[var(--color-accent-green)]">✓</span>
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>✅</span>
                   {plan.modes_active} modo{plan.modes_active !== 1 ? "s" : ""}
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className={plan.email_triage ? "text-[var(--color-accent-green)]" : "text-[var(--text-muted)]"}>
-                    {plan.email_triage ? "✓" : "✗"}
-                  </span>
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>{plan.email_triage ? "✅" : "❌"}</span>
                   Email triage
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className={plan.booking ? "text-[var(--color-accent-green)]" : "text-[var(--text-muted)]"}>
-                    {plan.booking ? "✓" : "✗"}
-                  </span>
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>{plan.booking ? "✅" : "❌"}</span>
                   Booking + video
                 </li>
               </ul>
 
               <button
-                type="button"
                 onClick={() => checkout(plan.id)}
                 disabled={isCurrent || checkingOut === plan.id}
-                aria-current={isCurrent ? "true" : undefined}
-                className={[
-                  "mt-6 w-full py-2.5 text-sm font-medium rounded-full transition-all",
+                className={`mt-6 w-full py-2.5 text-sm font-semibold rounded-lg transition-all ${
                   isCurrent
-                    ? "bg-[var(--surface-2)] text-[var(--text-muted)] cursor-default"
-                    : "btn-primary",
-                ].join(" ")}
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-default"
+                    : "bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50"
+                }`}
               >
-                {isCurrent
-                  ? "Plan actual"
-                  : checkingOut === plan.id
-                  ? "Redirigiendo…"
-                  : "Comenzar prueba"}
+                {isCurrent ? "Plan actual" : checkingOut === plan.id ? "Redirigiendo..." : "Comenzar prueba"}
               </button>
             </div>
           )

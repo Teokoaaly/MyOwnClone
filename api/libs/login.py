@@ -1,10 +1,7 @@
 """MyOwnClone authentication primitives — JWT-based."""
-import os
 from functools import wraps
 from flask import g, request
 from typing import Callable, Any
-
-from api.libs.jwt_utils import _verify_token
 
 
 class _AccountProxy:
@@ -32,17 +29,8 @@ def current_account_with_tenant():
 def login_required(f: Callable) -> Callable:
     @wraps(f)
     def decorated(*args, **kwargs):
-        # Service-to-service token (X-Admin-Token) — bypasses JWT verification
-        admin_token = request.headers.get('X-Admin-Token', '')
-        if admin_token:
-            expected = os.getenv('PLATFORM_ADMIN_TOKEN', '')
-            if expected and admin_token == expected:
-                g.account_id = 'platform-admin'
-                g.tenant_id = 'platform'
-                g.account_role = 'platform_admin'
-                g.account_email = 'admin@myownclone.platform'
-                return f(*args, **kwargs)
-            # Unknown admin token falls through to Bearer path
+        # Lazy import: avoids circular dependency with api.controllers.console.auth
+        from api.controllers.console.auth import _verify_token
 
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):

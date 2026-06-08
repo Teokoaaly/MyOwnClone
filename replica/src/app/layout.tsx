@@ -1,23 +1,20 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "./providers";
-import { themeInitScript } from "@/lib/theme-init";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "MyOwnClone — Multiplícate",
+  title: "MyOwnClone - Multiplícate",
   description:
     "Crea un clon de IA entrenado con tu contenido. Atiende 24/7 en modo pedagogía, ventas y soporte.",
 };
@@ -32,19 +29,9 @@ export default function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${dmSans.variable} ${jetbrainsMono.variable}`}
-      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        {/*
-          Inline script that runs BEFORE React hydrates. It reads the
-          stored theme from localStorage and applies the `.dark` class on
-          <html> so the first paint matches the chosen theme. This
-          prevents the "flash of unstyled / wrong-theme" content.
-        */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body className="min-h-full flex flex-col antialiased">
+      <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>
     </html>
