@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import String, DateTime
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import MappedAsDataclass, Mapped, mapped_column
 
 
 def naive_utc_now() -> datetime:
@@ -18,7 +18,7 @@ def naive_utc_now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
-class TypeBase(DeclarativeBase):
+class TypeBase(MappedAsDataclass):
     """Base class for all MyOwnClone models.
 
     Provides the DeclarativeBase registry that SQLAlchemy needs
