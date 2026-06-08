@@ -134,6 +134,15 @@ def _setup_dev_keys():
         )
 
 
+def _parse_origins() -> list[str]:
+    raw = os.getenv("ALLOWED_ORIGINS", "")
+    origins = [o.strip() for o in raw.split(",") if o.strip()]
+    if not origins and os.getenv("FLASK_ENV", "production") == "development":
+        # Sensible defaults only in dev
+        return ["http://localhost:3000", "http://127.0.0.1:3000"]
+    return origins
+
+
 def create_app():
     """Create and configure the Flask application."""
     # SECURITY: Validate config before doing anything else (fail-fast)
@@ -143,8 +152,7 @@ def create_app():
 
     # Database configuration
     app.config["SQLALCHEMY_DATABASE_URI"] = (
-        f"postgresql://{os.getenv('DB_USER', 'postgres')}:"
-        f"{os.getenv('DB_PASSWORD')}@"  # No fallback - validated above
+        f"postgresql://{os.getenv('DB_USER', 'postgres')}:***@"  # No fallback - validated above
         f"{os.getenv('DB_HOST', 'localhost')}:"
         f"{os.getenv('DB_PORT', '5432')}/"
         f"{os.getenv('DB_NAME', 'myownclone')}"
@@ -158,12 +166,15 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    # CORS — restrict to allowed origins in production
-    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
-    if allowed_origins and allowed_origins[0]:
-        CORS(app, origins=allowed_origins, supports_credentials=True)
-  ***REMOVED***:
-        CORS(app)  # dev fallback — en prod debe configurarse
+    # CORS — parsed origins with dev defaults, restrictive resources, headers, max_age (phase 0.3)
+    CORS(
+        app,
+        resources={r"/*": {"origins": _parse_origins()}},
+        supports_credentials=True,
+        allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+        expose_headers=["X-Request-Id"],
+        max_age=600,
+    )
 
     # Register CLI commands
     app.cli.add_command(seed_demo_data)
