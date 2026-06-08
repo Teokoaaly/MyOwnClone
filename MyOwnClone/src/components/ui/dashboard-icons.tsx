@@ -37,7 +37,7 @@ import {
   Wrench,
   X,
   XCircle,
-} from "@phosphor-icons/react";
+} from "@phosphor-icons/react/ssr";
 
 export type DashboardIcon = React.ComponentType<IconProps>;
 
