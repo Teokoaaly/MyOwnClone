@@ -43,11 +43,8 @@ describe('ChatPanel', () => {
 
   it('send button is disabled when input is empty', () => {
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
-    const sendButton = screen.getByRole('button', { name: '' }) // SVG only button
-    // Find button that contains the SVG send icon
-    const buttons = screen.getAllByRole('button')
-    const sendBtn = buttons[buttons.length - 1]
-    expect(sendBtn).toBeDisabled()
+    const sendButton = screen.getByRole('button', { name: 'Enviar mensaje' })
+    expect(sendButton).toBeDisabled()
   })
 
   it('clears input after sending', async () => {
@@ -65,9 +62,8 @@ describe('ChatPanel', () => {
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
     const textarea = screen.getByPlaceholderText('Escribe tu pregunta...')
     fireEvent.change(textarea, { target: { value: 'Hola' } })
-    
-    const buttons = screen.getAllByRole('button')
-    const sendBtn = buttons[buttons.length - 1]
+
+    const sendBtn = screen.getByRole('button', { name: 'Enviar mensaje' })
     fireEvent.click(sendBtn)
 
     await waitFor(() => {
@@ -81,9 +77,8 @@ describe('ChatPanel', () => {
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
     const textarea = screen.getByPlaceholderText('Escribe tu pregunta...')
     fireEvent.change(textarea, { target: { value: 'Hola' } })
-    
-    const buttons = screen.getAllByRole('button')
-    const sendBtn = buttons[buttons.length - 1]
+
+    const sendBtn = screen.getByRole('button', { name: 'Enviar mensaje' })
     fireEvent.click(sendBtn)
 
     await waitFor(() => {

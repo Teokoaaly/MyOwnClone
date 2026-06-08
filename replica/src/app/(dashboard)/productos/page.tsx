@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { LoadingState } from "@/components/ui/LoadingState"
+import { ErrorState } from "@/components/ui/ErrorState"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 interface Product {
   id: string
@@ -16,13 +19,14 @@ interface Product {
 }
 
 export default function ProductosPage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [cloneId, setCloneId] = useState<string | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [formName, setFormName] = useState("")
   const [formDesc, setFormDesc] = useState("")
@@ -45,7 +49,10 @@ export default function ProductosPage() {
       setCloneId(cid)
 
       const res = await fetch(`/api/clone/clones/${cid}/products`)
-      if (res.ok) setProducts(await res.json())
+      if (res.ok) {
+        const data = await res.json()
+        setProducts(Array.isArray(data) ? data : data.items ?? [])
+      }
     } catch {
       // Empty state
     } finally {
@@ -60,6 +67,7 @@ export default function ProductosPage() {
   const createProduct = async () => {
     if (!cloneId || !formName.trim()) return
     setSaving(true)
+    setError(null)
     try {
       const res = await fetch(`/api/clone/clones/${cloneId}/products`, {
         method: "POST",
@@ -81,141 +89,157 @@ export default function ProductosPage() {
         setFormUrl("")
         setFormPriority(0)
         fetchProducts()
+      } else {
+        throw new Error(`Error ${res.status}`)
       }
-    } catch {
-      // Error
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error")
     } finally {
       setSaving(false)
     }
   }
 
   if (status === "loading" || loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex gap-1">
-          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:150ms]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-purple-600 [animation-delay:300ms]" />
-        </div>
-      </div>
-    )
+    return <LoadingState label="Cargando productos…" rows={3} />
   }
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
             Productos
           </h1>
-          <p className="mt-1 text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
             Gestiona los productos y servicios que tu clon puede recomendar en modo ventas.
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+          className="btn-primary text-xs"
         >
-          + Añadir producto
+          {showForm ? "Cancelar" : "+ Añadir producto"}
         </button>
-      </div>
+      </header>
 
       {showForm && (
-        <div className="mb-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Nuevo producto</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="card">
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Nuevo producto</h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre</label>
-              <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
+              <label className="stat-label" htmlFor="pr-name">Nombre</label>
+              <input
+                id="pr-name"
+                type="text"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
+              />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción</label>
-              <textarea rows={3} value={formDesc} onChange={(e) => setFormDesc(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none resize-none text-sm" />
+              <label className="stat-label" htmlFor="pr-desc">Descripción</label>
+              <textarea
+                id="pr-desc"
+                rows={3}
+                value={formDesc}
+                onChange={(e) => setFormDesc(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none resize-none"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Precio (céntimos)</label>
-              <input type="number" value={formPrice} onChange={(e) => setFormPrice(e.target.value)}
+              <label className="stat-label" htmlFor="pr-price">Precio (céntimos)</label>
+              <input
+                id="pr-price"
+                type="number"
+                value={formPrice}
+                onChange={(e) => setFormPrice(e.target.value)}
                 placeholder="9900 = 99.00€"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
+                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prioridad</label>
-              <input type="number" value={formPriority} onChange={(e) => setFormPriority(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
+              <label className="stat-label" htmlFor="pr-priority">Prioridad</label>
+              <input
+                id="pr-priority"
+                type="number"
+                value={formPriority}
+                onChange={(e) => setFormPriority(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
+              />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL del producto</label>
-              <input type="url" value={formUrl} onChange={(e) => setFormUrl(e.target.value)}
+              <label className="stat-label" htmlFor="pr-url">URL del producto</label>
+              <input
+                id="pr-url"
+                type="url"
+                value={formUrl}
+                onChange={(e) => setFormUrl(e.target.value)}
                 placeholder="https://tudominio.com/producto"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none text-sm" />
+                className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
+              />
             </div>
           </div>
+          {error && <div className="mt-3"><ErrorState message={error} /></div>}
           <div className="mt-4 flex gap-2">
-            <button onClick={createProduct} disabled={saving}
-              className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50">
-              {saving ? "Creando..." : "Crear producto"}
+            <button
+              type="button"
+              onClick={createProduct}
+              disabled={saving}
+              className="btn-primary text-xs disabled:opacity-50"
+            >
+              {saving ? "Creando…" : "Crear producto"}
             </button>
-            <button onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary text-xs">
               Cancelar
             </button>
           </div>
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-        {products.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              No hay productos
-            </h3>
-            <p className="mt-2 text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-              Añade tus productos o servicios para que tu clon pueda recomendarlos durante las conversaciones en modo ventas.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {products.map((p) => (
-              <div key={p.id} className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{p.name}</h3>
-                  {!p.active && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">
-                      Inactivo
-                    </span>
-                  )}
-                </div>
-                {p.description && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{p.description}</p>
+      {products.length === 0 ? (
+        <EmptyState
+          title="No hay productos"
+          description="Añade tus productos o servicios para que tu clon pueda recomendarlos durante las conversaciones en modo ventas."
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((p) => (
+            <div key={p.id} className="card hover:border-[var(--border-medium)] transition-colors">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h3 className="font-semibold text-[var(--text-primary)] text-sm">{p.name}</h3>
+                {!p.active && (
+                  <span className="badge-warning">Inactivo</span>
                 )}
-                <div className="flex items-center justify-between">
-                  {p.price_cents != null && (
-                    <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
-                      {(p.price_cents / 100).toFixed(2)}€
-                    </span>
-                  )}
-                  {p.url && (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[150px]">
-                      Ver producto →
-                    </a>
-                  )}
-                </div>
-                <div className="mt-2 text-xs text-gray-400">
-                  Prioridad: {p.priority}
-                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              {p.description && (
+                <p className="text-xs text-[var(--text-muted)] mb-3 line-clamp-2">{p.description}</p>
+              )}
+              <div className="flex items-center justify-between">
+                {p.price_cents != null && (
+                  <span className="text-sm font-semibold text-[var(--color-accent-warm)] font-mono">
+                    {(p.price_cents / 100).toFixed(2)}€
+                  </span>
+                )}
+                {p.url && (
+                  <a
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-[var(--color-accent-blue)] hover:underline truncate max-w-[150px]"
+                  >
+                    Ver producto <span aria-hidden="true">↗</span>
+                    <span className="sr-only">(se abre en una pestaña nueva)</span>
+                  </a>
+                )}
+              </div>
+              <div className="mt-2 text-[10px] text-[var(--text-muted)] font-mono">
+                Prioridad: {p.priority}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

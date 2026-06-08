@@ -2,7 +2,6 @@ import {
   pgTable,
   text,
   timestamp,
-  varchar,
   pgEnum,
 } from "drizzle-orm/pg-core";
 
@@ -23,8 +22,8 @@ export const planEnum = pgEnum("plan", [
 
 export const tenants = pgTable("tenants", {
   id: text("id").primaryKey(),
-  slug: varchar("slug", { length: 50 }).notNull().unique(),
-  name: varchar("name", { length: 255 }).notNull(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
   plan: planEnum("plan").notNull().default("trial"),
   status: tenantStatusEnum("status").notNull().default("trial"),
   trialEndsAt: timestamp("trial_ends_at"),
