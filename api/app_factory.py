@@ -35,6 +35,9 @@ from api.controllers.console.auth import auth_bp
 # Import CLI commands
 from api.commands.seed import seed_demo_data
 
+# Import deploy blueprint
+from api.controllers.deploy import deploy_bp
+
 migrate = Migrate()
 
 
@@ -190,6 +193,7 @@ def register_myownclone_blueprints(app):
     app.register_blueprint(myownclone_public_bp)
     app.register_blueprint(console_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(deploy_bp)
 
 
 # Flask uses this when FLASK_APP=app_factory
