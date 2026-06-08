@@ -41,8 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: "npm", cache-dependency-path: replica/package-lock.json }
-      - working-directory: replica
+        with: { node-version: "20", cache: "npm", cache-dependency-path: MyOwnClone/package-lock.json }
+      - working-directory: MyOwnClone
         run: |
           npm ci
           npm run lint
