@@ -1,46 +1,24 @@
-# Environment
+# --- Databases & instance data ---
+*.db
+*.sqlite
+*.sqlite3
+instance/
+!instance/.gitkeep
+
+# --- Env files ---
 .env
 .env.local
 .env.*.local
+!.env.example
 
-# Python
+# --- Python ---
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
+*.pyc
 .venv/
-venv/
-env/
+.pytest_cache/
+.ruff_cache/
 
-# Node
+# --- Node / Next ---
 node_modules/
 .next/
 out/
-build/
-dist/
-
-# Logs
-*.log
-logs/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Backups
-*.bak
-*.backup
-*.tar.gz
-
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
