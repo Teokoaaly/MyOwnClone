@@ -1,26 +1,7 @@
 "use client";
 
-import { type FC, useState, useEffect, useCallback } from "react";
-
-export type Theme = "light" | "dark";
-
-const STORAGE_KEY = "myownclone.theme";
-
-function readInitial(): Theme {
-  if (typeof document === "undefined") return "light";
-  return document.documentElement.classList.contains("dark") ? "dark" : "light";
-}
-
-function applyTheme(theme: Theme) {
-  if (typeof document === "undefined") return;
-  const root = document.documentElement;
-  if (theme === "dark") {
-    root.classList.add("dark");
-  } else {
-    root.classList.remove("dark");
-  }
-  root.style.colorScheme = theme;
-}
+import { type FC } from "react";
+import { useTheme } from "./ThemeProvider";
 
 interface ThemeToggleProps {
   /** Show label next to the icon. Defaults to false (icon only). */
@@ -28,26 +9,7 @@ interface ThemeToggleProps {
 }
 
 export const ThemeToggle: FC<ThemeToggleProps> = ({ showLabel = false }) => {
-  const [theme, setThemeState] = useState<Theme>("light");
-
-  useEffect(() => {
-    setThemeState(readInitial());
-  }, []);
-
-  const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
-    applyTheme(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // localStorage may be unavailable (private mode, SSR)
-    }
-  }, []);
-
-  const toggle = useCallback(() => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }, [theme, setTheme]);
-
+  const { theme, toggle } = useTheme();
   const isDark = theme === "dark";
 
   return (
