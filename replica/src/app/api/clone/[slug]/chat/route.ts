@@ -2,17 +2,93 @@ import { NextRequest } from 'next/server'
 
 const MYOWNCLONE_BACKEND_URL = process.env.MYOWNCLONE_API_URL || 'http://localhost:5001'
 
+// Allowed silos
+const ALLOWED_SILOS = new Set(['teach', 'sales', 'support'])
+
+// Max message body length (characters)
+const MAX_MESSAGE_LENGTH = 4000
+
+// In-memory rate limiter: 10 requests per minute per IP+slug
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_MAX = 10
+const RATE_LIMIT_WINDOW_MS = 60_000
+
+function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  )
+}
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(key)
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return true
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return false
+  }
+
+  entry.count++
+  return true
+}
+
+// Periodic cleanup of expired entries every 5 minutes
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now()
+    for (const [key, entry] of rateLimitMap) {
+      if (now > entry.resetAt) {
+        rateLimitMap.delete(key)
+      }
+    }
+  }, 300_000)
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params
+
+  // --- Rate limiting ---
+  const ip = getClientIp(request)
+  const rateLimitKey = `${ip}:${slug}`
+  if (!checkRateLimit(rateLimitKey)) {
+    return Response.json(
+      { error: 'Too many requests. Please wait before sending another message.' },
+      { status: 429 },
+    )
+  }
+
   const body = await request.json()
 
   const { message, silo = 'teach', context_id = null, conversation_id = null } = body
 
+  // --- Validate message ---
   if (!message || typeof message !== 'string') {
     return Response.json({ error: 'message is required' }, { status: 400 })
+  }
+
+  // --- Validate message length ---
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    return Response.json(
+      { error: `message exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters` },
+      { status: 400 },
+    )
+  }
+
+  // --- Validate silo ---
+  if (!ALLOWED_SILOS.has(silo)) {
+    return Response.json(
+      { error: `invalid silo: "${silo}". Allowed values: ${Array.from(ALLOWED_SILOS).join(', ')}` },
+      { status: 400 },
+    )
   }
 
   const controller = new AbortController()
