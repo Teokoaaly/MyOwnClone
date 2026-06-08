@@ -29,7 +29,8 @@ interface SidebarProps {
   homeLabel?: string;
   /** Whether to render the search field. Defaults to true. */
   showSearch?: boolean;
-  /** Whether to render the "FREE TRAIL" freemium card. Defaults to true. */
+  /** Whether to render the "FREE TRIAL" freemium card. Defaults to false.
+   *  TODO: Connect to real tenant.trial_ends_at data from the session. */
   showFreemiumCard?: boolean;
   /** Whether to render the user block at the bottom. Defaults to true. */
   showUserBlock?: boolean;
@@ -50,7 +51,7 @@ export const Sidebar: FC<SidebarProps> = ({
   homeHref = "/resumen",
   homeLabel = "MyOwnClone",
   showSearch = true,
-  showFreemiumCard = true,
+  showFreemiumCard = false,
   showUserBlock = true,
   footer,
 }) => {
@@ -136,33 +137,13 @@ export const Sidebar: FC<SidebarProps> = ({
         ))}
       </nav>
 
-      {/* FREE TRAIL card */}
+      {/* FREE TRIAL card — requires real tenant.trial_ends_at from session */}
       {showFreemiumCard && (
         <div className="px-3 pb-3">
           <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-2)] p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="h-7 w-7 rounded-lg bg-black text-white flex items-center justify-center text-[10px] font-bold">
-                M
-              </div>
-              <span className="text-[9px] font-semibold tracking-[0.14em] text-[var(--text-muted)]">
-                FREE TRIAL
-              </span>
-            </div>
-            <p className="text-sm font-semibold text-[var(--text-primary)]">
-              MyOwnClone
+            <p className="text-xs text-[var(--text-muted)]">
+              Conecta con datos reales del tenant para mostrar el trial.
             </p>
-            <p className="text-[11px] text-[var(--text-muted)] mb-3">
-              7 days left
-            </p>
-            <button
-              type="button"
-              className="w-full rounded-full bg-black text-white text-xs font-medium py-2 hover:opacity-90 transition-opacity"
-            >
-              Upgrade
-            </button>
-            <div className="mt-3 h-1 rounded-full bg-[var(--border-medium)] overflow-hidden">
-              <div className="h-full w-[14%] bg-black rounded-full" />
-            </div>
           </div>
         </div>
       )}
