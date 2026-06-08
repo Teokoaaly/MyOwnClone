@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { isPlatformAdminSession } from "@/lib/platform-admin";
 
 // The canonical admin source-of-truth is the Flask backend; the catch-all
 // proxy at /api/admin/[...path] forwards every platform_admin-gated call.
@@ -10,14 +9,8 @@ import { eq } from "drizzle-orm";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user) {
+  if (!isPlatformAdminSession(session)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.email, session.user.email ?? ""),
-  });
-  if (user?.role !== "platform_admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return NextResponse.json(
     {

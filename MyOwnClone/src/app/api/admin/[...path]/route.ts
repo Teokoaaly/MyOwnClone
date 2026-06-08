@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { isPlatformAdminSession } from "@/lib/platform-admin";
 
 const MYOWNCLONE_BACKEND =
   process.env.MYOWNCLONE_API_URL || "http://localhost:5001";
@@ -16,11 +15,7 @@ async function authorizeAdmin(): Promise<
     return { ok: false, status: 401, error: "Unauthorized" };
   }
 
-  // Confirm role in DB to avoid trusting a stale session.
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.email, session.user.email ?? ""),
-  });
-  if (user?.role !== "platform_admin") {
+  if (!isPlatformAdminSession(session)) {
     return { ok: false, status: 403, error: "Platform admin role required" };
   }
   return { ok: true };

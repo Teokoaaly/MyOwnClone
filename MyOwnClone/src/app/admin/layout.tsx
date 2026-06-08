@@ -2,10 +2,9 @@ import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ADMIN_NAV } from "@/lib/nav-admin";
+import { isPlatformAdminSession } from "@/lib/platform-admin";
 
 export default async function AdminLayout({
   children,
@@ -15,15 +14,11 @@ export default async function AdminLayout({
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  // Confirm role in DB to avoid trusting a stale session.
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.email, session.user.email ?? ""),
-  });
-  if (user?.role !== "platform_admin") {
+  if (!isPlatformAdminSession(session)) {
     redirect("/login");
   }
 
-  const email = user.email ?? session.user.email ?? "";
+  const email = session.user.email ?? "";
 
   return (
     <div
@@ -48,7 +43,7 @@ export default async function AdminLayout({
         <Sidebar
           navItems={ADMIN_NAV}
           user={{
-            name: user.name ?? session.user.name ?? "Admin",
+            name: session.user.name ?? "Admin",
             email,
           }}
           homeHref="/admin/resumen"
