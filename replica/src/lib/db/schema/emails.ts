@@ -2,7 +2,6 @@ import {
   pgTable,
   text,
   timestamp,
-  varchar,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { clones } from "./clones";
@@ -18,8 +17,8 @@ export const emails = pgTable("emails", {
   cloneId: text("clone_id")
     .notNull()
     .references(() => clones.id, { onDelete: "cascade" }),
-  fromEmail: varchar("from_email", { length: 255 }).notNull(),
-  fromName: varchar("from_name", { length: 255 }),
+  fromEmail: text("from_email").notNull(),
+  fromName: text("from_name"),
   subject: text("subject").notNull(),
   body: text("body").notNull(),
   draftReply: text("draft_reply"),

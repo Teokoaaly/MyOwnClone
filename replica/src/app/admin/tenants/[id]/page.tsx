@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { StatusBadge, statusToKind } from "@/components/ui/StatusBadge";
+import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
+import { Modal } from "@/components/ui/Modal";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { Field, fieldControlClass } from "@/components/admin/Field";
 
 interface TenantDetail {
   tenant: {
@@ -35,20 +42,23 @@ interface TenantDetail {
   }>;
 }
 
-function statusBadge(status: string | null) {
-  switch ((status ?? "").toLowerCase()) {
-    case "active":
-    case "normal":
-      return "badge-active";
-    case "trial":
-      return "badge-trial";
-    case "suspended":
-      return "badge-warning";
-    case "cancelled":
-      return "badge-error";
-    default:
-      return "badge-trial";
-  }
+const PLAN_OPTIONS = [
+  { value: "trial", label: "Trial" },
+  { value: "basic", label: "Básico" },
+  { value: "pro", label: "Pro" },
+  { value: "scale", label: "Escala" },
+  { value: "enterprise", label: "Enterprise" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "active", label: "Active" },
+  { value: "trial", label: "Trial" },
+  { value: "suspended", label: "Suspended" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
+function formatEur(cents: number) {
+  return `${(cents / 100).toFixed(2)}€`;
 }
 
 export default function AdminTenantDetailPage() {
@@ -59,99 +69,150 @@ export default function AdminTenantDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // PATCH state
+  const [patchOpen, setPatchOpen] = useState(false);
+  const [patchPlan, setPatchPlan] = useState("");
+  const [patchStatus, setPatchStatus] = useState("");
+  const [patchSubmitting, setPatchSubmitting] = useState(false);
+  const [patchError, setPatchError] = useState<string | null>(null);
+
+  async function fetchDetail() {
     if (!id) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch(`/api/admin/tenants/${id}`, { cache: "no-store" })
-      .then((res) => {
-        if (res.status === 401) {
-          router.push("/login");
-          return null;
-        }
-        if (res.status === 404) {
-          throw new Error("Tenant no encontrado");
-        }
-        if (!res.ok) throw new Error(`Backend error ${res.status}`);
-        return res.json();
-      })
-      .then((payload) => {
-        if (!payload || cancelled) return;
-        setData(payload as TenantDetail);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message ?? "Error");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+    try {
+      const res = await fetch(`/api/admin/tenants/${id}`, {
+        cache: "no-store",
       });
+      if (res.status === 401 || res.status === 403) {
+        router.push("/login");
+        return;
+      }
+      if (res.status === 404) {
+        throw new Error("Tenant no encontrado");
+      }
+      if (!res.ok) throw new Error(`Backend error ${res.status}`);
+      const payload = (await res.json()) as TenantDetail;
+      if (!cancelled) {
+        setData(payload);
+        setPatchPlan(payload.tenant.plan ?? "");
+        setPatchStatus(payload.tenant.status ?? "");
+      }
+    } catch (err) {
+      if (!cancelled) setError(err instanceof Error ? err.message : "Error");
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
     return () => {
       cancelled = true;
     };
+  }
+
+  useEffect(() => {
+    fetchDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, router]);
 
+  async function submitPatch() {
+    if (!id) return;
+    if (!patchPlan && !patchStatus) return;
+    setPatchSubmitting(true);
+    setPatchError(null);
+    try {
+      const body: { plan?: string; status?: string } = {};
+      if (patchPlan) body.plan = patchPlan;
+      if (patchStatus) body.status = patchStatus;
+      const res = await fetch(`/api/admin/tenants/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.message ?? `Error ${res.status}`);
+      }
+      setPatchOpen(false);
+      await fetchDetail();
+    } catch (e) {
+      setPatchError(e instanceof Error ? e.message : "Error");
+    } finally {
+      setPatchSubmitting(false);
+    }
+  }
+
   if (loading) {
-    return (
-      <div className="card flex h-48 items-center justify-center">
-        <div className="flex gap-1">
-          <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:150ms]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:300ms]" />
-        </div>
-      </div>
-    );
+    return <LoadingState label="Cargando tenant…" rows={4} />;
   }
 
   if (error || !data) {
     return (
-      <div className="card border-red-200 bg-red-50/40">
-        <p className="text-sm font-medium text-red-700">No se pudo cargar el tenant</p>
-        <p className="mt-1 text-xs text-red-600">{error ?? "Sin datos"}</p>
-        <Link
-          href="/admin/tenants"
-          className="mt-3 inline-block text-xs text-[var(--color-accent-warm)] hover:underline"
-        >
-          ← Volver al listado
-        </Link>
-      </div>
+      <ErrorState
+        title="No se pudo cargar el tenant"
+        message={error ?? "Sin datos"}
+        action={
+          <Link href="/admin/tenants" className="btn-secondary text-xs">
+            ← Volver al listado
+          </Link>
+        }
+      />
     );
   }
 
   const { tenant, usage, clones } = data;
   const usageRows = [
-    { label: "Clones activos", value: usage.clone_count },
-    { label: "Costes 30d", value: `${usage.cost_cents_30d}¢` },
-    { label: "Tokens input 30d", value: usage.tokens_in_30d },
-    { label: "Tokens output 30d", value: usage.tokens_out_30d },
-    { label: "Preguntas 30d", value: usage.questions_30d },
-    { label: "Gaps abiertos", value: usage.gaps_open },
+    { label: "Clones activos", value: usage.clone_count.toString() },
+    { label: "Costes 30d", value: formatEur(usage.cost_cents_30d) },
+    {
+      label: "Tokens input 30d",
+      value: usage.tokens_in_30d.toLocaleString("es-ES"),
+    },
+    {
+      label: "Tokens output 30d",
+      value: usage.tokens_out_30d.toLocaleString("es-ES"),
+    },
+    { label: "Preguntas 30d", value: usage.questions_30d.toLocaleString("es-ES") },
+    { label: "Gaps abiertos", value: usage.gaps_open.toLocaleString("es-ES") },
   ];
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <Link
-            href="/admin/tenants"
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-          >
-            ← Tenants
-          </Link>
-          <h1 className="mt-1 text-2xl font-semibold text-[var(--text-primary)]">
-            {tenant.name}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {tenant.slug ?? "(sin slug)"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={statusBadge(tenant.status)}>{tenant.status ?? "—"}</span>
-          <span className="text-xs text-[var(--text-muted)]">
-            Plan: <span className="font-medium capitalize">{tenant.plan ?? "—"}</span>
-          </span>
-        </div>
-      </header>
+      <PageHeader
+        title={tenant.name}
+        subtitle={
+          <>
+            <Link
+              href="/admin/tenants"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
+              ← Tenants
+            </Link>
+            <span className="mt-1 block">{tenant.slug ?? "(sin slug)"}</span>
+          </>
+        }
+        actions={
+          <>
+            <StatusBadge
+              kind={statusToKind(tenant.status)}
+              label={tenant.status ?? "—"}
+            />
+            <span className="text-xs text-[var(--text-muted)]">
+              Plan:{" "}
+              <span className="font-medium capitalize text-[var(--text-primary)]">
+                {tenant.plan ?? "—"}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setPatchOpen(true)}
+              className="btn-secondary text-xs"
+            >
+              Cambiar plan / estado
+            </button>
+            <ImpersonateButton tenantId={tenant.id} tenantName={tenant.name} />
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
@@ -230,7 +291,9 @@ export default function AdminTenantDetailPage() {
                   <td className="px-4 py-3 font-medium text-[var(--text-primary)]">
                     {c.name}
                   </td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{c.slug}</td>
+                  <td className="px-4 py-3 text-[var(--text-secondary)]">
+                    {c.slug}
+                  </td>
                   <td className="px-4 py-3 text-[var(--text-secondary)]">
                     {c.language ?? "es"}
                   </td>
@@ -252,6 +315,80 @@ export default function AdminTenantDetailPage() {
           </table>
         )}
       </div>
+
+      <Modal
+        open={patchOpen}
+        onClose={() => setPatchOpen(false)}
+        title={`Editar ${tenant.name}`}
+        size="sm"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setPatchOpen(false)}
+              className="btn-secondary text-xs"
+              disabled={patchSubmitting}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={submitPatch}
+              className="btn-primary text-xs disabled:opacity-40"
+              disabled={patchSubmitting || (!patchPlan && !patchStatus)}
+            >
+              {patchSubmitting ? "Guardando…" : "Guardar cambios"}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p className="text-xs text-[var(--text-muted)]">
+            Esta acción queda registrada en el audit log.
+          </p>
+          <Field label="Plan">
+            <select
+              value={patchPlan}
+              onChange={(e) => setPatchPlan(e.target.value)}
+              className={fieldControlClass}
+            >
+              <option value="">(sin cambios)</option>
+              {PLAN_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Estado">
+            <select
+              value={patchStatus}
+              onChange={(e) => setPatchStatus(e.target.value)}
+              className={fieldControlClass}
+            >
+              <option value="">(sin cambios)</option>
+              {STATUS_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          {patchError && (
+            <p
+              role="alert"
+              className="rounded-md px-2 py-1 text-xs"
+              style={{
+                background: "var(--surface-2)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--color-accent-pink)",
+              }}
+            >
+              {patchError}
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

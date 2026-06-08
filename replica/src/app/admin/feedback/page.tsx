@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { Field, fieldControlClass } from "@/components/admin/Field";
+import { FilterBar } from "@/components/admin/FilterBar";
+import { Pagination } from "@/components/admin/Pagination";
+import { useAdminFetch } from "@/components/admin/useAdminFetch";
 
 interface AdminFeedback {
   id: string;
@@ -14,11 +21,16 @@ interface AdminFeedback {
   created_at: string | null;
 }
 
-interface Pagination {
+interface Pagination_ {
   page: number;
   limit: number;
   total: number;
   pages: number;
+}
+
+interface FeedbackResponse {
+  items: AdminFeedback[];
+  pagination: Pagination_;
 }
 
 const RATING_OPTIONS = [
@@ -28,16 +40,12 @@ const RATING_OPTIONS = [
 ];
 
 export default function AdminFeedbackPage() {
-  const router = useRouter();
-  const [feedback, setFeedback] = useState<AdminFeedback[]>([]);
-  const [pagination, setPagination] = useState<Pagination>({
+  const [pagination, setPagination] = useState<Pagination_>({
     page: 1,
     limit: 20,
     total: 0,
     pages: 0,
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [rating, setRating] = useState("");
   const [search, setSearch] = useState("");
 
@@ -50,71 +58,46 @@ export default function AdminFeedbackPage() {
     return params.toString();
   }, [pagination.page, pagination.limit, rating, search]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetch(`/api/admin/feedback?${queryString}`, { cache: "no-store" })
-      .then((res) => {
-        if (res.status === 401) {
-          router.push("/login");
-          return null;
-        }
-        if (!res.ok) throw new Error(`Backend error ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (!data || cancelled) return;
-        setFeedback(data.items ?? []);
-        setPagination(
-          data.pagination ?? { page: 1, limit: 20, total: 0, pages: 0 },
-        );
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message ?? "Error");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [queryString, router]);
+  const { data, loading, error, reload } = useAdminFetch<FeedbackResponse>(
+    `/api/admin/feedback?${queryString}`,
+  );
+
+  const feedback = data?.items ?? [];
+  const serverPagination = data?.pagination;
+  const total = serverPagination?.total ?? 0;
+
+  function resetPage() {
+    setPagination((p) => ({ ...p, page: 1 }));
+  }
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Feedback de plataforma
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          {pagination.total} respuestas de los usuarios
-        </p>
-      </header>
+      <PageHeader
+        title="Feedback de plataforma"
+        subtitle={`${total} respuestas de los usuarios`}
+      />
 
-      <div className="card flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <label className="stat-label">Buscar</label>
+      <FilterBar>
+        <Field label="Buscar" fill>
           <input
             type="text"
             value={search}
             onChange={(e) => {
-              setPagination((p) => ({ ...p, page: 1 }));
+              resetPage();
               setSearch(e.target.value);
             }}
             placeholder="Comentario o nombre de clon…"
-            className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
+            className={fieldControlClass}
           />
-        </div>
-        <div>
-          <label className="stat-label">Valoración</label>
+        </Field>
+        <Field label="Valoración">
           <select
             value={rating}
             onChange={(e) => {
-              setPagination((p) => ({ ...p, page: 1 }));
+              resetPage();
               setRating(e.target.value);
             }}
-            className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
+            className={fieldControlClass}
           >
             {RATING_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -122,46 +105,30 @@ export default function AdminFeedbackPage() {
               </option>
             ))}
           </select>
-        </div>
-      </div>
+        </Field>
+      </FilterBar>
 
       {error ? (
-        <div className="card border-red-200 bg-red-50/40">
-          <p className="text-sm font-medium text-red-700">Error cargando feedback</p>
-          <p className="mt-1 text-xs text-red-600">{error}</p>
-        </div>
-      ) : loading ? (
-        <div className="card flex h-48 items-center justify-center">
-          <div className="flex gap-1">
-            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:150ms]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:300ms]" />
-          </div>
-        </div>
-      ) : feedback.length === 0 ? (
-        <div className="card text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-2)]">
-            <svg
-              className="h-6 w-6 text-[var(--text-muted)]"
-            ***REMOVED***ll="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        <ErrorState
+          title="Error cargando feedback"
+          message={error}
+          action={
+            <button
+              type="button"
+              onClick={reload}
+              className="btn-secondary text-xs"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-              />
-            </svg>
-          </div>
-          <p className="text-sm font-medium text-[var(--text-primary)]">
-            Sin feedback todavía
-          </p>
-          <p className="mt-1 text-xs text-[var(--text-muted)]">
-            Las respuestas de los usuarios aparecerán aquí.
-          </p>
-        </div>
+              Reintentar
+            </button>
+          }
+        />
+      ) : loading ? (
+        <LoadingState label="Cargando feedback…" rows={4} />
+      ) : feedback.length === 0 ? (
+        <EmptyState
+          title="Sin feedback todavía"
+          description="Las respuestas de los usuarios aparecerán aquí."
+        />
       ) : (
         <div className="card overflow-hidden p-0">
           <table className="w-full text-sm">
@@ -187,7 +154,11 @@ export default function AdminFeedbackPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-[var(--text-secondary)]">
-                    {f.comment ?? <em className="text-[var(--text-faint)]">(sin comentario)</em>}
+                    {f.comment ?? (
+                      <em className="text-[var(--text-faint)]">
+                        (sin comentario)
+                      </em>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {f.rating === "up" ? (
@@ -211,28 +182,15 @@ export default function AdminFeedbackPage() {
         </div>
       )}
 
-      {pagination.pages > 1 && (
-        <div className="flex items-center justify-end gap-2 text-xs text-[var(--text-muted)]">
-          <button
-            type="button"
-            disabled={pagination.page <= 1}
-            onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-            className="btn-secondary text-xs disabled:opacity-40"
-          >
-            ← Anterior
-          </button>
-          <span>
-            {pagination.page} / {pagination.pages}
-          </span>
-          <button
-            type="button"
-            disabled={pagination.page >= pagination.pages}
-            onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-            className="btn-secondary text-xs disabled:opacity-40"
-          >
-            Siguiente →
-          </button>
-        </div>
+      {serverPagination && (
+        <Pagination
+          page={serverPagination.page}
+          pages={serverPagination.pages}
+          onPrev={() =>
+            setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))
+          }
+          onNext={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
+        />
       )}
     </div>
   );
