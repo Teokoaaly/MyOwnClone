@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -25,7 +25,9 @@ export function LoginForm() {
       setError("Email o contraseña incorrectos.");
       setLoading(false);
     } else if (result?.ok) {
-      window.location.href = "/resumen";
+      const session = await getSession();
+      const role = (session?.user as { role?: string } | undefined)?.role;
+      window.location.href = role === "platform_admin" ? "/admin/resumen" : "/resumen";
     }
   }
 

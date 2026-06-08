@@ -5,15 +5,18 @@ import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db, schema } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import {
+  getPlatformAdminEmail,
+  getPlatformAdminPasswordHash,
+  hasPlatformAdminEnvCredentials,
+  normalizeEmail,
+} from "@/lib/platform-admin";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   adapter: DrizzleAdapter(db, {
-    // @ts-expect-error
     usersTable: schema.users,
-    // @ts-expect-error
     accountsTable: schema.accounts,
-    // @ts-expect-error
     verificationTokensTable: schema.verificationTokens,
   }),
   providers: [
@@ -25,25 +28,48 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        const email = credentials.email as string;
+        const email = normalizeEmail(credentials.email as string);
         const password = credentials.password as string;
 
-        const user = await db.query.users.findFirst({
-          where: (users, { eq }) => eq(users.email, email),
-        });
-        if (!user) return null;
-        if (!user.passwordHash) return null;
+        if (
+          hasPlatformAdminEnvCredentials() &&
+          email === getPlatformAdminEmail()
+        ) {
+          const valid = await bcrypt.compare(
+            password,
+            getPlatformAdminPasswordHash(),
+          );
 
-        const valid = await bcrypt.compare(password, user.passwordHash);
-        if (!valid) return null;
+          if (!valid) return null;
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          role: (user as any).role,
-        };
+          return {
+            id: `platform-admin:${email}`,
+            email,
+            name: "Platform Admin",
+            role: "platform_admin",
+          };
+        }
+
+        try {
+          const user = await db.query.users.findFirst({
+            where: (users, { eq }) => eq(users.email, email),
+          });
+          if (!user) return null;
+          if (!user.passwordHash) return null;
+
+          const valid = await bcrypt.compare(password, user.passwordHash);
+          if (!valid) return null;
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            role: (user as any).role,
+          };
+        } catch {
+          return null;
+        }
       },
     }),
     Resend({
