@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { EmptyState } from "@/components/ui/EmptyState"
 
+export const dynamic = "force-dynamic"
+
 interface AnalyticsOverview {
   total_conversations: number
   total_messages: number
