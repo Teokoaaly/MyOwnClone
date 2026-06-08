@@ -23,7 +23,7 @@ export const StatsCard: FC<StatsCardProps> = ({
   const isEmpty = value === 0;
 
   return (
-    <div className="card transition-all duration-180 hover:shadow-md">
+    <div className="card transition-all duration-200 hover:shadow-md">
       {/* Icon */}
       <div className={`mb-3 ${isEmpty ? "text-[var(--text-muted)]" : "text-[var(--color-accent-warm)]"}`}>
         <Icon className="h-6 w-6" weight="duotone" />
