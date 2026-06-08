@@ -1,7 +1,7 @@
 "use client";
 
-import { type FC } from "react";
-import { useTheme } from "./ThemeProvider";
+import { type FC, useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 interface ThemeToggleProps {
   /** Show label next to the icon. Defaults to false (icon only). */
@@ -9,8 +9,29 @@ interface ThemeToggleProps {
 }
 
 export const ThemeToggle: FC<ThemeToggleProps> = ({ showLabel = false }) => {
-  const { theme, toggle } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch by only rendering after mount.
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div
+        className={
+          showLabel
+            ? "btn-secondary text-xs opacity-0"
+            : "h-8 w-8 rounded-md opacity-0"
+        }
+      />
+    );
+  }
+
   const isDark = theme === "dark";
+
+  const toggle = () => setTheme(isDark ? "light" : "dark");
 
   return (
     <button
