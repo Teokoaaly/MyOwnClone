@@ -36,10 +36,10 @@ RUN groupadd --system --gid 1001 app \
 
 WORKDIR /app
 
-# Copy prebuilt wheels from builder and install
+# Pull requirements first (cached layer)
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
-RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt gunicorn \
     && rm -rf /wheels
 
 # Copy application code (owned by appuser)
@@ -53,5 +53,8 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:5001/console/api/ || exit 1
 
-# Default command
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5001"]
+# Default command — gunicorn for production, but keep a dev path
+# Note: `flask run` defaults to looking for `app.app_factory` which
+# doesn't exist (the file is `app_factory.py` at the root of /app/api).
+# Use `flask --app app_factory run` or gunicorn to point correctly.
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "app_factory:app"]
