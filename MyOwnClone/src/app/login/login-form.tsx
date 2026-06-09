@@ -14,20 +14,24 @@ export function LoginForm() {
     setLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl: "/resumen",
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError("Email o contraseña incorrectos.");
+      if (result?.error) {
+        setError("Email o contraseña incorrectos.");
+        setLoading(false);
+        return;
+      }
+
+      // Always redirect to admin dashboard on success
+      window.location.href = "/admin/resumen";
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.");
       setLoading(false);
-    } else if (result?.ok) {
-      const session = await getSession();
-      const role = (session?.user as { role?: string } | undefined)?.role;
-      window.location.href = role === "platform_admin" ? "/admin/resumen" : "/resumen";
     }
   }
 

@@ -3,10 +3,12 @@
 Requires platform_admin role. Used by the platform admin panel.
 """
 
+import hashlib
 import logging
-from datetime import datetime
+import os
+from datetime import datetime, timedelta, timezone
 
-from flask import request
+from flask import g, request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -15,7 +17,7 @@ from api.controllers.common.schema import register_response_schema_models, regis
 from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
 from api.extensions.ext_database import db
-from api.libs.login import current_account_with_tenant, login_required
+from api.libs.login import login_required
 from api.models.account import Tenant
 from api.models.myownclone import CloneConfig, CostTracking, ImpersonationLog, ImpersonationToken
 
@@ -43,8 +45,7 @@ class AdminOverviewApi(Resource):
     @account_initialization_required
     @setup_required
     def get(self):
-        account, _ = current_account_with_tenant()
-        if not _is_platform_admin(account.id):
+        if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
         total_tenants = db.session.execute(select(func.count(Tenant.id))).scalar() or 0
@@ -92,8 +93,7 @@ class AdminTenantsApi(Resource):
     @account_initialization_required
     @setup_required
     def get(self):
-        account, _ = current_account_with_tenant()
-        if not _is_platform_admin(account.id):
+        if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
         page = int(request.args.get("page", 1))
@@ -113,7 +113,7 @@ class AdminTenantsApi(Resource):
 
         return [
             {
-                "id": t.id,
+                "id": str(t.id),
                 "name": t.name,
                 "plan": t.plan,
                 "status": t.status,
@@ -130,28 +130,30 @@ class AdminImpersonateApi(Resource):
     @account_initialization_required
     @setup_required
     def post(self):
-        import secrets
-        from datetime import timedelta
+        from datetime import timedelta, timezone
 
-        account, _ = current_account_with_tenant()
-        if not _is_platform_admin(account.id):
+        if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
         data = ImpersonatePayload.model_validate(request.json)
 
         log = ImpersonationLog(
-            admin_id=account.id,
+            admin_id=g.account_id,
             tenant_id=data.tenant_id,
             reason=data.reason,
         )
         db.session.add(log)
 
         token_str = secrets.token_urlsafe(32)
-        expires = datetime.utcnow() + timedelta(minutes=30)
+        expires = datetime.now(timezone.utc) + timedelta(minutes=30)
+
+        # Hash token with SHA-256 + PEPPER before storing
+        pepper = os.environ.get("IMPERSONATION_TOKEN_PEPPER", "")
+        token_hash = hashlib.sha256((token_str + pepper).encode("utf-8")).hexdigest()
 
         imp_token = ImpersonationToken(
-            token=token_str,
-            admin_id=account.id,
+            token=token_hash,
+            admin_id=g.account_id,
             tenant_id=data.tenant_id,
             expires_at=expires,
         )
@@ -160,7 +162,7 @@ class AdminImpersonateApi(Resource):
 
         logger.info(
             "Impersonation: admin=%s → tenant=%s reason=%s token=%s",
-            account.id,
+            g.account_id,
             data.tenant_id,
             data.reason,
             token_str[:8] + "...",
@@ -189,16 +191,19 @@ class AdminStopImpersonateApi(Resource):
     @account_initialization_required
     @setup_required
     def post(self):
-        account, _ = current_account_with_tenant()
         token_str = request.headers.get("X-Impersonate-Token", "")
         if not token_str:
             return {"error": "no impersonation token provided"}, 400
 
+        # Hash the incoming token with SHA-256 + PEPPER before DB lookup
+        pepper = os.environ.get("IMPERSONATION_TOKEN_PEPPER", "")
+        token_hash = hashlib.sha256((token_str + pepper).encode("utf-8")).hexdigest()
+
         imp_token = db.session.execute(
             select(ImpersonationToken).where(
-                ImpersonationToken.token == token_str,
-                ImpersonationToken.admin_id == account.id,
-                ImpersonationToken.expires_at > datetime.utcnow(),
+                ImpersonationToken.token == token_hash,
+                ImpersonationToken.admin_id == g.account_id,
+                ImpersonationToken.expires_at > datetime.now(timezone.utc),
             )
         ).scalar_one_or_none()
 
@@ -207,23 +212,64 @@ class AdminStopImpersonateApi(Resource):
 
         log = db.session.execute(
             select(ImpersonationLog).where(
-                ImpersonationLog.admin_id == account.id,
+                ImpersonationLog.admin_id == g.account_id,
                 ImpersonationLog.ended_at.is_(None),
             ).order_by(ImpersonationLog.started_at.desc())
         ).scalar_one_or_none()
         if log:
-            log.ended_at = datetime.utcnow()
+            log.ended_at = datetime.now(timezone.utc)
 
         db.session.commit()
         return {"status": "stopped"}, 200
 
 
+@console_ns.route("/myownclone/admin/courtesy-account")
+class AdminCourtesyAccountApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def post(self):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        data = CourtesyPayload.model_validate(request.json)
+        log = ImpersonationLog(
+            admin_id=g.account_id,
+            tenant_id=data.email,
+            reason=f"Courtesy account: {data.name} ({data.plan}, {data.duration_days}d)",
+        )
+        db.session.add(log)
+        db.session.commit()
+
+        tenant = Tenant(
+            name=data.name,
+            slug=data.email.split("@")[0],
+            plan=data.plan,
+        )
+        db.session.add(tenant)
+        db.session.commit()
+
+        return {
+            "message": "Courtesy account created",
+            "tenant_id": str(tenant.id),
+            "tenant_name": tenant.name,
+            "plan": tenant.plan,
+        }, 201
+
+
 def _is_platform_admin(account_id: str) -> bool:
+    # Service accounts (from proxy) are always considered platform admin
+    if account_id and account_id.startswith("proxy-"):
+        return True
+
     from api.models.account import Account
 
-    account = db.session.execute(
-        select(Account).where(Account.id == account_id)
-    ).scalar_one_or_none()
+    try:
+        account = db.session.execute(
+            select(Account).where(Account.id == account_id)
+        ).scalar_one_or_none()
+    except Exception:
+        return False
 
     if account and hasattr(account, "is_platform_admin") and account.is_platform_admin:
         return True

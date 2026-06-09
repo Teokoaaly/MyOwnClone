@@ -12,7 +12,6 @@ from api.extensions.ext_database import db
 from api.fields.base import ResponseModel
 from api.libs.login import current_account_with_tenant, login_required
 from api.models.myownclone import AnalyticsGap, AnalyticsQuestion, CostTracking, CloneConfig
-from api.models.model import App, Conversation, Message
 
 logger = logging.getLogger(__name__)
 
@@ -87,35 +86,12 @@ class AnalyticsOverviewApi(Resource):
             )
         ).scalar() or 0
 
-        # Get the clone's tenant to count related conversations and messages
-        clone = db.session.execute(
-            select(CloneConfig).where(CloneConfig.id == clone_id)
-        ).scalar_one_or_none()
-
-        if clone is None:
-            return {"error": "clone not found"}, 404
-
-        # Count conversations for apps belonging to this clone's tenant
-        app_ids = [str(a.id) for a in db.session.execute(
-            select(App.id).where(App.tenant_id == clone.tenant_id)
-        ).scalars().all()]
-
+        # TODO: Replace with native MyOwnClone conversation tracking.
+        # The Dify base tables (App, Conversation, Message) do not exist in
+        # standalone mode. Conversation counts will be tracked via the
+        # conversations/messages tables managed by the frontend Drizzle schema.
         total_conversations = 0
         total_messages = 0
-
-        if app_ids:
-            total_conversations = db.session.execute(
-                select(func.count(Conversation.id)).where(
-                    Conversation.app_id.in_(app_ids),
-                    Conversation.is_deleted.is_(False),
-                )
-            ).scalar() or 0
-
-            total_messages = db.session.execute(
-                select(func.count(Message.id)).where(
-                    Message.app_id.in_(app_ids),
-                )
-            ).scalar() or 0
 
         return {
             "total_conversations": total_conversations,

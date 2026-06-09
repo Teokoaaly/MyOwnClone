@@ -2,7 +2,6 @@
 
 import type { SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { NavIcons } from "@/components/ui/dashboard-icons";
-import { ArrowsCounterClockwise, Sparkle } from "@phosphor-icons/react";
 
 export const ADMIN_NAV: SidebarNavItem[] = [
   {
@@ -29,14 +28,14 @@ export const ADMIN_NAV: SidebarNavItem[] = [
   {
     href: "/admin/impersonation",
     label: "Impersonation",
-    icon: ArrowsCounterClockwise,
+    icon: NavIcons.impersonation,
     tooltip: "Suplantar usuarios",
     section: "platform",
   },
   {
     href: "/admin/courtesy",
     label: "Courtesy",
-    icon: Sparkle,
+    icon: NavIcons.courtesy,
     tooltip: "Créditos de cortesía",
     section: "platform",
   },

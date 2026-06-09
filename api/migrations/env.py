@@ -5,9 +5,21 @@ from alembic import context
 import sys
 import os
 
-sys.path.insert(0, "/app/api")
+# ── Portable path setup ─────────────────────────────────────────────────────
+# Makes `api` package importable from any working directory (local dev + Docker)
+_api_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _api_root not in sys.path:
+    sys.path.insert(0, _api_root)
 
-from app_factory import create_app
+# Load .env before creating the app so credentials are available
+try:
+    from dotenv import load_dotenv
+    _env_file = os.path.join(os.path.dirname(__file__), "..", ".env")
+    load_dotenv(_env_file, override=False)
+except ImportError:
+    pass  # python-dotenv not installed; rely on environment variables
+
+from api.app_factory import create_app
 
 app = create_app()
 config = context.config

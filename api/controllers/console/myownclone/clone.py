@@ -217,8 +217,8 @@ def _serialize_clone(clone: CloneConfig) -> dict:
         select(CloneModePrompt).where(CloneModePrompt.clone_id == clone.id)
     ).scalars().all()
     return {
-        "id": clone.id,
-        "tenant_id": clone.tenant_id,
+        "id": str(clone.id),
+        "tenant_id": str(clone.tenant_id),
         "name": clone.name,
         "slug": clone.slug,
         "description": clone.description,

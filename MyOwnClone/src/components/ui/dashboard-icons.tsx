@@ -51,6 +51,8 @@ export const NavIcons = {
   analiticas: TrendUp,
   facturacion: CreditCard,
   configuracion: SlidersHorizontal,
+  impersonation: ArrowsCounterClockwise,
+  courtesy: Sparkle,
 } as const;
 
 export const ShortcutIcons = {
