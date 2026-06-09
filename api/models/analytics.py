@@ -10,7 +10,7 @@ from api.libs.datetime_utils import naive_utc_now
 from api.libs.uuid_utils import uuidv7
 
 from ..base import DefaultFieldsDCMixin, TypeBase
-from ..types import LongText
+from ..model_types import LongText
 
 
 class CostCategory(enum.StrEnum):

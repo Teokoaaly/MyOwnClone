@@ -62,27 +62,7 @@
   --color-primary-dark:  #EA580C;
 }
 
-/* ── Dark mode (variant, activated by .dark class or prefers-color-scheme) ── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-page: #070708;
-    --bg-shell: #0B0B0C;
-    --bg-sidebar: #101011;
-    --bg-topbar: #111112;
-    --surface-1: #121213;
-    --surface-2: #171718;
-    --surface-3: #1D1D1F;
-    --border-soft: rgba(255, 255, 255, 0.07);
-    --border-medium: rgba(255, 255, 255, 0.11);
-    --border-strong: rgba(255, 255, 255, 0.16);
-    --text-primary: #F4F4F5;
-    --text-secondary: #A1A1AA;
-    /* AA-compliant on #070708 (~6.4:1) — was #71717A (~4.3:1) */
-    --text-muted: #A1A1AA;
-    --text-faint: #52525B;
-  }
-}
-
+/* ── Dark mode (activated by .dark class via next-themes) ── */
 .dark {
   --bg-page: #070708;
   --bg-shell: #0B0B0C;

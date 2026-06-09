@@ -3,6 +3,8 @@ MyOwnClone application factory.
 Register all MyOwnClone blueprints here.
 """
 import os
+import uuid
+from datetime import datetime, timezone
 
 from api.libs.security_checks import assert_production_secrets
 
@@ -24,6 +26,8 @@ from api.models import (
     MeetingType_,
     Product,
 )
+# Import base models so Alembic/SQLAlchemy metadata includes them
+from api.models.account import Account, Tenant  # noqa: F401 — needed for metadata
 
 # Import public blueprint
 from api.controllers.myownclone_public import myownclone_public_bp
@@ -153,9 +157,21 @@ def create_app():
     _setup_dev_keys()
     app = Flask(__name__)
 
+    # Custom JSON encoder for UUID/datetime serialization
+    from flask.json.provider import DefaultJSONProvider
+
+    class CustomJSONProvider(DefaultJSONProvider):
+        def default(self, obj):
+            if isinstance(obj, uuid.UUID):
+                return str(obj)
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            return super().default(obj)
+    app.json = CustomJSONProvider(app)
+
     # Database configuration
     app.config["SQLALCHEMY_DATABASE_URI"] = (
-        f"postgresql://{os.getenv('DB_USER', 'postgres')}:***@"  # No fallback - validated above
+        f"postgresql://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD')}@"
         f"{os.getenv('DB_HOST', 'localhost')}:"
         f"{os.getenv('DB_PORT', '5432')}/"
         f"{os.getenv('DB_NAME', 'myownclone')}"

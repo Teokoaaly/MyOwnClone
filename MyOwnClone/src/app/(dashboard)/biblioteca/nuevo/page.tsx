@@ -200,6 +200,7 @@ function NuevoContentPage() {
               </label>
               <input
                 id="source-file"
+                name="file"
                 type="file"
                 accept=".pdf,.doc,.docx,.txt"
                 className="w-full rounded-xl border px-4 py-3 text-sm transition focus:ring-2"
@@ -222,6 +223,7 @@ function NuevoContentPage() {
               </label>
               <input
                 id="source-url"
+                name="url"
                 type="url"
                 placeholder={tipo === "youtube" ? "https://youtube.com/watch?v=..." : "https://ejemplo.com/articulo"}
                 className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -244,6 +246,7 @@ function NuevoContentPage() {
               </label>
               <textarea
                 id="source-content"
+                name="content"
                 rows={8}
                 placeholder="Pega o escribe el contenido aquí..."
                 className="w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"

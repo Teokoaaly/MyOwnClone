@@ -1,7 +1,9 @@
 services:
   db_postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     container_name: myownclone_postgres
+    ports:
+      - "127.0.0.1:15432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -17,6 +19,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: myownclone_redis
+    ports:
+      - "127.0.0.1:6379:6379"
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
