@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, pgEnum, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { clones } from "./clones";
 
 export const memoryTypeEnum = pgEnum("memory_type", [

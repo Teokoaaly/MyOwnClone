@@ -65,7 +65,6 @@ export async function POST(request: Request) {
     const passwordHash = await bcrypt.hash(password, 12);
     await db
       .update(schema.users)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .set({ passwordHash, updatedAt: now } as any)
       .where(eq(schema.users.id, user.id));
 

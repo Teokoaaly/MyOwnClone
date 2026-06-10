@@ -45,7 +45,7 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
 
   const formattedContent = useMemo(() => {
     if (isUser) return message.content
-    return message.content
+    const html = message.content
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(
@@ -53,6 +53,14 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
         '<code class="rounded px-1 py-0.5 text-sm" style="background: var(--surface-2); color: var(--text-primary);">$1</code>',
       )
       .replace(/\n/g, '<br />')
+    // Basic HTML sanitization: strip script/iframe/object/embed tags and event handlers
+    return html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+      .replace(/<embed\b[^>]*\/?>/gi, '')
+      .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
+      .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
   }, [message.content, isUser])
 
   return (

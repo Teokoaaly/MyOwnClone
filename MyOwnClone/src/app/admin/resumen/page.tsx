@@ -193,8 +193,8 @@ export default function AdminResumenPage() {
                   borderRadius: 8,
                   fontSize: 12,
                 }}
-                formatter={(value: number) => [
-                  `${value.toLocaleString("en-US")} ¢`,
+                formatter={(value: any) => [
+                  `${Number(value).toLocaleString("en-US")} ¢`,
                 ]}
               />
               <Legend
@@ -300,8 +300,8 @@ export default function AdminResumenPage() {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    formatter={(value: number, name: string) => [
-                      `${value} (${totalPlans > 0 ? ((value / totalPlans) * 100).toFixed(0) : 0}%)`,
+                    formatter={(value: any, name: any) => [
+                      `${value} (${totalPlans > 0 ? ((Number(value) / totalPlans) * 100).toFixed(0) : 0}%)`,
                       name,
                     ]}
                   />
