@@ -4,6 +4,7 @@ Protected by DEPLOY_SECRET (request header X-Deploy-Secret or env var).
 Intended for CI/CD automation (e.g. GitHub webhook) hitting the backend API.
 """
 
+import hmac
 import logging
 import os
 import subprocess
@@ -16,10 +17,14 @@ deploy_bp = Blueprint("deploy", __name__, url_prefix="/api")
 
 
 def _check_secret() -> bool:
-    """Validate the deploy secret from header or env."""
-    header_secret = request.headers.get("X-Deploy-Secret", "")
+    """Validate the deploy secret from header or env using a timing-safe compare."""
     env_secret = os.getenv("DEPLOY_SECRET", "")
-    return header_secret == env_secret and env_secret != ""
+    if not env_secret:
+        return False
+    header_secret = request.headers.get("X-Deploy-Secret", "")
+    if not header_secret:
+        return False
+    return hmac.compare_digest(header_secret.encode("utf-8"), env_secret.encode("utf-8"))
 
 
 def _run(cmd: str, cwd: str | None = None, timeout: int = 120) -> tuple[int, str]:
