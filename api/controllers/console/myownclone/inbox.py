@@ -183,8 +183,7 @@ class InboxGenerateDraftApi(Resource):
         memory_context, template_context = _get_clone_context(email.clone_id)
 
         def llm_call(prompt: str) -> str:
-            from core.model_manager import ModelManager
-            from graphon.model_runtime.entities.model_entities import ModelType
+            from api.core.model_manager import ModelManager, ModelType
 
             model_manager = ModelManager()
             model_instance = model_manager.get_default_model_instance(

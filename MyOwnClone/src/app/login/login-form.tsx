@@ -19,6 +19,7 @@ export function LoginForm() {
         email,
         password,
         redirect: false,
+        callbackUrl: "/resumen",
       });
 
       if (result?.error) {
@@ -27,8 +28,10 @@ export function LoginForm() {
         return;
       }
 
-      // Always redirect to admin dashboard on success
-      window.location.href = "/admin/resumen";
+      // Decide destination based on the resulting session role
+      const session = await getSession();
+      const role = (session?.user as { role?: string } | undefined)?.role;
+      window.location.href = role === "platform_admin" ? "/admin/resumen" : "/resumen";
     } catch {
       setError("Error de conexión. Intenta de nuevo.");
       setLoading(false);
