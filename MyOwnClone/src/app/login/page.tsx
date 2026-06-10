@@ -1,4 +1,5 @@
 import { LoginForm } from "./login-form";
+import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 
 export default function LoginPage() {
   return (
@@ -21,14 +22,12 @@ export default function LoginPage() {
           }}
         >
           <div className="flex flex-col items-center px-8 pt-8 pb-2 text-center">
-            <div aria-hidden="true" className="h-10 w-10 rounded-xl bg-black flex items-center justify-center text-white text-sm font-bold">
-              M
-            </div>
+            <AnimatedLogoMark size={40} />
             <h1 className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
               MyOwnClone
             </h1>
             <p className="mt-1 text-sm text-[var(--text-muted)]">
-              Inicia sesión para gestionar tu clon
+              Sign in to manage your clone
             </p>
           </div>
           <div className="px-8 pb-8 pt-4">

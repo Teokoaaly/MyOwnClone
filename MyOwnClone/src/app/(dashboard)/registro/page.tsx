@@ -1,4 +1,5 @@
 import { RegisterForm } from "./register-form";
+import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 
 export default function RegisterPage() {
   return (
@@ -21,13 +22,7 @@ export default function RegisterPage() {
           }}
         >
           <div className="flex flex-col items-center px-8 pt-8 pb-2 text-center">
-            <div
-              aria-hidden="true"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold"
-              style={{ background: "var(--text-primary)", color: "var(--bg-shell)" }}
-            >
-              M
-            </div>
+            <AnimatedLogoMark size={40} />
             <h1 className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
               MyOwnClone
             </h1>
