@@ -79,8 +79,7 @@ async function main() {
       name: "Demo Clone",
       slug: "demo-clone",
       description: "A demo clone for testing",
-      personality: "friendly",
-      tone: "professional",
+      personalityTone: "friendly",
       language: "es",
       isActive: true,
     } as any);

@@ -10,6 +10,7 @@ import {
   getPlatformAdminEmail,
   getPlatformAdminPasswordHash,
   hasPlatformAdminEnvCredentials,
+  isPlatformAdminEnvMisconfigured,
   normalizeEmail,
 } from "@/lib/platform-admin";
 
@@ -31,6 +32,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
         const email = normalizeEmail(credentials.email as string);
         const password = credentials.password as string;
+
+        if (isPlatformAdminEnvMisconfigured()) {
+          throw new Error(
+            "Platform admin credentials are misconfigured. Expected a bcrypt hash in PLATFORM_ADMIN_PASSWORD_HASH.",
+          );
+        }
 
         if (
           hasPlatformAdminEnvCredentials() &&
@@ -54,9 +61,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           // Use raw SQL to avoid Drizzle schema enum issues
           const result = await db.execute(
-            sql`SELECT id, email, name, password_hash, role FROM ${schema.users} WHERE email = ${email} LIMIT 1`
+            sql`SELECT id, email, name, password_hash, role, tenant_id FROM ${schema.users} WHERE email = ${email} LIMIT 1`
           );
-          const rows = result.rows as Array<{ id: string; email: string; name: string | null; password_hash: string | null; role: string }>;
+          const rows = result.rows as Array<{ id: string; email: string; name: string | null; password_hash: string | null; role: string; tenant_id: string | null }>;
           const user = rows?.[0];
           if (!user) return null;
           if (!user.password_hash) return null;
@@ -69,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: user.email,
             name: user.name ?? undefined,
             role: user.role,
+            tenantId: user.tenant_id ?? undefined,
           };
         } catch {
           return null;
@@ -92,6 +100,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.role = (user as any).role;
         token.id = user.id;
+        token.tenantId = (user as any).tenantId;
       }
       return token;
     },
@@ -99,6 +108,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         (session.user as any).role = token.role as string;
+        (session.user as any).tenantId = token.tenantId as string | undefined;
       }
       return session;
     },

@@ -1,9 +1,9 @@
 "use client";
 
 import { type FC } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import type { IconProps } from "@phosphor-icons/react";
+import { Link } from "@/i18n/navigation";
 
 interface QuickActionCardProps {
   href: string;

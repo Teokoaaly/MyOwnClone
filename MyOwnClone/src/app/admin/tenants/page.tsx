@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
-import Link from "next/link";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -13,6 +12,7 @@ import { FilterBar } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { Modal } from "@/components/ui/Modal";
 import { useAdminFetch } from "@/components/admin/useAdminFetch";
+import { Link } from "@/i18n/navigation";
 
 interface AdminTenant {
   id: string;

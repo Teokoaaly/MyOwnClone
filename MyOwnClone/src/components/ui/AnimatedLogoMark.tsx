@@ -2,12 +2,13 @@ import styles from "./AnimatedLogoMark.module.css";
 
 interface AnimatedLogoMarkProps {
   size?: number;
+  cycle?: boolean;
 }
 
-export default function AnimatedLogoMark({ size = 42 }: AnimatedLogoMarkProps) {
+export default function AnimatedLogoMark({ size = 42, cycle = false }: AnimatedLogoMarkProps) {
   return (
     <div
-      className={styles.logoMark}
+      className={`${styles.logoMark} ${cycle ? styles.cycle : ""}`}
       aria-label="MyOwnClone logo"
       style={{ width: size, height: size }}
     >

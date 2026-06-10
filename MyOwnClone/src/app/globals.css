@@ -215,13 +215,18 @@ body {
 /* ── MyOwnClone public landing ── */
 .landing-stage {
   min-height: 100vh;
-  background: #ECECEC;
-  padding: 58px 48px;
+  background:
+    radial-gradient(circle at 16% 11%, rgba(255, 255, 255, 0.72), transparent 36%),
+    radial-gradient(circle at 88% 88%, rgba(245, 240, 232, 0.72), transparent 34%),
+    var(--bg-page);
+  padding: 32px;
 }
 
 .landing-card {
   position: relative;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
   min-height: calc(100vh - 116px);
   overflow: hidden;
   border-radius: 18px;
@@ -430,56 +435,40 @@ body {
 .landing-app {
   position: absolute;
   display: inline-flex;
-  width: 64px;
-  height: 64px;
+  width: 58px;
+  height: 58px;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 999px;
   background: #FFFFFF;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.10);
-  padding: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+  font-size: 26px;
+  line-height: 1;
+***REMOVED***lter: grayscale(1) contrast(0.85);
+  opacity: 0.65;
 }
-
-.landing-app svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* App icon colors removed — SVGs carry their own colors */
 
 .landing-hero {
   position: relative;
   z-index: 3;
   display: flex;
   max-width: 720px;
-  min-height: 750px;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   margin: 0 auto;
-  padding-top: 150px;
+  padding: 100px 0;
   text-align: center;
+  flex: 1;
 }
 
-.landing-rating {
+.landing-logo-animated {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
   margin-bottom: 28px;
-  color: #757575;
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.landing-google {
-  color: #4285F4;
-  font-weight: 800;
-}
-
-.landing-star {
-  color: #00A66A;
-  font-size: 20px;
+***REMOVED***lter: drop-shadow(0 4px 12px rgba(0,0,0,0.06));
 }
 
 .landing-hero h1 {
@@ -493,7 +482,7 @@ body {
 
 .landing-hero p {
   max-width: 600px;
-  margin-top: 22px;
+  margin-top: 20px;
   color: #505050;
   font-size: 18px;
   line-height: 1.55;
@@ -504,7 +493,7 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
-  margin-top: 30px;
+  margin-top: 28px;
 }
 
 .landing-activity {
@@ -629,7 +618,7 @@ body {
 
 @media (max-width: 1024px) {
   .landing-stage {
-    padding: 24px;
+    padding: 20px;
   }
 
   .landing-card {

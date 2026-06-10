@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import { routing } from "@/i18n/routing";
 
 const BACKEND_URL = "http://127.0.0.1:5001";
+const LOCALE_HEADER = "x-locale";
+const LOCALIZED_APP_ROUTES = new Set(["/es/onboarding", "/es/verificar"]);
 
 /**
  * Extract the active clone ID from the moc_active_clone_id cookie.
@@ -117,19 +121,29 @@ function findBackendPath(pathname: string, request: NextRequest): string | null 
   return null;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, hostname } = request.nextUrl;
+  const forwardedLocale = request.headers.get(LOCALE_HEADER);
 
   // Skip Next.js internals
   if (pathname.startsWith("/_next") || pathname.startsWith("/favicon")) {
     return NextResponse.next();
   }
 
+  const localeMatch = routing.locales.find(
+    (candidate) =>
+      pathname === `/${candidate}` || pathname.startsWith(`/${candidate}/`),
+  );
+  const normalizedPathname = localeMatch
+    ? pathname.slice(localeMatch.length + 1) || "/"
+    : pathname;
+
   // Tenant detection
   const tenantSlug = getTenantFromHost(hostname);
   if (tenantSlug) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-tenant-slug", tenantSlug);
+    requestHeaders.set(LOCALE_HEADER, localeMatch ?? forwardedLocale ?? routing.defaultLocale);
     return NextResponse.next({
       request: { headers: requestHeaders },
     });
@@ -141,6 +155,10 @@ export async function middleware(request: NextRequest) {
     if (backendPath) {
       const search = request.nextUrl.search;
       const backendUrl = `${BACKEND_URL}${backendPath}${search}`;
+      const token = await getToken({
+        req: request,
+        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+      });
 
       // Forward auth header if present
       const authHeader = request.headers.get("authorization") || "";
@@ -150,6 +168,18 @@ export async function middleware(request: NextRequest) {
       };
       if (authHeader) {
         forwardedHeaders["Authorization"] = authHeader;
+      }
+      if (token?.id) {
+        forwardedHeaders["X-User-Id"] = String(token.id);
+      }
+      if (token?.email) {
+        forwardedHeaders["X-User-Email"] = String(token.email);
+      }
+      if ((token as any)?.role) {
+        forwardedHeaders["X-User-Role"] = String((token as any).role);
+      }
+      if ((token as any)?.tenantId) {
+        forwardedHeaders["X-Tenant-Id"] = String((token as any).tenantId);
       }
 
       try {
@@ -172,7 +202,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(LOCALE_HEADER, localeMatch ?? forwardedLocale ?? routing.defaultLocale);
+
+  if (localeMatch && !LOCALIZED_APP_ROUTES.has(pathname)) {
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = normalizedPathname;
+    return NextResponse.rewrite(rewriteUrl, {
+      request: { headers: requestHeaders },
+    });
+  }
+
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 }
 
 export const config = {

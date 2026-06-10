@@ -307,6 +307,8 @@ def _is_platform_admin(account_id: str) -> bool:
     # Service accounts (from proxy) are always considered platform admin
     if account_id and account_id.startswith("proxy-"):
         return True
+    if getattr(g, "account_role", None) == "platform_admin":
+        return True
 
     from api.models.account import Account
 

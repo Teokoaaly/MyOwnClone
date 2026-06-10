@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { SearchCommandBar } from "@/components/ui/SearchCommandBar";
+import { usePathname } from "@/i18n/navigation";
 
 /**
  * Client wrapper around `SearchCommandBar` so the dashboard

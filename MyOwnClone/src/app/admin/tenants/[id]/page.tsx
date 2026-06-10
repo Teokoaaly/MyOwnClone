@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams } from "next/navigation";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { StatusBadge, statusToKind } from "@/components/ui/StatusBadge";
@@ -10,6 +9,7 @@ import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
 import { Modal } from "@/components/ui/Modal";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Field, fieldControlClass } from "@/components/admin/Field";
+import { Link, useRouter } from "@/i18n/navigation";
 
 interface TenantDetail {
   tenant: {

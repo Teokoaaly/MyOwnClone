@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import { Providers } from "./providers";
 import "./globals.css";
+import { resolveLocale } from "@/i18n/routing";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +25,14 @@ export const metadata: Metadata = {
     "Create an AI clone trained on your knowledge. Support, teach, and sell around the clock from one workspace.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = "en";
+  const headerStore = await headers();
+  const locale = resolveLocale(headerStore.get("x-locale"));
+  const messages = (await import(`../i18n/${locale}.json`)).default;
 
   return (
     <html
@@ -38,7 +42,9 @@ export default function RootLayout({
     >
       <head />
       <body className="min-h-full flex flex-col antialiased">
-        <Providers>{children}</Providers>
+        <Providers locale={locale} messages={messages}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

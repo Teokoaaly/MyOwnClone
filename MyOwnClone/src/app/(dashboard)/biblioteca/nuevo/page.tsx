@@ -5,8 +5,9 @@ export const dynamic = "force-dynamic"
 
 import { useState, Suspense, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
+import { useRouter } from "@/i18n/navigation"
 
 const SILOS = [
   { id: "teach", label: "Teaching" },

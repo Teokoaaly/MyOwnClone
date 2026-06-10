@@ -1,11 +1,10 @@
 "use client";
 
 import { type FC, type ReactNode, useState, useCallback } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
 import { NavIcons } from "@/components/ui/dashboard-icons";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
+import { Link, usePathname } from "@/i18n/navigation";
 
 export type SidebarIconKey = keyof typeof NavIcons;
 
@@ -274,9 +273,9 @@ export const Sidebar: FC<SidebarProps> = ({
                   <p className="text-sm font-semibold text-[var(--text-primary)]">MyOwnClone</p>
                   <p className="text-xs text-[var(--text-secondary)]">7 days left</p>
                 </div>
-                <a href="/facturacion" className="rounded-lg bg-[#4B5563] px-3 py-2 text-xs font-medium text-white shadow-sm">
+                <Link href="/facturacion" className="rounded-lg bg-[#4B5563] px-3 py-2 text-xs font-medium text-white shadow-sm">
                   Upgrade
-                </a>
+                </Link>
               </div>
               <div className="mt-4 h-1.5 rounded-full bg-[#E7E5E4]">
                 <div className="h-full w-1/2 rounded-full bg-[#1C1917]" />

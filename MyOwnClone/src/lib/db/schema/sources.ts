@@ -4,6 +4,7 @@ import {
   timestamp,
   pgEnum,
   json,
+  index,
 } from "drizzle-orm/pg-core";
 import { clones } from "./clones";
 
@@ -23,16 +24,23 @@ export const sourceStatusEnum = pgEnum("source_status", [
   "error",
 ]);
 
-export const sources = pgTable("sources", {
-  id: text("id").primaryKey(),
-  cloneId: text("clone_id")
-    .notNull()
-    .references(() => clones.id, { onDelete: "cascade" }),
-  type: sourceTypeEnum("type").notNull(),
-  title: text("title").notNull(),
-  url: text("url"),
-  status: sourceStatusEnum("status").notNull().default("uploading"),
-  metadata: json("metadata").$type<Record<string, unknown>>(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const sources = pgTable(
+  "sources",
+  {
+    id: text("id").primaryKey(),
+    cloneId: text("clone_id")
+      .notNull()
+      .references(() => clones.id, { onDelete: "cascade" }),
+    type: sourceTypeEnum("type").notNull(),
+    title: text("title").notNull(),
+    url: text("url"),
+    status: sourceStatusEnum("status").notNull().default("uploading"),
+    metadata: json("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("sources_clone_id_idx").on(table.cloneId),
+    index("sources_status_idx").on(table.status),
+  ],
+);

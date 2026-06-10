@@ -1,11 +1,13 @@
 import { getRequestConfig } from "next-intl/server";
+import { headers } from "next/headers";
+import { resolveLocale } from "./routing";
 
 export default getRequestConfig(async () => {
-  // The app uses English as the default product language until the runtime
-  // language switcher is wired into every user-facing route.
-  // This i18n module is not wired up to any route.
+  const headerStore = await headers();
+  const locale = resolveLocale(headerStore.get("x-locale"));
+
   return {
-    locale: "en",
-    messages: (await import("./en.json")).default,
+    locale,
+    messages: (await import(`./${locale}.json`)).default,
   };
 });

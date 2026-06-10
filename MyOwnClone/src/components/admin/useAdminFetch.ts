@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 interface UseAdminFetchResult<T> {
   /** Last successful payload, or `null` until the first successful fetch. */

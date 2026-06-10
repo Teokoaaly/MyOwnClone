@@ -1,10 +1,10 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ADMIN_NAV } from "@/lib/nav-admin";
 import { isPlatformAdminSession } from "@/lib/platform-admin";
+import { Link } from "@/i18n/navigation";
 
 export default async function AdminLayout({
   children,
@@ -18,7 +18,8 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const email = session.user.email ?? "";
+  const user = session.user;
+  const email = user.email ?? "";
 
   return (
     <div
@@ -43,7 +44,7 @@ export default async function AdminLayout({
         <Sidebar
           navItems={ADMIN_NAV}
           user={{
-            name: session.user.name ?? "Admin",
+            name: user.name ?? "Admin",
             email,
           }}
           homeHref="/admin/resumen"

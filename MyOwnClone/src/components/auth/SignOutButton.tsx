@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { SignOut as SignOutIcon } from "@phosphor-icons/react";
+import { useRouter } from "@/i18n/navigation";
 
 interface SignOutButtonProps {
   callbackUrl?: string;

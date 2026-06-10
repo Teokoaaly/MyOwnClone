@@ -30,6 +30,15 @@ def current_account_with_tenant():
     return _current_account_with_tenant
 
 
+def _is_uuid_like(value: str | None) -> bool:
+    if not value:
+        return False
+    normalized = value.replace("-", "")
+    if len(normalized) != 32:
+        return False
+    return all(ch in "0123456789abcdefABCDEF" for ch in normalized)
+
+
 def login_required(f: Callable) -> Callable:
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -56,10 +65,15 @@ def login_required(f: Callable) -> Callable:
         if os.environ.get('FLASK_ENV', 'production') != 'production':
             valid_keys.append('dev-api-key-for-proxy')
         if api_key and api_key in valid_keys:
-            g.account_id = 'proxy-service'
-            g.tenant_id = 'proxy-service'
-            g.account_role = 'admin'
-            g.account_email = 'proxy@myownclone.local'
+            forwarded_user_id = request.headers.get('X-User-Id', '').strip()
+            forwarded_tenant_id = request.headers.get('X-Tenant-Id', '').strip()
+            forwarded_role = request.headers.get('X-User-Role', '').strip()
+            forwarded_email = request.headers.get('X-User-Email', '').strip()
+
+            g.account_id = forwarded_user_id or 'proxy-service'
+            g.tenant_id = forwarded_tenant_id if _is_uuid_like(forwarded_tenant_id) else 'proxy-service'
+            g.account_role = forwarded_role or 'admin'
+            g.account_email = forwarded_email or 'proxy@myownclone.local'
             return f(*args, **kwargs)
 
         return {'error': 'Unauthorized — missing or invalid authentication'}, 401

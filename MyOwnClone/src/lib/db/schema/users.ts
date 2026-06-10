@@ -1,6 +1,7 @@
 import {
   boolean,
   integer,
+  index,
   pgTable,
   text,
   timestamp,
@@ -15,23 +16,31 @@ export const userRoleEnum = pgEnum("user_role", [
   "platform_admin",
 ]);
 
-export const users = pgTable("users", {
-  id: text("id").primaryKey(),
-  tenantId: text("tenant_id")
-    .notNull()
-    .references(() => tenants.id, { onDelete: "cascade" }),
-  name: text("name"),
-  email: text("email").notNull().unique(),
-  passwordHash: text("password_hash"),
-  emailVerified: timestamp("email_verified"),
-  image: text("image"),
-  role: userRoleEnum("role").notNull().default("owner"),
-  status: text("status").notNull().default("active"),
-  isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
-  lastLoginAt: timestamp("last_login_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    name: text("name"),
+    email: text("email").notNull().unique(),
+    passwordHash: text("password_hash"),
+    emailVerified: timestamp("email_verified"),
+    image: text("image"),
+    role: userRoleEnum("role").notNull().default("owner"),
+    status: text("status").notNull().default("active"),
+    isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
+    lastLoginAt: timestamp("last_login_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("users_tenant_id_idx").on(table.tenantId),
+    index("users_role_idx").on(table.role),
+    index("users_platform_admin_idx").on(table.isPlatformAdmin),
+  ],
+);
 
 export const accounts = pgTable("nextauth_accounts", {
   id: text("id").primaryKey(),
