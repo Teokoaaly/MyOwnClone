@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
 import { NavIcons } from "@/components/ui/dashboard-icons";
+import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 
 export type SidebarIconKey = keyof typeof NavIcons;
 
@@ -145,9 +146,7 @@ export const Sidebar: FC<SidebarProps> = ({
             onClick={closeMobile}
             className="flex items-center gap-2"
           >
-            <div className="h-7 w-7 rounded-lg bg-black text-white flex items-center justify-center text-[11px] font-bold">
-              M
-            </div>
+            <AnimatedLogoMark size={26} />
             <span className="text-sm font-semibold tracking-wide text-[var(--text-primary)]">
               {homeLabel}
             </span>
@@ -221,9 +220,7 @@ export const Sidebar: FC<SidebarProps> = ({
         {/* Logo */}
         <div className="px-5 pt-5 pb-4">
           <Link href={homeHref} className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-black text-white flex items-center justify-center text-[11px] font-bold">
-              M
-            </div>
+            <AnimatedLogoMark size={26} />
             <span className="text-sm font-semibold tracking-wide text-[var(--text-primary)]">
               {homeLabel}
             </span>
@@ -267,9 +264,7 @@ export const Sidebar: FC<SidebarProps> = ({
           <div className="px-3 pb-3">
             <div className="rounded-xl border border-[var(--border-soft)] bg-[linear-gradient(135deg,#fff_0%,#F4F9EC_55%,#F8FAFC_100%)] p-3 shadow-sm">
               <div className="mb-6 flex items-start justify-between gap-3">
-                <div className="h-8 w-8 rounded-lg bg-black text-white flex items-center justify-center text-[11px] font-bold">
-                  M
-                </div>
+                <AnimatedLogoMark size={28} />
                 <span className="rounded bg-white/70 px-1.5 py-0.5 text-[9px] font-medium uppercase text-[var(--text-muted)]">
                   Free Trial
                 </span>

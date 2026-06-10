@@ -1,0 +1,108 @@
+.logoMark {
+  position: relative;
+  display: inline-block;
+}
+
+.piece {
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  background: #000;
+  animation:
+    assemble 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    breathe 5s ease-in-out 1.2s infinite;
+  will-change: transform, opacity;
+}
+
+/* Top-left piece */
+.topLeft {
+  left: 4%;
+  top: 4%;
+  border-radius: 40% 70% 40% 70%;
+  --start-x: -33%;
+  --start-y: -24%;
+  --rotate: -16deg;
+  animation-delay: 0s, 1.2s;
+}
+
+/* Top-right piece */
+.topRight {
+  right: 4%;
+  top: 4%;
+  border-radius: 70% 40% 70% 40%;
+  --start-x: 33%;
+  --start-y: -24%;
+  --rotate: 16deg;
+  animation-delay: 0.08s, 1.28s;
+}
+
+/* Bottom-left piece */
+.bottomLeft {
+  left: 4%;
+  bottom: 4%;
+  border-radius: 70% 40% 70% 40%;
+  --start-x: -33%;
+  --start-y: 24%;
+  --rotate: 16deg;
+  animation-delay: 0.16s, 1.36s;
+}
+
+/* Bottom-right piece */
+.bottomRight {
+  right: 4%;
+  bottom: 4%;
+  border-radius: 40% 70% 40% 70%;
+  --start-x: 33%;
+  --start-y: 24%;
+  --rotate: -16deg;
+  animation-delay: 0.24s, 1.44s;
+}
+
+/* Entrance animation */
+@keyframes assemble {
+  0% {
+    opacity: 0;
+    transform:
+      translate(var(--start-x), var(--start-y))
+      rotate(var(--rotate))
+      scale(0.75);
+  }
+  65% {
+    opacity: 1;
+    transform:
+      translate(0, 0)
+      rotate(0deg)
+      scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform:
+      translate(0, 0)
+      rotate(0deg)
+      scale(1);
+  }
+}
+
+/* Subtle breathing once assembled */
+@keyframes breathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.035);
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .piece {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Dark mode */
+:global(.dark) .piece {
+  background: #fff;
+}
