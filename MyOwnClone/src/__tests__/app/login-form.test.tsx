@@ -32,19 +32,19 @@ describe("LoginForm", () => {
     })
   })
 
-  it("redirige admins al dashboard admin tras login correcto", async () => {
+  it("redirects admins to admin dashboard after successful login", async () => {
     mockSignIn.mockResolvedValue({ ok: true })
     mockGetSession.mockResolvedValue({ user: { role: "platform_admin" } })
 
     render(<LoginForm />)
 
-    fireEvent.change(screen.getByLabelText(/correo electrónico/i), {
+    fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: "admin@myownclone.com" },
     })
-    fireEvent.change(screen.getByLabelText(/contraseña/i), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: "secret" },
     })
-    fireEvent.submit(screen.getByRole("button", { name: /iniciar sesión/i }))
+    fireEvent.submit(screen.getByRole("button", { name: /sign in/i }))
 
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith("credentials", {
@@ -57,22 +57,22 @@ describe("LoginForm", () => {
     })
   })
 
-  it("muestra error si next-auth devuelve error", async () => {
+  it("shows error if next-auth returns error", async () => {
     mockSignIn.mockResolvedValue({ error: "CredentialsSignin" })
 
     render(<LoginForm />)
 
-    fireEvent.change(screen.getByLabelText(/correo electrónico/i), {
+    fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: "admin@myownclone.com" },
     })
-    fireEvent.change(screen.getByLabelText(/contraseña/i), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: "bad" },
     })
-    fireEvent.submit(screen.getByRole("button", { name: /iniciar sesión/i }))
+    fireEvent.submit(screen.getByRole("button", { name: /sign in/i }))
 
     await waitFor(() => {
       expect(screen.getByRole("alert").textContent).toContain(
-        "Email o contraseña incorrectos.",
+        "Invalid email or password.",
       )
     })
   })
