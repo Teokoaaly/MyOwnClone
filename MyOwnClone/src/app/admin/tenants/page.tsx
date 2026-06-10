@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { Field, fieldControlClass } from "@/components/admin/Field";
 import { FilterBar } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
+import { Modal } from "@/components/ui/Modal";
 import { useAdminFetch } from "@/components/admin/useAdminFetch";
 
 interface AdminTenant {
@@ -70,6 +71,23 @@ export default function AdminTenantsPage() {
   const [plan, setPlan] = useState("");
   const [status, setStatus] = useState("");
 
+  // Create tenant modal state
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createSlug, setCreateSlug] = useState("");
+  const [createPlan, setCreatePlan] = useState("trial");
+  const [createStatus, setCreateStatus] = useState("trial");
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     params.set("page", String(pagination.page));
@@ -92,12 +110,63 @@ export default function AdminTenantsPage() {
     setPagination((p) => ({ ...p, page: 1 }));
   }
 
+  const handleCreateNameChange = useCallback(
+    (value: string) => {
+      setCreateName(value);
+      setCreateSlug(slugify(value));
+    },
+    [],
+  );
+
+  async function submitCreateTenant() {
+    if (!createName.trim() || !createSlug.trim()) return;
+    setCreateSubmitting(true);
+    setCreateError(null);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: createName.trim(),
+          slug: createSlug.trim(),
+          plan: createPlan,
+          status: createStatus,
+        }),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error ?? `Error ${res.status}`);
+      }
+      setCreateOpen(false);
+      setCreateName("");
+      setCreateSlug("");
+      setCreatePlan("trial");
+      setCreateStatus("trial");
+      reload();
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : "Error creating tenant");
+    } finally {
+      setCreateSubmitting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Tenants"
         subtitle={`${total} accounts in the platform`}
-        actions={<CourtesyButton onCreated={reload} />}
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="btn-primary text-xs"
+            >
+              + New tenant
+            </button>
+            <CourtesyButton onCreated={reload} />
+          </>
+        }
       />
 
       <FilterBar>
@@ -272,6 +341,97 @@ export default function AdminTenantsPage() {
           }
         />
       )}
+
+      {/* ── Create Tenant Modal ── */}
+      <Modal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="Create tenant"
+        size="sm"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setCreateOpen(false)}
+              className="btn-secondary text-xs"
+              disabled={createSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={submitCreateTenant}
+              className="btn-primary text-xs disabled:opacity-40"
+              disabled={createSubmitting || !createName.trim() || !createSlug.trim()}
+            >
+              {createSubmitting ? "Creating..." : "Create tenant"}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Field label="Tenant name">
+            <input
+              type="text"
+              value={createName}
+              onChange={(e) => handleCreateNameChange(e.target.value)}
+              placeholder="e.g. Acme Corp"
+              className={fieldControlClass}
+              autoFocus
+            />
+          </Field>
+          <Field label="Slug">
+            <input
+              type="text"
+              value={createSlug}
+              onChange={(e) => setCreateSlug(e.target.value)}
+              placeholder="e.g. acme-corp"
+              className={fieldControlClass}
+            />
+            <p className="mt-1 text-[10px] text-[var(--text-muted)]">
+              Auto-generated from the name. You can edit it.
+            </p>
+          </Field>
+          <Field label="Plan">
+            <select
+              value={createPlan}
+              onChange={(e) => setCreatePlan(e.target.value)}
+              className={fieldControlClass}
+            >
+              <option value="trial">Trial</option>
+              <option value="basic">Basic</option>
+              <option value="pro">Pro</option>
+              <option value="scale">Scale</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          </Field>
+          <Field label="Status">
+            <select
+              value={createStatus}
+              onChange={(e) => setCreateStatus(e.target.value)}
+              className={fieldControlClass}
+            >
+              <option value="trial">Trial</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </Field>
+          {createError && (
+            <p
+              role="alert"
+              className="rounded-md px-2 py-1 text-xs"
+              style={{
+                background: "var(--surface-2)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--color-accent-pink)",
+              }}
+            >
+              {createError}
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

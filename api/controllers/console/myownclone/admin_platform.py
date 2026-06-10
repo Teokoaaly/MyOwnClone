@@ -36,7 +36,14 @@ class CourtesyPayload(BaseModel):
     duration_days: int = 30
 
 
-register_schema_models(console_ns, ImpersonatePayload, CourtesyPayload)
+class CreateTenantPayload(BaseModel):
+    name: str = Field(..., min_length=1, description="Tenant name")
+    slug: str = Field(..., min_length=1, description="Unique slug for the tenant")
+    plan: str = Field(default="trial", description="Plan: trial, basic, pro, scale, enterprise")
+    status: str = Field(default="trial", description="Status: active, trial, suspended, cancelled")
+
+
+register_schema_models(console_ns, ImpersonatePayload, CourtesyPayload, CreateTenantPayload)
 
 
 @console_ns.route("/myownclone/admin/overview")
@@ -122,6 +129,45 @@ class AdminTenantsApi(Resource):
             }
             for t in tenants
         ], 200
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def post(self):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        data = CreateTenantPayload.model_validate(request.json)
+
+        existing = db.session.execute(
+            select(Tenant).where(Tenant.slug == data.slug)
+        ).scalar_one_or_none()
+        if existing:
+            return {"error": f"A tenant with slug '{data.slug}' already exists"}, 409
+
+        tenant = Tenant(
+            name=data.name,
+            slug=data.slug,
+            plan=data.plan,
+            status=data.status,
+        )
+        db.session.add(tenant)
+        db.session.commit()
+
+        logger.info("Admin created tenant: name=%s slug=%s plan=%s status=%s",
+                     data.name, data.slug, data.plan, data.status)
+
+        return {
+            "message": "Tenant created successfully",
+            "tenant": {
+                "id": str(tenant.id),
+                "name": tenant.name,
+                "slug": tenant.slug,
+                "plan": tenant.plan,
+                "status": tenant.status,
+                "created_at": int(tenant.created_at.timestamp()) if tenant.created_at else None,
+            },
+        }, 201
 
 
 @console_ns.route("/myownclone/admin/impersonate")
