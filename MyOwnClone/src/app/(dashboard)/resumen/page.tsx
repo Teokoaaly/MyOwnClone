@@ -18,6 +18,7 @@ import {
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
+import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
 
 interface AnalyticsOverview {
   total_conversations: number;
@@ -182,7 +183,9 @@ export default function DashboardResumenPage() {
 
       <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-10 shadow-sm md:px-8 md:py-16">
         <div className="mx-auto flex max-w-[760px] flex-col items-center text-center">
-          <div className="chat-orb mb-6" />
+          <div className="mb-6">
+            <ReflectiveOrb size={68} />
+          </div>
           <h2 className="text-2xl font-semibold text-[var(--text-secondary)] md:text-[28px]">
             What do you want to build or query?
           </h2>
