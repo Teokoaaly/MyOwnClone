@@ -123,7 +123,7 @@ def chat_public(slug: str):
     from flask import Response, stream_with_context
     from sqlalchemy import select
 
-    from api.core.myownclone.retrieval import retrieve_from_silo
+    from api.core.retrieval import retrieve_from_silo
     from api.core.myownclone.silos import CloneSilo
     from api.core.rag.retrieval.retrieval_methods import RetrievalMethod
     from api.models.myownclone import CloneConfig, CloneModePrompt
@@ -188,8 +188,7 @@ Pregunta del usuario: {message}"""
 
     def generate():
         try:
-            from api.core.model_manager import ModelManager
-            from graphon.model_runtime.entities.model_entities import ModelType
+            from api.core.model_manager import ModelManager, ModelType
 
             model_manager = ModelManager()
             model_instance = model_manager.get_default_model_instance(
@@ -223,8 +222,7 @@ Pregunta del usuario: {message}"""
 
 def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
     try:
-        from api.core.model_manager import ModelManager
-        from graphon.model_runtime.entities.model_entities import ModelType
+        from api.core.model_manager import ModelManager, ModelType
 
         clone = db.session.execute(
             select(CloneConfig).where(CloneConfig.id == clone_id)
