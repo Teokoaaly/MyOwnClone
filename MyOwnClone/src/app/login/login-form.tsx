@@ -117,6 +117,16 @@ export function LoginForm() {
           {loading ? "Iniciando sesión..." : "Iniciar sesión"}
         </button>
       </form>
+
+      <p className="mt-4 text-center text-sm text-[var(--text-muted)]">
+        <a
+          href="/forgot-password"
+          className="font-medium underline decoration-[var(--color-accent-violet)] underline-offset-4 hover:opacity-80"
+          style={{ color: "var(--text-primary)" }}
+        >
+          ¿Olvidaste tu contraseña?
+        </a>
+      </p>
     </div>
   );
 }

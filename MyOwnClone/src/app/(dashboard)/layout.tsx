@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function DashboardLayout({
         <Sidebar
           navItems={navItems}
           user={session.user}
+          signOutAction={<SignOutButton callbackUrl="/login" />}
           homeLabel="MyOwnClone"
           showSearch={false}
           showFreemiumCard

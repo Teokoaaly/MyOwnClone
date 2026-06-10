@@ -1,6 +1,7 @@
 "use client";
 
 import type { FC } from "react";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 interface AdminTopbarProps {
   /** Logged-in admin's email, shown on sm+ screens. */
@@ -31,6 +32,11 @@ export const AdminTopbar: FC<AdminTopbarProps> = ({ email }) => {
           {email}
         </span>
         <span className="badge-active">Admin</span>
+        <SignOutButton
+          callbackUrl="/login"
+          showLabel
+          className="ml-1 flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] disabled:opacity-50"
+        />
       </div>
     </header>
   );
