@@ -7,6 +7,7 @@
  * Requires DATABASE_URL env var.
  */
 import { drizzle } from "drizzle-orm/node-postgres";
+import { eq } from "drizzle-orm";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
@@ -25,7 +26,7 @@ async function main() {
   const existingTenant = await db
     .select()
     .from(schema.tenants)
-    .where(schema.tenants.id.eq(DEMO_TENANT_ID))
+    .where(eq(schema.tenants.id, DEMO_TENANT_ID))
     .limit(1);
 
   if (existingTenant.length === 0) {
@@ -36,7 +37,7 @@ async function main() {
       plan: "pro",
       status: "active",
       subscriptionStatus: "active",
-    });
+    } as any);
     console.log("  ✓ Created tenant: demo");
   } else {
     console.log("  ✓ Tenant already exists: demo");
@@ -46,7 +47,7 @@ async function main() {
   const existingUser = await db
     .select()
     .from(schema.users)
-    .where(schema.users.id.eq(DEMO_USER_ID))
+    .where(eq(schema.users.id, DEMO_USER_ID))
     .limit(1);
 
   if (existingUser.length === 0) {
@@ -58,7 +59,7 @@ async function main() {
       role: "owner",
       status: "active",
       isPlatformAdmin: true,
-    });
+    } as any);
     console.log("  ✓ Created user: admin@myownclone.com");
   } else {
     console.log("  ✓ User already exists: admin@myownclone.com");
@@ -68,7 +69,7 @@ async function main() {
   const existingClone = await db
     .select()
     .from(schema.cloneConfigs)
-    .where(schema.cloneConfigs.id.eq(DEMO_CLONE_ID))
+    .where(eq(schema.cloneConfigs.id, DEMO_CLONE_ID))
     .limit(1);
 
   if (existingClone.length === 0) {
@@ -82,7 +83,7 @@ async function main() {
       tone: "professional",
       language: "es",
       isActive: true,
-    });
+    } as any);
     console.log("  ✓ Created clone: demo-clone");
   } else {
     console.log("  ✓ Clone already exists: demo-clone");
@@ -111,20 +112,19 @@ async function main() {
     const existing = await db
       .select()
       .from(schema.cloneModePrompts)
-      .where(
-        schema.cloneModePrompts.cloneId.eq(DEMO_CLONE_ID) &
-          schema.cloneModePrompts.mode.eq(mode)
-      )
+      .where(eq(schema.cloneModePrompts.cloneId, DEMO_CLONE_ID))
       .limit(1);
 
-    if (existing.length === 0) {
+    const modeExists = existing.some((r) => r.mode === mode);
+
+    if (!modeExists) {
       await db.insert(schema.cloneModePrompts).values({
         id: `${DEMO_CLONE_ID}-${mode}`,
         cloneId: DEMO_CLONE_ID,
         mode,
         systemPrompt,
         isActive: true,
-      });
+      } as any);
       console.log(`  ✓ Created mode prompt: ${mode}`);
     } else {
       console.log(`  ✓ Mode prompt already exists: ${mode}`);

@@ -3,17 +3,26 @@ import { eq } from "drizzle-orm";
 import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 
-export async function GET() {
+/**
+ * Resolve the active clone ID from cookie or env var fallback.
+ */
+function getCloneIdFromRequest(request: NextRequest): string | null {
+  const cookieCloneId = request.cookies.get("moc_active_clone_id")?.value;
+  if (cookieCloneId) return cookieCloneId;
+  return process.env.DEFAULT_CLONE_ID || null;
+}
+
+export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const cloneId = process.env.DEFAULT_CLONE_ID;
+  const cloneId = getCloneIdFromRequest(request);
   if (!cloneId) {
     return NextResponse.json(
-      { error: "DEFAULT_CLONE_ID not configured" },
-      { status: 500 }
+      { error: "No clone configured. Create a clone first." },
+      { status: 404 }
     );
   }
 
@@ -46,11 +55,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const cloneId = process.env.DEFAULT_CLONE_ID;
+  const cloneId = getCloneIdFromRequest(request);
   if (!cloneId) {
     return NextResponse.json(
-      { error: "DEFAULT_CLONE_ID not configured" },
-      { status: 500 }
+      { error: "No clone configured. Create a clone first." },
+      { status: 404 }
     );
   }
 

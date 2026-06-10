@@ -145,11 +145,22 @@ def login():
     conn = _get_db_conn()
     try:
         cur = conn.cursor()
+        # Read from 'users' table (Drizzle/NextAuth — the auth source of truth).
+        # Falls back to 'accounts' for legacy rows not yet migrated.
         cur.execute(
-            "SELECT id, email, password, name, role, tenant_id FROM accounts WHERE email = %s",
+            "SELECT id, email, password_hash, name, role, tenant_id FROM users WHERE email = %s",
             (email,),
         )
         row = cur.fetchone()
+
+        if not row:
+            # Fallback: check legacy 'accounts' table
+            cur.execute(
+                "SELECT id, email, password, name, role, tenant_id FROM accounts WHERE email = %s",
+                (email,),
+            )
+            row = cur.fetchone()
+
         cur.close()
 
         if not row:

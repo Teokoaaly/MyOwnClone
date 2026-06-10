@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { CloneIdResolver } from "@/components/dashboard/CloneIdResolver";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[var(--bg-page)] px-3 py-3 md:px-8 md:py-8">
+      <CloneIdResolver />
       <div className="app-shell mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[1720px] overflow-hidden border border-white/70 md:min-h-[calc(100vh-4rem)]">
         <Sidebar
           navItems={navItems}
