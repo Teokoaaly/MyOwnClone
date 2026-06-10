@@ -212,12 +212,10 @@ class InboxGenerateDraftApi(Resource):
 
 
 def _verify_clone_access(clone_id: str, tenant_id: str) -> None:
-    clone = db.session.execute(
-        select(CloneConfig).where(
-            CloneConfig.id == clone_id,
-            CloneConfig.tenant_id == tenant_id,
-        )
-    ).scalar_one_or_none()
+    stmt = select(CloneConfig).where(CloneConfig.id == clone_id)
+    if tenant_id and not tenant_id.startswith("proxy-"):
+        stmt = stmt.where(CloneConfig.tenant_id == tenant_id)
+    clone = db.session.execute(stmt).scalar_one_or_none()
     if not clone:
         from werkzeug.exceptions import NotFound
         raise NotFound("clone not found")

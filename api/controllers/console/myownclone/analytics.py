@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 
 def _verify_clone_access(clone_id: str, tenant_id: str) -> None:
     from werkzeug.exceptions import NotFound
-    clone = db.session.execute(
-        select(CloneConfig).where(
-            CloneConfig.id == clone_id,
-            CloneConfig.tenant_id == tenant_id,
-        )
-    ).scalar_one_or_none()
+    stmt = select(CloneConfig).where(CloneConfig.id == clone_id)
+    # Proxy auth (from middleware) sends 'proxy-service' as tenant_id,
+    # which is not a valid UUID. Skip tenant verification in that case.
+    if tenant_id and not tenant_id.startswith("proxy-"):
+        stmt = stmt.where(CloneConfig.tenant_id == tenant_id)
+    clone = db.session.execute(stmt).scalar_one_or_none()
     if not clone:
         raise NotFound("clone not found")
 
