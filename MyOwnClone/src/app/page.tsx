@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 
 const orbitApps = [
   {
@@ -70,9 +71,7 @@ export default function LandingPage() {
       <section className="landing-card">
         <nav className="landing-nav" aria-label="Main">
           <Link href="/" className="landing-brand" aria-label="MyOwnClone home">
-            <span className="landing-brand-mark" aria-hidden="true">
-              <span /><span /><span /><span />
-            </span>
+            <AnimatedLogoMark size={26} />
             <span>MyOwnClone</span>
           </Link>
 
@@ -146,9 +145,7 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div className="landing-footer-inner">
           <div className="landing-footer-brand">
-            <span className="landing-brand-mark" aria-hidden="true">
-              <span /><span /><span /><span />
-            </span>
+            <AnimatedLogoMark size={20} />
             <span>MyOwnClone</span>
           </div>
           <div className="landing-footer-links">
