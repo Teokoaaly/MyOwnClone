@@ -23,7 +23,7 @@ export async function GET() {
       .from(schema.sources)
       .where(eq(schema.sources.cloneId, cloneId));
 
-    // Formateamos para que sea compatible con la UI
+    // Format the records so they match the UI contract.
     const formatted = items.map((item) => ({
       id: item.id,
       title: item.title,
@@ -62,11 +62,11 @@ export async function POST(request: NextRequest) {
     const url = (formData.get("url") as string) || "";
     const file = formData.get("file") as File | null;
 
-    let title = "Nuevo contenido";
+    let title = "New content";
     if (type === "text") {
-      title = content.substring(0, 30) || "Contenido de texto";
+      title = content.substring(0, 30) || "Text content";
     } else if (type === "youtube" || type === "web") {
-      title = url || "Enlace web";
+      title = url || "Web link";
     } else if (type === "pdf" && file) {
       title = file.name;
     }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       type: type as any,
       title,
       url: url || null,
-      status: "ready" as any, // Listo en local
+      status: "ready" as any,
       metadata: { silo },
     };
 

@@ -96,12 +96,12 @@ export default function AdminTenantsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Tenants"
-        subtitle={`${total} cuentas en la plataforma`}
+        subtitle={`${total} accounts in the platform`}
         actions={<CourtesyButton onCreated={reload} />}
       />
 
       <FilterBar>
-        <Field label="Buscar" fill>
+        <Field label="Search" fill>
           <input
             type="text"
             value={search}
@@ -109,7 +109,7 @@ export default function AdminTenantsPage() {
               resetPage();
               setSearch(e.target.value);
             }}
-            placeholder="Nombre o slug…"
+            placeholder="Name or slug..."
             className={fieldControlClass}
           />
         </Field>
@@ -129,7 +129,7 @@ export default function AdminTenantsPage() {
             ))}
           </select>
         </Field>
-        <Field label="Estado">
+        <Field label="Status">
           <select
             value={status}
             onChange={(e) => {
@@ -149,7 +149,7 @@ export default function AdminTenantsPage() {
 
       {error ? (
         <ErrorState
-          title="Error cargando tenants"
+          title="Error loading tenants"
           message={error}
           action={
             <button
@@ -157,19 +157,19 @@ export default function AdminTenantsPage() {
               onClick={reload}
               className="btn-secondary text-xs"
             >
-              Reintentar
+              Try again
             </button>
           }
         />
       ) : loading ? (
-        <LoadingState label="Cargando tenants…" rows={6} />
+        <LoadingState label="Loading tenants..." rows={6} />
       ) : tenants.length === 0 ? (
         <EmptyState
-          title="Sin tenants"
+          title="No tenants"
           description={
             search || plan || status
-              ? "No se encontraron tenants con esos filtros."
-              : "Aún no hay tenants en la plataforma. Crea el primero con el botón de arriba."
+              ? "No tenants matched those filters."
+              : "There are no tenants in the platform yet. Create the first one with the button above."
           }
         />
       ) : (
@@ -180,10 +180,10 @@ export default function AdminTenantsPage() {
                 <tr>
                   <th className="px-4 py-2.5 text-left">Tenant</th>
                   <th className="px-4 py-2.5 text-left">Plan</th>
-                  <th className="px-4 py-2.5 text-left">Estado</th>
+                  <th className="px-4 py-2.5 text-left">Status</th>
                   <th className="px-4 py-2.5 text-right">Clones</th>
-                  <th className="px-4 py-2.5 text-right">Costes 30d</th>
-                  <th className="px-4 py-2.5 text-left">Creado</th>
+                  <th className="px-4 py-2.5 text-right">Costs 30d</th>
+                  <th className="px-4 py-2.5 text-left">Created</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,7 +219,7 @@ export default function AdminTenantsPage() {
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
                       {t.created_at
-                        ? new Date(t.created_at).toLocaleDateString("es-ES")
+                        ? new Date(t.created_at).toLocaleDateString("en-US")
                         : "—"}
                     </td>
                   </tr>

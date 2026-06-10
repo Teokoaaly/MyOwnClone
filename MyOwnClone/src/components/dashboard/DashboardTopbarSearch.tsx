@@ -10,15 +10,15 @@ import { SearchCommandBar } from "@/components/ui/SearchCommandBar";
  * — and forwards a static list of pages.
  */
 const DASHBOARD_PAGES: Array<{ href: string; label: string; icon: string }> = [
-  { href: "/resumen", label: "Resumen", icon: "📊" },
-  { href: "/biblioteca", label: "Biblioteca", icon: "📚" },
-  { href: "/cerebro", label: "Cerebro", icon: "🧠" },
+  { href: "/resumen", label: "Overview", icon: "📊" },
+  { href: "/biblioteca", label: "Library", icon: "📚" },
+  { href: "/cerebro", label: "Memory", icon: "🧠" },
   { href: "/inbox", label: "Inbox", icon: "📥" },
-  { href: "/productos", label: "Productos", icon: "📦" },
-  { href: "/reuniones", label: "Reuniones", icon: "📅" },
-  { href: "/analiticas", label: "Analíticas", icon: "📈" },
-  { href: "/facturacion", label: "Facturación", icon: "💳" },
-  { href: "/configuracion", label: "Configuración", icon: "⚙️" },
+  { href: "/productos", label: "Products", icon: "📦" },
+  { href: "/reuniones", label: "Meetings", icon: "📅" },
+  { href: "/analiticas", label: "Analytics", icon: "📈" },
+  { href: "/facturacion", label: "Billing", icon: "💳" },
+  { href: "/configuracion", label: "Settings", icon: "⚙️" },
   { href: "/admin", label: "Admin", icon: "🛠" },
 ];
 

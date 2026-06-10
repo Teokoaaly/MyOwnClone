@@ -103,7 +103,7 @@ export default function ProductosPage() {
   }
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando productos…" rows={3} />
+    return <LoadingState label="Loading products..." rows={3} />
   }
 
   return (
@@ -111,10 +111,10 @@ export default function ProductosPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Productos
+            Products
           </h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Gestiona los productos y servicios que tu clon puede recomendar en modo ventas.
+            Manage products and services your clone can recommend in sales mode.
           </p>
         </div>
         <button
@@ -122,16 +122,16 @@ export default function ProductosPage() {
           onClick={() => setShowForm(!showForm)}
           className="btn-primary text-xs"
         >
-          {showForm ? "Cancelar" : "+ Añadir producto"}
+          {showForm ? "Cancel" : "+ Add product"}
         </button>
       </header>
 
       {showForm && (
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Nuevo producto</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">New product</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="pr-name">Nombre</label>
+              <label className="stat-label" htmlFor="pr-name">Name</label>
               <input
                 id="pr-name"
                 type="text"
@@ -141,7 +141,7 @@ export default function ProductosPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="pr-desc">Descripción</label>
+              <label className="stat-label" htmlFor="pr-desc">Description</label>
               <textarea
                 id="pr-desc"
                 rows={3}
@@ -151,7 +151,7 @@ export default function ProductosPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="pr-price">Precio (céntimos)</label>
+              <label className="stat-label" htmlFor="pr-price">Price (cents)</label>
               <input
                 id="pr-price"
                 type="number"
@@ -162,7 +162,7 @@ export default function ProductosPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="pr-priority">Prioridad</label>
+              <label className="stat-label" htmlFor="pr-priority">Priority</label>
               <input
                 id="pr-priority"
                 type="number"
@@ -172,13 +172,13 @@ export default function ProductosPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="pr-url">URL del producto</label>
+              <label className="stat-label" htmlFor="pr-url">Product URL</label>
               <input
                 id="pr-url"
                 type="url"
                 value={formUrl}
                 onChange={(e) => setFormUrl(e.target.value)}
-                placeholder="https://tudominio.com/producto"
+                placeholder="https://yourdomain.com/product"
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
               />
             </div>
@@ -191,10 +191,10 @@ export default function ProductosPage() {
               disabled={saving}
               className="btn-primary text-xs disabled:opacity-50"
             >
-              {saving ? "Creando…" : "Crear producto"}
+              {saving ? "Creating..." : "Create product"}
             </button>
             <button type="button" onClick={() => setShowForm(false)} className="btn-secondary text-xs">
-              Cancelar
+              Cancel
             </button>
           </div>
         </div>
@@ -202,8 +202,8 @@ export default function ProductosPage() {
 
       {products.length === 0 ? (
         <EmptyState
-          title="No hay productos"
-          description="Añade tus productos o servicios para que tu clon pueda recomendarlos durante las conversaciones en modo ventas."
+          title="No products"
+          description="Add products or services so your clone can recommend them during sales-mode conversations."
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -212,7 +212,7 @@ export default function ProductosPage() {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-[var(--text-primary)] text-sm">{p.name}</h3>
                 {!p.active && (
-                  <span className="badge-warning">Inactivo</span>
+                  <span className="badge-warning">Inactive</span>
                 )}
               </div>
               {p.description && (
@@ -231,13 +231,13 @@ export default function ProductosPage() {
                     rel="noopener noreferrer"
                     className="text-xs text-[var(--color-accent-blue)] hover:underline truncate max-w-[150px]"
                   >
-                    Ver producto <span aria-hidden="true">↗</span>
-                    <span className="sr-only">(se abre en una pestaña nueva)</span>
+                    View product <span aria-hidden="true">↗</span>
+                    <span className="sr-only">(opens in a new tab)</span>
                   </a>
                 )}
               </div>
               <div className="mt-2 text-[10px] text-[var(--text-muted)] font-mono">
-                Prioridad: {p.priority}
+                Priority: {p.priority}
               </div>
             </div>
           ))}

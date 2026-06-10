@@ -1,8 +1,6 @@
 import { ReactNode } from "react";
-import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { NavIcons } from "@/components/ui/dashboard-icons";
-import { DashboardTopbarSearch } from "@/components/dashboard/DashboardTopbarSearch";
+import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -17,96 +15,40 @@ export default async function DashboardLayout({
     return <>{children}</>;
   }
 
-  const navItems = [
-    { href: "/resumen", label: "Overview", icon: NavIcons.resumen },
-    { href: "/biblioteca", label: "Library", icon: NavIcons.biblioteca },
-    { href: "/cerebro", label: "Memory", icon: NavIcons.cerebro },
-    { href: "/inbox", label: "Inbox", icon: NavIcons.inbox },
-    { href: "/productos", label: "Products", icon: NavIcons.productos },
-    { href: "/reuniones", label: "Meetings", icon: NavIcons.reuniones },
-    { href: "/analiticas", label: "Analytics", icon: NavIcons.analiticas },
-    { href: "/facturacion", label: "Billing", icon: NavIcons.facturacion },
-    { href: "/configuracion", label: "Settings", icon: NavIcons.configuracion },
+  const navItems: SidebarNavItem[] = [
+    { href: "/resumen", label: "Overview", iconKey: "resumen", tooltip: "Overview" },
+    { href: "/biblioteca", label: "Search", iconKey: "biblioteca", tooltip: "Library search", section: "playground" },
+    { href: "/cerebro", label: "Crawl", iconKey: "cerebro", tooltip: "Memory crawl", section: "playground" },
+    { href: "/inbox", label: "Extract", iconKey: "inbox", tooltip: "Inbox", section: "playground" },
+    { href: "/productos", label: "Research", iconKey: "productos", tooltip: "Products", section: "playground" },
+    { href: "/analiticas", label: "Usage", iconKey: "analiticas", tooltip: "Analytics", section: "management" },
+    { href: "/facturacion", label: "Billing", iconKey: "facturacion", tooltip: "Billing", section: "management" },
+    { href: "/configuracion", label: "API Keys", iconKey: "configuracion", tooltip: "Settings", section: "management" },
+    { href: "/reuniones", label: "Team Settings", iconKey: "reuniones", tooltip: "Meetings", section: "management" },
   ];
 
   return (
-    <div
-      className="flex min-h-screen"
-      style={{
-        background: `
-          radial-gradient(circle at 8% 8%, rgba(245, 220, 200, 0.55), transparent 42%),
-          radial-gradient(circle at 92% 88%, rgba(220, 200, 230, 0.45), transparent 42%),
-          var(--bg-page)
-        `,
-      }}
-    >
-      <aside
-        className="hidden md:flex w-64 flex-col border-r border-[var(--border-soft)] bg-[var(--bg-shell)]"
-        style={{ minHeight: "100vh" }}
-      >
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-[var(--border-soft)]">
-          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center text-white text-sm font-bold">
-            M
-          </div>
-          <span className="text-lg font-semibold text-[var(--text-primary)]">
-            MyOwnClone
-          </span>
-        </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <div className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] transition-colors"
-                >
-                  <Icon
-                    className="h-5 w-5 shrink-0"
-                    weight="duotone"
-                  />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-        <div className="border-t border-[var(--border-soft)] px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-warm)] text-white text-sm font-bold">
-              {session.user.name?.charAt(0) ?? "U"}
+    <div className="min-h-screen bg-[var(--bg-page)] px-3 py-3 md:px-8 md:py-8">
+      <div className="app-shell mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[1720px] overflow-hidden border border-white/70 md:min-h-[calc(100vh-4rem)]">
+        <Sidebar
+          navItems={navItems}
+          user={session.user}
+          homeLabel="MyOwnClone"
+          showSearch={false}
+          showFreemiumCard
+          footer={
+            <div className="space-y-3">
+              <a href="/configuracion" className="block text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                Settings
+              </a>
+              <a href="/configuracion" className="block text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                Support
+              </a>
+              <p className="pt-2 text-[10px] text-[var(--text-muted)]">© 2026 MyOwnClone</p>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-[var(--text-primary)]">
-                {session.user.name}
-              </p>
-              <p className="truncate text-xs text-[var(--text-muted)]">
-                {session.user.email}
-              </p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <div className="flex-1 min-w-0">
-        <header
-          className="flex h-[56px] shrink-0 items-center justify-between border-b border-[var(--border-soft)] bg-[var(--bg-topbar)] px-4 md:h-[72px] md:px-6"
-        >
-          <div className="text-sm text-[var(--text-muted)]">
-            MyOwnClone / Dashboard
-          </div>
-          <div className="flex items-center gap-3">
-            <DashboardTopbarSearch />
-            <Link
-              href="/configuracion"
-              className="btn-secondary text-xs"
-            >
-              Settings
-            </Link>
-          </div>
-        </header>
-        <main className="min-w-0 flex-1 overflow-y-auto p-4 md:p-6">
+          }
+        />
+        <main className="min-w-0 flex-1 overflow-y-auto bg-[var(--surface-1)] p-4 md:p-6">
           {children}
         </main>
       </div>

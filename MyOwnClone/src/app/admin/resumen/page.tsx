@@ -33,11 +33,11 @@ interface AdminOverview {
   generated_at: string;
 }
 
-const PLAN_LABEL_ES: Record<string, string> = {
+const PLAN_LABEL: Record<string, string> = {
   trial: "Trial",
-  basic: "Básico",
+  basic: "Basic",
   pro: "Pro",
-  scale: "Escala",
+  scale: "Scale",
   enterprise: "Enterprise",
 };
 
@@ -66,7 +66,7 @@ export default function AdminResumenPage() {
     return Object.entries(data.plan_breakdown)
       .filter(([, count]) => count > 0)
       .map(([plan, count]) => ({
-        name: PLAN_LABEL_ES[plan] ?? plan,
+        name: PLAN_LABEL[plan] ?? plan,
         value: count,
         color: PLAN_COLOR[plan] ?? "#94A3B8",
       }));
@@ -76,30 +76,30 @@ export default function AdminResumenPage() {
     if (!data) return [];
     return [
       {
-        name: "Finanzas (30d)",
+        name: "Finance (30d)",
         MRR: data.mrr_cents,
-        Costes: data.total_costs_cents,
-        Margen: data.margin_cents,
+        Costs: data.total_costs_cents,
+        Margin: data.margin_cents,
       },
     ];
   }, [data]);
 
   if (loading) {
-    return <LoadingState label="Cargando resumen…" rows={4} />;
+    return <LoadingState label="Loading overview..." rows={4} />;
   }
 
   if (error || !data) {
     return (
       <ErrorState
-        title="No se pudo cargar el resumen"
-        message={error ?? "Sin datos"}
+        title="Could not load overview"
+        message={error ?? "No data"}
         action={
           <button
             type="button"
             onClick={reload}
             className="btn-secondary text-xs"
           >
-            Reintentar
+            Try again
           </button>
         }
       />
@@ -108,24 +108,24 @@ export default function AdminResumenPage() {
 
   const statCards = [
     {
-      label: "Tenants totales",
+      label: "Total tenants",
       value: data.total_tenants,
-      subtitle: `${data.active_tenants} activos`,
+      subtitle: `${data.active_tenants} active`,
     },
     {
-      label: "Clones activos",
+      label: "Active clones",
       value: data.total_clones,
-      subtitle: "En producción",
+      subtitle: "In production",
     },
     {
       label: "MRR",
       value: data.mrr_display,
-      subtitle: `${data.mrr_cents.toLocaleString("es-ES")} cents`,
+      subtitle: `${data.mrr_cents.toLocaleString("en-US")} cents`,
     },
     {
-      label: "Costes (30d)",
+      label: "Costs (30d)",
       value: data.total_costs_display,
-      subtitle: "Últimos 30 días",
+      subtitle: "Last 30 days",
     },
   ];
 
@@ -141,7 +141,7 @@ export default function AdminResumenPage() {
         title="Platform Overview"
         subtitle={
           <>
-            Métricas agregadas de la plataforma · generado{" "}
+            Aggregated platform metrics · generated{" "}
             <span className="font-mono">{data.generated_at}</span>
           </>
         }
@@ -162,13 +162,13 @@ export default function AdminResumenPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* MRR · Costes · Margen BarChart */}
+        {/* MRR · Costs · Margin BarChart */}
         <div className="card lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              MRR · Costes · Margen (30d)
+              MRR · Costs · Margin (30d)
             </h2>
-            <span className="text-xs text-[var(--text-muted)]">en cents</span>
+            <span className="text-xs text-[var(--text-muted)]">in cents</span>
           </div>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart
@@ -194,7 +194,7 @@ export default function AdminResumenPage() {
                   fontSize: 12,
                 }}
                 formatter={(value: number) => [
-                  `${value.toLocaleString("es-ES")} ¢`,
+                  `${value.toLocaleString("en-US")} ¢`,
                 ]}
               />
               <Legend
@@ -205,23 +205,23 @@ export default function AdminResumenPage() {
                 dataKey="MRR"
               ***REMOVED***ll={FINANCE_COLORS.mrr}
                 radius={[4, 4, 0, 0]}
-                name="Ingresos"
+                name="Revenue"
               />
               <Bar
-                dataKey="Costes"
+                dataKey="Costs"
               ***REMOVED***ll={FINANCE_COLORS.costs}
                 radius={[4, 4, 0, 0]}
-                name="Costes"
+                name="Costs"
               />
               <Bar
-                dataKey="Margen"
+                dataKey="Margin"
               ***REMOVED***ll={
                   data.margin_cents >= 0
                     ? FINANCE_COLORS.margin
                     : FINANCE_COLORS.marginNeg
                 }
                 radius={[4, 4, 0, 0]}
-                name="Margen"
+                name="Margin"
               />
             </BarChart>
           </ResponsiveContainer>
@@ -232,14 +232,14 @@ export default function AdminResumenPage() {
                   className="h-2 w-2 rounded-full"
                   style={{ background: FINANCE_COLORS.mrr }}
                 />
-                Ingresos
+                Revenue
               </span>
               <span className="flex items-center gap-1">
                 <span
                   className="h-2 w-2 rounded-full"
                   style={{ background: FINANCE_COLORS.costs }}
                 />
-                Costes
+                Costs
               </span>
               <span className="flex items-center gap-1">
                 <span
@@ -251,7 +251,7 @@ export default function AdminResumenPage() {
                         : FINANCE_COLORS.marginNeg,
                   }}
                 />
-                Margen
+                Margin
               </span>
             </div>
             <div
@@ -261,7 +261,7 @@ export default function AdminResumenPage() {
                   : "text-[var(--color-accent-pink)]"
               }`}
             >
-              Margen: {data.margin_display}
+              Margin: {data.margin_display}
             </div>
           </div>
         </div>
@@ -269,11 +269,11 @@ export default function AdminResumenPage() {
         {/* Plan Distribution PieChart */}
         <div className="card">
           <h2 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
-            Distribución de planes
+            Plan distribution
           </h2>
           {!hasPlanData ? (
             <p className="text-xs text-[var(--text-muted)]">
-              Sin datos de planes todavía.
+              No plan data yet.
             </p>
           ) : (
             <>

@@ -34,7 +34,7 @@ export const BarChart: FC<BarChartProps> = ({
         className="flex h-32 items-center justify-center text-xs text-[var(--text-muted)]"
         style={{ height }}
       >
-        Sin datos
+        No data
       </div>
     );
   }
@@ -85,7 +85,7 @@ export const BarChart: FC<BarChartProps> = ({
             ***REMOVED***ll="var(--text-muted)"
               fontFamily="var(--font-mono)"
             >
-              {Math.round(axisMax * t).toLocaleString("es-ES")}
+              {Math.round(axisMax * t).toLocaleString("en-US")}
               {unit}
             </text>
           </g>

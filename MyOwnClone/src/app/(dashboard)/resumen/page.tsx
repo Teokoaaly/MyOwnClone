@@ -1,23 +1,23 @@
 "use client";
 
-export const dynamic = "force-dynamic"
-
-
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  StatsCard,
-  QuickActionCard,
-  OnboardingBanner,
-  HeaderBreadcrumb,
-} from "@/components/dashboard";
-import { ShortcutIcons } from "@/components/ui/dashboard-icons";
-import { LoadingState } from "@/components/ui/LoadingState";
+  ArrowSquareOut,
+  ChartBar,
+  FileDoc,
+  Globe,
+  Key,
+  Lightning,
+  MagnifyingGlass,
+  PaperPlaneRight,
+  SquaresFour,
+} from "@phosphor-icons/react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { BarChart, ChartLegend } from "@/components/ui/BarChart";
+import { LoadingState } from "@/components/ui/LoadingState";
 
 interface AnalyticsOverview {
   total_conversations: number;
@@ -26,7 +26,6 @@ interface AnalyticsOverview {
   gaps_count: number;
   active_sessions?: number;
   automation_rate?: number;
-  /** When the overview endpoint doesn't return these, we use 0. */
   clones_count?: number;
 }
 
@@ -38,11 +37,14 @@ interface InboxListItem {
   received_at: number | null;
 }
 
+const fallbackBars = [14, 18, 22, 16, 28, 36, 54, 48, 60, 42, 30, 26, 18, 22, 34, 28, 20, 18, 24, 16];
+
 export default function DashboardResumenPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,7 +69,7 @@ export default function DashboardResumenPage() {
         setRecentInbox(Array.isArray(data) ? data : data.items ?? []);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error cargando datos");
+      setError(e instanceof Error ? e.message : "Error loading data");
     } finally {
       setLoading(false);
     }
@@ -77,8 +79,19 @@ export default function DashboardResumenPage() {
     fetchData();
   }, [fetchData]);
 
+  const usageBars = useMemo(() => {
+    const conversations = overview?.total_conversations ?? 0;
+    const questions = overview?.questions_answered ?? 0;
+    const gaps = overview?.gaps_count ?? 0;
+    if (conversations === 0 && questions === 0 && gaps === 0) return fallbackBars;
+    return fallbackBars.map((bar, index) => {
+      const pulse = index % 3 === 0 ? conversations : index % 3 === 1 ? questions : gaps;
+      return Math.max(10, Math.min(64, bar + pulse * 3));
+    });
+  }, [overview]);
+
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando resumen…" rows={4} />;
+    return <LoadingState label="Loading dashboard..." rows={4} />;
   }
 
   if (error) {
@@ -86,230 +99,193 @@ export default function DashboardResumenPage() {
       <ErrorState
         message={error}
         action={
-          <button
-            type="button"
-            onClick={fetchData}
-            className="btn-secondary text-xs"
-          >
-            Reintentar
+          <button type="button" onClick={fetchData} className="btn-secondary text-xs">
+            Try again
           </button>
         }
       />
     );
   }
 
-  const stats = [
-    {
-      icon: ShortcutIcons.upload,
-      label: "AI Clones",
-      value: overview?.clones_count ?? 0,
-      emptyLabel: "No clones yet",
-    },
-    {
-      icon: ShortcutIcons.analytics,
-      label: "Active Sessions",
-      value: overview?.active_sessions ?? 0,
-      emptyLabel: "No active sessions",
-    },
-    {
-      icon: ShortcutIcons.analytics,
-      label: "Automation Rate",
-      value: overview?.automation_rate ?? 0,
-      suffix: "%",
-      emptyLabel: "Awaiting data",
-    },
-  ];
-
-  const quickActions = [
-    {
-      href: "/biblioteca",
-      icon: ShortcutIcons.upload,
-      label: "Upload Content",
-      description: "PDFs, YouTube, text and more",
-      iconColor: "text-[var(--color-accent-warm)]",
-    },
-    {
-      href: "/cerebro",
-      icon: ShortcutIcons.memory,
-      label: "Train Memory",
-      description: "Data your clone will remember",
-      iconColor: "text-[var(--color-accent-cyan)]",
-    },
-    {
-      href: "/inbox",
-      icon: ShortcutIcons.inbox,
-      label: "Review Inbox",
-      description: "Pending email responses",
-      iconColor: "text-[var(--color-accent-violet)]",
-    },
-    {
-      href: "/analiticas",
-      icon: ShortcutIcons.analytics,
-      label: "View Analytics",
-      description: "Questions, gaps and costs",
-      iconColor: "text-[var(--color-accent-green)]",
-    },
-  ];
-
-  // Sparkline-ish chart for the last 30 days. We synthesise a 7-bar
-  // view of `total_conversations`, `questions_answered`, `gaps_count`.
-  const sparkData = [
-    {
-      label: "Conversations",
-      values: [
-        { label: "Conversations", value: overview?.total_conversations ?? 0, color: "#EA580C" },
-      ],
-    },
-    {
-      label: "Questions",
-      values: [
-        { label: "Questions", value: overview?.questions_answered ?? 0, color: "#0891B2" },
-      ],
-    },
-    {
-      label: "Gaps",
-      values: [
-        { label: "Gaps", value: overview?.gaps_count ?? 0, color: "#8B5CF6" },
-      ],
-    },
-  ];
-
-  const sparkMax = Math.max(
-    1,
-    overview?.total_conversations ?? 0,
-    overview?.questions_answered ?? 0,
-    overview?.gaps_count ?? 0,
-  );
-
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <HeaderBreadcrumb
-        title="Workspace Overview"
-        breadcrumbs={["MyOwnClone", "Dashboard"]}
-        user={{
-          name: session?.user?.name,
-          email: session?.user?.email,
-          image: session?.user?.image ?? undefined,
-        }}
-        action={
-          <Link href="/configuracion" className="btn-primary text-xs">
-            Create Clone
-          </Link>
-        }
-      />
+    <div className="mx-auto max-w-[1440px]">
+      <header className="mb-7 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.01em] text-[var(--text-primary)]">
+            MyOwnClone Command Center
+          </h1>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
+            Train your AI clone, manage its knowledge, review conversations, and monitor growth from one focused workspace.
+          </p>
+        </div>
+        <div className="hidden h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[var(--border-soft)] bg-[var(--surface-2)] md:block">
+          {session?.user?.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={session.user.image} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--text-primary)]">
+              {session?.user?.name?.charAt(0) ?? "U"}
+            </div>
+          )}
+        </div>
+      </header>
 
-      {/* Stats row */}
-      <section>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {stats.map((s) => (
-            <StatsCard
-              key={s.label}
-              icon={s.icon}
-              label={s.label}
-              value={s.value}
-              suffix={"suffix" in s ? s.suffix : undefined}
-              emptyLabel={s.emptyLabel}
-            />
-          ))}
+      <section className="mb-7">
+        <p className="section-label mb-3">Get Started</p>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.2fr_1fr_1fr]">
+          <Link href="/configuracion" className="console-strip">
+            <div className="console-icon text-[#0EA5E9]">
+              <Key weight="duotone" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--text-primary)]">API Key</p>
+              <p className="text-xs text-[var(--text-muted)]">Get started in 5 min</p>
+            </div>
+            <span className="ml-auto truncate font-mono text-sm text-[#0284C7]">
+              Manage keys
+            </span>
+          </Link>
+
+          <Link href="/analiticas" className="console-strip">
+            <div className="console-icon text-[#EF4444]">
+              <ChartBar weight="duotone" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[var(--text-primary)]">Usage</p>
+              <p className="text-xs text-[var(--text-muted)]">Past 30 Days</p>
+            </div>
+            <div className="ml-auto flex h-9 items-end gap-1">
+              {usageBars.map((bar, index) => (
+                <span
+                  key={`${bar}-${index}`}
+                  className={index >= 6 && index <= 9 ? "bg-[#22B8CF]" : "bg-[#E7E5E4]"}
+                  style={{ height: `${bar}%`, width: 4, borderRadius: 3 }}
+                />
+              ))}
+            </div>
+          </Link>
+
+          <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-[var(--border-soft)] bg-white shadow-sm">
+            <Link href="/biblioteca" className="console-link">
+              <FileDoc className="text-[#2563EB]" weight="duotone" />
+              Docs
+              <ArrowSquareOut className="ml-auto" />
+            </Link>
+            <Link href="/cerebro" className="console-link border-l border-[var(--border-soft)]">
+              <Globe className="text-[#DC2626]" weight="duotone" />
+              Agent Toolkit
+              <ArrowSquareOut className="ml-auto" />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Activity chart */}
-      <section className="card">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            Actividad últimos 30 días
+      <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-10 shadow-sm md:px-8 md:py-16">
+        <div className="mx-auto flex max-w-[760px] flex-col items-center text-center">
+          <div className="chat-orb mb-6" />
+          <h2 className="text-2xl font-semibold text-[var(--text-secondary)] md:text-[28px]">
+            What do you want to build or query?
           </h2>
-          <span className="text-xs text-[var(--text-muted)]">totales acumulados</span>
-        </div>
-        {overview === null ||
-        (overview.total_conversations === 0 &&
-          overview.questions_answered === 0 &&
-          overview.gaps_count === 0) ? (
-          <EmptyState
-            title="Sin actividad todavía"
-            description="Cuando tu clon empiece a recibir conversaciones, verás aquí el resumen."
-          />
-        ) : (
-          <>
-            <BarChart data={sparkData} height={200} max={sparkMax * 1.2} />
-            <div className="mt-3">
-              <ChartLegend
-                items={[
-                  { label: "Conversations", color: "#EA580C" },
-                  { label: "Questions", color: "#0891B2" },
-                  { label: "Gaps", color: "#8B5CF6" },
-                ]}
+
+          <form
+            className="mt-7 w-full rounded-xl border border-[var(--border-medium)] bg-white p-3 text-left shadow-[0_14px_32px_rgba(15,23,42,0.08)]"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const trimmed = query.trim();
+              if (trimmed.length === 0) return;
+              router.push(`/biblioteca?query=${encodeURIComponent(trimmed)}`);
+            }}
+          >
+            <textarea
+              rows={4}
+              aria-label="AI query"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Ask about endpoints, schema design, or workflow orchestration..."
+              className="min-h-[92px] w-full resize-none bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+            />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <button type="button" className="prompt-tool" aria-label="Search">
+                  <MagnifyingGlass />
+                </button>
+                <button
+                  type="button"
+                  className="prompt-tool"
+                  aria-label="Fast mode"
+                  onClick={() => setQuery((current) => current || "Find the fastest way to launch my AI clone workflow.")}
+                >
+                  <Lightning weight="fill" />
+                </button>
+                <button
+                  type="button"
+                  className="prompt-tool"
+                  aria-label="Templates"
+                  onClick={() => setQuery("Create a workflow that ingests content, answers customer questions, and flags gaps.")}
+                >
+                  <SquaresFour />
+                </button>
+              </div>
+              <button type="submit" className="prompt-send" aria-label="Send query">
+                <PaperPlaneRight />
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-8 w-full text-left">
+            <p className="section-label mb-3">Your Recent Query</p>
+            {recentInbox.length === 0 ? (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                {[
+                  "Extract product data from nike.com Schema: title, price, availability, reviews",
+                  "Create extraction schema for blog articles Fields: headline, author, publish_date, content",
+                  "Research latest AI compliance regulations Region: EU Output: structured summary",
+                ].map((query) => (
+                  <RecentQueryCard key={query} query={query} onSelect={setQuery} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                {recentInbox.slice(0, 3).map((item) => (
+                  <RecentQueryCard
+                    key={item.id}
+                    query={`${item.subject ?? "Inbox request"} ${item.from_email ? `from ${item.from_email}` : ""}`}
+                    onSelect={setQuery}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {overview === null && (
+            <div className="mt-8 w-full">
+              <EmptyState
+                title="No analytics yet"
+                description="When your clone starts receiving activity, this dashboard will update automatically."
               />
             </div>
-          </>
-        )}
-      </section>
-
-      {/* Inbox preview */}
-      <section className="card">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            Inbox reciente
-          </h2>
-          <Link
-            href="/inbox"
-            className="text-xs text-[var(--color-accent-warm)] hover:underline"
-          >
-            Ver todo →
-          </Link>
-        </div>
-        {recentInbox.length === 0 ? (
-          <EmptyState
-            title="Bandeja vacía"
-            description="Los correos que lleguen a tu clon aparecerán aquí."
-          />
-        ) : (
-          <ul className="space-y-2">
-            {recentInbox.slice(0, 3).map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between rounded-lg border border-[var(--border-soft)] bg-[var(--surface-1)] px-3 py-2 hover:border-[var(--border-medium)] transition-colors"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[var(--text-primary)]">
-                    {item.subject ?? "(sin asunto)"}
-                  </p>
-                  <p className="truncate text-xs text-[var(--text-muted)]">
-                    {item.from_email ?? "—"}
-                  </p>
-                </div>
-                <span className="ml-3 shrink-0 font-mono text-[10px] text-[var(--text-muted)]">
-                  {item.received_at
-                    ? new Date(item.received_at * 1000).toLocaleDateString("es-ES")
-                    : "—"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* Quick actions */}
-      <section>
-        <h2 className="section-label mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {quickActions.map((action) => (
-            <QuickActionCard
-              key={action.href}
-              href={action.href}
-              icon={action.icon}
-              label={action.label}
-              description={action.description}
-              iconColor={action.iconColor}
-            />
-          ))}
+          )}
         </div>
       </section>
-
-      {/* Onboarding banner */}
-      <OnboardingBanner completedSteps={0} totalSteps={4} />
     </div>
+  );
+}
+
+function RecentQueryCard({
+  query,
+  onSelect,
+}: {
+  query: string;
+  onSelect: (query: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(query)}
+      className="rounded-xl border border-[var(--border-soft)] bg-white p-4 text-left text-sm leading-snug text-[var(--text-secondary)] shadow-sm transition hover:border-[var(--border-medium)] hover:text-[var(--text-primary)]"
+    >
+      <MagnifyingGlass className="mb-4 h-4 w-4 text-[var(--text-muted)]" />
+      {query}
+    </button>
   );
 }

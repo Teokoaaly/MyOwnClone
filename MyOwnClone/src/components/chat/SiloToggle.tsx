@@ -1,9 +1,9 @@
 'use client'
 
 const SILOS = [
-  { id: 'teach', label: 'Aprender', icon: 'book' },
-  { id: 'support', label: 'Soporte', icon: 'chat' },
-  { id: 'sales', label: 'Ventas', icon: 'cart' },
+  { id: 'teach', label: 'Learn', icon: 'book' },
+  { id: 'support', label: 'Support', icon: 'chat' },
+  { id: 'sales', label: 'Sales', icon: 'cart' },
 ] as const
 
 interface SiloToggleProps {
@@ -73,7 +73,7 @@ export function SiloToggle({ active, onChange }: SiloToggleProps) {
   return (
     <div
       role="group"
-      aria-label="Modo de conversación"
+      aria-label="Conversation mode"
       className="inline-flex gap-1 rounded-xl border p-1"
       style={{
         borderColor: 'var(--border-medium)',

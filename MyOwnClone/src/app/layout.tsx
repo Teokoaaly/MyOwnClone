@@ -18,9 +18,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MyOwnClone — Multiplícate",
+  title: "MyOwnClone - Multiply Yourself",
   description:
-    "Crea un clon de IA entrenado con tu contenido. Atiende 24/7 en modo pedagogía, ventas y soporte.",
+    "Create an AI clone trained on your knowledge. Support, teach, and sell around the clock from one workspace.",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = "es";
+  const locale = "en";
 
   return (
     <html

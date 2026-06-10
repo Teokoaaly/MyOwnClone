@@ -3,13 +3,15 @@
 import { type FC, type ReactNode, useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { IconProps } from "@phosphor-icons/react";
 import { Sheet } from "@/components/ui/Sheet";
+import { NavIcons } from "@/components/ui/dashboard-icons";
+
+export type SidebarIconKey = keyof typeof NavIcons;
 
 export interface SidebarNavItem {
   href: string;
   label: string;
-  icon: React.ComponentType<IconProps>;
+  iconKey: SidebarIconKey;
   tooltip: string;
   badge?: string;
   /** Optional grouping. Items without a section render first (Overview). */
@@ -73,7 +75,7 @@ export const Sidebar: FC<SidebarProps> = ({
 
   const renderItem = (item: SidebarNavItem, closeOnClick = false) => {
     const isActive = pathname?.startsWith(item.href);
-    const Icon = item.icon;
+    const Icon = NavIcons[item.iconKey];
 
     return (
       <div key={item.href} className="relative">
@@ -110,7 +112,7 @@ export const Sidebar: FC<SidebarProps> = ({
       {/* ── Hamburger button (mobile only) ── */}
       <button
         type="button"
-        aria-label="Abrir menú de navegación"
+        aria-label="Open navigation menu"
         onClick={() => setMobileOpen(true)}
         className="md:hidden fixed top-3 left-3 z-30 h-9 w-9 rounded-lg flex items-center justify-center bg-[var(--bg-shell)] border border-[var(--border-soft)] text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-colors shadow-sm"
       >
@@ -133,7 +135,7 @@ export const Sidebar: FC<SidebarProps> = ({
       <Sheet
         open={mobileOpen}
         onClose={closeMobile}
-        title="Navegación principal"
+        title="Main navigation"
         side="left"
         width="280px"
       >
@@ -213,7 +215,7 @@ export const Sidebar: FC<SidebarProps> = ({
 
       {/* ── Desktop sidebar ── */}
       <aside
-        className="hidden md:flex w-[220px] shrink-0 flex-col border-r border-[var(--border-soft)]"
+        className="hidden md:flex w-[250px] shrink-0 flex-col border-r border-[var(--border-soft)]"
         style={{ background: "var(--bg-sidebar)" }}
       >
         {/* Logo */}
@@ -263,10 +265,27 @@ export const Sidebar: FC<SidebarProps> = ({
         {/* FREE TRIAL card */}
         {showFreemiumCard && (
           <div className="px-3 pb-3">
-            <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-2)] p-4">
-              <p className="text-xs text-[var(--text-muted)]">
-                Conecta con datos reales del tenant para mostrar el trial.
-              </p>
+            <div className="rounded-xl border border-[var(--border-soft)] bg-[linear-gradient(135deg,#fff_0%,#F4F9EC_55%,#F8FAFC_100%)] p-3 shadow-sm">
+              <div className="mb-6 flex items-start justify-between gap-3">
+                <div className="h-8 w-8 rounded-lg bg-black text-white flex items-center justify-center text-[11px] font-bold">
+                  M
+                </div>
+                <span className="rounded bg-white/70 px-1.5 py-0.5 text-[9px] font-medium uppercase text-[var(--text-muted)]">
+                  Free Trial
+                </span>
+              </div>
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">MyOwnClone</p>
+                  <p className="text-xs text-[var(--text-secondary)]">7 days left</p>
+                </div>
+                <a href="/facturacion" className="rounded-lg bg-[#4B5563] px-3 py-2 text-xs font-medium text-white shadow-sm">
+                  Upgrade
+                </a>
+              </div>
+              <div className="mt-4 h-1.5 rounded-full bg-[#E7E5E4]">
+                <div className="h-full w-1/2 rounded-full bg-[#1C1917]" />
+              </div>
             </div>
           </div>
         )}
@@ -308,7 +327,7 @@ function DialogCloseButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      aria-label="Cerrar menú"
+      aria-label="Close menu"
       className="h-8 w-8 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)] transition-colors"
     >
       <span aria-hidden="true" className="text-lg leading-none">

@@ -106,7 +106,7 @@ export function ChatPanel({ slug, initialSilo, contextId }: ChatPanelProps) {
       ])
       setStreaming('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al enviar mensaje')
+      setError(err instanceof Error ? err.message : 'Error sending message')
     } finally {
       setLoading(false)
     }
@@ -132,7 +132,7 @@ export function ChatPanel({ slug, initialSilo, contextId }: ChatPanelProps) {
       {/* Messages */}
       <div
         role="region"
-        aria-label="Mensajes del clon"
+        aria-label="Clone messages"
         tabIndex={0}
         className="flex-1 space-y-4 overflow-y-auto p-4 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-violet)]"
       >
@@ -140,10 +140,10 @@ export function ChatPanel({ slug, initialSilo, contextId }: ChatPanelProps) {
           <div className="flex h-full items-center justify-center text-center">
             <div>
               <p className="text-2xl font-medium text-[var(--text-primary)]">
-                ¿En qué puedo ayudarte?
+                How can I help?
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                Pregunta lo que quieras sobre el contenido del creador
+                Ask anything about the creator's content
               </p>
             </div>
           </div>
@@ -182,7 +182,7 @@ export function ChatPanel({ slug, initialSilo, contextId }: ChatPanelProps) {
                 style={{ background: 'var(--text-muted)' }}
               />
             </span>
-            <span className="text-sm">Pensando...</span>
+            <span className="text-sm">Thinking...</span>
           </div>
         )}
 
@@ -199,7 +199,7 @@ export function ChatPanel({ slug, initialSilo, contextId }: ChatPanelProps) {
             {error}
             <button
               type="button"
-              aria-label="Cerrar mensaje de error"
+              aria-label="Close error message"
               onClick={() => setError(null)}
               className="ml-3 hover:opacity-80"
               style={{ color: 'var(--text-muted)' }}
@@ -222,10 +222,10 @@ export function ChatPanel({ slug, initialSilo, contextId }: ChatPanelProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escribe tu pregunta..."
+            placeholder="Write your question..."
             rows={1}
             disabled={loading}
-            aria-label="Escribe tu pregunta"
+            aria-label="Write your question"
             className="flex-1 resize-none rounded-xl border px-4 py-3 text-sm outline-none transition placeholder:text-[var(--text-muted)] focus:ring-1 disabled:opacity-50"
             style={{
               borderColor: 'var(--border-medium)',
@@ -235,7 +235,7 @@ export function ChatPanel({ slug, initialSilo, contextId }: ChatPanelProps) {
           />
           <button
             type="button"
-            aria-label="Enviar mensaje"
+            aria-label="Send message"
             onClick={sendMessage}
             disabled={loading || !input.trim()}
             className="rounded-xl px-5 py-3 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"

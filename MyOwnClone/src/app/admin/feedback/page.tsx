@@ -78,7 +78,7 @@ export default function AdminFeedbackPage() {
       />
 
       <FilterBar>
-        <Field label="Buscar" fill>
+        <Field label="Search" fill>
           <input
             type="text"
             value={search}
@@ -123,10 +123,10 @@ export default function AdminFeedbackPage() {
           }
         />
       ) : loading ? (
-        <LoadingState label="Cargando feedback…" rows={4} />
+        <LoadingState label="Loading feedback..." rows={4} />
       ) : feedback.length === 0 ? (
         <EmptyState
-          title="Sin feedback todavía"
+          title="No feedback yet"
           description="Las respuestas de los usuarios aparecerán aquí."
         />
       ) : (

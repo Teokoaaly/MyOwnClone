@@ -6,21 +6,21 @@ import { useRouter } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
 
 const STEPS = [
-  { id: "name", title: "Nombre del clon", subtitle: "¿Cómo se llamará tu asistente?" },
-  { id: "personality", title: "Personalidad", subtitle: "Elige el tono de tu clon" },
-  { id: "language", title: "Idioma", subtitle: "¿En qué idioma hablará?" },
-  { id: "confirm", title: "Confirmar", subtitle: "Revisa y crea tu clon" },
+  { id: "name", title: "Clone name", subtitle: "What should your assistant be called?" },
+  { id: "personality", title: "Personality", subtitle: "Choose your clone's tone" },
+  { id: "language", title: "Language", subtitle: "Which language should it speak?" },
+  { id: "confirm", title: "Confirm", subtitle: "Review and create your clone" },
 ]
 
 const TONES = [
   { value: "formal", label: "Formal", emoji: "👔" },
   { value: "informal", label: "Informal", emoji: "👋" },
-  { value: "cercano", label: "Cercano", emoji: "🤝" },
-  { value: "técnico", label: "Técnico", emoji: "🔧" },
+  { value: "cercano", label: "Friendly", emoji: "🤝" },
+  { value: "técnico", label: "Technical", emoji: "🔧" },
 ]
 
 const LANGUAGES = [
-  { value: "es", label: "Español", emoji: "🇪🇸" },
+  { value: "es", label: "Spanish", emoji: "🇪🇸" },
   { value: "en", label: "English", emoji: "🇬🇧" },
 ]
 
@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   if (status === "loading") {
     return (
       <main className="flex min-h-screen items-center justify-center" style={{ background: "var(--bg-page)" }}>
-        <LoadingState label="Verificando sesión…" />
+        <LoadingState label="Checking session..." />
       </main>
     )
   }
@@ -73,11 +73,11 @@ export default function OnboardingPage() {
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || "Error al crear el clon")
+        throw new Error(data.error || "Error creating clone")
       }
       router.push("/resumen")
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al crear el clon")
+      setError(e instanceof Error ? e.message : "Error creating clone")
     } finally {
       setLoading(false)
     }
@@ -90,7 +90,7 @@ export default function OnboardingPage() {
     >
       <div className="w-full max-w-lg">
         <ol
-          aria-label="Pasos de configuración"
+          aria-label="Setup steps"
           className="mb-8 flex gap-2"
         >
           {STEPS.map((s, i) => {
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
                 />
                 <span className="sr-only">
                   {s.title}
-                  {isDone ? " (completado)" : isCurrent ? " (actual)" : ""}
+                  {isDone ? " (completed)" : isCurrent ? " (current)" : ""}
                 </span>
               </li>
             )
@@ -140,7 +140,7 @@ export default function OnboardingPage() {
             {step === 0 && (
               <div className="space-y-4">
                 <div>
-                  <label className="stat-label" htmlFor="ob-name">Nombre del clon</label>
+                  <label className="stat-label" htmlFor="ob-name">Clone name</label>
                   <input
                     id="ob-name"
                     type="text"
@@ -149,12 +149,12 @@ export default function OnboardingPage() {
                       setName(e.target.value)
                       setSlug(generateSlug(e.target.value))
                     }}
-                    placeholder="Ej: Asistente de Juan"
+                    placeholder="Example: John's Assistant"
                     className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="stat-label" htmlFor="ob-slug">URL público</label>
+                  <label className="stat-label" htmlFor="ob-slug">Public URL</label>
                   <input
                     id="ob-slug"
                     type="text"
@@ -173,7 +173,7 @@ export default function OnboardingPage() {
             )}
 
             {step === 1 && (
-              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Tono">
+              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Tone">
                 {TONES.map((t) => {
                   const selected = tone === t.value
                   return (
@@ -199,7 +199,7 @@ export default function OnboardingPage() {
             )}
 
             {step === 2 && (
-              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Idioma">
+              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Language">
                 {LANGUAGES.map((l) => {
                   const selected = language === l.value
                   return (
@@ -227,7 +227,7 @@ export default function OnboardingPage() {
             {step === 3 && (
               <dl className="space-y-3 rounded-xl border border-[var(--border-soft)] p-4">
                 <div className="flex justify-between text-sm">
-                  <dt className="text-[var(--text-muted)]">Nombre</dt>
+                  <dt className="text-[var(--text-muted)]">Name</dt>
                   <dd className="font-medium text-[var(--text-primary)]">{name}</dd>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -237,15 +237,15 @@ export default function OnboardingPage() {
                   </dd>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <dt className="text-[var(--text-muted)]">Tono</dt>
+                  <dt className="text-[var(--text-muted)]">Tone</dt>
                   <dd className="font-medium text-[var(--text-primary)]">
                     {TONES.find(t => t.value === tone)?.label}
                   </dd>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <dt className="text-[var(--text-muted)]">Idioma</dt>
+                  <dt className="text-[var(--text-muted)]">Language</dt>
                   <dd className="font-medium text-[var(--text-primary)]">
-                    {language === "es" ? "Español" : "English"}
+                    {language === "es" ? "Spanish" : "English"}
                   </dd>
                 </div>
               </dl>
@@ -259,7 +259,7 @@ export default function OnboardingPage() {
                 onClick={() => setStep(step - 1)}
                 className="btn-secondary text-xs"
               >
-                ← Atrás
+                ← Back
               </button>
             ) : (
               <div />
@@ -271,7 +271,7 @@ export default function OnboardingPage() {
                 disabled={!canNext()}
                 className="btn-primary text-xs disabled:opacity-50"
               >
-                Siguiente
+                Next
               </button>
             ) : (
               <button
@@ -280,7 +280,7 @@ export default function OnboardingPage() {
                 disabled={loading}
                 className="btn-primary text-xs disabled:opacity-50"
               >
-                {loading ? "Creando…" : "Crear mi clon"}
+                {loading ? "Creating..." : "Create my clone"}
               </button>
             )}
           </div>

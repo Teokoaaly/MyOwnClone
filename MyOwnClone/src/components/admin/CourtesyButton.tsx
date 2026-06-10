@@ -9,9 +9,9 @@ interface CourtesyButtonProps {
 
 const PLAN_OPTIONS = [
   { value: "trial", label: "Trial" },
-  { value: "basic", label: "Básico" },
+  { value: "basic", label: "Basic" },
   { value: "pro", label: "Pro" },
-  { value: "scale", label: "Escala" },
+  { value: "scale", label: "Scale" },
   { value: "enterprise", label: "Enterprise" },
 ];
 
@@ -88,7 +88,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
       <Modal
         open={open}
         onClose={close}
-        title="Crear tenant por cortesía"
+        title="Create courtesy tenant"
         size="md"
         footer={
           result ? (
@@ -97,7 +97,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
               onClick={close}
               className="btn-secondary text-xs"
             >
-              Cerrar
+              Close
             </button>
           ) : (
             <>
@@ -107,7 +107,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
                 className="btn-secondary text-xs"
                 disabled={submitting}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 type="button"
@@ -115,7 +115,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
                 className="btn-primary text-xs disabled:opacity-40"
                 disabled={!formValid}
               >
-                {submitting ? "Creando…" : "Crear tenant"}
+                {submitting ? "Creating..." : "Create tenant"}
               </button>
             </>
           )
@@ -124,26 +124,25 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
         {!result ? (
           <div className="space-y-3">
             <p className="text-xs text-[var(--text-muted)]">
-              Crea un tenant con un periodo de prueba extendido. Queda
-              registrado en el audit log.
+              Create a tenant with an extended trial period. This is recorded in the audit log.
             </p>
             <label className="block">
-              <span className="stat-label">Email del partner</span>
+              <span className="stat-label">Partner email</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="partner@empresa.com"
+                placeholder="partner@company.com"
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
               />
             </label>
             <label className="block">
-              <span className="stat-label">Nombre</span>
+              <span className="stat-label">Name</span>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Nombre del partner"
+                placeholder="Partner name"
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
               />
             </label>
@@ -163,7 +162,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
                 </select>
               </label>
               <label className="block">
-                <span className="stat-label">Días de trial</span>
+                <span className="stat-label">Trial days</span>
                 <input
                   type="number"
                   min={1}
@@ -183,14 +182,14 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
         ) : (
           <div className="space-y-2 text-sm">
             <p className="text-[var(--text-primary)]">
-              Tenant creado correctamente.
+              Tenant created successfully.
             </p>
             <p className="font-mono text-[11px] text-[var(--text-muted)]">
               ID: {result.tenant_id}
             </p>
             <p className="font-mono text-[11px] text-[var(--text-muted)]">
               Trial ends:{" "}
-              {new Date(result.trial_ends_at).toLocaleString("es-ES")}
+              {new Date(result.trial_ends_at).toLocaleString("en-US")}
             </p>
           </div>
         )}

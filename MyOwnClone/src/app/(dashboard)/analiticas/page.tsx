@@ -77,7 +77,7 @@ export default function AnaliticasPage() {
   }, [fetchData])
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando analíticas…" rows={4} />
+    return <LoadingState label="Loading analytics..." rows={4} />
   }
 
   const hasData =
@@ -90,19 +90,19 @@ export default function AnaliticasPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Analíticas
+          Analytics
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Descubre cómo interactúan los usuarios con tu clon.
+          Understand how users interact with your clone.
         </p>
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Conversaciones" value={overview?.total_conversations ?? 0} />
-        <StatCard label="Mensajes" value={overview?.total_messages ?? 0} />
-        <StatCard label="Preguntas respondidas" value={overview?.questions_answered ?? 0} />
+        <StatCard label="Conversations" value={overview?.total_conversations ?? 0} />
+        <StatCard label="Messages" value={overview?.total_messages ?? 0} />
+        <StatCard label="Answered questions" value={overview?.questions_answered ?? 0} />
         <StatCard
-          label="Gaps de conocimiento"
+          label="Knowledge gaps"
           value={overview?.gaps_count ?? 0}
           highlight={!!overview?.gaps_count && overview.gaps_count > 0}
         />
@@ -110,18 +110,18 @@ export default function AnaliticasPage() {
 
       {!hasData ? (
         <EmptyState
-          title="Sin datos todavía"
-          description="Las preguntas frecuentes, los gaps y los costes aparecerán cuando tu clon empiece a tener conversaciones."
+          title="No data yet"
+          description="Frequent questions, gaps, and costs will appear once your clone starts receiving conversations."
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="card">
             <h3 className="font-semibold text-[var(--text-primary)] mb-4">
-              Preguntas frecuentes
+              Frequent questions
             </h3>
             {topQuestions.length === 0 ? (
               <p className="text-sm text-[var(--text-muted)] py-4">
-                Las preguntas más frecuentes aparecerán aquí cuando empieces a recibir consultas.
+                Your most frequent questions will appear here once queries start coming in.
               </p>
             ) : (
               <ul className="space-y-3">
@@ -141,11 +141,11 @@ export default function AnaliticasPage() {
 
           <div className="card">
             <h3 className="font-semibold text-[var(--text-primary)] mb-4">
-              Gaps de conocimiento
+              Knowledge gaps
             </h3>
             {gaps.length === 0 ? (
               <p className="text-sm text-[var(--text-muted)] py-4">
-                Preguntas que tu clon no pudo responder. Añade contenido para cubrirlas.
+                Questions your clone could not answer. Add content to cover them.
               </p>
             ) : (
               <ul className="space-y-3">
@@ -160,14 +160,14 @@ export default function AnaliticasPage() {
                         {g.question}
                       </p>
                       <p className="mt-1 font-mono text-[10px] text-[var(--text-muted)]">
-                        {g.count} veces · {g.status === "open" ? "Pendiente" : "Resuelto"}
+                        {g.count} times · {g.status === "open" ? "Pending" : "Resolved"}
                       </p>
                     </div>
                     <button
                       onClick={() => router.push("/biblioteca")}
                       className="text-xs text-[var(--color-accent-warm)] hover:underline whitespace-nowrap"
                     >
-                      + Contenido
+                      + Content
                     </button>
                   </li>
                 ))}
@@ -180,28 +180,28 @@ export default function AnaliticasPage() {
       {costs && (
         <div className="card">
           <h3 className="font-semibold text-[var(--text-primary)] mb-4">
-            Costes del mes actual
+            Current month costs
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <CostCard
-              label="Respuestas del clon"
+              label="Clone responses"
               cents={costs.clone_response_cents}
-              note="Facturable al tenant"
+              note="Billable to tenant"
             />
             <CostCard
-              label="Ingestión de contenido"
+              label="Content ingestion"
               cents={costs.content_ingestion_cents}
-              note="Facturable al tenant"
+              note="Billable to tenant"
             />
             <CostCard
-              label="Operaciones internas"
+              label="Internal operations"
               cents={costs.platform_ops_cents}
-              note="Lo paga la plataforma"
+              note="Paid by the platform"
             />
           </div>
           <div className="mt-4 pt-4 border-t border-[var(--border-soft)] flex items-center justify-between">
             <span className="text-sm font-medium text-[var(--text-secondary)]">
-              Total del mes
+              Month total
             </span>
             <span className="stat-value text-xl">
               {formatEur(costs.total_cents)}

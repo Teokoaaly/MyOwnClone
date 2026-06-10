@@ -29,12 +29,12 @@ export function RegisterForm() {
       });
 
       if (result?.error) {
-        setError("Error al enviar el enlace. Intenta de nuevo.");
+        setError("Error sending the link. Try again.");
       } else {
         setSent(true);
       }
     } catch {
-      setError("Error de conexión. Intenta de nuevo.");
+      setError("Connection error. Try again.");
     } finally {
       setLoading(false);
     }
@@ -71,14 +71,14 @@ export function RegisterForm() {
           </svg>
         </div>
         <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-          Revisa tu correo
+          Check your email
         </h2>
         <p className="mt-2 text-[var(--text-secondary)]">
-          Te hemos enviado un enlace de acceso a{" "}
+          We sent an access link to{" "}
           <strong className="text-[var(--text-primary)]">{email}</strong>
         </p>
         <p className="mt-4 text-sm text-[var(--text-muted)]">
-          Al hacer clic en el enlace, tu cuenta se creará automáticamente.
+          When you click the link, your account will be created automatically.
         </p>
       </div>
     );
@@ -112,14 +112,14 @@ export function RegisterForm() {
             htmlFor="register-name"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Nombre completo
+            Full name
           </label>
           <input
             id="register-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Tu nombre"
+            placeholder="Your name"
             required
             autoComplete="name"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -135,14 +135,14 @@ export function RegisterForm() {
             htmlFor="register-email"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Correo electrónico
+            Email address
           </label>
           <input
             id="register-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@email.com"
+            placeholder="you@email.com"
             required
             autoComplete="email"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -159,7 +159,7 @@ export function RegisterForm() {
           className="w-full rounded-xl px-4 py-3 font-semibold text-white transition disabled:opacity-50"
           style={{ background: "var(--color-accent-violet)" }}
         >
-          {loading ? "Enviando..." : "Crear cuenta"}
+          {loading ? "Sending..." : "Create account"}
         </button>
       </form>
 
@@ -176,14 +176,14 @@ export function RegisterForm() {
               className="px-2 text-[var(--text-muted)]"
               style={{ background: "var(--bg-shell)" }}
             >
-              o continúa con
+              or continue with
             </span>
           </div>
         </div>
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/resumen" })}
-          aria-label="Continuar con Google"
+          aria-label="Continue with Google"
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 font-semibold transition"
           style={{
             borderColor: "var(--border-medium)",
@@ -215,19 +215,19 @@ export function RegisterForm() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Continuar con Google
+          Continue with Google
         </button>
       </div>
 
       <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
-        ¿Ya tienes cuenta?{" "}
+        Already have an account?{" "}
         <button
           type="button"
           onClick={() => router.push("/login")}
           className="font-medium underline decoration-[var(--color-accent-violet)] underline-offset-4 hover:opacity-80"
           style={{ color: "var(--text-primary)" }}
         >
-          Inicia sesión
+          Sign in
         </button>
       </p>
     </div>

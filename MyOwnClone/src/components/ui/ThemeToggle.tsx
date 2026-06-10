@@ -37,8 +37,8 @@ export const ThemeToggle: FC<ThemeToggleProps> = ({ showLabel = false }) => {
     <button
       type="button"
       onClick={toggle}
-      aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      title={isDark ? "Modo claro" : "Modo oscuro"}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Light mode" : "Dark mode"}
       className={
         showLabel
           ? "btn-secondary text-xs"
@@ -73,7 +73,7 @@ export const ThemeToggle: FC<ThemeToggleProps> = ({ showLabel = false }) => {
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
       )}
-      {showLabel && <span>{isDark ? "Claro" : "Oscuro"}</span>}
+      {showLabel && <span>{isDark ? "Light" : "Dark"}</span>}
     </button>
   );
 };

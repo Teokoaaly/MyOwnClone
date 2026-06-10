@@ -16,7 +16,7 @@ interface ModalProps {
   footer?: ReactNode;
   /** Optional max-width in Tailwind class. Defaults to max-w-md. */
   size?: "sm" | "md" | "lg";
-  /** Accessible label for the close button. Defaults to "Cerrar". */
+  /** Accessible label for the close button. Defaults to "Close". */
   closeLabel?: string;
 }
 
@@ -36,7 +36,7 @@ export const Modal: FC<ModalProps> = ({
   children,
   footer,
   size = "md",
-  closeLabel = "Cerrar",
+  closeLabel = "Close",
 }) => {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);

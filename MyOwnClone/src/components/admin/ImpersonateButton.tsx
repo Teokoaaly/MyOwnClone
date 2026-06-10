@@ -82,13 +82,13 @@ export function ImpersonateButton({
         onClick={() => setOpen(true)}
         className="btn-primary text-xs"
       >
-        Impersonar
+        Impersonate
       </button>
 
       <Modal
         open={open}
         onClose={close}
-        title={`Impersonar a ${tenantName}`}
+        title={`Impersonate ${tenantName}`}
         size="md"
         footer={
           result ? (
@@ -97,7 +97,7 @@ export function ImpersonateButton({
               onClick={close}
               className="btn-secondary text-xs"
             >
-              Cerrar
+              Close
             </button>
           ) : (
             <>
@@ -107,7 +107,7 @@ export function ImpersonateButton({
                 className="btn-secondary text-xs"
                 disabled={submitting}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 type="button"
@@ -115,7 +115,7 @@ export function ImpersonateButton({
                 className="btn-primary text-xs disabled:opacity-40"
                 disabled={!reasonValid || submitting}
               >
-                {submitting ? "Generando…" : "Iniciar impersonación"}
+                {submitting ? "Generating..." : "Start impersonation"}
               </button>
             </>
           )
@@ -124,20 +124,20 @@ export function ImpersonateButton({
         {!result ? (
           <div className="space-y-3">
             <p className="text-xs text-[var(--text-muted)]">
-              La impersonación expira en 30 minutos. El token se muestra una
-              sola vez y queda registrado en el audit log.
+              Impersonation expires in 30 minutes. The token is shown only once
+              and is recorded in the audit log.
             </p>
             <label className="block">
-              <span className="stat-label">Razón (obligatorio)</span>
+              <span className="stat-label">Reason (required)</span>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
-                placeholder="Describe el motivo del soporte…"
+                placeholder="Describe the support reason..."
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
               />
               <span className="mt-1 block text-[10px] text-[var(--text-muted)]">
-                {reasonTrimmed.length} / {REASON_MAX} caracteres (mínimo{" "}
+                {reasonTrimmed.length} / {REASON_MAX} characters (minimum{" "}
                 {REASON_MIN})
               </span>
             </label>
@@ -150,9 +150,9 @@ export function ImpersonateButton({
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-[var(--text-muted)]">
-              Copia este token. Caduca el{" "}
+              Copy this token. It expires on{" "}
               <span className="font-mono text-[var(--text-primary)]">
-                {new Date(result.expires_at).toLocaleString("es-ES")}
+                {new Date(result.expires_at).toLocaleString("en-US")}
               </span>
               .
             </p>
@@ -165,12 +165,12 @@ export function ImpersonateButton({
                 onClick={copyToken}
                 className="btn-secondary text-xs shrink-0"
               >
-                Copiar
+                Copy
               </button>
             </div>
             <p className="text-[10px] text-[var(--text-muted)]">
-              Envíalo como header <code>X-Impersonate-Token</code> en tus
-              siguientes requests.
+              Send it as the <code>X-Impersonate-Token</code> header in your
+              next requests.
             </p>
           </div>
         )}

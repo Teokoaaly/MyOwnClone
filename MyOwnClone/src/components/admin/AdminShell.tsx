@@ -2,35 +2,34 @@
 
 import { type FC, type ReactNode } from "react";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
-import { NavIcons } from "@/components/ui/dashboard-icons";
 import Link from "next/link";
 
 const adminNavItems: SidebarNavItem[] = [
   {
     href: "/admin/resumen",
     label: "Overview",
-    icon: NavIcons.resumen,
+    iconKey: "resumen",
     tooltip: "Platform metrics",
     section: "platform",
   },
   {
     href: "/admin/tenants",
     label: "Tenants",
-    icon: NavIcons.productos,
+    iconKey: "productos",
     tooltip: "Manage tenant accounts",
     section: "platform",
   },
   {
     href: "/admin/feedback",
     label: "Feedback",
-    icon: NavIcons.inbox,
+    iconKey: "inbox",
     tooltip: "User feedback across the platform",
     section: "platform",
   },
   {
     href: "/admin/audit",
     label: "Audit log",
-    icon: NavIcons.configuracion,
+    iconKey: "configuracion",
     tooltip: "Sensitive admin actions",
     section: "platform",
   },
@@ -75,7 +74,7 @@ export const AdminShell: FC<AdminShellProps> = ({ user, children }) => {
               href="/resumen"
               className="hover:text-[var(--text-primary)] transition-colors"
             >
-              ← Volver al dashboard
+              Back to dashboard
             </Link>
           }
         />

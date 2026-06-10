@@ -44,9 +44,9 @@ interface TenantDetail {
 
 const PLAN_OPTIONS = [
   { value: "trial", label: "Trial" },
-  { value: "basic", label: "Básico" },
+  { value: "basic", label: "Basic" },
   { value: "pro", label: "Pro" },
-  { value: "scale", label: "Escala" },
+  { value: "scale", label: "Scale" },
   { value: "enterprise", label: "Enterprise" },
 ];
 
@@ -92,7 +92,7 @@ export default function AdminTenantDetailPage() {
         return;
       }
       if (res.status === 404) {
-        throw new Error("Tenant no encontrado");
+        throw new Error("Tenant not found");
       }
       if (!res.ok) throw new Error(`Backend error ${res.status}`);
       const payload = (await res.json()) as TenantDetail;
@@ -144,17 +144,17 @@ export default function AdminTenantDetailPage() {
   }
 
   if (loading) {
-    return <LoadingState label="Cargando tenant…" rows={4} />;
+    return <LoadingState label="Loading tenant..." rows={4} />;
   }
 
   if (error || !data) {
     return (
       <ErrorState
-        title="No se pudo cargar el tenant"
-        message={error ?? "Sin datos"}
+        title="Could not load tenant"
+        message={error ?? "No data"}
         action={
           <Link href="/admin/tenants" className="btn-secondary text-xs">
-            ← Volver al listado
+            Back to list
           </Link>
         }
       />
@@ -163,18 +163,18 @@ export default function AdminTenantDetailPage() {
 
   const { tenant, usage, clones } = data;
   const usageRows = [
-    { label: "Clones activos", value: usage.clone_count.toString() },
-    { label: "Costes 30d", value: formatEur(usage.cost_cents_30d) },
+    { label: "Active clones", value: usage.clone_count.toString() },
+    { label: "Costs 30d", value: formatEur(usage.cost_cents_30d) },
     {
       label: "Tokens input 30d",
-      value: usage.tokens_in_30d.toLocaleString("es-ES"),
+      value: usage.tokens_in_30d.toLocaleString("en-US"),
     },
     {
       label: "Tokens output 30d",
-      value: usage.tokens_out_30d.toLocaleString("es-ES"),
+      value: usage.tokens_out_30d.toLocaleString("en-US"),
     },
-    { label: "Preguntas 30d", value: usage.questions_30d.toLocaleString("es-ES") },
-    { label: "Gaps abiertos", value: usage.gaps_open.toLocaleString("es-ES") },
+    { label: "Questions 30d", value: usage.questions_30d.toLocaleString("en-US") },
+    { label: "Open gaps", value: usage.gaps_open.toLocaleString("en-US") },
   ];
 
   return (
@@ -189,7 +189,7 @@ export default function AdminTenantDetailPage() {
             >
               ← Tenants
             </Link>
-            <span className="mt-1 block">{tenant.slug ?? "(sin slug)"}</span>
+            <span className="mt-1 block">{tenant.slug ?? "(no slug)"}</span>
           </>
         }
         actions={
@@ -209,7 +209,7 @@ export default function AdminTenantDetailPage() {
               onClick={() => setPatchOpen(true)}
               className="btn-secondary text-xs"
             >
-              Cambiar plan / estado
+              Change plan / status
             </button>
             <ImpersonateButton tenantId={tenant.id} tenantName={tenant.name} />
           </>
@@ -219,7 +219,7 @@ export default function AdminTenantDetailPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
           <h2 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
-            Uso últimos 30 días
+            Usage last 30 days
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {usageRows.map((r) => (
@@ -233,7 +233,7 @@ export default function AdminTenantDetailPage() {
 
         <div className="card">
           <h2 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
-            Datos de facturación
+            Billing data
           </h2>
           <dl className="space-y-3 text-sm">
             <div>
@@ -255,10 +255,10 @@ export default function AdminTenantDetailPage() {
               </dd>
             </div>
             <div>
-              <dt className="stat-label">Creado</dt>
+              <dt className="stat-label">Created</dt>
               <dd className="text-xs text-[var(--text-secondary)]">
                 {tenant.created_at
-                  ? new Date(tenant.created_at).toLocaleString("es-ES")
+                  ? new Date(tenant.created_at).toLocaleString("en-US")
                   : "—"}
               </dd>
             </div>
@@ -274,17 +274,17 @@ export default function AdminTenantDetailPage() {
         </div>
         {clones.length === 0 ? (
           <div className="px-4 pb-6 text-center text-sm text-[var(--text-muted)]">
-            Este tenant aún no tiene clones.
+            This tenant does not have clones yet.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead className="table-header">
               <tr>
-                <th className="px-4 py-2.5 text-left">Nombre</th>
+                <th className="px-4 py-2.5 text-left">Name</th>
                 <th className="px-4 py-2.5 text-left">Slug</th>
-                <th className="px-4 py-2.5 text-left">Idioma</th>
-                <th className="px-4 py-2.5 text-left">Estado</th>
-                <th className="px-4 py-2.5 text-left">Creado</th>
+                <th className="px-4 py-2.5 text-left">Language</th>
+                <th className="px-4 py-2.5 text-left">Status</th>
+                <th className="px-4 py-2.5 text-left">Created</th>
               </tr>
             </thead>
             <tbody>
@@ -301,14 +301,14 @@ export default function AdminTenantDetailPage() {
                   </td>
                   <td className="px-4 py-3">
                     {c.is_active ? (
-                      <span className="badge-active">Activo</span>
+                      <span className="badge-active">Active</span>
                     ) : (
-                      <span className="badge-warning">Inactivo</span>
+                      <span className="badge-warning">Inactive</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
                     {c.created_at
-                      ? new Date(c.created_at).toLocaleDateString("es-ES")
+                      ? new Date(c.created_at).toLocaleDateString("en-US")
                       : "—"}
                   </td>
                 </tr>
@@ -321,7 +321,7 @@ export default function AdminTenantDetailPage() {
       <Modal
         open={patchOpen}
         onClose={() => setPatchOpen(false)}
-        title={`Editar ${tenant.name}`}
+        title={`Edit ${tenant.name}`}
         size="sm"
         footer={
           <>
@@ -331,7 +331,7 @@ export default function AdminTenantDetailPage() {
               className="btn-secondary text-xs"
               disabled={patchSubmitting}
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="button"
@@ -339,14 +339,14 @@ export default function AdminTenantDetailPage() {
               className="btn-primary text-xs disabled:opacity-40"
               disabled={patchSubmitting || (!patchPlan && !patchStatus)}
             >
-              {patchSubmitting ? "Guardando…" : "Guardar cambios"}
+              {patchSubmitting ? "Saving..." : "Save changes"}
             </button>
           </>
         }
       >
         <div className="space-y-3">
           <p className="text-xs text-[var(--text-muted)]">
-            Esta acción queda registrada en el audit log.
+            This action is recorded in the audit log.
           </p>
           <Field label="Plan">
             <select
@@ -354,7 +354,7 @@ export default function AdminTenantDetailPage() {
               onChange={(e) => setPatchPlan(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="">(sin cambios)</option>
+              <option value="">(no changes)</option>
               {PLAN_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -362,13 +362,13 @@ export default function AdminTenantDetailPage() {
               ))}
             </select>
           </Field>
-          <Field label="Estado">
+          <Field label="Status">
             <select
               value={patchStatus}
               onChange={(e) => setPatchStatus(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="">(sin cambios)</option>
+              <option value="">(no changes)</option>
               {STATUS_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}

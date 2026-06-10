@@ -166,10 +166,10 @@ export default function AdminAuditPage() {
           }
         />
       ) : loading ? (
-        <LoadingState label="Cargando auditoría…" rows={6} />
+        <LoadingState label="Loading audit log..." rows={6} />
       ) : items.length === 0 ? (
         <EmptyState
-          title="Sin entradas"
+          title="No entries"
           description="Las acciones sensibles (impersonaciones, cambios de plan, cambios de estado, signups courtesy) aparecerán aquí."
         />
       ) : (
@@ -182,7 +182,7 @@ export default function AdminAuditPage() {
                   <th className="px-4 py-2.5 text-left">Acción</th>
                   <th className="px-4 py-2.5 text-left">Actor</th>
                   <th className="px-4 py-2.5 text-left">Target</th>
-                  <th className="px-4 py-2.5 text-left">Razón</th>
+                  <th className="px-4 py-2.5 text-left">Reason</th>
                   <th className="px-4 py-2.5 text-left">Metadata</th>
                 </tr>
               </thead>

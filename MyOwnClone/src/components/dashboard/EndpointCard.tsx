@@ -1,12 +1,11 @@
 import { type FC } from "react";
+import Link from "next/link";
 
 type Accent = "lavender" | "rose" | "sky" | "amber" | "mint";
 
 interface PreviewItem {
   label: string;
-  /** Si true, se renderiza en color muted */
   muted?: boolean;
-  /** Icono a la izquierda (carácter unicode o vacío) */
   icon?: string;
 }
 
@@ -15,6 +14,7 @@ interface EndpointCardProps {
   description: string;
   accent: Accent;
   previewItems: PreviewItem[];
+  href: string;
 }
 
 export const EndpointCard: FC<EndpointCardProps> = ({
@@ -22,8 +22,8 @@ export const EndpointCard: FC<EndpointCardProps> = ({
   description,
   accent,
   previewItems,
+  href,
 }) => {
-  // Extrae la primera palabra del título para el botón "Explore X API"
   const firstWord = title.split(" ")[0];
 
   return (
@@ -38,12 +38,12 @@ export const EndpointCard: FC<EndpointCardProps> = ({
             {description}
           </p>
         </div>
-        <button
-          type="button"
+        <Link
+          href={href}
           className="self-start mt-3 rounded-full bg-white/80 backdrop-blur border border-[var(--border-soft)] px-3 py-1.5 text-[11px] font-medium text-[var(--text-primary)] hover:bg-white transition-colors shadow-sm"
         >
           Explore {firstWord} API
-        </button>
+        </Link>
       </div>
 
       {/* Col derecha: lista preview */}

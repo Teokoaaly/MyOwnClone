@@ -23,21 +23,24 @@ interface Memory {
 
 type TabType = "memory" | "signature" | "template"
 
-const TABS: { id: TabType; label: string; desc: string }[] = [
+const TABS: { id: TabType; label: string; singular: string; desc: string }[] = [
   {
     id: "memory",
-    label: "Memorias",
-    desc: "Fragmentos de información que tu clon recordará siempre. Datos clave, políticas o información personal.",
+    label: "Memories",
+    singular: "Memory",
+    desc: "Information fragments your clone should always remember. Key facts, policies, or personal context.",
   },
   {
     id: "signature",
-    label: "Firmas",
-    desc: "Formato HTML que se aplicará al final de los emails enviados por tu clon.",
+    label: "Signatures",
+    singular: "Signature",
+    desc: "HTML format applied to the end of emails sent by your clone.",
   },
   {
     id: "template",
-    label: "Plantillas",
-    desc: "Respuestas predefinidas que tu clon usará cuando se cumplan ciertas condiciones.",
+    label: "Templates",
+    singular: "Template",
+    desc: "Predefined responses your clone uses when specific conditions are met.",
   },
 ]
 
@@ -106,18 +109,18 @@ export default function CerebroPage() {
           priority: formPriority,
         }),
       })
-      if (!res.ok) throw new Error("Error al guardar")
+      if (!res.ok) throw new Error("Error saving item")
       resetForm()
       fetchMemories()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido")
+      setError(err instanceof Error ? err.message : "Unknown error")
     } finally {
       setSaving(false)
     }
   }
 
   const remove = async (id: string) => {
-    if (!confirm("¿Eliminar este elemento?")) return
+    if (!confirm("Delete this item?")) return
     try {
       await fetch(`/api/clone/memories/${id}`, { method: "DELETE" })
       fetchMemories()
@@ -127,11 +130,11 @@ export default function CerebroPage() {
   }
 
   if (status === "loading") {
-    return <LoadingState label="Verificando sesión…" />
+    return <LoadingState label="Checking session..." />
   }
 
   if (loading) {
-    return <LoadingState label="Cargando memoria…" rows={4} />
+    return <LoadingState label="Loading memory..." rows={4} />
   }
 
   const activeTabInfo = TABS.find((t) => t.id === activeTab)!
@@ -140,7 +143,7 @@ export default function CerebroPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Cerebro
+          Memory
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           {activeTabInfo.desc}
@@ -172,8 +175,8 @@ export default function CerebroPage() {
         <div className="lg:col-span-2 space-y-3">
           {memories.length === 0 ? (
             <EmptyState
-              title={`No hay ${activeTabInfo.label.toLowerCase()} todavía`}
-              description="Crea la primera con el formulario de la derecha."
+              title={`No ${activeTabInfo.label.toLowerCase()} yet`}
+              description="Create the first one with the form on the right."
             />
           ) : (
             memories.map((m) => (
@@ -188,11 +191,11 @@ export default function CerebroPage() {
                     </p>
                     {m.trigger_condition && (
                       <p className="mt-1 text-xs text-[var(--color-accent-violet)]">
-                        Gatillo: {m.trigger_condition}
+                        Trigger: {m.trigger_condition}
                       </p>
                     )}
                     <p className="mt-2 text-xs text-[var(--text-muted)] font-mono">
-                      Prioridad: {m.priority} ·{" "}
+                      Priority: {m.priority} ·{" "}
                       {new Date(m.created_at * 1000).toLocaleDateString("es-ES")}
                     </p>
                   </div>
@@ -208,14 +211,14 @@ export default function CerebroPage() {
                       }}
                       className="btn-secondary text-xs"
                     >
-                      Editar
+                      Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => remove(m.id)}
                       className="btn-secondary text-xs hover:text-[var(--color-accent-warm)]"
                     >
-                      Eliminar
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -226,12 +229,12 @@ export default function CerebroPage() {
 
         <div className="card sticky top-4 self-start">
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">
-            {editing ? "Editar" : "Nueva"} {activeTabInfo.label.slice(0, -1)}
+            {editing ? "Edit" : "New"} {activeTabInfo.singular}
           </h3>
 
           <div className="space-y-3">
             <div>
-              <label className="stat-label" htmlFor="cb-content">Contenido</label>
+              <label className="stat-label" htmlFor="cb-content">Content</label>
               <textarea
                 id="cb-content"
                 value={formContent}
@@ -239,10 +242,10 @@ export default function CerebroPage() {
                 rows={5}
                 placeholder={
                   activeTab === "memory"
-                    ? "Información que el clon debe recordar..."
+                    ? "Information the clone should remember..."
                     : activeTab === "signature"
-                    ? "<div>Firma HTML...</div>"
-                    : "Texto de la respuesta automática..."
+                    ? "<div>HTML signature...</div>"
+                    : "Automatic response text..."
                 }
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none resize-none"
               />
@@ -250,30 +253,30 @@ export default function CerebroPage() {
 
             {activeTab === "template" && (
               <div>
-                <label className="stat-label" htmlFor="cb-trigger">Palabras clave (gatillo)</label>
+                <label className="stat-label" htmlFor="cb-trigger">Trigger keywords</label>
                 <input
                   id="cb-trigger"
                   type="text"
                   value={formTrigger}
                   onChange={(e) => setFormTrigger(e.target.value)}
-                  placeholder="ej: descuento, precio, oferta"
+                  placeholder="ex: discount, price, offer"
                   className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
                 />
               </div>
             )}
 
             <div>
-              <label className="stat-label" htmlFor="cb-priority">Prioridad</label>
+              <label className="stat-label" htmlFor="cb-priority">Priority</label>
               <select
                 id="cb-priority"
                 value={formPriority}
                 onChange={(e) => setFormPriority(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
               >
-                <option value={0}>0 — Normal</option>
-                <option value={1}>1 — Alta</option>
-                <option value={2}>2 — Urgente</option>
-                <option value={3}>3 — Crítica</option>
+                <option value={0}>0 - Normal</option>
+                <option value={1}>1 - High</option>
+                <option value={2}>2 - Urgent</option>
+                <option value={3}>3 - Critical</option>
               </select>
             </div>
 
@@ -288,7 +291,7 @@ export default function CerebroPage() {
                 disabled={saving || !formContent.trim()}
                 className="btn-primary text-xs flex-1 disabled:opacity-50"
               >
-                {saving ? "Guardando…" : editing ? "Actualizar" : "Crear"}
+                {saving ? "Saving..." : editing ? "Update" : "Create"}
               </button>
               {editing && (
                 <button
@@ -296,7 +299,7 @@ export default function CerebroPage() {
                   onClick={resetForm}
                   className="btn-secondary text-xs"
                 >
-                  Cancelar
+                  Cancel
                 </button>
               )}
             </div>
