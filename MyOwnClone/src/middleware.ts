@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = "http://127.0.0.1:5001";
-const CLONE_ID = process.env.DEFAULT_CLONE_ID || "";
+
+/**
+ * Extract the active clone ID from the moc_active_clone_id cookie.
+ * Falls back to DEFAULT_CLONE_ID env var for backward compatibility.
+ */
+function getCloneId(request: NextRequest): string {
+  const cookieCloneId = request.cookies.get("moc_active_clone_id")?.value;
+  if (cookieCloneId) return cookieCloneId;
+  return process.env.DEFAULT_CLONE_ID || "";
+}
 
 // Service-to-service API key for authenticating proxy requests to the Flask backend.
 // Must match the value checked in Flask's login_required decorator (X-API-Key header).
@@ -32,7 +41,7 @@ function getTenantFromHost(hostname: string): string | null {
   return null;
 }
 
-function findBackendPath(pathname: string): string | null {
+function findBackendPath(pathname: string, request: NextRequest): string | null {
   // Ignoramos la biblioteca de contenidos (sources), que se resolverá localmente en Next.js
   if (pathname === "/api/clone/sources" || pathname.startsWith("/api/clone/sources/")) {
     return null;
@@ -66,12 +75,14 @@ function findBackendPath(pathname: string): string | null {
   // 3. Analytics
   if (sub.startsWith("analytics/")) {
     const subpath = sub.slice("analytics/".length);
-    return `/console/api/myownclone/clones/${CLONE_ID}/analytics/${subpath}`;
+    const cloneId = getCloneId(request);
+    return `/console/api/myownclone/clones/${cloneId}/analytics/${subpath}`;
   }
 
   // 4. Inbox
   if (sub === "inbox/list") {
-    return `/console/api/myownclone/clones/${CLONE_ID}/inbox`;
+    const cloneId = getCloneId(request);
+    return `/console/api/myownclone/clones/${cloneId}/inbox`;
   }
   if (sub.startsWith("inbox/")) {
     const parts = sub.split("/"); // ["inbox", "<id>", "generate-draft"?]
@@ -84,7 +95,8 @@ function findBackendPath(pathname: string): string | null {
 
   // 5. Memories
   if (sub === "memories") {
-    return `/console/api/myownclone/clones/${CLONE_ID}/memories`;
+    const cloneId = getCloneId(request);
+    return `/console/api/myownclone/clones/${cloneId}/memories`;
   }
   if (sub.startsWith("memories/")) {
     const memoryId = sub.slice("memories/".length);
@@ -125,7 +137,7 @@ export async function middleware(request: NextRequest) {
 
   // Proxy API calls to Flask backend
   if (pathname.startsWith("/api/")) {
-    const backendPath = findBackendPath(pathname);
+    const backendPath = findBackendPath(pathname, request);
     if (backendPath) {
       const search = request.nextUrl.search;
       const backendUrl = `${BACKEND_URL}${backendPath}${search}`;
