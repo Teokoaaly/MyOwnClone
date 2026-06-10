@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, signIn, signOut } from "@/lib/auth";
+import { signIn } from "@/lib/auth";
 
 export async function devLogin(email: string) {
   "use server";
