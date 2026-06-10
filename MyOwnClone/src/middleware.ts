@@ -5,7 +5,8 @@ const CLONE_ID = process.env.DEFAULT_CLONE_ID || "";
 
 // Service-to-service API key for authenticating proxy requests to the Flask backend.
 // Must match the value checked in Flask's login_required decorator (X-API-Key header).
-const SERVICE_API_KEY = "dev-api-key-for-proxy";
+// In production, set SERVICE_API_KEY in .env.local to a strong random value.
+const SERVICE_API_KEY = process.env.SERVICE_API_KEY ?? "dev-api-key-for-proxy";
 
 // Map frontend API paths to backend paths (legacy / admin / auth)
 const ROUTE_MAP: Record<string, string> = {

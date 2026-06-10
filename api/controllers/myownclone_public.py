@@ -5,9 +5,17 @@ SendGrid sends multipart/form-data with the raw email in the "email" field.
 
 Configure SendGrid's Inbound Parse to POST to:
     https://api.replica.tudominio.com/api/myownclone/public/inbound-email
+
+Authentication:
+    If `SENDGRID_INBOUND_WEBHOOK_SECRET` is set, the request must include a
+    matching `X-Webhook-Secret` header. Comparison is timing-safe. If the
+    secret is unset, the endpoint is open (development only — a warning is
+    logged on every request).
 """
 
+import hmac
 import logging
+import os
 
 from flask import Blueprint, request, jsonify
 
@@ -30,8 +38,36 @@ logger = logging.getLogger(__name__)
 myownclone_public_bp = Blueprint("myownclone_public", __name__, url_prefix="/api/myownclone/public")
 
 
+_SENDGRID_SECRET = os.environ.get("SENDGRID_INBOUND_WEBHOOK_SECRET", "")
+if not _SENDGRID_SECRET:
+    logger.warning(
+        "SENDGRID_INBOUND_WEBHOOK_SECRET is not set — /inbound-email will accept "
+        "unauthenticated requests. Set the secret in production."
+    )
+
+
+def _check_sendgrid_signature() -> bool:
+    """Validate the X-Webhook-Secret header against the configured secret.
+
+    Returns True if the secret matches or if no secret is configured (dev mode).
+    """
+    if not _SENDGRID_SECRET:
+        return True
+    provided = request.headers.get("X-Webhook-Secret", "")
+    if not provided:
+        return False
+    return hmac.compare_digest(provided, _SENDGRID_SECRET)
+
+
 @myownclone_public_bp.route("/inbound-email", methods=["POST"])
 def inbound_email():
+    if not _check_sendgrid_signature():
+        logger.warning(
+            "Rejected /inbound-email from %s — invalid or missing X-Webhook-Secret",
+            request.remote_addr,
+        )
+        return jsonify({"error": "unauthorized"}), 401
+
     raw_email = None
 
     if request.is_json:

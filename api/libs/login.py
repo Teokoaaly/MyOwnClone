@@ -48,10 +48,13 @@ def login_required(f: Callable) -> Callable:
         # Second try: X-API-Key header (service-to-service via Next.js proxy)
         api_key = request.headers.get('X-API-Key', '')
         valid_keys = [
-            os.environ.get('JWT_SECRET_KEY', ''),
+            os.environ.get('SERVICE_API_KEY', ''),
             os.environ.get('DEPLOY_SECRET', ''),
-            'dev-api-key-for-proxy',  # Development proxy key
         ]
+        # In development only, fall back to a hardcoded key so local hacking
+        # works without a freshly generated secret.
+        if os.environ.get('FLASK_ENV', 'production') != 'production':
+            valid_keys.append('dev-api-key-for-proxy')
         if api_key and api_key in valid_keys:
             g.account_id = 'proxy-service'
             g.tenant_id = 'proxy-service'

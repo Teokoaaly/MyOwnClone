@@ -1,4 +1,5 @@
 """Authentication blueprint — JWT-based login with rate limiting."""
+import logging
 import time
 from collections import defaultdict
 from flask import Blueprint, request, jsonify
@@ -10,37 +11,107 @@ from datetime import datetime, timedelta, timezone
 
 from api.libs.jwt_utils import _get_secret_key, _verify_token
 
+logger = logging.getLogger(__name__)
+
 auth_bp = Blueprint("auth", __name__, url_prefix="/console/api/auth")
 
-# ── In-memory rate limiter ───────────────────────────────────────────────────
+# ── Rate limiter (Redis with in-memory fallback) ────────────────────────────
 # Tracks failed login attempts per IP. 5 attempts → 15-minute ban.
-# In production, replace with Redis-based rate limiting.
-_rate_limit_store: dict[str, list[float]] = defaultdict(list)
+# In production, configure REDIS_HOST/REDIS_PASSWORD so attempts persist
+# across worker processes and restarts. In dev, falls back to a per-process
+# in-memory store.
 _RATE_LIMIT_MAX_ATTEMPTS = 5
 _RATE_LIMIT_WINDOW_SECONDS = 900  # 15 minutes
 _RATE_LIMIT_BAN_SECONDS = 900  # 15 minutes
+_RATE_LIMIT_KEY_PREFIX = "myownclone:login_attempts:"
+
+_memory_fallback: dict[str, list[float]] = defaultdict(list)
+_redis_client = None
+_redis_checked = False
+
+
+def _get_redis():
+    """Lazy-init a Redis client. Returns None if Redis is not configured or
+    unreachable; callers must fall back to the in-memory store."""
+    global _redis_client, _redis_checked
+    if _redis_checked:
+        return _redis_client
+    _redis_checked = True
+    host = os.environ.get("REDIS_HOST")
+    password = os.environ.get("REDIS_PASSWORD")
+    port = int(os.environ.get("REDIS_PORT", "6379"))
+    if not host:
+        return None
+    try:
+        import redis
+        client = redis.Redis(
+            host=host,
+            port=port,
+            password=password or None,
+            socket_connect_timeout=1.0,
+            socket_timeout=1.0,
+        )
+        client.ping()
+        _redis_client = client
+        logger.info("Rate limiter: connected to Redis at %s:%s", host, port)
+    except Exception as exc:
+        logger.warning(
+            "Rate limiter: Redis unavailable (%s). Falling back to in-memory store.",
+            exc,
+        )
+        _redis_client = None
+    return _redis_client
 
 
 def _check_rate_limit(ip: str) -> bool:
-    """Check if IP is rate-limited. Returns True if allowed, False if blocked."""
-    now = time.time()
-    attempts = _rate_limit_store[ip]
-    # Prune old entries outside the window
-    _rate_limit_store[ip] = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SECONDS]
+    """Check if IP is rate-limited. Returns True if allowed, False if blocked.
 
-    if len(_rate_limit_store[ip]) >= _RATE_LIMIT_MAX_ATTEMPTS:
-        return False  # Rate limited
-    return True
+    This only inspects the counter; it does not increment. Call
+    _record_attempt after a failed auth to register the failure.
+    """
+    client = _get_redis()
+    key = f"{_RATE_LIMIT_KEY_PREFIX}{ip}"
+
+    if client is not None:
+        try:
+            count = client.get(key)
+            current = int(count) if count is not None else 0
+            return current < _RATE_LIMIT_MAX_ATTEMPTS
+        except Exception as exc:
+            logger.warning("Rate limiter Redis read failed (%s); using memory", exc)
+
+    now = time.time()
+    attempts = _memory_fallback[ip]
+    _memory_fallback[ip] = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SECONDS]
+    return len(_memory_fallback[ip]) < _RATE_LIMIT_MAX_ATTEMPTS
 
 
 def _record_attempt(ip: str) -> None:
     """Record a failed login attempt for the given IP."""
-    _rate_limit_store[ip].append(time.time())
+    client = _get_redis()
+    key = f"{_RATE_LIMIT_KEY_PREFIX}{ip}"
+    if client is not None:
+        try:
+            count = client.incr(key)
+            if count == 1:
+                client.expire(key, _RATE_LIMIT_WINDOW_SECONDS)
+            return
+        except Exception as exc:
+            logger.warning("Rate limiter Redis incr failed (%s); using memory", exc)
+    _memory_fallback[ip].append(time.time())
 
 
 def _reset_rate_limit(ip: str) -> None:
     """Clear failed attempts for an IP on successful login."""
-    _rate_limit_store.pop(ip, None)
+    client = _get_redis()
+    key = f"{_RATE_LIMIT_KEY_PREFIX}{ip}"
+    if client is not None:
+        try:
+            client.delete(key)
+            return
+        except Exception as exc:
+            logger.warning("Rate limiter Redis reset failed (%s)", exc)
+    _memory_fallback.pop(ip, None)
 
 
 def _get_db_conn():
