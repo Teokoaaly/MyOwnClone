@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { CloneIdResolver } from "@/components/dashboard/CloneIdResolver";
+import { Link } from "@/i18n/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -42,12 +43,12 @@ export default async function DashboardLayout({
           showFreemiumCard
           footer={
             <div className="space-y-3">
-              <a href="/configuracion" className="block text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+              <Link href="/configuracion" className="block text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                 Settings
-              </a>
-              <a href="/configuracion" className="block text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+              </Link>
+              <Link href="/configuracion" className="block text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                 Support
-              </a>
+              </Link>
               <p className="pt-2 text-[10px] text-[var(--text-muted)]">© 2026 MyOwnClone</p>
             </div>
           }

@@ -3,6 +3,7 @@ import {
   text,
   timestamp,
   pgEnum,
+  index,
 } from "drizzle-orm/pg-core";
 import { clones } from "./clones";
 
@@ -12,19 +13,27 @@ export const emailStatusEnum = pgEnum("email_status", [
   "discarded",
 ]);
 
-export const emails = pgTable("emails", {
-  id: text("id").primaryKey(),
-  cloneId: text("clone_id")
-    .notNull()
-    .references(() => clones.id, { onDelete: "cascade" }),
-  fromEmail: text("from_email").notNull(),
-  fromName: text("from_name"),
-  subject: text("subject").notNull(),
-  body: text("body").notNull(),
-  draftReply: text("draft_reply"),
-  status: emailStatusEnum("status").notNull().default("pending"),
-  threadId: text("thread_id"),
-  receivedAt: timestamp("received_at").notNull().defaultNow(),
-  sentAt: timestamp("sent_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const emails = pgTable(
+  "emails",
+  {
+    id: text("id").primaryKey(),
+    cloneId: text("clone_id")
+      .notNull()
+      .references(() => clones.id, { onDelete: "cascade" }),
+    fromEmail: text("from_email").notNull(),
+    fromName: text("from_name"),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    draftReply: text("draft_reply"),
+    status: emailStatusEnum("status").notNull().default("pending"),
+    threadId: text("thread_id"),
+    receivedAt: timestamp("received_at").notNull().defaultNow(),
+    sentAt: timestamp("sent_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("emails_clone_id_idx").on(table.cloneId),
+    index("emails_status_idx").on(table.status),
+    index("emails_thread_id_idx").on(table.threadId),
+  ],
+);

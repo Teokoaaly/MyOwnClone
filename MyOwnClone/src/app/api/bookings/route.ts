@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
     let visitorName: string;
     let visitorEmail: string;
     let date: string;
-    let startTime: string;
     let time: string;
 
     const contentType = request.headers.get("content-type") || "";
@@ -68,7 +67,7 @@ export async function POST(request: NextRequest) {
       where: and(
         eq(schema.bookings.meetingTypeId, meetingTypeId),
         eq(schema.bookings.date, date),
-        eq(schema.bookings.time, time),
+        eq(schema.bookings.startTime, time),
       ),
     });
 
@@ -84,7 +83,8 @@ export async function POST(request: NextRequest) {
         visitorName,
         visitorEmail,
         date,
-        time,
+        startTime: time,
+        endTime: null,
         notes: null,
         status: "confirmed",
       } as typeof schema.bookings.$inferInsert)

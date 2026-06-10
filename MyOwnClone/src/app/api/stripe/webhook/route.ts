@@ -3,11 +3,18 @@ import Stripe from "stripe";
 import { db, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2025-02-24.acacia",
-});
-
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
+
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY not configured");
+  }
+
+  return new Stripe(secretKey, {
+    apiVersion: "2025-02-24.acacia",
+  });
+}
 
 export async function POST(request: NextRequest) {
   if (!webhookSecret) {
@@ -25,6 +32,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
+    const stripe = getStripe();
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
@@ -32,20 +40,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const stripe = getStripe();
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutCompleted(session);
+        await handleCheckoutCompleted(stripe, session);
         break;
       }
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdated(subscription);
+        await handleSubscriptionUpdated(stripe, subscription);
         break;
       }
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionDeleted(subscription);
+        await handleSubscriptionDeleted(stripe, subscription);
         break;
       }
       case "invoice.payment_succeeded": {
@@ -69,7 +78,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(
+  stripe: Stripe,
+  session: Stripe.Checkout.Session,
+) {
   const customerId = session.customer as string;
   const subscriptionId = session.subscription as string;
   const tenantId = session.metadata?.tenant_id;
@@ -84,7 +96,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const priceId = subscription.items.data[0]?.price.id;
 
   // Map Stripe price ID to plan name
-  const planName = await mapPriceToPlan(priceId);
+  const planName = await mapPriceToPlan(stripe, priceId);
 
   await db
     .update(schema.tenants)
@@ -100,7 +112,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log(`Checkout completed for tenant ${tenantId}: plan=${planName}`);
 }
 
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdated(
+  stripe: Stripe,
+  subscription: Stripe.Subscription,
+) {
   const customerId = subscription.customer as string;
   const tenant = await findTenantByStripeCustomerId(customerId);
 
@@ -110,7 +125,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 
   const priceId = subscription.items.data[0]?.price.id;
-  const planName = await mapPriceToPlan(priceId);
+  const planName = await mapPriceToPlan(stripe, priceId);
   const status = mapStripeStatus(subscription.status);
 
   await db
@@ -124,7 +139,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   console.log(`Subscription updated for tenant ${tenant.id}: plan=${planName}, status=${status}`);
 }
 
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+async function handleSubscriptionDeleted(
+  _stripe: Stripe,
+  subscription: Stripe.Subscription,
+) {
   const customerId = subscription.customer as string;
   const tenant = await findTenantByStripeCustomerId(customerId);
 
@@ -180,7 +198,7 @@ async function findTenantByStripeCustomerId(customerId: string) {
   return tenant ?? null;
 }
 
-async function mapPriceToPlan(priceId: string | null): Promise<string> {
+async function mapPriceToPlan(stripe: Stripe, priceId: string | null): Promise<string> {
   if (!priceId) return "trial";
 
   // Fetch price from Stripe to get the product

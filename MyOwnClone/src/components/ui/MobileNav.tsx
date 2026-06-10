@@ -1,10 +1,9 @@
 "use client";
 
 import { type FC, useEffect, useId, useRef } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { IconProps } from "@phosphor-icons/react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { Link, usePathname } from "@/i18n/navigation";
 
 export interface MobileNavItem {
   href: string;

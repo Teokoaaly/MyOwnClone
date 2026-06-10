@@ -25,6 +25,7 @@ export const chunks = pgTable(
     }>(),
   },
   (table) => [
+    index("chunks_source_id_idx").on(table.sourceId),
     index("chunks_embedding_idx").using(
       "ivfflat",
       table.embedding.asc().nullsLast()

@@ -5,10 +5,10 @@ export const dynamic = "force-dynamic"
 
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { useRouter } from "@/i18n/navigation"
 
 interface Memory {
   id: string

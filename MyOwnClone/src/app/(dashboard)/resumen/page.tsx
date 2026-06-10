@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   ArrowSquareOut,
   ChartBar,
@@ -20,6 +18,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
+import { Link, useRouter } from "@/i18n/navigation";
 
 interface AnalyticsOverview {
   total_conversations: number;

@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
+import { useRouter } from "@/i18n/navigation"
 
 const STEPS = [
   { id: "name", title: "Clone name", subtitle: "What should your assistant be called?" },

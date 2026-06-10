@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
-import { RegisterForm } from '@/app/(dashboard)/registro/register-form'
+import { RegisterForm } from '@/app/registro/register-form'
 
 // Mock next-auth/react — hoisted so vi.mock can reference it
 const mockSignIn = vi.hoisted(() => vi.fn())

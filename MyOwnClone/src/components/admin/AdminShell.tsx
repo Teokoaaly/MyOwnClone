@@ -2,7 +2,7 @@
 
 import { type FC, type ReactNode } from "react";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 const adminNavItems: SidebarNavItem[] = [
   {

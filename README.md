@@ -477,8 +477,10 @@ npm ci
 ```bash
 cd MyOwnClone
 npm run db:generate
-npm run db:push
+npm run db:migrate
 ```
+
+`db:push` queda solo para casos de desarrollo local muy controlados. El flujo recomendado a partir de ahora es `generate + migrate` para mantener SQL versionado y revisable.
 
 ### 8. Arrancar en desarrollo
 
@@ -565,7 +567,8 @@ npm run typecheck    # TypeScript check
 # Base de datos
 npm run db:generate  # Generar migraciones Drizzle
 npm run db:migrate   # Aplicar migraciones (producción)
-npm run db:push      # Push directo del schema (desarrollo)
+npm run db:sync      # Generar + aplicar migraciones versionadas
+npm run db:push      # Push directo del schema (solo desarrollo puntual)
 npm run db:studio    # Drizzle Studio UI
 ```
 
