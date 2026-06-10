@@ -4,6 +4,7 @@ import Resend from "next-auth/providers/resend";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db, schema } from "@/lib/db";
+import { sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import {
   getPlatformAdminEmail,
@@ -51,21 +52,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         try {
-          const user = await db.query.users.findFirst({
-            where: (users, { eq }) => eq(users.email, email),
-          });
+          // Use raw SQL to avoid Drizzle schema enum issues
+          const result = await db.execute(
+            sql`SELECT id, email, name, password_hash, role FROM ${schema.users} WHERE email = ${email} LIMIT 1`
+          );
+          const rows = result.rows as Array<{ id: string; email: string; name: string | null; password_hash: string | null; role: string }>;
+          const user = rows?.[0];
           if (!user) return null;
-          if (!user.passwordHash) return null;
+          if (!user.password_hash) return null;
 
-          const valid = await bcrypt.compare(password, user.passwordHash);
+          const valid = await bcrypt.compare(password, user.password_hash);
           if (!valid) return null;
 
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            role: (user as any).role,
+            name: user.name ?? undefined,
+            role: user.role,
           };
         } catch {
           return null;
