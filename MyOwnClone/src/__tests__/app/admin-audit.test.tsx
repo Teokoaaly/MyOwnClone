@@ -50,7 +50,7 @@ describe('AdminAuditPage', () => {
       reload: vi.fn(),
     })
     render(<AdminAuditPage />)
-    expect(screen.getByText('Cargando auditoría…')).toBeTruthy()
+    expect(screen.getByText('Loading audit log...')).toBeTruthy()
   })
 
   // 3. renders ErrorState + Retry button when error
@@ -76,7 +76,7 @@ describe('AdminAuditPage', () => {
       reload: vi.fn(),
     })
     render(<AdminAuditPage />)
-    expect(screen.getByText('Sin entradas')).toBeTruthy()
+    expect(screen.getByText('No entries')).toBeTruthy()
   })
 
   // 5. renders table row with badge when data has items
@@ -159,8 +159,8 @@ describe('AdminAuditPage', () => {
     render(<AdminAuditPage />)
     // Pagination renders prev/next buttons
     const prevButtons = document.querySelectorAll('button')
-    const hasPrev = Array.from(prevButtons).some(b => b.textContent === '← Anterior')
-    const hasNext = Array.from(prevButtons).some(b => b.textContent === 'Siguiente →')
+    const hasPrev = Array.from(prevButtons).some(b => b.textContent === 'Previous')
+    const hasNext = Array.from(prevButtons).some(b => b.textContent === 'Next')
     expect(hasPrev || hasNext).toBeTruthy()
   })
 })

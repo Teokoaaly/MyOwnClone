@@ -28,7 +28,7 @@ function renderOpen() {
       ]}
     />,
   )
-***REMOVED***reEvent.click(screen.getByRole('button', { name: /abrir buscador/i }))
+***REMOVED***reEvent.click(screen.getByRole('button', { name: /open search/i }))
 }
 
 describe('SearchCommandBar', () => {
@@ -49,11 +49,11 @@ describe('SearchCommandBar', () => {
     )
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(
-      screen.getByRole('button', { name: /abrir buscador/i }),
+      screen.getByRole('button', { name: /open search/i }),
     ).toBeDefined()
   })
 
-  it('opens a dialog labelled "Buscar" when the trigger is clicked', () => {
+  it('opens a dialog when the trigger is clicked', () => {
     renderOpen()
     const dialog = screen.getByRole('dialog')
     expect(dialog).toBeDefined()
@@ -69,7 +69,7 @@ describe('SearchCommandBar', () => {
 
   it('filters results by query', () => {
     renderOpen()
-    const input = screen.getByPlaceholderText(/busca páginas/i)
+    const input = screen.getByPlaceholderText(/search pages/i)
   ***REMOVED***reEvent.change(input, { target: { value: 'cere' } })
     // "Cerebro" still matches. "Resumen" and "Productos" do not.
     const options = screen.getAllByRole('option')
@@ -79,7 +79,7 @@ describe('SearchCommandBar', () => {
 
   it('navigates with ArrowDown / ArrowUp', () => {
     renderOpen()
-    const input = screen.getByPlaceholderText(/busca páginas/i)
+    const input = screen.getByPlaceholderText(/search pages/i)
     // aria-activedescendant lives on the input (the combobox), not
     // on the listbox.
     // initial active idx = 0

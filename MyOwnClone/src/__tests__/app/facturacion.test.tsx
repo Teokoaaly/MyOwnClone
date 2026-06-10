@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, waitFor, cleanup } from '@testing-library/react'
 
 vi.mock('next-auth/react', () => ({ useSession: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: vi.fn() }))
@@ -18,7 +18,7 @@ const fourPlans = [
     id: 'plan-free',
     name: 'Free',
     price_cents: 0,
-    price_display: 'Gratis',
+    price_display: '$0/mes',
     words_training_limit: 1000,
     responses_month_limit: 50,
     modes_active: 1,
@@ -30,7 +30,7 @@ const fourPlans = [
   },
   {
     id: 'plan-basic',
-    name: 'Básico',
+    name: 'Basic',
     price_cents: 2900,
     price_display: '$29/mes',
     words_training_limit: 5000,
@@ -79,9 +79,12 @@ beforeEach(() => {
   mockFetch.mockReset()
 })
 
-// 1. renders header "Facturación" + "Plan actual: básico" default
+afterEach(() => {
+  cleanup()
+})
+
 describe('FacturacionPage', () => {
-  it('renders header "Facturación" + "Plan actual: básico" default', async () => {
+  it('renders header "Billing" + "Current plan: basic" default', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => fourPlans,
@@ -94,49 +97,35 @@ describe('FacturacionPage', () => {
     render(<FacturacionPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Facturación')).toBeDefined()
+      expect(screen.getByText('Billing')).toBeDefined()
     })
-    expect(screen.getByText('Plan actual:')).toBeDefined()
-    // Use exact match to avoid matching "Básico" plan card name
-    const planSpan = screen.getByText('básico')
+    expect(screen.getByText('Current plan:')).toBeDefined()
+    const planSpan = screen.getByText('basic')
     expect(planSpan).toBeDefined()
     expect(planSpan.className).toContain('capitalize')
   })
 
-  // 2. renders LoadingState initially
   it('renders LoadingState initially', async () => {
-    mockFetch.mockImplementation(() => new Promise(() => {})) // never resolves
+    mockFetch.mockImplementation(() => new Promise(() => {}))
 
     render(<FacturacionPage />)
 
-    expect(screen.getByText('Cargando planes…')).toBeDefined()
+    expect(screen.getByText('Loading plans...')).toBeDefined()
   })
 
-  // 3. renders ErrorState when fetch fails
   it('renders ErrorState when fetch fails', async () => {
-    // Both resolve but ok=false triggers the throw in load()
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({}),
-    } as any)
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({}),
-    } as any)
+    mockFetch.mockResolvedValueOnce({ ok: false, json: async () => ({}) } as any)
+    mockFetch.mockResolvedValueOnce({ ok: false, json: async () => ({}) } as any)
 
     render(<FacturacionPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('No se pudo cargar la información de facturación')).toBeDefined()
+      expect(screen.getByText('Could not load billing information')).toBeDefined()
     })
   })
 
-  // 4. renders 4 plan cards when fetch returns 4 plans
   it('renders 4 plan cards when fetch returns 4 plans', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => fourPlans,
-    } as any)
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => fourPlans } as any)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ has_stripe: false, plan: null, subscription_status: null, portal_url: null }),
@@ -145,19 +134,15 @@ describe('FacturacionPage', () => {
     render(<FacturacionPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Free')).toBeDefined()
+      expect(screen.getAllByText('Free').length).toBeGreaterThanOrEqual(1)
     })
-    expect(screen.getByText('Básico')).toBeDefined()
-    expect(screen.getByText('Pro')).toBeDefined()
-    expect(screen.getByText('Enterprise')).toBeDefined()
+    expect(screen.getAllByText('Basic').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Pro').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Enterprise').length).toBeGreaterThanOrEqual(1)
   })
 
-  // 5. current plan card has aria-current="true"
   it('current plan card has aria-current="true"', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => fourPlans,
-    } as any)
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => fourPlans } as any)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ has_stripe: true, plan: 'pro', subscription_status: 'active', portal_url: null }),
@@ -166,20 +151,16 @@ describe('FacturacionPage', () => {
     render(<FacturacionPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Pro')).toBeDefined()
+      expect(screen.getAllByText('Pro').length).toBeGreaterThanOrEqual(1)
     })
 
-    const proButtons = screen.getAllByRole('button', { name: 'Plan actual' })
+    const proButtons = screen.getAllByRole('button', { name: 'Current plan' })
     expect(proButtons.length).toBe(1)
     expect(proButtons[0].getAttribute('aria-current')).toBe('true')
   })
 
-  // 6. Pro plan card shows "Recomendado" badge
-  it('Pro plan card shows "Recomendado" badge', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => fourPlans,
-    } as any)
+  it('Pro plan card shows "Recommended" badge', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => fourPlans } as any)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ has_stripe: false, plan: null, subscription_status: null, portal_url: null }),
@@ -188,20 +169,16 @@ describe('FacturacionPage', () => {
     render(<FacturacionPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Pro')).toBeDefined()
+      expect(screen.getAllByText('Pro').length).toBeGreaterThanOrEqual(1)
     })
 
-    const badge = screen.getByText('Recomendado')
+    const badge = screen.getByText('Recommended')
     expect(badge).toBeDefined()
     expect(badge.className).toContain('badge-violet')
   })
 
-  // 7. "Gestionar suscripción" link has sr-only "se abre en una pestaña nueva"
-  it('"Gestionar suscripción" link has sr-only "se abre en una pestaña nueva"', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => fourPlans,
-    } as any)
+  it('"Manage subscription" link has sr-only "(opens in a new tab)"', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => fourPlans } as any)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ has_stripe: true, plan: 'pro', subscription_status: 'active', portal_url: 'https://stripe.com/portal' }),
@@ -210,14 +187,14 @@ describe('FacturacionPage', () => {
     render(<FacturacionPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Gestionar suscripción')).toBeDefined()
+      expect(screen.getByText('Manage subscription')).toBeDefined()
     })
 
-    const link = screen.getByRole('link', { name: /Gestionar suscripción/i })
+    const link = screen.getByRole('link', { name: /Manage subscription/i })
     expect(link).toBeDefined()
     expect(link.getAttribute('href')).toBe('https://stripe.com/portal')
 
-    const srOnly = screen.getByText('(se abre en una pestaña nueva)')
+    const srOnly = screen.getByText('(opens in a new tab)')
     expect(srOnly).toBeDefined()
     expect(srOnly.className).toContain('sr-only')
   })
