@@ -18,6 +18,7 @@ import {
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
+import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
 
 interface AnalyticsOverview {
@@ -45,6 +46,7 @@ export default function DashboardResumenPage() {
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
+  const [clonesCount, setClonesCount] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,9 +59,10 @@ export default function DashboardResumenPage() {
     setLoading(true);
     setError(null);
     try {
-      const [overviewRes, inboxRes] = await Promise.allSettled([
+      const [overviewRes, inboxRes, clonesRes] = await Promise.allSettled([
         fetch("/api/clone/analytics/overview"),
         fetch("/api/clone/inbox/list?limit=3"),
+        fetch("/api/clone/clones"),
       ]);
 
       if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
@@ -68,6 +71,11 @@ export default function DashboardResumenPage() {
       if (inboxRes.status === "fulfilled" && inboxRes.value.ok) {
         const data = await inboxRes.value.json();
         setRecentInbox(Array.isArray(data) ? data : data.items ?? []);
+      }
+      if (clonesRes.status === "fulfilled" && clonesRes.value.ok) {
+        const data = await clonesRes.value.json();
+        const clones = Array.isArray(data) ? data : data.clones ?? [];
+        setClonesCount(clones.length);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error loading data");
@@ -130,6 +138,10 @@ export default function DashboardResumenPage() {
           )}
         </div>
       </header>
+
+      {clonesCount !== null && clonesCount === 0 && (
+        <OnboardingBanner completedSteps={1} totalSteps={4} />
+      )}
 
       <section className="mb-7">
         <p className="section-label mb-3">Get Started</p>

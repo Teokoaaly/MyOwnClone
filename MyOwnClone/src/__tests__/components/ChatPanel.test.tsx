@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import { ChatPanel } from '@/components/chat/ChatPanel'
 
 // Mock fetch for SSE streaming tests
@@ -16,18 +16,23 @@ Element.prototype.scrollIntoView = vi.fn()
 
 describe('ChatPanel', () => {
   beforeEach(() => {
+    cleanup()
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    cleanup()
   })
 
   it('renders empty state with welcome message', () => {
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
-    expect(screen.getByText('¿En qué puedo ayudarte?')).toBeDefined()
-    expect(screen.getByText('Pregunta lo que quieras sobre el contenido del creador')).toBeDefined()
+    expect(screen.getByText('How can I help?')).toBeDefined()
+    expect(screen.getByText("Ask anything about the creator's content")).toBeDefined()
   })
 
   it('renders input textarea', () => {
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
-    expect(screen.getByPlaceholderText('Escribe tu pregunta...')).toBeDefined()
+    expect(screen.getByPlaceholderText('Write your question...')).toBeDefined()
   })
 
   it('renders send button', () => {
@@ -38,12 +43,12 @@ describe('ChatPanel', () => {
 
   it('renders SiloToggle with initial silo', () => {
     render(<ChatPanel slug="test-clone" initialSilo="sales" />)
-    expect(screen.getByText('Ventas')).toBeDefined()
+    expect(screen.getByText('Sales')).toBeDefined()
   })
 
   it('send button is disabled when input is empty', () => {
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
-    const sendButton = screen.getByRole('button', { name: 'Enviar mensaje' })
+    const sendButton = screen.getByRole('button', { name: 'Send message' })
     expect(sendButton).toBeDisabled()
   })
 
@@ -60,10 +65,10 @@ describe('ChatPanel', () => {
     })
 
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
-    const textarea = screen.getByPlaceholderText('Escribe tu pregunta...')
+    const textarea = screen.getByPlaceholderText('Write your question...')
     fireEvent.change(textarea, { target: { value: 'Hola' } })
 
-    const sendBtn = screen.getByRole('button', { name: 'Enviar mensaje' })
+    const sendBtn = screen.getByRole('button', { name: 'Send message' })
     fireEvent.click(sendBtn)
 
     await waitFor(() => {
@@ -75,10 +80,10 @@ describe('ChatPanel', () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
-    const textarea = screen.getByPlaceholderText('Escribe tu pregunta...')
+    const textarea = screen.getByPlaceholderText('Write your question...')
     fireEvent.change(textarea, { target: { value: 'Hola' } })
 
-    const sendBtn = screen.getByRole('button', { name: 'Enviar mensaje' })
+    const sendBtn = screen.getByRole('button', { name: 'Send message' })
     fireEvent.click(sendBtn)
 
     await waitFor(() => {
