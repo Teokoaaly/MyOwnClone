@@ -22,19 +22,19 @@ describe('RegisterForm', () => {
 
   it('renders both labels', () => {
     render(<RegisterForm />)
-    expect(screen.getByLabelText('Nombre completo')).toBeDefined()
-    expect(screen.getByLabelText('Correo electrónico')).toBeDefined()
+    expect(screen.getByLabelText('Full name')).toBeDefined()
+    expect(screen.getByLabelText('Email address')).toBeDefined()
   })
 
   it('renders both inputs', () => {
     render(<RegisterForm />)
-    expect(screen.getByPlaceholderText('Tu nombre')).toBeDefined()
-    expect(screen.getByPlaceholderText('tu@email.com')).toBeDefined()
+    expect(screen.getByPlaceholderText('Your name')).toBeDefined()
+    expect(screen.getByPlaceholderText('you@email.com')).toBeDefined()
   })
 
-  it('renders submit button with "Crear cuenta" text initially', () => {
+  it('renders submit button with "Create account" text initially', () => {
     render(<RegisterForm />)
-    const button = screen.getByRole('button', { name: 'Crear cuenta' })
+    const button = screen.getByRole('button', { name: 'Create account' })
     expect(button).toBeDefined()
     expect(button).not.toBeDisabled()
   })
@@ -43,12 +43,12 @@ describe('RegisterForm', () => {
     mockSignIn.mockResolvedValueOnce({ error: null })
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Tu nombre'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }))
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Revisa tu correo')).toBeDefined()
+      expect(screen.getByText('Check your email')).toBeDefined()
     })
   })
 
@@ -56,12 +56,12 @@ describe('RegisterForm', () => {
     mockSignIn.mockResolvedValueOnce({ error: 'some-error' })
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Tu nombre'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }))
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Error al enviar el enlace. Intenta de nuevo.')
+      expect(screen.getByRole('alert')).toHaveTextContent('Error sending the link. Try again.')
     })
   })
 
@@ -69,12 +69,12 @@ describe('RegisterForm', () => {
     mockSignIn.mockRejectedValueOnce(new Error('network'))
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Tu nombre'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }))
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Error de conexión. Intenta de nuevo.')
+      expect(screen.getByRole('alert')).toHaveTextContent('Connection error. Try again.')
     })
   })
 
@@ -82,23 +82,23 @@ describe('RegisterForm', () => {
     mockSignIn.mockImplementation(() => new Promise(() => {}))
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Tu nombre'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }))
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
-    const button = screen.getByRole('button', { name: 'Enviando...' })
+    const button = screen.getByRole('button', { name: 'Sending...' })
     expect(button).toBeDisabled()
   })
 
   it('Google button calls signIn with google and callbackUrl /resumen', () => {
     render(<RegisterForm />)
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Continuar con Google' }))
+  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Continue with Google' }))
     expect(mockSignIn).toHaveBeenCalledWith('google', { callbackUrl: '/resumen' })
   })
 
-  it('Inicia sesión link routes to /login', () => {
+  it('Sign in link routes to /login', () => {
     render(<RegisterForm />)
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Inicia sesión' }))
+  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Sign in' }))
     expect(mockPush).toHaveBeenCalledWith('/login')
   })
 })
