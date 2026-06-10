@@ -23,7 +23,7 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Email o contraseña incorrectos.");
+        setError("Invalid email or password.");
         setLoading(false);
         return;
       }
@@ -33,7 +33,7 @@ export function LoginForm() {
       const role = (session?.user as { role?: string } | undefined)?.role;
       window.location.href = role === "platform_admin" ? "/admin/resumen" : "/resumen";
     } catch {
-      setError("Error de conexión. Intenta de nuevo.");
+      setError("Connection error. Try again.");
       setLoading(false);
     }
   }
@@ -66,7 +66,7 @@ export function LoginForm() {
             htmlFor="login-email"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Correo electrónico
+            Email address
           </label>
           <input
             id="login-email"
@@ -90,7 +90,7 @@ export function LoginForm() {
             htmlFor="login-password"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Contraseña
+            Password
           </label>
           <input
             id="login-password"
@@ -114,7 +114,7 @@ export function LoginForm() {
           disabled={loading}
           className="btn-primary w-full py-3 text-sm font-semibold disabled:opacity-50"
         >
-          {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+          {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
@@ -124,7 +124,7 @@ export function LoginForm() {
           className="font-medium underline decoration-[var(--color-accent-violet)] underline-offset-4 hover:opacity-80"
           style={{ color: "var(--text-primary)" }}
         >
-          ¿Olvidaste tu contraseña?
+          Forgot your password?
         </a>
       </p>
     </div>

@@ -76,21 +76,21 @@ export default function LandingPage() {
           </Link>
 
           <div className="landing-menu">
-            <Link href="/registro">Producto</Link>
+            <Link href="/registro">Product</Link>
             <Link href="/registro">
-              Soluciones
+              Solutions
               <span className="landing-chevron" aria-hidden="true">v</span>
             </Link>
-            <Link href="/facturacion">Precios</Link>
-            <Link href="/login">Acceder</Link>
+            <Link href="/facturacion">Pricing</Link>
+            <Link href="/login">Sign in</Link>
           </div>
 
           <div className="landing-actions">
             <Link href="/login" className="landing-signin">
-              Iniciar sesión
+              Sign in
             </Link>
             <Link href="/registro" className="landing-contact">
-              Crear cuenta
+              Get started
             </Link>
           </div>
         </nav>
@@ -121,22 +121,22 @@ export default function LandingPage() {
           </div>
 
           <h1>
-            Crea un clon de IA
+            Create an AI clone
             <br />
-            que atiende como tú
+            that works like you
           </h1>
 
           <p>
-            Entrena un clon con tu contenido. Atiende consultas, responde correos
-            y reserva reuniones 24/7 en tu propio tono, en modo pedagogía, ventas y soporte.
+            Train a clone with your content. Answer questions, reply to emails,
+            and book meetings 24/7 in your own tone — in pedagogy, sales, or support mode.
           </p>
 
           <div className="landing-cta-row">
             <Link href="/registro" className="landing-primary">
-              Empezar gratis
+              Start free
             </Link>
             <Link href="/login" className="landing-secondary">
-              Ver demo
+              Watch demo
             </Link>
           </div>
         </div>
@@ -149,13 +149,13 @@ export default function LandingPage() {
             <span>MyOwnClone</span>
           </div>
           <div className="landing-footer-links">
-            <Link href="/registro">Producto</Link>
-            <Link href="/facturacion">Precios</Link>
-            <Link href="/login">Contacto</Link>
-            <Link href="/login">Aviso legal</Link>
+            <Link href="/registro">Product</Link>
+            <Link href="/facturacion">Pricing</Link>
+            <Link href="/login">Contact</Link>
+            <Link href="/login">Legal</Link>
           </div>
           <div className="landing-footer-copy">
-            © 2026 MyOwnClone.com — Todos los derechos reservados
+            © 2026 MyOwnClone.com — All rights reserved
           </div>
         </div>
       </footer>
