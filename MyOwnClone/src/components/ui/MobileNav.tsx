@@ -123,14 +123,14 @@ export const MobileNav: FC<MobileNavProps> = ({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Cerrar menú"
+            aria-label="Close menu"
             className="h-8 w-8 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)]"
           >
             <span aria-hidden="true">×</span>
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-2" aria-label="Navegación principal">
+        <nav className="flex-1 overflow-y-auto px-3 py-2" aria-label="Main navigation">
           {items.map((item) => {
             const isActive = pathname?.startsWith(item.href);
             const Icon = item.icon;
@@ -155,7 +155,7 @@ export const MobileNav: FC<MobileNavProps> = ({
         </nav>
 
         <div className="border-t border-[var(--border-soft)] px-4 py-3 flex items-center justify-between">
-          <span className="text-[11px] text-[var(--text-muted)]">Tema</span>
+          <span className="text-[11px] text-[var(--text-muted)]">Theme</span>
           <ThemeToggle showLabel />
         </div>
 

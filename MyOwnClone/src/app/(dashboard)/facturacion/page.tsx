@@ -57,7 +57,7 @@ export default function FacturacionPage() {
         if (plansRes.ok) setPlans(await plansRes.json())
         if (billingRes.ok) setBilling(await billingRes.json())
         if (!plansRes.ok || !billingRes.ok) {
-          throw new Error("No se pudo cargar la información de facturación")
+          throw new Error("Could not load billing information")
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Error")
@@ -88,24 +88,24 @@ export default function FacturacionPage() {
   }
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando planes…" rows={4} />
+    return <LoadingState label="Loading plans..." rows={4} />
   }
 
   if (error) {
     return <ErrorState message={error} />
   }
 
-  const currentPlan = billing?.plan || "básico"
+  const currentPlan = billing?.plan || "basic"
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Facturación
+          Billing
         </h1>
         <div className="mt-1 flex items-center gap-2 text-sm text-[var(--text-muted)]">
           <span>
-            Plan actual:{" "}
+            Current plan:{" "}
             <span className="font-semibold text-[var(--color-accent-warm)] capitalize">
               {currentPlan}
             </span>
@@ -127,9 +127,9 @@ export default function FacturacionPage() {
             rel="noopener noreferrer"
             className="btn-primary text-xs"
           >
-            Gestionar suscripción
+            Manage subscription
             <span aria-hidden="true" className="ml-1">↗</span>
-            <span className="sr-only"> (se abre en una pestaña nueva)</span>
+            <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </div>
       )}
@@ -148,7 +148,7 @@ export default function FacturacionPage() {
               ].join(" ")}
             >
               {isRecommended && (
-                <span className="badge-violet self-start">Recomendado</span>
+                <span className="badge-violet self-start">Recommended</span>
               )}
 
               <h3 className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
@@ -159,22 +159,22 @@ export default function FacturacionPage() {
               </p>
               {plan.price_cents === 0 && (
                 <p className="text-xs text-[var(--text-muted)] mt-1">
-                  14 días de prueba con tarjeta
+                  14-day card-backed trial
                 </p>
               )}
 
               <ul className="mt-5 space-y-2 text-sm text-[var(--text-secondary)] flex-1">
                 <li className="flex items-center gap-2">
                   <span className="text-[var(--color-accent-green)]">✓</span>
-                  {plan.words_training_limit.toLocaleString("es-ES")} palabras training
+                  {plan.words_training_limit.toLocaleString("en-US")} training words
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-[var(--color-accent-green)]">✓</span>
-                  {plan.responses_month_limit.toLocaleString("es-ES")} respuestas/mes
+                  {plan.responses_month_limit.toLocaleString("en-US")} responses/month
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-[var(--color-accent-green)]">✓</span>
-                  {plan.modes_active} modo{plan.modes_active !== 1 ? "s" : ""}
+                  {plan.modes_active} mode{plan.modes_active !== 1 ? "s" : ""}
                 </li>
                 <li className="flex items-center gap-2">
                   <span className={plan.email_triage ? "text-[var(--color-accent-green)]" : "text-[var(--text-muted)]"}>
@@ -203,10 +203,10 @@ export default function FacturacionPage() {
                 ].join(" ")}
               >
                 {isCurrent
-                  ? "Plan actual"
+                  ? "Current plan"
                   : checkingOut === plan.id
-                  ? "Redirigiendo…"
-                  : "Comenzar prueba"}
+                  ? "Redirecting..."
+                  : "Start trial"}
               </button>
             </div>
           )

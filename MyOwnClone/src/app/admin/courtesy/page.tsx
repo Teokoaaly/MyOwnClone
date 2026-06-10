@@ -77,11 +77,11 @@ export default function AdminCourtesyPage() {
     <div className="space-y-6">
       <PageHeader
         title="Courtesy credits"
-        subtitle={`${total} créditos de cortesía otorgados`}
+        subtitle={`${total} courtesy credits granted`}
       />
 
       <FilterBar>
-        <Field label="Buscar" fill>
+        <Field label="Search" fill>
           <input
             type="text"
             value={search}
@@ -89,7 +89,7 @@ export default function AdminCourtesyPage() {
               resetPage();
               setSearch(e.target.value);
             }}
-            placeholder="Nombre de tenant o razón…"
+            placeholder="Tenant name or reason..."
             className={fieldControlClass}
           />
         </Field>
@@ -110,11 +110,11 @@ export default function AdminCourtesyPage() {
           }
         />
       ) : loading ? (
-        <LoadingState label="Cargando créditos…" rows={6} />
+        <LoadingState label="Loading credits..." rows={6} />
       ) : items.length === 0 ? (
         <EmptyState
-          title="Sin créditos de cortesía"
-          description="Los créditos de cortesía otorgados a tenants aparecerán aquí."
+          title="No courtesy credits"
+          description="Courtesy credits granted to tenants will appear here."
         />
       ) : (
         <>
@@ -125,7 +125,7 @@ export default function AdminCourtesyPage() {
                   <th className="px-4 py-2.5 text-left">Tenant</th>
                   <th className="px-4 py-2.5 text-right">Importe</th>
                   <th className="px-4 py-2.5 text-left">Otorgado por</th>
-                  <th className="px-4 py-2.5 text-left">Razón</th>
+                  <th className="px-4 py-2.5 text-left">Reason</th>
                   <th className="px-4 py-2.5 text-left">Fecha</th>
                 </tr>
               </thead>

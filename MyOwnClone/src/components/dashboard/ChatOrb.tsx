@@ -6,7 +6,7 @@ interface ChatOrbProps {
 
 /**
  * Esfera glassmorphic con halo multicolor pulsante.
- * Estilo OEME / Deflexai hero.
+ * MyOwnClone hero orb.
  */
 export const ChatOrb: FC<ChatOrbProps> = ({ size = 56 }) => {
   return (

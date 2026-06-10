@@ -20,7 +20,7 @@ const buttonClass = "btn-secondary text-xs disabled:opacity-40";
 
 /**
  * Standard pagination control. Replaces the duplicated
- * `← Anterior` / `Siguiente →` blocks previously inlined in
+ * `Previous` / `Next` blocks previously inlined in
  * admin/tenants and admin/audit pages.
  */
 export const Pagination: FC<PaginationProps> = ({
@@ -40,7 +40,7 @@ export const Pagination: FC<PaginationProps> = ({
         onClick={onPrev}
         className={buttonClass}
       >
-        ← Anterior
+        Previous
       </button>
       <span>
         {page} / {pages}
@@ -51,7 +51,7 @@ export const Pagination: FC<PaginationProps> = ({
         onClick={onNext}
         className={buttonClass}
       >
-        Siguiente →
+        Next
       </button>
     </div>
   );
@@ -60,7 +60,7 @@ export const Pagination: FC<PaginationProps> = ({
     return (
       <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
         <span>
-          Página {page} de {pages}
+          Page {page} of {pages}
         </span>
         {buttons}
       </div>

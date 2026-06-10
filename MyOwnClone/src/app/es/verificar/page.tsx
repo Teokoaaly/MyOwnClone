@@ -34,28 +34,28 @@ export default async function VerificarPage({ searchParams }: Props) {
           </svg>
         </div>
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Revisa tu email
+          Check your email
         </h1>
         <p className="mt-2 text-sm text-[var(--text-muted)]">
-          Te hemos enviado un enlace mágico para acceder a tu cuenta.
+          We sent you a magic link to access your account.
         </p>
         {email && (
           <p className="mt-4 text-sm text-[var(--text-secondary)] bg-[var(--surface-2)] rounded-lg py-2 px-4">
-            Enviado a: <strong className="text-[var(--text-primary)]">{email}</strong>
+            Sent to: <strong className="text-[var(--text-primary)]">{email}</strong>
           </p>
         )}
         <p className="mt-4 text-xs text-[var(--text-muted)]">
-          Si no ves el email, revisa la carpeta de spam o{" "}
+          If you do not see the email, check your spam folder or{" "}
           <Link
             href="/login"
             className="font-medium text-[var(--text-primary)] underline decoration-[var(--color-accent-warm)] underline-offset-4 hover:text-[var(--color-accent-warm)]"
           >
-            vuelve a intentarlo
+            try again
           </Link>
           .
         </p>
         <Link href="/login" className="btn-primary text-sm mt-6 inline-block">
-          Volver al inicio
+          Back home
         </Link>
       </div>
     </main>

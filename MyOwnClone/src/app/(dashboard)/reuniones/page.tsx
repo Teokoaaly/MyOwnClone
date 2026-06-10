@@ -28,7 +28,7 @@ interface Availability {
   buffer_minutes: number
 }
 
-const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 export default function ReunionesPage() {
   const { status } = useSession()
@@ -151,7 +151,7 @@ export default function ReunionesPage() {
   }
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando reuniones…" rows={3} />
+    return <LoadingState label="Loading meetings..." rows={3} />
   }
 
   return (
@@ -159,10 +159,10 @@ export default function ReunionesPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Reuniones
+            Meetings
           </h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Configura tipos de reunión y tu disponibilidad semanal.
+            Configure meeting types and weekly availability.
           </p>
         </div>
         <div className="flex gap-2">
@@ -171,24 +171,24 @@ export default function ReunionesPage() {
             onClick={() => setShowForm(showForm === "meeting" ? null : "meeting")}
             className="btn-primary text-xs"
           >
-            + Tipo de reunión
+            + Meeting type
           </button>
           <button
             type="button"
             onClick={() => setShowForm(showForm === "availability" ? null : "availability")}
             className="btn-secondary text-xs"
           >
-            + Disponibilidad
+            + Availability
           </button>
         </div>
       </header>
 
       {showForm === "meeting" && (
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Nuevo tipo de reunión</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">New meeting type</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="stat-label" htmlFor="mt-name">Nombre</label>
+              <label className="stat-label" htmlFor="mt-name">Name</label>
               <input
                 id="mt-name"
                 type="text"
@@ -198,7 +198,7 @@ export default function ReunionesPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="mt-duration">Duración (min)</label>
+              <label className="stat-label" htmlFor="mt-duration">Duration (min)</label>
               <input
                 id="mt-duration"
                 type="number"
@@ -208,7 +208,7 @@ export default function ReunionesPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="mt-price">Precio (céntimos)</label>
+              <label className="stat-label" htmlFor="mt-price">Price (cents)</label>
               <input
                 id="mt-price"
                 type="number"
@@ -228,7 +228,7 @@ export default function ReunionesPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="mt-desc">Descripción</label>
+              <label className="stat-label" htmlFor="mt-desc">Description</label>
               <input
                 id="mt-desc"
                 type="text"
@@ -246,10 +246,10 @@ export default function ReunionesPage() {
               disabled={saving}
               className="btn-primary text-xs disabled:opacity-50"
             >
-              {saving ? "Creando…" : "Crear"}
+              {saving ? "Creating..." : "Create"}
             </button>
             <button type="button" onClick={() => setShowForm(null)} className="btn-secondary text-xs">
-              Cancelar
+              Cancel
             </button>
           </div>
         </div>
@@ -257,10 +257,10 @@ export default function ReunionesPage() {
 
       {showForm === "availability" && (
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Nueva disponibilidad</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">New availability</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="stat-label" htmlFor="av-day">Día</label>
+              <label className="stat-label" htmlFor="av-day">Day</label>
               <select
                 id="av-day"
                 value={formDay}
@@ -281,7 +281,7 @@ export default function ReunionesPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="av-start">Hora inicio</label>
+              <label className="stat-label" htmlFor="av-start">Start time</label>
               <input
                 id="av-start"
                 type="time"
@@ -291,7 +291,7 @@ export default function ReunionesPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="av-end">Hora fin</label>
+              <label className="stat-label" htmlFor="av-end">End time</label>
               <input
                 id="av-end"
                 type="time"
@@ -309,10 +309,10 @@ export default function ReunionesPage() {
               disabled={saving}
               className="btn-primary text-xs disabled:opacity-50"
             >
-              {saving ? "Creando…" : "Crear"}
+              {saving ? "Creating..." : "Create"}
             </button>
             <button type="button" onClick={() => setShowForm(null)} className="btn-secondary text-xs">
-              Cancelar
+              Cancel
             </button>
           </div>
         </div>
@@ -320,11 +320,11 @@ export default function ReunionesPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Tipos de reunión</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Meeting types</h3>
           {meetingTypes.length === 0 ? (
             <EmptyState
-              title="No hay tipos de reunión"
-              description="Crea el primero con el botón de arriba."
+              title="No meeting types"
+              description="Create the first one with the button above."
             />
           ) : (
             <ul className="space-y-2">
@@ -338,12 +338,12 @@ export default function ReunionesPage() {
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-[var(--text-primary)] truncate">{mt.name}</p>
                       <p className="text-xs text-[var(--text-muted)]">
-                        {mt.duration_minutes} min · {mt.price_cents > 0 ? `${(mt.price_cents / 100).toFixed(2)}€` : "Gratis"}
+                        {mt.duration_minutes} min · {mt.price_cents > 0 ? `${(mt.price_cents / 100).toFixed(2)}€` : "Free"}
                       </p>
                     </div>
                   </div>
                   {!mt.active && (
-                    <span className="badge-warning">Inactivo</span>
+                    <span className="badge-warning">Inactive</span>
                   )}
                 </li>
               ))}
@@ -352,11 +352,11 @@ export default function ReunionesPage() {
         </div>
 
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Disponibilidad semanal</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Weekly availability</h3>
           {availability.length === 0 ? (
             <EmptyState
-              title="No hay horarios"
-              description="Configura tu disponibilidad con el botón de arriba."
+              title="No schedules"
+              description="Configure your availability with the button above."
             />
           ) : (
             <ul className="space-y-2">

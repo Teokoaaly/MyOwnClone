@@ -1,48 +1,45 @@
-"use client";
-
 import type { SidebarNavItem } from "@/components/dashboard/Sidebar";
-import { NavIcons } from "@/components/ui/dashboard-icons";
 
 export const ADMIN_NAV: SidebarNavItem[] = [
   {
     href: "/admin/resumen",
     label: "Overview",
-    icon: NavIcons.resumen,
-    tooltip: "Métricas de plataforma",
+    iconKey: "resumen",
+    tooltip: "Platform metrics",
     section: "platform",
   },
   {
     href: "/admin/tenants",
     label: "Tenants",
-    icon: NavIcons.productos,
-    tooltip: "Gestionar tenants",
+    iconKey: "productos",
+    tooltip: "Manage tenants",
     section: "platform",
   },
   {
     href: "/admin/audit",
     label: "Audit log",
-    icon: NavIcons.configuracion,
-    tooltip: "Acciones sensibles",
+    iconKey: "configuracion",
+    tooltip: "Sensitive actions",
     section: "platform",
   },
   {
     href: "/admin/impersonation",
     label: "Impersonation",
-    icon: NavIcons.impersonation,
-    tooltip: "Suplantar usuarios",
+    iconKey: "impersonation",
+    tooltip: "Impersonate users",
     section: "platform",
   },
   {
     href: "/admin/courtesy",
     label: "Courtesy",
-    icon: NavIcons.courtesy,
-    tooltip: "Créditos de cortesía",
+    iconKey: "courtesy",
+    tooltip: "Courtesy credits",
     section: "platform",
   },
   {
     href: "/admin/feedback",
     label: "Feedback",
-    icon: NavIcons.inbox,
+    iconKey: "inbox",
     tooltip: "Feedback de usuarios",
     section: "platform",
   },

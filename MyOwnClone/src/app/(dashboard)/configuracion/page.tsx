@@ -32,16 +32,16 @@ interface ModePrompt {
 }
 
 const SILO_LABELS: Record<string, string> = {
-  teach: "Pedagogía",
-  support: "Soporte",
-  sales: "Ventas",
+  teach: "Teaching",
+  support: "Support",
+  sales: "Sales",
 }
 
 const TONE_OPTIONS = [
   { value: "formal", label: "Formal" },
   { value: "informal", label: "Informal" },
-  { value: "cercano", label: "Cercano" },
-  { value: "técnico", label: "Técnico" },
+  { value: "cercano", label: "Friendly" },
+  { value: "técnico", label: "Technical" },
 ]
 
 export default function ConfiguracionPage() {
@@ -134,7 +134,7 @@ export default function ConfiguracionPage() {
   }
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando configuración…" rows={3} />
+    return <LoadingState label="Loading settings..." rows={3} />
   }
 
   if (!clone) {
@@ -142,12 +142,12 @@ export default function ConfiguracionPage() {
       <div className="space-y-6">
         <header>
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Configuración
+            Settings
           </h1>
         </header>
         <EmptyState
-          title="No se encontró ningún clon"
-          description="Crea tu primer clon para empezar a configurar el workspace."
+          title="No clone found"
+          description="Create your first clone to start configuring the workspace."
         />
       </div>
     )
@@ -157,10 +157,10 @@ export default function ConfiguracionPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Configuración
+          Settings
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Personaliza tu clon: nombre, personalidad, tono y prompts por modo.
+          Customize your clone: name, personality, tone, and prompts by mode.
         </p>
       </header>
 
@@ -170,7 +170,7 @@ export default function ConfiguracionPage() {
           aria-live="polite"
           className="rounded-lg border border-[var(--color-accent-green)]/30 bg-[var(--color-accent-green)]/10 px-4 py-3 text-sm text-[var(--color-accent-green)]"
         >
-          Cambios guardados correctamente.
+          Changes saved successfully.
         </div>
       )}
 
@@ -178,13 +178,13 @@ export default function ConfiguracionPage() {
         {/* Preferences: theme */}
         <div className="card">
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">
-            Apariencia
+            Appearance
           </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--text-primary)]">Tema</p>
+              <p className="text-sm text-[var(--text-primary)]">Theme</p>
               <p className="text-xs text-[var(--text-muted)]">
-                Claro u oscuro. Se guarda en este navegador.
+                Light or dark. Saved in this browser.
               </p>
             </div>
             <ThemeToggle showLabel />
@@ -194,11 +194,11 @@ export default function ConfiguracionPage() {
         {/* Identity */}
         <div className="card">
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">
-            Identidad del clon
+            Clone identity
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="stat-label" htmlFor="cfg-name">Nombre</label>
+              <label className="stat-label" htmlFor="cfg-name">Name</label>
               <input
                 id="cfg-name"
                 type="text"
@@ -208,7 +208,7 @@ export default function ConfiguracionPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-slug">Slug público</label>
+              <label className="stat-label" htmlFor="cfg-slug">Public slug</label>
               <input
                 id="cfg-slug"
                 type="text"
@@ -221,7 +221,7 @@ export default function ConfiguracionPage() {
               </p>
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-desc">Descripción</label>
+              <label className="stat-label" htmlFor="cfg-desc">Description</label>
               <textarea
                 id="cfg-desc"
                 rows={3}
@@ -231,7 +231,7 @@ export default function ConfiguracionPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-tone">Tono</label>
+              <label className="stat-label" htmlFor="cfg-tone">Tone</label>
               <select
                 id="cfg-tone"
                 value={tone}
@@ -251,7 +251,7 @@ export default function ConfiguracionPage() {
               disabled={saving}
               className="btn-primary text-xs disabled:opacity-50"
             >
-              {saving ? "Guardando…" : "Guardar cambios"}
+              {saving ? "Saving..." : "Save changes"}
             </button>
           </div>
         </div>
@@ -259,10 +259,10 @@ export default function ConfiguracionPage() {
         {/* Mode prompts */}
         <div className="card">
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-2">
-            Prompts por modo
+            Mode prompts
           </h3>
           <p className="text-xs text-[var(--text-muted)] mb-4">
-            Define cómo se comporta tu clon en cada modo. Estos prompts se usan como sistema base para las respuestas.
+            Define how your clone behaves in each mode. These prompts are used as the base system instructions.
           </p>
           <div className="space-y-4">
             {["teach", "support", "sales"].map((mode) => (
@@ -284,7 +284,7 @@ export default function ConfiguracionPage() {
                     disabled={saving}
                     className="btn-secondary text-xs disabled:opacity-50"
                   >
-                    {saving ? "Guardando…" : "Guardar prompt"}
+                    {saving ? "Saving..." : "Save prompt"}
                   </button>
                 </div>
               </div>

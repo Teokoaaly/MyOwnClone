@@ -32,7 +32,7 @@ export default function RegisterPage() {
               MyOwnClone
             </h1>
             <p className="mt-1 text-sm text-[var(--text-muted)]">
-              Crea tu cuenta y empieza a multiplicarte
+              Create your account and start scaling yourself
             </p>
           </div>
           <div className="px-8 pb-8 pt-4">

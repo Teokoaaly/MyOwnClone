@@ -9,17 +9,17 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
 
 const SILOS = [
-  { id: "teach", label: "Pedagogía" },
-  { id: "support", label: "Soporte" },
-  { id: "sales", label: "Ventas" },
+  { id: "teach", label: "Teaching" },
+  { id: "support", label: "Support" },
+  { id: "sales", label: "Sales" },
 ] as const
 
 const TYPE_LABELS: Record<string, string> = {
-  pdf: "Subir PDF",
-  youtube: "Enlace de YouTube",
-  text: "Escribir texto",
-  web: "Página web",
-  interview: "Entrevista AI",
+  pdf: "Upload PDF",
+  youtube: "YouTube link",
+  text: "Write text",
+  web: "Web page",
+  interview: "AI interview",
 }
 
 function CheckIcon({
@@ -61,7 +61,7 @@ function NuevoContentPage() {
   }, [router])
 
   if (status === "loading") {
-    return <LoadingState label="Cargando…" rows={4} />
+    return <LoadingState label="Loading..." rows={4} />
   }
   if (status === "unauthenticated") {
     router.push("/login")
@@ -100,13 +100,13 @@ function NuevoContentPage() {
         onClick={handleBack}
         className="mb-4 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]"
       >
-        <span aria-hidden="true">←</span> Volver a la biblioteca
+        <span aria-hidden="true">←</span> Back to library
       </button>
       <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-        {TYPE_LABELS[tipo] || "Nuevo contenido"}
+        {TYPE_LABELS[tipo] || "New content"}
       </h1>
       <p className="mt-1 text-sm text-[var(--text-muted)]">
-        Añade contenido al conocimiento de tu clon.
+        Add content to your clone's knowledge.
       </p>
 
       {success ? (
@@ -125,10 +125,10 @@ function NuevoContentPage() {
             <CheckIcon className="h-6 w-6" style={{ color: "#FFFFFF" }} />
           </div>
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-            Contenido añadido
+            Content added
           </h2>
           <p className="mt-2 text-sm text-[var(--text-muted)]">
-            El contenido se está procesando. Tu clon podrá usarlo en unos minutos.
+            The content is being processed. Your clone will be able to use it in a few minutes.
           </p>
           <button
             type="button"
@@ -142,7 +142,7 @@ function NuevoContentPage() {
               e.currentTarget.style.background = "var(--color-accent-violet)"
             }}
           >
-            Volver a la biblioteca
+            Back to library
           </button>
         </div>
       ) : (
@@ -157,9 +157,9 @@ function NuevoContentPage() {
         >
           <fieldset>
             <legend className="mb-2 block text-sm font-medium text-[var(--text-primary)]">
-              Silo de contenido
+              Content silo
             </legend>
-            <div className="flex gap-2" role="radiogroup" aria-label="Silo de contenido">
+            <div className="flex gap-2" role="radiogroup" aria-label="Content silo">
               {SILOS.map((s) => {
                 const isActive = silo === s.id
                 return (
@@ -196,7 +196,7 @@ function NuevoContentPage() {
                 htmlFor="source-file"
                 className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
               >
-                Archivo PDF
+                PDF file
               </label>
               <input
                 id="source-file"
@@ -225,7 +225,7 @@ function NuevoContentPage() {
                 id="source-url"
                 name="url"
                 type="url"
-                placeholder={tipo === "youtube" ? "https://youtube.com/watch?v=..." : "https://ejemplo.com/articulo"}
+                placeholder={tipo === "youtube" ? "https://youtube.com/watch?v=..." : "https://example.com/article"}
                 className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
                 style={{
                   background: "var(--surface-2)",
@@ -242,13 +242,13 @@ function NuevoContentPage() {
                 htmlFor="source-content"
                 className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
               >
-                Contenido
+                Content
               </label>
               <textarea
                 id="source-content"
                 name="content"
                 rows={8}
-                placeholder="Pega o escribe el contenido aquí..."
+                placeholder="Paste or write the content here..."
                 className="w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
                 style={{
                   background: "var(--surface-2)",
@@ -269,11 +269,11 @@ function NuevoContentPage() {
               role="status"
             >
               <p className="text-sm text-[var(--text-primary)]">
-                La entrevista AI es una conversación con tu clon donde él te hará
-                preguntas para extraer tu conocimiento automáticamente.
+                The AI interview is a conversation with your clone where it asks
+                questions to extract your knowledge automatically.
               </p>
               <p className="mt-2 text-xs text-[var(--text-muted)]">
-                Esta funcionalidad estará disponible próximamente.
+                This feature will be available soon.
               </p>
             </div>
           )}
@@ -294,10 +294,10 @@ function NuevoContentPage() {
               }}
             >
               {loading
-                ? "Procesando..."
+                ? "Processing..."
                 : tipo === "interview"
-                ? "Próximamente"
-                : "Añadir contenido"}
+                ? "Coming soon"
+                : "Add content"}
             </button>
           </div>
         </form>
@@ -308,7 +308,7 @@ function NuevoContentPage() {
 
 export default function NuevoPage() {
   return (
-    <Suspense fallback={<LoadingState label="Cargando…" rows={4} />}>
+    <Suspense fallback={<LoadingState label="Loading..." rows={4} />}>
       <NuevoContentPage />
     </Suspense>
   )

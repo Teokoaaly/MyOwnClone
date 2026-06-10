@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Réplica - Multiplícate",
+    "title": "MyOwnClone - Multiplícate",
     "description": "Crea un clon de IA entrenado con tu contenido. Atiende 24/7 en modo pedagogía, ventas y soporte."
   },
   "nav": {
@@ -10,8 +10,8 @@
     "logout": "Cerrar sesión"
   },
   "auth": {
-    "loginTitle": "Inicia sesión en Réplica",
-    "registerTitle": "Crea tu cuenta en Réplica",
+    "loginTitle": "Inicia sesión en MyOwnClone",
+    "registerTitle": "Crea tu cuenta en MyOwnClone",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "tu@email.com",
     "sendLink": "Enviar enlace mágico",
@@ -25,10 +25,10 @@
     "verifyEmailDesc": "Introduce el código que enviamos a tu correo"
   },
   "onboarding": {
-    "title": "Configura tu Réplica",
+    "title": "Configura tu MyOwnClone",
     "slugLabel": "Elige tu subdominio",
     "slugPlaceholder": "tunombre",
-    "slugSuffix": ".replica.tudominio.com",
+    "slugSuffix": ".myownclone.tudominio.com",
     "cloneNameLabel": "Nombre de tu clon",
     "cloneNamePlaceholder": "ej. Asistente de Juan",
     "cloneDescriptionLabel": "Descripción de tu clon",

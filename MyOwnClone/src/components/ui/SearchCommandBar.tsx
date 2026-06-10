@@ -50,11 +50,11 @@ interface SearchCommandBarProps {
 }
 
 const KIND_LABEL: Record<ResultKind, string> = {
-  page: "Páginas",
+  page: "Pages",
   clone: "Clones",
-  memory: "Memorias",
-  product: "Productos",
-  meeting: "Reuniones",
+  memory: "Memories",
+  product: "Products",
+  meeting: "Meetings",
 };
 
 const FOCUSABLE_SELECTOR =
@@ -357,7 +357,7 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
         className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--bg-shell)] shadow-[0_24px_64px_rgba(15,23,42,0.18)] outline-none"
       >
         <h2 id={titleId} className="sr-only">
-          Buscar
+          Search
         </h2>
         <div className="flex items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3">
           <span aria-hidden="true" className="text-[var(--text-muted)]">🔍</span>
@@ -366,8 +366,8 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Busca páginas, clones, memorias, productos, reuniones…"
-            aria-label="Buscar"
+            placeholder="Search pages, clones, memories, products, meetings..."
+            aria-label="Search"
             aria-controls="cmdk-results"
             aria-activedescendant={
               flat[activeIdx] ? `cmdk-result-${activeIdx}` : undefined
@@ -387,10 +387,10 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
           {flat.length === 0 ? (
             <li className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">
               {loading
-                ? "Cargando…"
+                ? "Loading..."
                 : query
-                ? `Sin resultados para "${query}"`
-                : "Empieza a escribir para buscar."}
+                ? `No results for "${query}"`
+                : "Start typing to search."}
             </li>
           ) : (
             grouped.map((g) => {
@@ -463,17 +463,17 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
           <div className="flex items-center gap-3">
             <span>
               <kbd className="font-mono">↑</kbd>{" "}
-              <kbd className="font-mono">↓</kbd> para navegar
+              <kbd className="font-mono">↓</kbd> to navigate
             </span>
             <span>
-              <kbd className="font-mono">↵</kbd> para abrir
+              <kbd className="font-mono">↵</kbd> to open
             </span>
             <span>
-              <kbd className="font-mono">Esc</kbd> para cerrar
+              <kbd className="font-mono">Esc</kbd> to close
             </span>
           </div>
           <span>
-            <kbd className="font-mono">⌘K</kbd> desde cualquier sitio
+            <kbd className="font-mono">⌘K</kbd> from anywhere
           </span>
         </div>
       </div>
@@ -490,11 +490,11 @@ const SearchTrigger: FC<{ onOpen: () => void }> = ({ onOpen }) => (
   <button
     type="button"
     onClick={onOpen}
-    aria-label="Abrir buscador (⌘K)"
+    aria-label="Open search (⌘K)"
     className="flex items-center gap-2 rounded-md border border-[var(--border-soft)] bg-[var(--surface-1)] px-3 py-1.5 text-xs text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)]"
   >
     <span aria-hidden="true">🔍</span>
-    <span className="hidden sm:inline">Buscar…</span>
+    <span className="hidden sm:inline">Search...</span>
     <kbd className="hidden sm:inline-block rounded border border-[var(--border-soft)] px-1 py-0.5 font-mono text-[10px]">
       ⌘K
     </kbd>

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Réplica - Multiply Yourself",
+    "title": "MyOwnClone - Multiply Yourself",
     "description": "Create an AI clone trained with your content. Available 24/7 in pedagogy, sales, and support modes."
   },
   "nav": {
@@ -10,8 +10,8 @@
     "logout": "Sign out"
   },
   "auth": {
-    "loginTitle": "Sign in to Réplica",
-    "registerTitle": "Create your Réplica account",
+    "loginTitle": "Sign in to MyOwnClone",
+    "registerTitle": "Create your MyOwnClone account",
     "emailLabel": "Email address",
     "emailPlaceholder": "you@email.com",
     "sendLink": "Send magic link",
@@ -25,10 +25,10 @@
     "verifyEmailDesc": "Enter the code we sent to your email"
   },
   "onboarding": {
-    "title": "Set up your Réplica",
+    "title": "Set up your MyOwnClone",
     "slugLabel": "Choose your subdomain",
     "slugPlaceholder": "yourname",
-    "slugSuffix": ".replica.yourdomain.com",
+    "slugSuffix": ".myownclone.yourdomain.com",
     "cloneNameLabel": "Your clone's name",
     "cloneNamePlaceholder": "e.g. Juan's Assistant",
     "cloneDescriptionLabel": "Your clone's description",

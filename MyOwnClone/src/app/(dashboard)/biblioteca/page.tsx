@@ -23,17 +23,17 @@ interface Source {
 }
 
 const CONTENT_TYPES = [
-  { type: "pdf", label: "Subir PDF", desc: "Documentos PDF, Word, Excel" },
-  { type: "youtube", label: "Enlace de YouTube", desc: "Transcripción automática de vídeos" },
-  { type: "text", label: "Escribir texto", desc: "Pega o escribe contenido directamente" },
-  { type: "web", label: "Página web", desc: "Extraer texto de una URL" },
-  { type: "interview", label: "Entrevista AI", desc: "El clon te entrevista para extraer tu conocimiento" },
+  { type: "pdf", label: "Upload PDF", desc: "PDF, Word, and Excel documents" },
+  { type: "youtube", label: "YouTube link", desc: "Automatic video transcription" },
+  { type: "text", label: "Write text", desc: "Paste or write content directly" },
+  { type: "web", label: "Web page", desc: "Extract text from a URL" },
+  { type: "interview", label: "AI interview", desc: "Your clone interviews you to extract your knowledge" },
 ]
 
 const SILO_BADGES: Record<string, { label: string; kind: "active" | "trial" | "warning" }> = {
-  teach: { label: "Pedagogía", kind: "trial" },
-  support: { label: "Soporte", kind: "warning" },
-  sales: { label: "Ventas", kind: "active" },
+  teach: { label: "Teaching", kind: "trial" },
+  support: { label: "Support", kind: "warning" },
+  sales: { label: "Sales", kind: "active" },
 };
 
 export default function BibliotecaPage() {
@@ -70,7 +70,7 @@ export default function BibliotecaPage() {
   }, [fetchSources])
 
   if (status === "loading" || loading) {
-    return <LoadingState label="Cargando biblioteca…" rows={4} />
+    return <LoadingState label="Loading library..." rows={4} />
   }
 
   if (error) {
@@ -79,7 +79,7 @@ export default function BibliotecaPage() {
         message={error}
         action={
           <button type="button" onClick={fetchSources} className="btn-secondary text-xs">
-            Reintentar
+            Try again
           </button>
         }
       />
@@ -90,10 +90,10 @@ export default function BibliotecaPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Biblioteca de Contenido
+          Content Library
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Sube contenido para entrenar a tu clon: PDFs, vídeos de YouTube, texto, y más.
+          Upload content to train your clone: PDFs, YouTube videos, text, and more.
         </p>
       </header>
 
@@ -117,7 +117,7 @@ export default function BibliotecaPage() {
       <div className="card !p-0 overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border-soft)] flex items-center justify-between">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            Contenido subido
+            Uploaded content
           </h2>
           <div className="flex gap-2">
             {Object.entries(SILO_BADGES).map(([k, v]) => (
@@ -129,8 +129,8 @@ export default function BibliotecaPage() {
         {sources.length === 0 ? (
           <div className="p-4">
             <EmptyState
-              title="Aún no hay contenido"
-              description="Sube tu primer PDF, enlace de YouTube o escribe texto directamente para empezar a entrenar a tu clon."
+              title="No content yet"
+              description="Upload your first PDF, YouTube link, or direct text to start training your clone."
             />
           </div>
         ) : (
@@ -146,7 +146,7 @@ export default function BibliotecaPage() {
                       {source.title}
                     </p>
                     <p className="text-xs text-[var(--text-muted)]">
-                      {source.silo} · {source.status} · {source.wordCount.toLocaleString("es-ES")} palabras
+                      {source.silo} · {source.status} · {source.wordCount.toLocaleString("en-US")} words
                     </p>
                   </div>
                 </div>

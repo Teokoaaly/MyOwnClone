@@ -30,18 +30,36 @@ interface EmailDetail extends EmailListItem {
 }
 
 const STATUS_FILTERS = [
-  { id: "all", label: "Todos" },
-  { id: "pending", label: "Pendientes" },
-  { id: "sent", label: "Enviados" },
-  { id: "discarded", label: "Descartados" },
+  { id: "all", label: "All" },
+  { id: "pending", label: "Pending" },
+  { id: "sent", label: "Sent" },
+  { id: "discarded", label: "Discarded" },
 ]
 
 const CLASS_COLORS: Record<string, string> = {
+  inquiry: "badge-trial",
+  complaint: "badge-error",
+  sale: "badge-active",
+  support: "badge-warning",
+  other: "badge-trial",
   consulta: "badge-trial",
   queja: "badge-error",
   venta: "badge-active",
   soporte: "badge-warning",
   otro: "badge-trial",
+}
+
+const CLASS_LABELS: Record<string, string> = {
+  consulta: "Inquiry",
+  queja: "Complaint",
+  venta: "Sale",
+  soporte: "Support",
+  otro: "Other",
+  inquiry: "Inquiry",
+  complaint: "Complaint",
+  sale: "Sale",
+  support: "Support",
+  other: "Other",
 }
 
 export default function InboxPage() {
@@ -75,7 +93,7 @@ export default function InboxPage() {
         throw new Error(`Error ${res.status}`)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al cargar")
+      setError(e instanceof Error ? e.message : "Error loading inbox")
     } finally {
       setLoading(false)
     }
@@ -114,7 +132,7 @@ export default function InboxPage() {
         setSelected({ ...selected, draft_reply: data.body })
       }
     } catch {
-      setError("Error al generar borrador")
+      setError("Error generating draft")
     } finally {
       setGenerating(false)
     }
@@ -135,7 +153,7 @@ export default function InboxPage() {
         setSelected({ ...selected, draft_reply: draftText })
       }
     } catch {
-      setError("Error al guardar")
+      setError("Error saving draft")
     } finally {
       setSaving(false)
     }
@@ -143,7 +161,7 @@ export default function InboxPage() {
 
   const sendEmail = async () => {
     if (!selected || !draftText.trim()) return
-    if (!confirm("¿Enviar esta respuesta al destinatario?")) return
+    if (!confirm("Send this response to the recipient?")) return
     setSaving(true)
     try {
       const res = await fetch(`/api/clone/inbox/${selected.id}`, {
@@ -156,7 +174,7 @@ export default function InboxPage() {
         fetchList()
       }
     } catch {
-      setError("Error al enviar")
+      setError("Error sending email")
     } finally {
       setSaving(false)
     }
@@ -164,18 +182,18 @@ export default function InboxPage() {
 
   const discardEmail = async () => {
     if (!selected) return
-    if (!confirm("¿Descartar este email?")) return
+    if (!confirm("Discard this email?")) return
     try {
       await fetch(`/api/clone/inbox/${selected.id}`, { method: "DELETE" })
       setSelected(null)
       fetchList()
     } catch {
-      setError("Error al descartar")
+      setError("Error discarding email")
     }
   }
 
   if (authStatus === "loading") {
-    return <LoadingState label="Verificando sesión…" />
+    return <LoadingState label="Checking session..." />
   }
 
   return (
@@ -219,11 +237,11 @@ export default function InboxPage() {
           ) : emails.length === 0 ? (
             <div className="p-4">
               <EmptyState
-                title="No hay emails"
+                title="No emails"
                 description={
                   activeFilter !== "all"
-                    ? `Sin emails en estado "${activeFilter}".`
-                    : "Cuando lleguen correos a tu clon aparecerán aquí."
+                    ? `No emails with "${activeFilter}" status.`
+                    : "Emails sent to your clone will appear here."
                 }
               />
             </div>
@@ -243,26 +261,26 @@ export default function InboxPage() {
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                    {email.from_name || email.from_email || "Desconocido"}
+                    {email.from_name || email.from_email || "Unknown"}
                   </p>
                   {email.classification && (
                     <span className={CLASS_COLORS[email.classification] || "badge-trial"}>
-                      {email.classification}
+                      {CLASS_LABELS[email.classification] ?? email.classification}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">
-                  {email.subject || "(sin asunto)"}
+                  {email.subject || "(no subject)"}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   {email.has_draft && (
                     <span className="text-[10px] text-[var(--color-accent-violet)] font-medium">
-                      Borrador
+                      Draft
                     </span>
                   )}
                   {email.status === "sent" && (
                     <span className="text-[10px] text-[var(--color-accent-green)] font-medium">
-                      Enviado
+                      Sent
                     </span>
                   )}
                   <span className="text-[10px] text-[var(--text-muted)] ml-auto">
@@ -283,16 +301,16 @@ export default function InboxPage() {
           <div className="flex-1 flex items-center justify-center text-center px-8">
             <div>
               <p className="text-base font-medium text-[var(--text-primary)]">
-                Selecciona un email
+                Select an email
               </p>
               <p className="mt-1 text-sm text-[var(--text-muted)]">
-                El clon propone respuestas. Tú revisas y envías.
+                Your clone drafts replies. You review and send.
               </p>
             </div>
           </div>
         ) : detailLoading ? (
           <div className="flex-1 flex items-center justify-center">
-            <LoadingState label="Cargando email…" rows={2} />
+            <LoadingState label="Loading email..." rows={2} />
           </div>
         ) : (
           <>
@@ -301,10 +319,10 @@ export default function InboxPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                    {selected.subject || "(sin asunto)"}
+                    {selected.subject || "(no subject)"}
                   </h2>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">
-                    De: <strong>{selected.from_name || selected.from_email}</strong>
+                    From: <strong>{selected.from_name || selected.from_email}</strong>
                     {" · "}
                     {selected.received_at
                       ? new Date(selected.received_at * 1000).toLocaleString("es-ES")
@@ -312,7 +330,7 @@ export default function InboxPage() {
                   </p>
                   {selected.classification && (
                     <span className={`inline-block mt-2 ${CLASS_COLORS[selected.classification] || "badge-trial"}`}>
-                      {selected.classification}
+                      {CLASS_LABELS[selected.classification] ?? selected.classification}
                     </span>
                   )}
                 </div>
@@ -322,7 +340,7 @@ export default function InboxPage() {
                     onClick={discardEmail}
                     className="btn-secondary text-xs"
                   >
-                    Descartar
+                    Discard
                   </button>
                 </div>
               </div>
@@ -331,7 +349,7 @@ export default function InboxPage() {
             {/* Email body */}
             <div className="px-6 py-4 border-b border-[var(--border-soft)] max-h-60 overflow-y-auto">
               <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
-                {selected.body_text || "(sin contenido)"}
+                {selected.body_text || "(no content)"}
               </p>
             </div>
 
@@ -339,7 +357,7 @@ export default function InboxPage() {
             <div className="flex-1 flex flex-col p-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-                  Respuesta propuesta
+                  Proposed reply
                 </h3>
                 <button
                   type="button"
@@ -347,7 +365,7 @@ export default function InboxPage() {
                   disabled={generating}
                   className="btn-secondary text-xs disabled:opacity-50"
                 >
-                  {generating ? "Generando…" : "Generar con IA"}
+                  {generating ? "Generating..." : "Generate with AI"}
                 </button>
               </div>
 
@@ -355,7 +373,7 @@ export default function InboxPage() {
                 value={draftText}
                 onChange={(e) => setDraftText(e.target.value)}
                 rows={10}
-                placeholder="La respuesta propuesta por el clon aparecerá aquí. Puedes editarla antes de enviar."
+                placeholder="The reply drafted by your clone will appear here. You can edit it before sending."
                 className="flex-1 w-full px-4 py-3 text-sm rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--color-accent-warm)] focus:outline-none resize-none"
               />
 
@@ -370,7 +388,7 @@ export default function InboxPage() {
                   disabled={saving || !draftText.trim()}
                   className="btn-primary text-xs disabled:opacity-50"
                 >
-                  {saving ? "Enviando…" : "Enviar respuesta"}
+                  {saving ? "Sending..." : "Send reply"}
                 </button>
                 <button
                   type="button"
@@ -378,7 +396,7 @@ export default function InboxPage() {
                   disabled={saving || !draftText.trim()}
                   className="btn-secondary text-xs disabled:opacity-50"
                 >
-                  Guardar borrador
+                  Save draft
                 </button>
               </div>
             </div>

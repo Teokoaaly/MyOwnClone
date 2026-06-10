@@ -55,7 +55,7 @@ export default async function AdminLayout({
               href="/resumen"
               className="hover:text-[var(--text-primary)] transition-colors"
             >
-              ← Volver al dashboard
+              Back to dashboard
             </Link>
           }
         />

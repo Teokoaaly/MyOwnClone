@@ -74,11 +74,11 @@ export default function AdminImpersonationPage() {
     <div className="space-y-6">
       <PageHeader
         title="Impersonation"
-        subtitle={`${total} sesiones de suplantación registradas`}
+        subtitle={`${total} impersonation sessions recorded`}
       />
 
       <FilterBar>
-        <Field label="Buscar" fill>
+        <Field label="Search" fill>
           <input
             type="text"
             value={search}
@@ -86,7 +86,7 @@ export default function AdminImpersonationPage() {
               resetPage();
               setSearch(e.target.value);
             }}
-            placeholder="Admin email o nombre de tenant…"
+            placeholder="Admin email or tenant name..."
             className={fieldControlClass}
           />
         </Field>
@@ -107,11 +107,11 @@ export default function AdminImpersonationPage() {
           }
         />
       ) : loading ? (
-        <LoadingState label="Cargando sesiones…" rows={6} />
+        <LoadingState label="Loading sessions..." rows={6} />
       ) : items.length === 0 ? (
         <EmptyState
-          title="Sin sesiones de suplantación"
-          description="Las sesiones de impersonation iniciadas por admins aparecerán aquí."
+          title="No impersonation sessions"
+          description="Impersonation sessions started by admins will appear here."
         />
       ) : (
         <>
@@ -123,7 +123,7 @@ export default function AdminImpersonationPage() {
                   <th className="px-4 py-2.5 text-left">Tenant</th>
                   <th className="px-4 py-2.5 text-left">Inicio</th>
                   <th className="px-4 py-2.5 text-left">Fin</th>
-                  <th className="px-4 py-2.5 text-left">Razón</th>
+                  <th className="px-4 py-2.5 text-left">Reason</th>
                 </tr>
               </thead>
               <tbody>
