@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { routing } from "@/i18n/routing";
 
-const BACKEND_URL = "http://127.0.0.1:5001";
+const DEFAULT_DEV_BACKEND_URL = "http://127.0.0.1:5001";
 const LOCALE_HEADER = "x-locale";
 const LOCALIZED_APP_ROUTES = new Set(["/es/onboarding", "/es/verificar"]);
 
@@ -16,16 +16,61 @@ function getCloneId(request: NextRequest): string {
   return process.env.DEFAULT_CLONE_ID || "";
 }
 
-// Service-to-service API key for authenticating proxy requests to the Flask backend.
-// Must match the value checked in Flask's login_required decorator (X-API-Key header).
-// In production, set SERVICE_API_KEY in .env.local to a strong random value.
-const SERVICE_API_KEY = process.env.SERVICE_API_KEY ?? "dev-api-key-for-proxy";
+function isProtectedProxyRoute(pathname: string): boolean {
+  if (pathname === "/api/auth/login") return false;
+  if (/^\/api\/clone\/[^/]+\/chat(?:-simple)?$/.test(pathname)) return false;
+  return true;
+}
+
+function isPlatformAdminToken(token: unknown): boolean {
+  return Boolean(token && typeof token === "object" && (token as any).role === "platform_admin");
+}
+
+function isLocalDevHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname.startsWith("localhost:") ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("127.0.0.1:")
+  );
+}
+
+function getServiceApiKey(hostname: string): string | null {
+  const configured = process.env.SERVICE_API_KEY?.trim();
+  if (configured) return configured;
+
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (
+      process.env.ALLOW_DEV_SERVICE_KEY === "true" ||
+      isLocalDevHost(hostname)
+    )
+  ) {
+    return "dev-api-key-for-proxy";
+  }
+
+  return null;
+}
+
+function getBackendUrl(hostname: string): string | null {
+  const configured = process.env.MYOWNCLONE_API_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, "");
+
+  if (process.env.NODE_ENV !== "production" && isLocalDevHost(hostname)) {
+    return DEFAULT_DEV_BACKEND_URL;
+  }
+
+  return null;
+}
 
 // Map frontend API paths to backend paths (legacy / admin / auth)
 const ROUTE_MAP: Record<string, string> = {
   "/api/admin/overview": "/console/api/myownclone/admin/overview",
   "/api/admin/tenants": "/console/api/myownclone/admin/tenants",
   "/api/admin/impersonate": "/console/api/myownclone/admin/impersonate",
+  "/api/admin/audit-log": "/console/api/myownclone/admin/audit-log",
+  "/api/admin/feedback": "/console/api/myownclone/admin/feedback",
+  "/api/admin/courtesy": "/console/api/myownclone/admin/courtesy-account",
   "/api/admin/courtesy-account": "/console/api/myownclone/admin/courtesy-account",
   "/api/clones": "/console/api/myownclone/clones",
   "/api/plans": "/console/api/myownclone/plans",
@@ -64,6 +109,16 @@ function findBackendPath(pathname: string, request: NextRequest): string | null 
 
   // Rutas con el prefijo /api/clone/
   const sub = pathname.slice("/api/clone/".length); // ej. "analytics/overview", "clones", "clones/xxx/products"
+
+  const publicChatMatch = sub.match(/^([^/]+)\/chat$/);
+  if (publicChatMatch) {
+    return `/api/myownclone/public/clones/${publicChatMatch[1]}/chat`;
+  }
+
+  const publicSimpleChatMatch = sub.match(/^([^/]+)\/chat-simple$/);
+  if (publicSimpleChatMatch) {
+    return `/api/myownclone/public/clones/${publicSimpleChatMatch[1]}/chat-simple`;
+  }
 
   // 1. Clones directos (ej. /api/clone/clones)
   if (sub === "clones") {
@@ -151,20 +206,54 @@ export async function proxy(request: NextRequest) {
 
   // Proxy API calls to Flask backend
   if (pathname.startsWith("/api/")) {
+    // Stripe webhook runs in the Next.js runtime (uses Drizzle directly,
+    // per the route handler in src/app/api/stripe/webhook/route.ts).
+    // Exclude it from proxying so the signature verification, body
+    // parsing, and Drizzle updates happen in-process and the Flask
+    // backend does not need to mirror the webhook contract.
+    if (pathname === "/api/stripe/webhook") {
+      return NextResponse.next();
+    }
+
     const backendPath = findBackendPath(pathname, request);
     if (backendPath) {
       const search = request.nextUrl.search;
-      const backendUrl = `${BACKEND_URL}${backendPath}${search}`;
+      const backendBaseUrl = getBackendUrl(hostname);
       const token = await getToken({
         req: request,
         secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
       });
+      const serviceApiKey = getServiceApiKey(hostname);
+
+      if (!backendBaseUrl) {
+        return NextResponse.json(
+          { error: "Service proxy unavailable: MYOWNCLONE_API_URL is not configured" },
+          { status: 503 },
+        );
+      }
+
+      if (!serviceApiKey) {
+        return NextResponse.json(
+          { error: "Service proxy unavailable: SERVICE_API_KEY is not configured" },
+          { status: 503 },
+        );
+      }
+
+      if (isProtectedProxyRoute(pathname) && !token?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      if (pathname.startsWith("/api/admin/") && !isPlatformAdminToken(token)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      const backendUrl = `${backendBaseUrl}${backendPath}${search}`;
 
       // Forward auth header if present
       const authHeader = request.headers.get("authorization") || "";
       const forwardedHeaders: Record<string, string> = {
         "Content-Type": "application/json",
-        "X-API-Key": SERVICE_API_KEY,
+        "X-API-Key": serviceApiKey,
       };
       if (authHeader) {
         forwardedHeaders["Authorization"] = authHeader;
@@ -191,8 +280,37 @@ export async function proxy(request: NextRequest) {
             : undefined,
         });
 
-        const data = await response.json();
-        return NextResponse.json(data, { status: response.status });
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("text/event-stream")) {
+          const streamHeaders = new Headers();
+          streamHeaders.set("Content-Type", contentType);
+          streamHeaders.set(
+            "Cache-Control",
+            response.headers.get("cache-control") || "no-cache",
+          );
+          streamHeaders.set(
+            "Connection",
+            response.headers.get("connection") || "keep-alive",
+          );
+
+          return new Response(response.body, {
+            status: response.status,
+            headers: streamHeaders,
+          });
+        }
+
+        if (contentType.includes("application/json")) {
+          const data = await response.json();
+          return NextResponse.json(data, { status: response.status });
+        }
+
+        const text = await response.text();
+        return NextResponse.json(
+          {
+            error: text || `Backend error (${response.status})`,
+          },
+          { status: response.status },
+        );
       } catch {
         return NextResponse.json(
           { error: "Backend unavailable" },
