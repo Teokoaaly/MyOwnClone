@@ -54,7 +54,8 @@ ENV PYTHONPATH=/app
 
 # gunicorn uses /home/<user> for tmp by default; point it at /tmp
 # (set as appuser since gunicorn runs as appuser)
-ENV TMPDIR=/tmp
+ENV HOME=/tmp \
+    TMPDIR=/tmp
 
 EXPOSE 5001
 
