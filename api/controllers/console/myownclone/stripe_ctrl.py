@@ -4,33 +4,81 @@ Adds MyOwnClone-specific product/price handling.
 """
 
 import logging
+import os
+from urllib.parse import urlparse
 
 import stripe
-from flask import jsonify, request
+from flask import g, jsonify, request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from api.configs import myownclone_config
 from api.controllers.common.schema import register_schema_models
 from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
+from api.core.contracts import normalize_plan, normalize_tenant_status
 from api.extensions.ext_database import db
 from api.libs.login import current_account_with_tenant, login_required
 from api.models.myownclone import Plan
+from api.models.analytics import CostTracking
 
 logger = logging.getLogger(__name__)
 
-stripe.api_key = getattr(myownclone_config, "STRIPE_SECRET_KEY", None) or ""
+stripe.api_key = (
+    getattr(myownclone_config, "STRIPE_SECRET_KEY", None)
+    or os.environ.get("STRIPE_SECRET_KEY", "")
+)
+
+DEFAULT_DASHBOARD_SUCCESS_PATH = "/resumen"
+DEFAULT_DASHBOARD_CANCEL_PATH = "/facturacion"
 
 
 class CheckoutPayload(BaseModel):
     plan_id: str
-    success_url: str = Field(default="/dashboard/resumen")
-    cancel_url: str = Field(default="/dashboard/facturacion")
+    success_url: str = Field(default=DEFAULT_DASHBOARD_SUCCESS_PATH)
+    cancel_url: str = Field(default=DEFAULT_DASHBOARD_CANCEL_PATH)
 
 
 register_schema_models(console_ns, CheckoutPayload)
+
+
+def _site_url() -> str:
+    return (
+        os.environ.get("MYOWNCLONE_SITE_URL")
+        or os.environ.get("NEXTAUTH_URL")
+        or os.environ.get("PUBLIC_APP_URL")
+        or request.host_url.rstrip("/")
+    ).rstrip("/")
+
+
+def _safe_redirect_url(value: str, fallback_path: str) -> str:
+    if not value:
+        value = fallback_path
+
+    parsed = urlparse(value)
+    if parsed.scheme or parsed.netloc:
+        allowed_origin = _site_url()
+        allowed = urlparse(allowed_origin)
+        if parsed.scheme == allowed.scheme and parsed.netloc == allowed.netloc:
+            return value
+        return f"{allowed_origin}{fallback_path}"
+
+    if not value.startswith("/"):
+        value = f"/{value}"
+    if value.startswith("/dashboard/"):
+        value = value.removeprefix("/dashboard")
+    return f"{_site_url()}{value}"
+
+
+def _account_email(account) -> str | None:
+    forwarded_email = getattr(g, "account_email", None)
+    if forwarded_email:
+        return forwarded_email
+    email = getattr(account, "email", None)
+    if email:
+        return email
+    return None
 
 
 @console_ns.route("/myownclone/plans")
@@ -72,12 +120,25 @@ class StripeCheckoutApi(Resource):
         account, tenant_id = current_account_with_tenant()
         data = CheckoutPayload.model_validate(request.json)
 
+        if not stripe.api_key:
+            return {"error": "stripe_not_configured"}, 503
+
+        if not tenant_id:
+            return {"error": "tenant not found"}, 400
+
         plan = db.session.execute(
             select(Plan).where(Plan.id == data.plan_id)
         ).scalar_one_or_none()
 
         if not plan:
             return {"error": "plan not found"}, 404
+
+        if not plan.stripe_price_id:
+            return {"error": "plan is not available for checkout"}, 409
+
+        customer_email = _account_email(account)
+        if not customer_email:
+            return {"error": "account email not available"}, 400
 
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -91,9 +152,9 @@ class StripeCheckoutApi(Resource):
                     "plan_id": plan.id,
                     "plan_name": plan.name,
                 },
-                success_url=data.success_url,
-                cancel_url=data.cancel_url,
-                customer_email=account.email,
+                success_url=_safe_redirect_url(data.success_url, DEFAULT_DASHBOARD_SUCCESS_PATH),
+                cancel_url=_safe_redirect_url(data.cancel_url, DEFAULT_DASHBOARD_CANCEL_PATH),
+                customer_email=customer_email,
                 subscription_data={
                     "trial_period_days": 14,
                     "metadata": {
@@ -120,31 +181,60 @@ class StripeBillingApi(Resource):
         tenant = db.session.execute(
             select(Tenant).where(Tenant.id == tenant_id)
         ).scalar_one_or_none()
+        usage_cost_cents = db.session.execute(
+            select(func.coalesce(func.sum(CostTracking.cost_cents), 0)).where(
+                CostTracking.tenant_id == tenant_id
+            )
+        ).scalar_one()
+
+        base_payload = {
+            "plan": normalize_plan(getattr(tenant, "plan", None) if tenant else None),
+            "status": normalize_tenant_status(getattr(tenant, "status", None) if tenant else None),
+            "subscription_status": getattr(tenant, "subscription_status", None) if tenant else None,
+            "stripe_customer_id": getattr(tenant, "stripe_customer_id", None) if tenant else None,
+            "stripe_subscription_id": getattr(tenant, "stripe_subscription_id", None) if tenant else None,
+            "currency": "usd",
+            "balance_cents": 0,
+            "cash_cents": 0,
+            "voucher_cents": 0,
+            "credit_cents": 0,
+            "outstanding_cents": 0,
+            "usage_cost_cents": int(usage_cost_cents or 0),
+            "balance_alert_enabled": False,
+            "auto_billing_enabled": False,
+            "payment_history": [],
+            "voucher_records": [],
+        }
 
         if not tenant or not tenant.stripe_customer_id:
             return {
+                **base_payload,
                 "has_stripe": False,
-                "plan": None,
-                "subscription_status": None,
                 "portal_url": None,
+            }, 200
+
+        if not stripe.api_key:
+            return {
+                **base_payload,
+                "has_stripe": True,
+                "portal_url": None,
+                "error": "stripe_not_configured",
             }, 200
 
         try:
             portal_session = stripe.billing_portal.Session.create(
                 customer=tenant.stripe_customer_id,
-                return_url=request.host_url.rstrip("/") + "/dashboard/facturacion",
+                return_url=f"{_site_url()}{DEFAULT_DASHBOARD_CANCEL_PATH}",
             )
             return {
+                **base_payload,
                 "has_stripe": True,
-                "plan": tenant.plan,
-                "subscription_status": tenant.subscription_status,
                 "portal_url": portal_session.url,
             }, 200
         except stripe.error.StripeError as e:
             logger.error("Stripe portal error: %s", e)
             return {
+                **base_payload,
                 "has_stripe": True,
-                "plan": tenant.plan,
-                "subscription_status": tenant.subscription_status,
                 "portal_url": None,
             }, 200

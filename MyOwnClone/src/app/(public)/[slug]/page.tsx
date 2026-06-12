@@ -3,15 +3,16 @@ import { headers } from 'next/headers'
 
 interface PageProps {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ context?: string; silo?: string }>
+  searchParams: Promise<{ context?: string; silo?: string; q?: string }>
 }
 
 export default async function ClonePage({ params, searchParams }: PageProps) {
   const { slug } = await params
-  const { context, silo } = await searchParams
+  const { context, silo, q } = await searchParams
   const headersList = await headers()
   const contextId = context || headersList.get('x-myownclone-context-id') || undefined
   const defaultSilo = silo || 'teach'
+  const initialQuery = q?.trim() || undefined
 
   const cloneData = await fetchCloneConfig(slug)
 
@@ -38,7 +39,12 @@ export default async function ClonePage({ params, searchParams }: PageProps) {
       </header>
 
       {/* Chat area */}
-      <ChatPanel slug={slug} initialSilo={defaultSilo} contextId={contextId} />
+      <ChatPanel
+        slug={slug}
+        initialSilo={defaultSilo}
+        contextId={contextId}
+        initialQuery={initialQuery}
+      />
     </main>
   )
 }
@@ -46,7 +52,7 @@ export default async function ClonePage({ params, searchParams }: PageProps) {
 async function fetchCloneConfig(slug: string) {
   try {
     const apiUrl = process.env.MYOWNCLONE_API_URL || 'http://localhost:5001'
-    const res = await fetch(`${apiUrl}/api/myownclone/clones/${slug}`, {
+    const res = await fetch(`${apiUrl}/api/myownclone/public/clones/${slug}`, {
       cache: 'no-store',
     })
     if (!res.ok) return null

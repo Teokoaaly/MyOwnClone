@@ -21,9 +21,10 @@ from api.base import TypeBase
 # ─── Enums ──────────────────────────────────────────────────────────────────
 
 class TenantStatus(enum.StrEnum):
-    NORMAL = "normal"
+    TRIAL = "trial"
+    ACTIVE = "active"
     SUSPENDED = "suspended"
-    BANNED = "banned"
+    CANCELLED = "cancelled"
 
 
 class SubscriptionStatus(enum.StrEnum):
@@ -65,10 +66,10 @@ class Tenant(TypeBase):
 
     # Subscription / billing
     plan: Mapped[str] = mapped_column(
-        String(50), server_default=text("'básico'"), default="básico"
+        String(50), server_default=text("'trial'"), default="trial"
     )
     status: Mapped[str] = mapped_column(
-        String(50), server_default=text("'normal'"), default="normal"
+        String(50), server_default=text("'trial'"), default="trial"
     )
     subscription_status: Mapped[str] = mapped_column(
         String(50), server_default=text("'inactive'"), default="inactive"

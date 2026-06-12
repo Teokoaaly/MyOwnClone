@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
 import { SearchCommandBar } from '@/components/ui/SearchCommandBar'
 
-// Mock next/navigation's useRouter.
+// Mock i18n navigation.
 const pushMock = vi.fn()
-vi.mock('next/navigation', () => ({
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ children, href, onClick, ...props }: any) => <a href={href} onClick={onClick} {...props}>{children}</a>,
   useRouter: () => ({ push: pushMock }),
   usePathname: () => '/resumen',
 }))

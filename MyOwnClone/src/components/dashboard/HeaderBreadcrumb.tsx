@@ -1,4 +1,5 @@
 import { type FC } from "react";
+import Image from "next/image";
 
 interface HeaderBreadcrumbProps {
   title?: string;
@@ -87,9 +88,11 @@ export const HeaderBreadcrumb: FC<HeaderBreadcrumbProps> = ({
             aria-label={user.name ?? user.email ?? "Usuario"}
           >
             {user.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt=""
+                width={32}
+                height={32}
                 className="h-full w-full rounded-full object-cover"
               />
             ) : (

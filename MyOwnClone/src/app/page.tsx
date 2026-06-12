@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
@@ -15,6 +16,37 @@ const orbitApps = [
   { emoji: "📊", label: "Stats",   style: "left: 10%; top: 38%;" },
 ];
 
+const landingPlans = [
+  {
+    name: "Free Plan",
+    price: "$0",
+    suffix: "/mo",
+    description: "Start with the basics and publish your first AI clone at no cost.",
+    cta: "Choose Free Plan",
+    accent: "light" as const,
+    features: ["1 active clone", "Basic knowledge upload", "Community support", "Simple analytics"],
+  },
+  {
+    name: "Pro Plan",
+    price: "$64.90",
+    suffix: "/mo",
+    description: "Unlock advanced tools and premium support for a production-ready clone.",
+    cta: "Start Pro",
+    accent: "dark" as const,
+    badge: "Popular",
+    features: ["Everything in Free", "Multi-mode prompts", "Priority support", "Advanced analytics"],
+  },
+  {
+    name: "Enterprise",
+    price: "$100",
+    suffix: "/mo",
+    description: "For teams that need custom workflows, governance, and dedicated support.",
+    cta: "Contact Sales",
+    accent: "light" as const,
+    features: ["Unlimited collaborators", "SSO and governance", "Custom onboarding", "Dedicated success manager"],
+  },
+];
+
 export default async function LandingPage() {
   const session = await auth();
   const nav = getSessionAwareNav(session);
@@ -29,12 +61,12 @@ export default async function LandingPage() {
           </Link>
 
           <div className="landing-menu">
-            <Link href="/registro">Product</Link>
-            <Link href="/registro">
+            <Link href="/#pricing">Product</Link>
+            <Link href="/#pricing">
               Solutions
               <span className="landing-chevron" aria-hidden="true">v</span>
             </Link>
-            <Link href="/facturacion">Pricing</Link>
+            <Link href="/#pricing">Pricing</Link>
             <Link href={nav.signInHref}>{nav.signInLabel}</Link>
           </div>
 
@@ -69,7 +101,7 @@ export default async function LandingPage() {
 
         <div className="landing-hero">
           <div className="landing-logo-animated">
-            <AnimatedLogoMark size={52} cycle />
+            <ReflectiveOrb size={72} />
           </div>
 
           <h1>
@@ -94,6 +126,50 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      <section id="pricing" className="landing-pricing-section">
+        <div className="landing-pricing-shell">
+          <div className="landing-pricing-head">
+            <p className="landing-pricing-kicker">Pricing</p>
+            <h2>Select a plan</h2>
+            <p>
+              Start free, upgrade when your clone grows, and keep the same polished workspace all the way up.
+            </p>
+          </div>
+
+          <div className="landing-pricing-grid">
+            {landingPlans.map((plan) => (
+              <article
+                key={plan.name}
+                className={plan.accent === "dark" ? "landing-plan-card landing-plan-card-featured" : "landing-plan-card"}
+              >
+                <div className="landing-plan-top">
+                  <span className="landing-plan-glyph" aria-hidden="true" />
+                  {plan.badge ? <span className="landing-plan-badge">{plan.badge}</span> : null}
+                </div>
+                <div className="landing-plan-price">
+                  <span>{plan.price}</span>
+                  <small>{plan.suffix}</small>
+                </div>
+                <h3>{plan.name}</h3>
+                <p>{plan.description}</p>
+                <Link href={nav.primaryHref} className={plan.accent === "dark" ? "landing-plan-cta landing-plan-cta-inverse" : "landing-plan-cta"}>
+                  {plan.cta}
+                </Link>
+                <div className="landing-plan-divider" />
+                <div className="landing-plan-features">
+                  <strong>Features</strong>
+                  <ul>
+                    {plan.features.map((feature) => (
+                      <li key={feature}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <footer className="landing-footer">
         <div className="landing-footer-inner">
           <div className="landing-footer-brand">
@@ -101,10 +177,10 @@ export default async function LandingPage() {
             <span>MyOwnClone</span>
           </div>
           <div className="landing-footer-links">
-            <Link href="/registro">Product</Link>
-            <Link href="/facturacion">Pricing</Link>
-            <Link href={nav.signInHref}>Contact</Link>
-            <Link href={nav.signInHref}>Legal</Link>
+            <Link href="/#pricing">Product</Link>
+            <Link href="/#pricing">Pricing</Link>
+            <a href="mailto:hello@myownclone.com">Contact</a>
+            <Link href="/legal">Legal</Link>
           </div>
           <div className="landing-footer-copy">
             © 2026 MyOwnClone.com — All rights reserved

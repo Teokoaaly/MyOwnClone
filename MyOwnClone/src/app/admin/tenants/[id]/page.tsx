@@ -113,7 +113,6 @@ export default function AdminTenantDetailPage() {
     return () => {
       cancelledRef.current = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchDetail]);
 
   async function submitPatch() {

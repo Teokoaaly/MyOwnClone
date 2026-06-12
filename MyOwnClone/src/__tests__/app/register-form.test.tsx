@@ -6,9 +6,9 @@ import { RegisterForm } from '@/app/registro/register-form'
 const mockSignIn = vi.hoisted(() => vi.fn())
 vi.mock('next-auth/react', () => ({ signIn: mockSignIn }))
 
-// Mock next/navigation — hoisted
+// Mock i18n navigation — hoisted
 const mockPush = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush, back: vi.fn() }) }))
+vi.mock('@/i18n/navigation', () => ({ useRouter: () => ({ push: mockPush, back: vi.fn() }) }))
 
 describe('RegisterForm', () => {
   beforeEach(() => {

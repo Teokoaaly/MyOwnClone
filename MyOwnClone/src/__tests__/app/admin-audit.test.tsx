@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { useState } from 'react'
 
 // Track the URL passed to useAdminFetch so we can assert filter changes
 const mockUseAdminFetch = vi.fn()
@@ -149,7 +148,10 @@ describe('AdminAuditPage', () => {
     }
     mockUseAdminFetch.mockReturnValue({
       data: {
-        items: Array(20).fill(mockItem),
+        items: Array.from({ length: 20 }, (_, index) => ({
+          ...mockItem,
+          id: `audit-${index + 1}`,
+        })),
         pagination: { page: 1, limit: 20, total: 100, pages: 5 },
       },
       loading: false,

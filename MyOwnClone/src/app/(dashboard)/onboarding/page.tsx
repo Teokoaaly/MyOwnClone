@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { useRouter } from "@/i18n/navigation"
+import { setCloneIdCookie } from "@/lib/clone-resolver"
 
 const STEPS = [
   { id: "name", title: "Clone name", subtitle: "What should your assistant be called?" },
@@ -24,6 +25,12 @@ const LANGUAGES = [
   { value: "en", label: "English", emoji: "🇬🇧" },
 ]
 
+interface CloneSummary {
+  id: string
+  slug: string
+  name: string
+}
+
 export default function OnboardingPage() {
   const { status } = useSession()
   const router = useRouter()
@@ -33,22 +40,71 @@ export default function OnboardingPage() {
   const [tone, setTone] = useState("formal")
   const [language, setLanguage] = useState("en")
   const [loading, setLoading] = useState(false)
+  const [bootstrapping, setBootstrapping] = useState(true)
   const [error, setError] = useState("")
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login")
+      return
+    }
+
+    if (status !== "authenticated") return
+
+    let cancelled = false
+
+    async function loadExistingClones() {
+      try {
+        const res = await fetch("/api/clone/clones")
+        if (!res.ok) {
+          if (!cancelled) setBootstrapping(false)
+          return
+        }
+
+        const data = await res.json().catch(() => [])
+        const clones = (Array.isArray(data) ? data : data?.clones ?? []) as CloneSummary[]
+
+        if (cancelled) return
+
+        if (clones.length > 0) {
+          setCloneIdCookie(clones[0].id)
+          router.replace("/resumen")
+          router.refresh()
+          return
+        }
+
+        setBootstrapping(false)
+      } catch {
+        if (!cancelled) setBootstrapping(false)
+      }
+    }
+
+    loadExistingClones()
+
+    return () => {
+      cancelled = true
+    }
+  }, [status, router])
+
+  if (status === "loading" || bootstrapping) {
     return (
       <main className="flex min-h-[calc(100vh-6rem)] items-center justify-center">
-        <LoadingState label="Checking session..." />
+        <LoadingState label="Preparing your workspace..." />
       </main>
     )
   }
   if (status === "unauthenticated") {
-    router.push("/login")
     return null
   }
 
   const generateSlug = (n: string) =>
     n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+
+  const getSuggestedSlug = (currentSlug: string, attempt: number) => {
+    const normalized = currentSlug || generateSlug(name) || "my-clone"
+    if (attempt <= 1) return `${normalized}-2`
+    return `${normalized}-${attempt + 1}`
+  }
 
   const canNext = () => {
     if (step === 0) return name.length >= 2
@@ -59,23 +115,52 @@ export default function OnboardingPage() {
     setLoading(true)
     setError("")
     try {
-      const finalSlug = slug || generateSlug(name)
-      const res = await fetch("/api/clone/clones", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          slug: finalSlug,
-          language,
-          personality_tone: tone,
-          active_modes: ["teach", "support", "sales"],
-        }),
-      })
-      if (!res.ok) {
+      let nextSlug = slug || generateSlug(name)
+      let lastError = "Error creating clone"
+
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const res = await fetch("/api/clone/clones", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            slug: nextSlug,
+            language,
+            personality_tone: tone,
+            active_modes: ["teach", "support", "sales"],
+          }),
+        })
+
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}))
+          const createdCloneId =
+            data?.clone?.id ||
+            data?.id ||
+            data?.source?.cloneId ||
+            null
+
+          if (createdCloneId) {
+            setCloneIdCookie(createdCloneId)
+          }
+
+          setSlug(nextSlug)
+          router.replace("/resumen")
+          router.refresh()
+          return
+        }
+
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || "Error creating clone")
+        lastError = data.error || "Error creating clone"
+
+        if (res.status !== 409 || !String(lastError).includes("slug")) {
+          throw new Error(lastError)
+        }
+
+        nextSlug = getSuggestedSlug(nextSlug, attempt + 1)
       }
-      router.push("/resumen")
+
+      setSlug(nextSlug)
+      throw new Error(`That public URL was already taken. Try "${nextSlug}".`)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error creating clone")
     } finally {

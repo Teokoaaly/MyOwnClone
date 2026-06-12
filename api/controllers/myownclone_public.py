@@ -16,8 +16,12 @@ Authentication:
 import hmac
 import logging
 import os
+import time
+from collections import defaultdict
+from hashlib import sha256
 
 from flask import Blueprint, request, jsonify
+from sqlalchemy import select
 
 from api.core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
 from api.core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
@@ -36,6 +40,15 @@ from api.models.myownclone import (
 logger = logging.getLogger(__name__)
 
 myownclone_public_bp = Blueprint("myownclone_public", __name__, url_prefix="/api/myownclone/public")
+
+_WINDOW_SECONDS = 60
+_CHAT_LIMIT = 20
+_CHAT_SIMPLE_LIMIT = 10
+_BOOKING_LIMIT = 10
+_MAX_PUBLIC_MESSAGE_LENGTH = 2000
+_MAX_VISITOR_FIELD_LENGTH = 200
+_MAX_EMAIL_LENGTH = 320
+_public_rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
 
 _SENDGRID_SECRET = os.environ.get("SENDGRID_INBOUND_WEBHOOK_SECRET", "")
@@ -59,8 +72,123 @@ def _check_sendgrid_signature() -> bool:
     return hmac.compare_digest(provided, _SENDGRID_SECRET)
 
 
+def _is_production() -> bool:
+    return os.environ.get("FLASK_ENV", "production") == "production"
+
+
+def _rate_limit_key(scope: str, slug: str | None = None) -> str:
+    client_ip = (request.headers.get("X-Forwarded-For", "") or request.remote_addr or "unknown").split(",")[0].strip()
+    parts = [scope, client_ip]
+    if slug:
+        parts.append(slug)
+    return ":".join(parts)
+
+
+def _consume_rate_limit(scope: str, limit: int, slug: str | None = None) -> bool:
+    key = _rate_limit_key(scope, slug)
+    now = time.time()
+    recent = [stamp for stamp in _public_rate_limit_store[key] if now - stamp < _WINDOW_SECONDS]
+    if len(recent) >= limit:
+        _public_rate_limit_store[key] = recent
+        return False
+    recent.append(now)
+    _public_rate_limit_store[key] = recent
+    return True
+
+
+def _rate_limit_response() -> tuple[dict[str, str], int]:
+    return {"error": "rate_limit_exceeded"}, 429
+
+
+def _visitor_id() -> str:
+    raw = (request.headers.get("X-Forwarded-For", "") or request.remote_addr or "unknown").split(",")[0].strip()
+    user_agent = request.headers.get("User-Agent", "")
+    return sha256(f"{raw}:{user_agent}".encode("utf-8")).hexdigest()[:32]
+
+
+def _conversation_mode_for_silo(silo_value: str) -> str:
+    return "pedagogy" if silo_value == "teach" else silo_value
+
+
+def _record_question(clone_id: str, question: str) -> None:
+    from api.models.myownclone import AnalyticsQuestion
+
+    existing = db.session.execute(
+        select(AnalyticsQuestion).where(
+            AnalyticsQuestion.clone_id == clone_id,
+            AnalyticsQuestion.question == question,
+        )
+    ).scalar_one_or_none()
+    if existing:
+        existing.count = (existing.count or 0) + 1
+        return
+
+    db.session.add(
+        AnalyticsQuestion(
+            clone_id=clone_id,
+            question=question,
+            count=1,
+        )
+    )
+
+
+def _persist_chat_turn(
+    *,
+    clone_id: str,
+    conversation_id: str | None,
+    silo: str,
+    user_message: str,
+    assistant_message: str,
+    confidence: float,
+    sources: list[dict],
+) -> str:
+    from api.models import Conversation, Message
+
+    conversation = None
+    if conversation_id:
+        conversation = db.session.execute(
+            select(Conversation).where(
+                Conversation.id == conversation_id,
+                Conversation.clone_id == clone_id,
+            )
+        ).scalar_one_or_none()
+
+    if not conversation:
+        conversation = Conversation(
+            clone_id=clone_id,
+            visitor_id=_visitor_id(),
+            mode=_conversation_mode_for_silo(silo),
+        )
+        db.session.add(conversation)
+        db.session.flush()
+
+    db.session.add(
+        Message(
+            conversation_id=conversation.id,
+            role="user",
+            content=user_message,
+        )
+    )
+    db.session.add(
+        Message(
+            conversation_id=conversation.id,
+            role="assistant",
+            content=assistant_message,
+            confidence=f"{confidence:.2f}",
+            sources=sources,
+        )
+    )
+    _record_question(clone_id, user_message)
+    db.session.commit()
+    return conversation.id
+
+
 @myownclone_public_bp.route("/inbound-email", methods=["POST"])
 def inbound_email():
+    if _is_production() and not _SENDGRID_SECRET:
+        logger.error("Rejected /inbound-email in production: webhook secret is not configured")
+        return jsonify({"error": "webhook secret not configured"}), 503
+
     if not _check_sendgrid_signature():
         logger.warning(
             "Rejected /inbound-email from %s — invalid or missing X-Webhook-Secret",
@@ -174,13 +302,21 @@ def chat_public(slug: str):
     if not clone:
         return jsonify({"error": "clone not found"}), 404
 
+    if not _consume_rate_limit("chat_public", _CHAT_LIMIT, slug):
+        payload, status = _rate_limit_response()
+        return jsonify(payload), status
+
     data = request.get_json(silent=True) or {}
-    message = data.get("message", "")
+    message = (data.get("message") or "").strip()
     silo_str = data.get("silo", "teach")
     context_id = data.get("context_id")
+    conversation_id = data.get("conversation_id")
 
     if not message:
         return jsonify({"error": "message is required"}), 400
+
+    if len(message) > _MAX_PUBLIC_MESSAGE_LENGTH:
+        return jsonify({"error": "message too long"}), 413
 
     if silo_str not in [s.value for s in CloneSilo]:
         return jsonify({"error": f"invalid silo: {silo_str}"}), 400
@@ -236,7 +372,28 @@ Pregunta del usuario: {message}"""
                 accumulated += chunk
                 yield f"data: {json.dumps({'content': chunk})}\n\n"
 
-            yield f"data: {json.dumps({'content': '', 'done': True, 'context_found': result.found, 'silo': silo.value, 'confidence': round(result.scores[0], 2) if result.scores else 0, 'sources': [{'content': c[:300], 'score': round(s, 2)} for c, s in zip(result.contents, result.scores)]})}\n\n"
+            confidence = round(result.scores[0], 2) if result.scores else 0
+            sources = [
+                {
+                    "content": c[:300],
+                    "score": round(s, 2),
+                    "chunkId": getattr(segment, "metadata", {}).get("segment_id"),
+                    "sourceId": getattr(segment, "metadata", {}).get("source_id"),
+                    "title": getattr(segment, "metadata", {}).get("source_title"),
+                }
+                for segment, c, s in zip(result.segments, result.contents, result.scores)
+            ]
+            persisted_conversation_id = _persist_chat_turn(
+                clone_id=clone.id,
+                conversation_id=conversation_id,
+                silo=silo.value,
+                user_message=message,
+                assistant_message=accumulated,
+                confidence=confidence,
+                sources=sources,
+            )
+
+            yield f"data: {json.dumps({'content': '', 'done': True, 'conversation_id': persisted_conversation_id, 'context_found': result.found, 'silo': silo.value, 'confidence': confidence, 'sources': sources})}\n\n"
             yield "data: [DONE]\n\n"
 
         except Exception:
@@ -335,10 +492,16 @@ def chat_public_simple(slug: str):
     if not clone:
         return jsonify({"error": "clone_not_found"}), 404
 
+    if not _consume_rate_limit("chat_public_simple", _CHAT_SIMPLE_LIMIT, slug):
+        payload, status = _rate_limit_response()
+        return jsonify(payload), status
+
     payload = request.get_json(silent=True) or {}
     message = (payload.get("message") or "").strip()
     if not message:
         return jsonify({"error": "message_required"}), 400
+    if len(message) > _MAX_PUBLIC_MESSAGE_LENGTH:
+        return jsonify({"error": "message_too_long"}), 413
 
     # Reuse the same path as the streaming endpoint, but collect the full reply.
     try:
@@ -400,15 +563,23 @@ def create_booking_public(slug: str):
     from sqlalchemy import select
     from api.models.myownclone import CloneConfig, Booking, MeetingType_
 
+    if not _consume_rate_limit("booking_public", _BOOKING_LIMIT, slug):
+        payload, status = _rate_limit_response()
+        return jsonify(payload), status
+
     data = request.get_json(silent=True) or {}
     meeting_type_id = data.get("meeting_type_id")
-    visitor_name = data.get("visitor_name", "")
-    visitor_email = data.get("visitor_email", "")
+    visitor_name = (data.get("visitor_name") or "").strip()
+    visitor_email = (data.get("visitor_email") or "").strip().lower()
     booking_date = data.get("date")
     start_time = data.get("start_time")
 
     if not meeting_type_id or not visitor_name or not visitor_email or not booking_date:
         return jsonify({"error": "meeting_type_id, visitor_name, visitor_email, and date are required"}), 400
+    if len(visitor_name) > _MAX_VISITOR_FIELD_LENGTH:
+        return jsonify({"error": "visitor_name too long"}), 400
+    if len(visitor_email) > _MAX_EMAIL_LENGTH or "@" not in visitor_email:
+        return jsonify({"error": "invalid visitor_email"}), 400
 
     clone = db.session.execute(
         select(CloneConfig).where(

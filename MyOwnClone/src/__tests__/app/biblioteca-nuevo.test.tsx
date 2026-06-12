@@ -10,7 +10,8 @@ const { useRouter, useSearchParams } = vi.hoisted(() => ({
 }))
 
 vi.mock('next-auth/react', () => ({ useSession }))
-vi.mock('next/navigation', () => ({ useRouter, useSearchParams }))
+vi.mock('next/navigation', () => ({ useSearchParams }))
+vi.mock('@/i18n/navigation', () => ({ useRouter }))
 
 function renderWithSuspense(searchParams: URLSearchParams = new URLSearchParams()) {
   useSearchParams.mockReturnValue(searchParams as any)

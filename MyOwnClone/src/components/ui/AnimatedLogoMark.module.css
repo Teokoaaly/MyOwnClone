@@ -110,7 +110,7 @@
 /* ── Cycle variant (repeating assemble/disassemble, for hero logo) ── */
 
 .cycle .piece {
-  animation: logoCycle 5s ease-in-out infinite;
+  animation: logoCycle 5.8s ease-in-out infinite;
 }
 
 .cycle .topLeft {
@@ -131,70 +131,28 @@
 
 @keyframes logoCycle {
   0% {
-    opacity: 0;
-    transform:
-      translate(var(--start-x), var(--start-y))
-      rotate(var(--rotate))
-      scale(0.75);
-  }
-  8% {
     opacity: 1;
-    transform:
-      translate(0, 0)
-      rotate(0deg)
-      scale(1.08);
+    transform: translate(0, 0) rotate(0deg) scale(1);
   }
-  15% {
-    transform:
-      translate(0, 0)
-      rotate(0deg)
-      scale(1);
+  18% {
+    opacity: 0.82;
+    transform: translate(0, 0) rotate(0deg) scale(0.96);
   }
-  40% {
-    transform:
-      translate(0, 0)
-      rotate(0deg)
-      scale(1);
-  }
-  48% {
+  36% {
     opacity: 1;
-    transform:
-      translate(calc(var(--start-x) * 0.5), calc(var(--start-y) * 0.5))
-      rotate(calc(var(--rotate) * 0.5))
-      scale(0.9);
+    transform: translate(0, 0) rotate(0deg) scale(1);
   }
-  55% {
-    opacity: 0;
-    transform:
-      translate(var(--start-x), var(--start-y))
-      rotate(var(--rotate))
-      scale(0.75);
-  }
-  75% {
-    opacity: 0;
-    transform:
-      translate(var(--start-x), var(--start-y))
-      rotate(var(--rotate))
-      scale(0.75);
-  }
-  83% {
+  68% {
     opacity: 1;
-    transform:
-      translate(0, 0)
-      rotate(0deg)
-      scale(1.08);
+    transform: translate(0, 0) rotate(0deg) scale(1);
   }
-  92% {
-    transform:
-      translate(0, 0)
-      rotate(0deg)
-      scale(1);
+  84% {
+    opacity: 0.9;
+    transform: translate(0, 0) rotate(0deg) scale(0.98);
   }
   100% {
-    transform:
-      translate(0, 0)
-      rotate(0deg)
-      scale(1);
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
   }
 }
 

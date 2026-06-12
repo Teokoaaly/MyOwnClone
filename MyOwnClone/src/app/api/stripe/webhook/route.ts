@@ -11,22 +11,23 @@ function getStripe() {
     throw new Error("STRIPE_SECRET_KEY not configured");
   }
 
-  return new Stripe(secretKey, {
-    apiVersion: "2025-02-24.acacia",
-  });
+  return new Stripe(secretKey);
 }
 
 export async function POST(request: NextRequest) {
-  if (!webhookSecret) {
-    console.error("STRIPE_WEBHOOK_SECRET not configured");
-    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
-  }
-
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
 
   if (!signature) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+  }
+
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET not configured");
+    return NextResponse.json(
+      { error: "Invalid signature: webhook not configured" },
+      { status: 400 },
+    );
   }
 
   let event: Stripe.Event;

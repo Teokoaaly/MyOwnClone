@@ -59,7 +59,7 @@ export const OnboardingBanner: FC<OnboardingBannerProps> = ({
             Complete setup
           </Link>
           <Link
-            href="/configuracion"
+            href="/settings"
             className="btn-secondary"
           >
             View guide
