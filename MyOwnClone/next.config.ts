@@ -17,7 +17,12 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pg"],
+  serverExternalPackages: [
+    "pg",
+    "drizzle-orm",
+    "@auth/drizzle-adapter",
+    "@auth/core",
+  ],
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   turbopack: {
     root: process.cwd(),
