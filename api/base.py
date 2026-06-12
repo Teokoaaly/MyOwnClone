@@ -12,6 +12,8 @@ from typing import Optional
 from sqlalchemy import String, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+from api.libs.uuid_utils import uuidv7
+
 
 def naive_utc_now() -> datetime:
     """Return naive datetime in UTC."""
@@ -49,6 +51,11 @@ class DefaultFieldsDCMixin:
     )
 
 
-def uuidv7() -> str:
-    """Generate a UUIDv7 string."""
+def generate_id() -> str:
+    """Generate a random UUID string for use as primary key.
+
+    Uses UUID v4 (random). For time-ordered IDs, consider switching to
+    a proper UUIDv7 implementation (Python 3.12+ uuid.uuid7, or the
+    ``uuid6`` package).
+    """
     return str(uuid.uuid4())

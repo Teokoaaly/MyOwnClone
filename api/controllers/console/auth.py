@@ -118,9 +118,9 @@ def _get_db_conn():
     return psycopg2.connect(
         host=os.environ.get("DB_HOST", "myownclone_postgres"),
         port=os.environ.get("DB_PORT", "5432"),
-        user=os.environ.get("DB_USERNAME", "postgres"),
+        user=os.environ.get("DB_USER") or os.environ.get("DB_USERNAME", "postgres"),
         password=os.environ.get("DB_PASSWORD", ""),
-        dbname=os.environ.get("DB_DATABASE", "myownclone"),
+        dbname=os.environ.get("DB_NAME") or os.environ.get("DB_DATABASE", "myownclone"),
     )
 
 
@@ -145,21 +145,36 @@ def login():
     conn = _get_db_conn()
     try:
         cur = conn.cursor()
-        # Read from 'users' table (Drizzle/NextAuth — the auth source of truth).
-        # Falls back to 'accounts' for legacy rows not yet migrated.
-        cur.execute(
-            "SELECT id, email, password_hash, name, role, tenant_id FROM users WHERE email = %s",
-            (email,),
-        )
-        row = cur.fetchone()
-
-        if not row:
-            # Fallback: check legacy 'accounts' table
+        # 'accounts' (Alembic) es la tabla canonica de usuarios.
+        # 'users' (Drizzle/NextAuth) es legacy y se conserva como fallback
+        # para tenants que aun no han migrado.
+        try:
             cur.execute(
-                "SELECT id, email, password, name, role, tenant_id FROM accounts WHERE email = %s",
+                "SELECT id, email, password AS password_hash, name, role, tenant_id "
+                "FROM accounts WHERE email = %s",
                 (email,),
             )
             row = cur.fetchone()
+        except psycopg2.errors.UndefinedTable:
+            logger.info("'accounts' table missing - will try legacy 'users'")
+            row = None
+        except Exception:
+            logger.exception("'accounts' lookup failed - will try legacy 'users'")
+            row = None
+
+        if not row:
+            # Fallback: legacy 'users' table (Drizzle/NextAuth).
+            try:
+                cur.execute(
+                    "SELECT id, email, password_hash, name, role, tenant_id FROM users WHERE email = %s",
+                    (email,),
+                )
+                row = cur.fetchone()
+            except psycopg2.errors.UndefinedTable:
+                row = None
+            except Exception:
+                logger.exception("Legacy 'users' fallback failed")
+                row = None
 
         cur.close()
 

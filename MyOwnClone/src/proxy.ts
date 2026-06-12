@@ -68,6 +68,7 @@ const ROUTE_MAP: Record<string, string> = {
   "/api/admin/overview": "/console/api/myownclone/admin/overview",
   "/api/admin/tenants": "/console/api/myownclone/admin/tenants",
   "/api/admin/impersonate": "/console/api/myownclone/admin/impersonate",
+  "/api/admin/impersonation": "/console/api/myownclone/admin/impersonation",
   "/api/admin/audit-log": "/console/api/myownclone/admin/audit-log",
   "/api/admin/feedback": "/console/api/myownclone/admin/feedback",
   "/api/admin/courtesy": "/console/api/myownclone/admin/courtesy-account",

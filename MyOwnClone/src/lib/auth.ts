@@ -14,6 +14,21 @@ import {
   normalizeEmail,
 } from "@/lib/platform-admin";
 
+/* ── NextAuth type augmentation ────────────────────────────────────── */
+declare module "next-auth" {
+  interface User {
+    role?: string;
+    tenantId?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: string;
+    tenantId?: string;
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   adapter: DrizzleAdapter(db, {
@@ -98,17 +113,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role;
+        token.role = user.role;
         token.id = user.id;
-        token.tenantId = (user as any).tenantId;
+        token.tenantId = user.tenantId;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        (session.user as any).role = token.role as string;
-        (session.user as any).tenantId = token.tenantId as string | undefined;
+        session.user.role = token.role;
+        session.user.tenantId = token.tenantId;
       }
       return session;
     },

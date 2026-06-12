@@ -145,7 +145,7 @@ export const Sidebar: FC<SidebarProps> = ({
             onClick={closeMobile}
             className="flex items-center gap-2"
           >
-            <AnimatedLogoMark size={26} />
+            <AnimatedLogoMark size={26} pulseEveryMs={60000} />
             <span className="text-sm font-semibold tracking-wide text-[var(--text-primary)]">
               {homeLabel}
             </span>
@@ -213,13 +213,13 @@ export const Sidebar: FC<SidebarProps> = ({
 
       {/* ── Desktop sidebar ── */}
       <aside
-        className="hidden md:flex w-[250px] shrink-0 flex-col border-r border-[var(--border-soft)]"
+        className="hidden md:sticky md:top-0 md:flex md:h-[calc(100vh-4rem)] w-[250px] shrink-0 flex-col border-r border-[var(--border-soft)]"
         style={{ background: "var(--bg-sidebar)" }}
       >
         {/* Logo */}
         <div className="px-5 pt-5 pb-4">
           <Link href={homeHref} className="flex items-center gap-2">
-            <AnimatedLogoMark size={26} />
+            <AnimatedLogoMark size={26} pulseEveryMs={60000} />
             <span className="text-sm font-semibold tracking-wide text-[var(--text-primary)]">
               {homeLabel}
             </span>
@@ -234,7 +234,7 @@ export const Sidebar: FC<SidebarProps> = ({
         )}
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <nav className="px-3 py-4">
           {/* Root items (Overview) */}
           {root.length > 0 && (
             <div className="space-y-0.5">{root.map((item) => renderItem(item))}</div>
@@ -258,58 +258,60 @@ export const Sidebar: FC<SidebarProps> = ({
           ))}
         </nav>
 
-        {/* FREE TRIAL card */}
-        {showFreemiumCard && (
-          <div className="px-3 pb-3">
-            <div className="rounded-xl border border-[var(--border-soft)] bg-[linear-gradient(135deg,#fff_0%,#F4F9EC_55%,#F8FAFC_100%)] p-3 shadow-sm">
-              <div className="mb-6 flex items-start justify-between gap-3">
-                <AnimatedLogoMark size={28} />
-                <span className="rounded bg-white/70 px-1.5 py-0.5 text-[9px] font-medium uppercase text-[var(--text-muted)]">
-                  Free Trial
-                </span>
-              </div>
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">MyOwnClone</p>
-                  <p className="text-xs text-[var(--text-secondary)]">7 days left</p>
+        <div className="mt-auto">
+          {/* FREE TRIAL card */}
+          {showFreemiumCard && (
+            <div className="px-3 pb-3">
+              <div className="rounded-xl border border-[var(--border-soft)] bg-[linear-gradient(135deg,#fff_0%,#F4F9EC_55%,#F8FAFC_100%)] p-2 shadow-sm">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <AnimatedLogoMark size={24} pulseEveryMs={60000} />
+                  <span className="rounded bg-white/70 px-1.5 py-0.5 text-[9px] font-medium uppercase text-[var(--text-muted)]">
+                    Free Trial
+                  </span>
                 </div>
-                <Link href="/facturacion" className="rounded-lg bg-[#4B5563] px-3 py-2 text-xs font-medium text-white shadow-sm">
-                  Upgrade
-                </Link>
-              </div>
-              <div className="mt-4 h-1.5 rounded-full bg-[#E7E5E4]">
-                <div className="h-full w-1/2 rounded-full bg-[#1C1917]" />
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-[13px] font-semibold text-[var(--text-primary)]">MyOwnClone</p>
+                    <p className="text-[11px] text-[var(--text-secondary)]">7 days left</p>
+                  </div>
+                  <Link href="/facturacion#plans" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
+                    Upgrade
+                  </Link>
+                </div>
+                <div className="mt-2.5 h-1.5 rounded-full bg-[#E7E5E4]">
+                  <div className="h-full w-1/2 rounded-full bg-[#1C1917]" />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* User */}
-        {showUserBlock && user && (
-          <div className="px-3 py-3 border-t border-[var(--border-soft)]">
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#F97316] to-[#FB923C] flex items-center justify-center text-white text-xs font-semibold shrink-0">
-                {initials}
+          {/* User */}
+          {showUserBlock && user && (
+            <div className="border-t border-[var(--border-soft)] px-3 py-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#F97316] to-[#FB923C] flex items-center justify-center text-white text-xs font-semibold shrink-0">
+                  {initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-[var(--text-primary)] truncate">
+                    {user.name ?? "User"}
+                  </p>
+                  <p className="text-[10px] text-[var(--text-muted)] truncate">
+                    {user.email ?? ""}
+                  </p>
+                </div>
+                {signOutAction}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-[var(--text-primary)] truncate">
-                  {user.name ?? "User"}
-                </p>
-                <p className="text-[10px] text-[var(--text-muted)] truncate">
-                  {user.email ?? ""}
-                </p>
-              </div>
-              {signOutAction}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Footer slot */}
-        {footer && (
-          <div className="px-3 py-3 border-t border-[var(--border-soft)] text-[11px] text-[var(--text-muted)]">
-            {footer}
-          </div>
-        )}
+          {/* Footer slot */}
+          {footer && (
+            <div className="border-t border-[var(--border-soft)] px-3 py-3 text-[11px] text-[var(--text-muted)]">
+              {footer}
+            </div>
+          )}
+        </div>
       </aside>
     </>
   );

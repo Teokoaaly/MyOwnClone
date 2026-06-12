@@ -29,6 +29,7 @@ export default function ProductosPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [mutatingId, setMutatingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [formName, setFormName] = useState("")
@@ -55,9 +56,11 @@ export default function ProductosPage() {
       if (res.ok) {
         const data = await res.json()
         setProducts(Array.isArray(data) ? data : data.items ?? [])
+      } else {
+        throw new Error(`Error ${res.status}`)
       }
-    } catch {
-      // Empty state
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error loading products")
     } finally {
       setLoading(false)
     }
@@ -99,6 +102,51 @@ export default function ProductosPage() {
       setError(e instanceof Error ? e.message : "Error")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const updateProduct = async (product: Product, changes: Partial<Product>) => {
+    if (!cloneId) return
+    setMutatingId(product.id)
+    setError(null)
+    try {
+      const res = await fetch(`/api/clone/clones/${cloneId}/products/${product.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: changes.name ?? product.name,
+          description: changes.description ?? product.description,
+          price_cents: changes.price_cents ?? product.price_cents,
+          url: changes.url ?? product.url,
+          image_url: changes.image_url ?? product.image_url,
+          priority: changes.priority ?? product.priority,
+          active: changes.active ?? product.active,
+        }),
+      })
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const updated = await res.json()
+      setProducts((items) => items.map((item) => item.id === product.id ? updated : item))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error updating product")
+    } finally {
+      setMutatingId(null)
+    }
+  }
+
+  const deleteProduct = async (product: Product) => {
+    if (!cloneId) return
+    setMutatingId(product.id)
+    setError(null)
+    try {
+      const res = await fetch(`/api/clone/clones/${cloneId}/products/${product.id}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      setProducts((items) => items.filter((item) => item.id !== product.id))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error deleting product")
+    } finally {
+      setMutatingId(null)
     }
   }
 
@@ -200,6 +248,8 @@ export default function ProductosPage() {
         </div>
       )}
 
+      {error && !showForm && <ErrorState message={error} />}
+
       {products.length === 0 ? (
         <EmptyState
           title="No products"
@@ -238,6 +288,24 @@ export default function ProductosPage() {
               </div>
               <div className="mt-2 text-[10px] text-[var(--text-muted)] font-mono">
                 Priority: {p.priority}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateProduct(p, { active: !p.active })}
+                  disabled={mutatingId === p.id}
+                  className="btn-secondary text-xs disabled:opacity-50"
+                >
+                  {p.active ? "Deactivate" : "Activate"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteProduct(p)}
+                  disabled={mutatingId === p.id}
+                  className="btn-secondary text-xs disabled:opacity-50"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}

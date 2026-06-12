@@ -1,0 +1,85 @@
+SENDGRID_INBOUND_WEBHOOK_SECRET is not set — /inbound-email will accept unauthenticated requests. Set the secret in production.
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5001
+Press CTRL+C to quit
+127.0.0.1 - - [12/Jun/2026 17:23:33] "GET /healthz HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:24:07] "GET /console/api/myownclone/admin/overview HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:24:07] "GET /console/api/myownclone/admin/overview HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:24:08] "GET /console/api/myownclone/clones HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:24:09] "GET /console/api/myownclone/clones/admin-clone-001/inbox?limit=3 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:24:09] "GET /console/api/myownclone/clones/admin-clone-001/analytics/overview HTTP/1.1" 200 -
+No dataset found for clone=admin-clone-001 silo=teach tenant=513e5200-0744-435c-b324-61405e6adc5b
+Chat streaming failed for clone=admin-clone-001
+Traceback (most recent call last):
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 248, in _invoke_minimax_stream
+    import openai
+ModuleNotFoundError: No module named 'openai'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\controllers\myownclone_public.py", line 371, in generate
+    for chunk in model_instance.invoke_llm_stream(prompt=full_prompt):
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 319, in invoke_llm_stream
+    yield from _dispatch_stream(prompt, provider=self._provider)
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 290, in _dispatch_stream
+    yield from _invoke_minimax_stream(prompt)
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 250, in _invoke_minimax_stream
+    raise ModelInvocationError("openai package not installed (needed for MiniMax)") from exc
+api.core.model_manager.ModelInvocationError: openai package not installed (needed for MiniMax)
+127.0.0.1 - - [12/Jun/2026 17:24:41] "POST /api/myownclone/public/clones/myownclone/chat HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:25:59] "GET /console/api/myownclone/clones HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:25:59] "GET /console/api/myownclone/clones/admin-clone-001/inbox?limit=3 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:25:59] "GET /console/api/myownclone/clones HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:25:59] "GET /console/api/myownclone/clones/admin-clone-001/analytics/overview HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:26:00] "GET /console/api/myownclone/clones/admin-clone-001/inbox?limit=3 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:26:00] "GET /console/api/myownclone/clones/admin-clone-001/analytics/overview HTTP/1.1" 200 -
+No dataset found for clone=admin-clone-001 silo=teach tenant=513e5200-0744-435c-b324-61405e6adc5b
+Chat streaming failed for clone=admin-clone-001
+Traceback (most recent call last):
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 248, in _invoke_minimax_stream
+    import openai
+ModuleNotFoundError: No module named 'openai'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\controllers\myownclone_public.py", line 371, in generate
+    for chunk in model_instance.invoke_llm_stream(prompt=full_prompt):
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 319, in invoke_llm_stream
+    yield from _dispatch_stream(prompt, provider=self._provider)
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 290, in _dispatch_stream
+    yield from _invoke_minimax_stream(prompt)
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 250, in _invoke_minimax_stream
+    raise ModelInvocationError("openai package not installed (needed for MiniMax)") from exc
+api.core.model_manager.ModelInvocationError: openai package not installed (needed for MiniMax)
+127.0.0.1 - - [12/Jun/2026 17:26:06] "POST /api/myownclone/public/clones/myownclone/chat HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jun/2026 17:27:39] "GET /api/myownclone/public/clones/test/chat HTTP/1.1" 405 -
+127.0.0.1 - - [12/Jun/2026 17:27:51] "POST /api/myownclone/public/clones/hacchi/chat HTTP/1.1" 404 -
+127.0.0.1 - - [12/Jun/2026 17:27:51] "GET /api/myownclone/public/clones/hacchi HTTP/1.1" 404 -
+127.0.0.1 - - [12/Jun/2026 17:27:55] "GET /api/myownclone/public/clones/test HTTP/1.1" 404 -
+127.0.0.1 - - [12/Jun/2026 17:28:01] "GET /console/api/myownclone/clones HTTP/1.1" 401 -
+127.0.0.1 - - [12/Jun/2026 17:28:06] "GET /console/api/myownclone/clones HTTP/1.1" 401 -
+No dataset found for clone=admin-clone-001 silo=teach tenant=513e5200-0744-435c-b324-61405e6adc5b
+Chat streaming failed for clone=admin-clone-001
+Traceback (most recent call last):
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 248, in _invoke_minimax_stream
+    import openai
+ModuleNotFoundError: No module named 'openai'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\controllers\myownclone_public.py", line 371, in generate
+    for chunk in model_instance.invoke_llm_stream(prompt=full_prompt):
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 319, in invoke_llm_stream
+    yield from _dispatch_stream(prompt, provider=self._provider)
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 290, in _dispatch_stream
+    yield from _invoke_minimax_stream(prompt)
+  File "C:\Users\Usuari\Documents\hacchi\MyOwnClone\api\core\model_manager.py", line 250, in _invoke_minimax_stream
+    raise ModelInvocationError("openai package not installed (needed for MiniMax)") from exc
+api.core.model_manager.ModelInvocationError: openai package not installed (needed for MiniMax)
+127.0.0.1 - - [12/Jun/2026 17:28:29] "POST /api/myownclone/public/clones/myownclone/chat HTTP/1.1" 200 -

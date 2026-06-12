@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_PASSWORD: postgres
         ports: ["5432:5432"]
@@ -46,7 +46,13 @@ jobs:
       - working-directory: api
         env:
           FLASK_ENV: testing
-          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: postgres
+          REDIS_PASSWORD: ci-test-redis-password
           JWT_SECRET_KEY: ci-test-key-must-be-at-least-32-chars-long
           IMPERSONATION_TOKEN_PEPPER: ci-test-pepper-must-be-long-enough
         run: |
@@ -84,8 +90,15 @@ jobs:
         working-directory: api
         env:
           FLASK_ENV: testing
-          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: postgres
+          REDIS_PASSWORD: ci-test-redis-password
           JWT_SECRET_KEY: ci-test-key-must-be-at-least-32-chars-long
+          IMPERSONATION_TOKEN_PEPPER: ci-test-pepper-must-be-long-enough
           SERVICE_API_KEY: ci-test-service-key
         run: |
           pip install -r requirements.txt

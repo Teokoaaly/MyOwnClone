@@ -22,6 +22,7 @@ import {
   GraduationCap,
   HighlighterCircle,
   Info,
+  Key,
   Lightbulb,
   LinkSimple,
   MicrophoneStage,
@@ -51,6 +52,7 @@ export const NavIcons = {
   analiticas: TrendUp,
   facturacion: CreditCard,
   configuracion: SlidersHorizontal,
+  apiKeys: Key,
   impersonation: ArrowsCounterClockwise,
   courtesy: Sparkle,
 } as const;

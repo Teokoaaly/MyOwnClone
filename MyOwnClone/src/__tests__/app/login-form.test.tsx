@@ -4,33 +4,28 @@ import { LoginForm } from "@/app/login/login-form"
 
 const mockSignIn = vi.hoisted(() => vi.fn())
 const mockGetSession = vi.hoisted(() => vi.fn())
+const mockReplace = vi.hoisted(() => vi.fn())
 
 vi.mock("next-auth/react", () => ({
   signIn: mockSignIn,
   getSession: mockGetSession,
 }))
 
-describe("LoginForm", () => {
-  const originalLocation = window.location
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  useRouter: () => ({ replace: mockReplace, push: vi.fn(), back: vi.fn(), refresh: vi.fn() }),
+}))
 
+describe("LoginForm", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { href: "" },
-    })
   })
 
   afterEach(() => {
     cleanup()
   })
 
-  afterAll(() => {
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: originalLocation,
-    })
-  })
+  afterAll(() => {})
 
   it("redirects admins to admin dashboard after successful login", async () => {
     mockSignIn.mockResolvedValue({ ok: true })
@@ -53,7 +48,7 @@ describe("LoginForm", () => {
         redirect: false,
         callbackUrl: "/resumen",
       })
-      expect(window.location.href).toBe("/admin/resumen")
+      expect(mockReplace).toHaveBeenCalledWith("/admin/resumen")
     })
   })
 

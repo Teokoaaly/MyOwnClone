@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic"
 
 
-import { useState, Suspense, useCallback } from "react"
+import { useState, Suspense, useCallback, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
@@ -55,23 +55,30 @@ function NuevoContentPage() {
   const [silo, setSilo] = useState("teach")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
 
   const handleBack = useCallback(() => {
     if (window.history.length > 1) router.back()
   ***REMOVED*** router.push("/biblioteca")
   }, [router])
 
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login")
+    }
+  }, [router, status])
+
   if (status === "loading") {
     return <LoadingState label="Loading..." rows={4} />
   }
   if (status === "unauthenticated") {
-    router.push("/login")
     return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError("")
     try {
       const form = e.target as HTMLFormElement
       const formData = new FormData(form)
@@ -84,11 +91,15 @@ function NuevoContentPage() {
         credentials: "include",
       })
 
-      if (res.ok) {
-        setSuccess(true)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Could not add this content right now.")
       }
+      setSuccess(true)
     } catch {
-      // error handled by UI state
+      setError(
+        "Could not add this content right now. Check the fields and try again."
+      )
     } finally {
       setLoading(false)
     }
@@ -109,6 +120,12 @@ function NuevoContentPage() {
       <p className="mt-1 text-sm text-[var(--text-muted)]">
         Add content to your clone's knowledge.
       </p>
+
+      {error && (
+        <div role="alert" className="mt-4 badge-error inline-block">
+          {error}
+        </div>
+      )}
 
       {success ? (
         <div

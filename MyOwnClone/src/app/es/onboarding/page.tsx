@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { useRouter } from "@/i18n/navigation"
+import { setCloneIdCookie } from "@/lib/clone-resolver"
 
 const STEPS = [
   { id: "name", title: "Clone name", subtitle: "What should your assistant be called?" },
@@ -75,7 +76,19 @@ export default function OnboardingPage() {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || "Error creating clone")
       }
-      router.push("/resumen")
+      const data = await res.json().catch(() => ({}))
+      const createdCloneId =
+        data?.clone?.id ||
+        data?.id ||
+        data?.source?.cloneId ||
+        null
+
+      if (createdCloneId) {
+        setCloneIdCookie(createdCloneId)
+      }
+
+      router.replace("/resumen")
+      router.refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error creating clone")
     } finally {

@@ -11,6 +11,7 @@ from api.controllers.console.wraps import account_initialization_required, setup
 from api.extensions.ext_database import db
 from api.fields.base import ResponseModel
 from api.libs.login import current_account_with_tenant, login_required
+from api.models import Conversation, Message
 from api.models.myownclone import AnalyticsGap, AnalyticsQuestion, CostTracking, CloneConfig
 
 logger = logging.getLogger(__name__)
@@ -86,12 +87,18 @@ class AnalyticsOverviewApi(Resource):
             )
         ).scalar() or 0
 
-        # TODO: Replace with native MyOwnClone conversation tracking.
-        # The Dify base tables (App, Conversation, Message) do not exist in
-        # standalone mode. Conversation counts will be tracked via the
-        # conversations/messages tables managed by the frontend Drizzle schema.
-        total_conversations = 0
-        total_messages = 0
+        total_conversations = db.session.execute(
+            select(func.count(Conversation.id)).where(
+                Conversation.clone_id == clone_id,
+            )
+        ).scalar() or 0
+
+        total_messages = db.session.execute(
+            select(func.count(Message.id))
+            .select_from(Message)
+            .join(Conversation, Conversation.id == Message.conversation_id)
+            .where(Conversation.clone_id == clone_id)
+        ).scalar() or 0
 
         return {
             "total_conversations": total_conversations,

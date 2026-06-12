@@ -197,7 +197,7 @@ export default function InboxPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-0px)] gap-4">
+    <div className="flex h-[calc(100vh-7rem)] min-h-[560px] gap-4">
       {/* Sidebar list */}
       <div className="w-80 shrink-0 flex flex-col card !p-0 overflow-hidden">
         <div className="px-4 py-4 border-b border-[var(--border-soft)]">

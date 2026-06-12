@@ -50,11 +50,12 @@ test.describe("Login page", () => {
 });
 
 test.describe("Register page", () => {
-  test("carga con form y boton Google", async ({ page }) => {
+  test("carga con form magic link y boton Google", async ({ page }) => {
     await page.goto("/registro");
     await expect(page.locator("h1").first()).toBeVisible();
+    await expect(page.locator('input[type="text"]')).toBeVisible();
     await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
     await expect(
       page.locator("button", { hasText: /google/i })
     ).toBeVisible();

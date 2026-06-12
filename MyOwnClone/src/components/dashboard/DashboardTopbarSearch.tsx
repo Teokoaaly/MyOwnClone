@@ -18,7 +18,7 @@ const DASHBOARD_PAGES: Array<{ href: string; label: string; icon: string }> = [
   { href: "/reuniones", label: "Meetings", icon: "📅" },
   { href: "/analiticas", label: "Analytics", icon: "📈" },
   { href: "/facturacion", label: "Billing", icon: "💳" },
-  { href: "/configuracion", label: "Settings", icon: "⚙️" },
+  { href: "/settings", label: "Settings", icon: "⚙️" },
   { href: "/admin", label: "Admin", icon: "🛠" },
 ];
 

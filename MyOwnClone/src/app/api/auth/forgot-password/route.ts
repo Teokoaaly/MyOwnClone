@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
 import { sendLoginVerificationCode } from "@/lib/email";
 import { normalizeEmail } from "@/lib/platform-admin";
 

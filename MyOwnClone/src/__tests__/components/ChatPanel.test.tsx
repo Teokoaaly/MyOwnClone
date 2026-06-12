@@ -90,4 +90,73 @@ describe('ChatPanel', () => {
       expect(screen.getByText('Network error')).toBeDefined()
     })
   })
+
+  it('surfaces backend stream errors as UI errors', async () => {
+    const mockReader = {
+      read: vi.fn()
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"content":"Backend failed","error":true}\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: true }),
+    }
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      body: { getReader: () => mockReader },
+    })
+
+    render(<ChatPanel slug="test-clone" initialSilo="teach" />)
+    const textarea = screen.getByPlaceholderText('Write your question...')
+  ***REMOVED***reEvent.change(textarea, { target: { value: 'Hola' } })
+  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Send message' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Backend failed')).toBeDefined()
+    })
+  })
+
+  it('auto-sends the initial query when provided', async () => {
+    const mockReader = {
+      read: vi.fn()
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"content":"Hola"}\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"***REMOVED***":true,"confidence":0.9,"sources":[]}\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: true }),
+    }
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      body: { getReader: () => mockReader },
+    })
+
+    render(<ChatPanel slug="test-clone" initialSilo="teach" initialQuery="Pregunta inicial" />)
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/clone/test-clone/chat',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      )
+    })
+  })
+
+  it('does not render hidden think blocks in assistant replies', async () => {
+    const mockReader = {
+      read: vi.fn()
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"content":"<think>Internal reasoning</think>Hola visible"}\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"***REMOVED***":true,"confidence":0.9,"sources":[]}\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+        .mockResolvedValueOnce({ ***REMOVED***: true }),
+    }
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      body: { getReader: () => mockReader },
+    })
+
+    render(<ChatPanel slug="test-clone" initialSilo="teach" initialQuery="Pregunta inicial" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Hola visible')).toBeDefined()
+    })
+
+    expect(screen.queryByText(/Internal reasoning/i)).toBeNull()
+  })
 })

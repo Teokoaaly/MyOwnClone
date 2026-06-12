@@ -12,7 +12,6 @@ Create Date: 2026-06-09 07:00:00.000000
 """
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects import postgresql
 
 revision = '0000000000a0'
 down_revision = None        # This is the new root of the migration chain
@@ -25,10 +24,7 @@ def _is_pg(conn) -> bool:
 
 
 def upgrade():
-    conn = op.get_bind()
-    is_postgres = _is_pg(conn)
-
-    uuid_type = postgresql.UUID() if is_postgres else sa.String(36)
+    uuid_type = sa.String(36)
 
     # ─── tenants ──────────────────────────────────────────────────────────
     op.create_table(
@@ -36,8 +32,8 @@ def upgrade():
         sa.Column("id", uuid_type, primary_key=True, nullable=False),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("slug", sa.String(100), unique=True, nullable=True),
-        sa.Column("plan", sa.String(50), server_default=sa.text("'básico'"), nullable=False),
-        sa.Column("status", sa.String(50), server_default=sa.text("'normal'"), nullable=False),
+        sa.Column("plan", sa.String(50), server_default=sa.text("'trial'"), nullable=False),
+        sa.Column("status", sa.String(50), server_default=sa.text("'trial'"), nullable=False),
         sa.Column(
             "subscription_status",
             sa.String(50),

@@ -65,32 +65,64 @@ class TestEnvValidation:
     """The app MUST refuse to start with weak/dev credentials."""
 
     def test_dev_password_rejected(self, monkeypatch):
-        from api.app_factory import _validate_required_env
+        from api.libs.security_checks import assert_production_secrets
+        monkeypatch.setenv("FLASK_ENV", "production")
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+        monkeypatch.setenv("JWT_SECRET_KEY", "x" * 64)
+        monkeypatch.setenv("IMPERSONATION_TOKEN_PEPPER", "p" * 64)
+        monkeypatch.setenv("ALLOWED_ORIGINS", "https://example.com")
+        monkeypatch.setenv("DB_HOST", "localhost")
+        monkeypatch.setenv("DB_USER", "postgres")
+        monkeypatch.setenv("DB_NAME", "myownclone")
         monkeypatch.setenv("DB_PASSWORD", "postgres")
         monkeypatch.setenv("REDIS_PASSWORD", "x" * 20)
-        with pytest.raises(ValueError, match="DB_PASSWORD cannot be 'postgres'"):
-            _validate_required_env()
+        with pytest.raises(SystemExit):
+            assert_production_secrets()
 
     def test_redis_changeit_rejected(self, monkeypatch):
-        from api.app_factory import _validate_required_env
+        from api.libs.security_checks import assert_production_secrets
+        monkeypatch.setenv("FLASK_ENV", "production")
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+        monkeypatch.setenv("JWT_SECRET_KEY", "x" * 64)
+        monkeypatch.setenv("IMPERSONATION_TOKEN_PEPPER", "p" * 64)
+        monkeypatch.setenv("ALLOWED_ORIGINS", "https://example.com")
+        monkeypatch.setenv("DB_HOST", "localhost")
+        monkeypatch.setenv("DB_USER", "postgres")
+        monkeypatch.setenv("DB_NAME", "myownclone")
         monkeypatch.setenv("DB_PASSWORD", "x" * 20)
         monkeypatch.setenv("REDIS_PASSWORD", "changeit")
-        with pytest.raises(ValueError, match="REDIS_PASSWORD cannot be 'changeit'"):
-            _validate_required_env()
+        with pytest.raises(SystemExit):
+            assert_production_secrets()
 
     def test_missing_db_password_fails(self, monkeypatch):
-        from api.app_factory import _validate_required_env
+        from api.libs.security_checks import assert_production_secrets
+        monkeypatch.setenv("FLASK_ENV", "production")
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+        monkeypatch.setenv("JWT_SECRET_KEY", "x" * 64)
+        monkeypatch.setenv("IMPERSONATION_TOKEN_PEPPER", "p" * 64)
+        monkeypatch.setenv("ALLOWED_ORIGINS", "https://example.com")
+        monkeypatch.setenv("DB_HOST", "localhost")
+        monkeypatch.setenv("DB_USER", "postgres")
+        monkeypatch.setenv("DB_NAME", "myownclone")
         monkeypatch.delenv("DB_PASSWORD", raising=False)
         monkeypatch.setenv("REDIS_PASSWORD", "x" * 20)
-        with pytest.raises(EnvironmentError, match="DB_PASSWORD"):
-            _validate_required_env()
+        with pytest.raises(SystemExit):
+            assert_production_secrets()
 
     def test_missing_redis_password_fails(self, monkeypatch):
-        from api.app_factory import _validate_required_env
+        from api.libs.security_checks import assert_production_secrets
+        monkeypatch.setenv("FLASK_ENV", "production")
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+        monkeypatch.setenv("JWT_SECRET_KEY", "x" * 64)
+        monkeypatch.setenv("IMPERSONATION_TOKEN_PEPPER", "p" * 64)
+        monkeypatch.setenv("ALLOWED_ORIGINS", "https://example.com")
+        monkeypatch.setenv("DB_HOST", "localhost")
+        monkeypatch.setenv("DB_USER", "postgres")
+        monkeypatch.setenv("DB_NAME", "myownclone")
         monkeypatch.setenv("DB_PASSWORD", "x" * 20)
         monkeypatch.delenv("REDIS_PASSWORD", raising=False)
-        with pytest.raises(EnvironmentError, match="REDIS_PASSWORD"):
-            _validate_required_env()
+        with pytest.raises(SystemExit):
+            assert_production_secrets()
 
 
 class TestJWTSecret:

@@ -39,6 +39,13 @@ def _is_uuid_like(value: str | None) -> bool:
     return all(ch in "0123456789abcdefABCDEF" for ch in normalized)
 
 
+def _allow_dev_service_key() -> bool:
+    return (
+        os.environ.get("FLASK_ENV", "production") != "production"
+        and os.environ.get("ALLOW_DEV_SERVICE_KEY", "true").lower() == "true"
+    )
+
+
 def login_required(f: Callable) -> Callable:
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -56,24 +63,26 @@ def login_required(f: Callable) -> Callable:
 
         # Second try: X-API-Key header (service-to-service via Next.js proxy)
         api_key = request.headers.get('X-API-Key', '')
-        valid_keys = [
-            os.environ.get('SERVICE_API_KEY', ''),
-            os.environ.get('DEPLOY_SECRET', ''),
-        ]
-        # In development only, fall back to a hardcoded key so local hacking
-        # works without a freshly generated secret.
-        if os.environ.get('FLASK_ENV', 'production') != 'production':
+        valid_keys = []
+        configured_service_key = os.environ.get('SERVICE_API_KEY', '').strip()
+        if configured_service_key:
+            valid_keys.append(configured_service_key)
+        if _allow_dev_service_key():
             valid_keys.append('dev-api-key-for-proxy')
-        if api_key and api_key in valid_keys:
+
+        if api_key and any(_check_service_token(api_key, key) for key in valid_keys):
             forwarded_user_id = request.headers.get('X-User-Id', '').strip()
             forwarded_tenant_id = request.headers.get('X-Tenant-Id', '').strip()
             forwarded_role = request.headers.get('X-User-Role', '').strip()
             forwarded_email = request.headers.get('X-User-Email', '').strip()
 
-            g.account_id = forwarded_user_id or 'proxy-service'
-            g.tenant_id = forwarded_tenant_id if _is_uuid_like(forwarded_tenant_id) else 'proxy-service'
-            g.account_role = forwarded_role or 'admin'
-            g.account_email = forwarded_email or 'proxy@myownclone.local'
+            if not forwarded_user_id or not forwarded_role:
+                return {'error': 'Unauthorized — missing forwarded identity'}, 401
+
+            g.account_id = forwarded_user_id
+            g.tenant_id = forwarded_tenant_id if _is_uuid_like(forwarded_tenant_id) else None
+            g.account_role = forwarded_role
+            g.account_email = forwarded_email or ''
             return f(*args, **kwargs)
 
         return {'error': 'Unauthorized — missing or invalid authentication'}, 401

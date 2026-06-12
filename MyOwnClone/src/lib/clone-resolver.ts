@@ -49,7 +49,11 @@ export function getCloneIdFromCookie(): string | null {
 export function setCloneIdCookie(id: string): void {
   if (typeof document === "undefined") return;
   const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${CLONE_ID_COOKIE}=${encodeURIComponent(id)}; expires=${expires}; path=/; SameSite=Lax`;
+  const secure =
+    typeof window !== "undefined" && window.location.protocol === "https:"
+      ? "; Secure"
+      : "";
+  document.cookie = `${CLONE_ID_COOKIE}=${encodeURIComponent(id)}; expires=${expires}; path=/; SameSite=Lax${secure}`;
 }
 
 /**

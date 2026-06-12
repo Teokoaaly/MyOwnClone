@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowSquareOut,
   ChartBar,
@@ -17,8 +18,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
+import { ChatPanel } from "@/components/chat/ChatPanel";
 import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
 import { Link, useRouter } from "@/i18n/navigation";
+import { setCloneIdCookie } from "@/lib/clone-resolver";
 
 interface AnalyticsOverview {
   total_conversations: number;
@@ -38,15 +41,24 @@ interface InboxListItem {
   received_at: number | null;
 }
 
+interface CloneListItem {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 const fallbackBars = [14, 18, 22, 16, 28, 36, 54, 48, 60, 42, 30, 26, 18, 22, 34, 28, 20, 18, 24, 16];
+const COLLAPSED_BOX_HEIGHT = 188;
+const ACTIVE_CHAT_BOX_HEIGHT = 420;
 
 export default function DashboardResumenPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
-  const [clonesCount, setClonesCount] = useState<number | null>(null);
-  const [query, setQuery] = useState("");
+  const [clones, setClones] = useState<CloneListItem[]>([]);
+  const [activeChatQuery, setActiveChatQuery] = useState("");
+  const [chatSessionKey, setChatSessionKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,10 +70,18 @@ export default function DashboardResumenPage() {
     setLoading(true);
     setError(null);
     try {
-      const [overviewRes, inboxRes, clonesRes] = await Promise.allSettled([
+      const clonesRes = await fetch("/api/clone/clones");
+      const cloneData = clonesRes.ok ? await clonesRes.json() : [];
+      const resolvedClones = Array.isArray(cloneData) ? cloneData : cloneData.clones ?? [];
+      setClones(resolvedClones);
+
+      if (resolvedClones[0]?.id) {
+        setCloneIdCookie(resolvedClones[0].id);
+      }
+
+      const [overviewRes, inboxRes] = await Promise.allSettled([
         fetch("/api/clone/analytics/overview"),
         fetch("/api/clone/inbox/list?limit=3"),
-        fetch("/api/clone/clones"),
       ]);
 
       if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
@@ -70,11 +90,6 @@ export default function DashboardResumenPage() {
       if (inboxRes.status === "fulfilled" && inboxRes.value.ok) {
         const data = await inboxRes.value.json();
         setRecentInbox(Array.isArray(data) ? data : data.items ?? []);
-      }
-      if (clonesRes.status === "fulfilled" && clonesRes.value.ok) {
-        const data = await clonesRes.value.json();
-        const clones = Array.isArray(data) ? data : data.clones ?? [];
-        setClonesCount(clones.length);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error loading data");
@@ -87,6 +102,8 @@ export default function DashboardResumenPage() {
     fetchData();
   }, [fetchData]);
 
+  const activeClone = clones[0] ?? null;
+
   const usageBars = useMemo(() => {
     const conversations = overview?.total_conversations ?? 0;
     const questions = overview?.questions_answered ?? 0;
@@ -97,6 +114,17 @@ export default function DashboardResumenPage() {
       return Math.max(10, Math.min(64, bar + pulse * 3));
     });
   }, [overview]);
+
+  const startInlineChat = useCallback(() => {
+    const trimmed = activeChatQuery.trim();
+    if (trimmed.length === 0) return;
+    if (!activeClone?.slug) {
+      router.push("/onboarding");
+      return;
+    }
+
+    setChatSessionKey((current) => current + 1);
+  }, [activeChatQuery, activeClone?.slug, router]);
 
   if (status === "loading" || loading) {
     return <LoadingState label="Loading dashboard..." rows={4} />;
@@ -116,8 +144,8 @@ export default function DashboardResumenPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1440px]">
-      <header className="mb-7 flex items-start justify-between gap-4">
+    <div className="mx-auto flex max-w-[1440px] flex-col">
+      <header className="mb-5 shrink-0">
         <div>
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.01em] text-[var(--text-primary)]">
             MyOwnClone Command Center
@@ -126,23 +154,13 @@ export default function DashboardResumenPage() {
             Train your AI clone, manage its knowledge, review conversations, and monitor growth from one focused workspace.
           </p>
         </div>
-        <div className="hidden h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[var(--border-soft)] bg-[var(--surface-2)] md:block">
-          {session?.user?.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={session.user.image} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--text-primary)]">
-              {session?.user?.name?.charAt(0) ?? "U"}
-            </div>
-          )}
-        </div>
       </header>
 
-      {clonesCount !== null && clonesCount === 0 && (
+      {clones.length === 0 && (
         <OnboardingBanner completedSteps={1} totalSteps={4} />
       )}
 
-      <section className="mb-7">
+      <section className="mb-5 shrink-0">
         <p className="section-label mb-3">Get Started</p>
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.2fr_1fr_1fr]">
           <Link href="/configuracion" className="console-strip">
@@ -150,11 +168,11 @@ export default function DashboardResumenPage() {
               <Key weight="duotone" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--text-primary)]">API Key</p>
-              <p className="text-xs text-[var(--text-muted)]">Get started in 5 min</p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">API Keys</p>
+              <p className="text-xs text-[var(--text-muted)]">Connect your workspace in 5 min</p>
             </div>
             <span className="ml-auto truncate font-mono text-sm text-[#0284C7]">
-              Manage keys
+              Open keys
             </span>
           </Link>
 
@@ -192,84 +210,126 @@ export default function DashboardResumenPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-10 shadow-sm md:px-8 md:py-16">
-        <div className="mx-auto flex max-w-[760px] flex-col items-center text-center">
-          <div className="mb-6">
-            <ReflectiveOrb size={68} />
+      <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-5 shadow-sm md:px-8 md:py-6">
+        <div className="mx-auto flex max-w-[980px] flex-col overflow-visible pb-3">
+          <div className="flex flex-col items-center text-center">
+            <ReflectiveOrb size={40} />
+            <h2 className="mt-2 text-[26px] font-semibold text-[var(--text-secondary)] md:text-[28px]">
+              What do you want to build or query?
+            </h2>
           </div>
-          <h2 className="text-2xl font-semibold text-[var(--text-secondary)] md:text-[28px]">
-            What do you want to build or query?
-          </h2>
 
-          <form
-            className="mt-7 w-full rounded-xl border border-[var(--border-medium)] bg-white p-3 text-left shadow-[0_14px_32px_rgba(15,23,42,0.08)]"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const trimmed = query.trim();
-              if (trimmed.length === 0) return;
-              router.push(`/biblioteca?query=${encodeURIComponent(trimmed)}`);
-            }}
+          <motion.div
+            animate={{ height: chatSessionKey > 0 ? ACTIVE_CHAT_BOX_HEIGHT : COLLAPSED_BOX_HEIGHT }}
+            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+            className="mx-auto mt-4 w-full max-w-[860px] overflow-hidden rounded-2xl border border-[var(--border-medium)] bg-white text-left shadow-[0_14px_32px_rgba(15,23,42,0.08)]"
           >
-            <textarea
-              rows={4}
-              aria-label="AI query"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Ask about endpoints, schema design, or workflow orchestration..."
-              className="min-h-[92px] w-full resize-none bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
-            />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <button type="button" className="prompt-tool" aria-label="Search">
-                  <MagnifyingGlass />
-                </button>
-                <button
-                  type="button"
-                  className="prompt-tool"
-                  aria-label="Fast mode"
-                  onClick={() => setQuery((current) => current || "Find the fastest way to launch my AI clone workflow.")}
-                >
-                  <Lightning weight="fill" />
-                </button>
-                <button
-                  type="button"
-                  className="prompt-tool"
-                  aria-label="Templates"
-                  onClick={() => setQuery("Create a workflow that ingests content, answers customer questions, and flags gaps.")}
-                >
-                  <SquaresFour />
-                </button>
-              </div>
-              <button type="submit" className="prompt-send" aria-label="Send query">
-                <PaperPlaneRight />
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-8 w-full text-left">
-            <p className="section-label mb-3">Your Recent Query</p>
-            {recentInbox.length === 0 ? (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                {[
-                  "Extract product data from nike.com Schema: title, price, availability, reviews",
-                  "Create extraction schema for blog articles Fields: headline, author, publish_date, content",
-                  "Research latest AI compliance regulations Region: EU Output: structured summary",
-                ].map((query) => (
-                  <RecentQueryCard key={query} query={query} onSelect={setQuery} />
-                ))}
-              </div>
+            {activeClone?.slug && chatSessionKey > 0 ? (
+              <ChatPanel
+                key={`${activeClone.slug}-${chatSessionKey}`}
+                slug={activeClone.slug}
+                initialSilo="teach"
+                initialQuery={chatSessionKey > 0 ? activeChatQuery : undefined}
+                mode="inline"
+                emptyState={{
+                  title: `Consulta ${activeClone.name} desde aqui`,
+                  description: "La conversacion permanece en este mismo espacio y usa la base de conocimiento de tu clon.",
+                }}
+                onReset={() => {
+                  setActiveChatQuery("");
+                  setChatSessionKey(0);
+                }}
+              />
             ) : (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                {recentInbox.slice(0, 3).map((item) => (
-                  <RecentQueryCard
-                    key={item.id}
-                    query={`${item.subject ?? "Inbox request"} ${item.from_email ? `from ${item.from_email}` : ""}`}
-                    onSelect={setQuery}
-                  />
-                ))}
-              </div>
+              <form
+                className="flex h-full flex-col p-3 md:p-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  startInlineChat();
+                }}
+              >
+                <textarea
+                  rows={2}
+                  aria-label="AI query"
+                  value={activeChatQuery}
+                  onChange={(event) => setActiveChatQuery(event.target.value)}
+                  placeholder="Ask your clone something from its knowledge base..."
+                  className="min-h-[40px] w-full resize-none bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                />
+                <div className="mt-auto flex items-center justify-between pt-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <button type="button" className="prompt-tool" aria-label="Search">
+                      <MagnifyingGlass />
+                    </button>
+                    <button
+                      type="button"
+                      className="prompt-tool"
+                      aria-label="Fast mode"
+                      onClick={() => setActiveChatQuery((current) => current || "Find the fastest way to launch my AI clone workflow.")}
+                    >
+                      <Lightning weight="fill" />
+                    </button>
+                    <button
+                      type="button"
+                      className="prompt-tool"
+                      aria-label="Templates"
+                      onClick={() => setActiveChatQuery("Create a workflow that ingests content, answers customer questions, and flags gaps.")}
+                    >
+                      <SquaresFour />
+                    </button>
+                  </div>
+                  <button type="submit" className="prompt-send" aria-label="Send query">
+                    <PaperPlaneRight />
+                  </button>
+                </div>
+              </form>
             )}
-          </div>
+          </motion.div>
+
+          <AnimatePresence initial={false}>
+            {chatSessionKey === 0 ? (
+              <motion.div
+                key="recent-queries"
+                initial={{ opacity: 0, y: 18, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto", marginTop: 14 }}
+                exit={{ opacity: 0, y: 10, height: 0, marginTop: 0 }}
+                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full overflow-hidden"
+              >
+                <div className="mx-auto flex max-w-[980px] flex-col">
+                {activeClone && (
+                  <p className="mb-2 text-xs text-[var(--text-muted)]">
+                    Queries will run against <span className="font-medium text-[var(--text-primary)]">{activeClone.name}</span>.
+                  </p>
+                )}
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  Your Recent Query
+                </p>
+                {recentInbox.length === 0 ? (
+                  <div className="grid grid-cols-1 gap-2.5 md:grid-cols-3">
+                    {[
+                      "Extract product data from nike.com Schema: title, price, availability, reviews",
+                      "Create extraction schema for blog articles Fields: headline, author, publish_date, content",
+                      "Research latest AI compliance regulations Region: EU Output: structured summary",
+                    ].map((query) => (
+                      <RecentQueryCard key={query} query={query} onSelect={setActiveChatQuery} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2.5 md:grid-cols-3">
+                    {recentInbox.slice(0, 3).map((item) => (
+                      <RecentQueryCard
+                        key={item.id}
+                        query={`${item.subject ?? "Inbox request"} ${item.from_email ? `from ${item.from_email}` : ""}`}
+                        onSelect={setActiveChatQuery}
+                      />
+                    ))}
+                  </div>
+                )}
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
 
           {overview === null && (
             <div className="mt-8 w-full">
@@ -296,10 +356,10 @@ function RecentQueryCard({
     <button
       type="button"
       onClick={() => onSelect(query)}
-      className="rounded-xl border border-[var(--border-soft)] bg-white p-4 text-left text-sm leading-snug text-[var(--text-secondary)] shadow-sm transition hover:border-[var(--border-medium)] hover:text-[var(--text-primary)]"
+      className="min-h-[92px] rounded-xl border border-[var(--border-soft)] bg-white p-2 text-left text-[13px] leading-snug text-[var(--text-secondary)] shadow-sm transition hover:border-[var(--border-medium)] hover:text-[var(--text-primary)]"
     >
-      <MagnifyingGlass className="mb-4 h-4 w-4 text-[var(--text-muted)]" />
-      {query}
+      <MagnifyingGlass className="mb-1.5 h-4 w-4 text-[var(--text-muted)]" />
+      <span className="line-clamp-3">{query}</span>
     </button>
   );
 }

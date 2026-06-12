@@ -10,7 +10,9 @@ from api.models.clone import (
     CloneConfig, CloneModePrompt, CloneSilo,
     CreatorMemory, CreatorMemoryType,
 )
+from api.models.conversation import Conversation, Message
 from api.models.email import EmailInbound, EmailInboundStatus, EmailTemplate
+from api.models.knowledge import Chunk, Source
 from api.models.meeting import (
     Availability, Booking, BookingStatus, MeetingType_, Product,
 )
@@ -19,8 +21,10 @@ __all__ = [
     "CloneConfig", "CloneModePrompt", "CloneSilo",
     "CreatorMemory", "CreatorMemoryType",
     "EmailInbound", "EmailInboundStatus", "EmailTemplate",
+    "Conversation", "Message",
     "MeetingType_", "Availability", "Booking", "BookingStatus", "Product",
     "CostTracking", "CostCategory", "Plan",
+    "Source", "Chunk",
     "AnalyticsQuestion", "AnalyticsGap", "GapStatus",
     "ImpersonationLog", "ImpersonationToken",
     "Feedback",

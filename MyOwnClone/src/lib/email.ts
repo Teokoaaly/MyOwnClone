@@ -4,6 +4,27 @@ import { Resend } from "resend";
 let _resend: any = null; const getResend = () => { if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY); return _resend; };
 const fromEmail = process.env.RESEND_FROM_EMAIL ?? "noreply@myownclone.com";
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function sanitizeMeetingUrl(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+  } catch {
+  }
+  return null;
+}
+
 export async function sendEmail(params: {
   to: string | string[];
   subject: string;
@@ -27,16 +48,22 @@ export async function sendBookingConfirmation(params: {
   time: string;
   meetingUrl?: string;
 }) {
+  const visitorName = escapeHtml(params.visitorName);
+  const cloneName = escapeHtml(params.cloneName);
+  const date = escapeHtml(params.date);
+  const time = escapeHtml(params.time);
+  const meetingUrl = sanitizeMeetingUrl(params.meetingUrl);
+
   return sendEmail({
     to: params.to,
-    subject: `Confirmación de reunión con ${params.cloneName}`,
+    subject: `Confirmacion de reunion con ${cloneName}`,
     html: `
-      <h1>¡Reunión confirmada!</h1>
-      <p>Hola ${params.visitorName},</p>
-      <p>Tu reunión con <strong>${params.cloneName}</strong> está programada para:</p>
-      <p><strong>${params.date}</strong> a las <strong>${params.time}</strong></p>
-      ${params.meetingUrl ? `<p>Enlace de la videollamada: <a href="${params.meetingUrl}">${params.meetingUrl}</a></p>` : ""}
-      <p>¡Nos vemos pronto!</p>
+      <h1>Reunion confirmada</h1>
+      <p>Hola ${visitorName},</p>
+      <p>Tu reunion con <strong>${cloneName}</strong> esta programada para:</p>
+      <p><strong>${date}</strong> a las <strong>${time}</strong></p>
+      ${meetingUrl ? `<p>Enlace de la videollamada: <a href="${meetingUrl}">${meetingUrl}</a></p>` : ""}
+      <p>Nos vemos pronto.</p>
     `,
   });
 }

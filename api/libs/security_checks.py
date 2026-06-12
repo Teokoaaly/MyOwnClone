@@ -13,8 +13,8 @@ _INSECURE_DEFAULTS: dict[str, set[str]] = {
 _REQUIRED_IN_PROD: Iterable[str] = (
     "JWT_SECRET_KEY",
     "IMPERSONATION_TOKEN_PEPPER",
-    "DATABASE_URL",
     "ALLOWED_ORIGINS",
+    "REDIS_PASSWORD",
 )
 
 def _is_production() -> bool:
@@ -32,6 +32,13 @@ def assert_production_secrets() -> None:
         if not os.getenv(var):
             errors.append(f"{var} is required in production but is not set.")
 
+    if not os.getenv("DATABASE_URL"):
+        for var in ("DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"):
+            if not os.getenv(var):
+                errors.append(
+                    f"{var} is required in production when DATABASE_URL is not set."
+                )
+
     for var, bad_values in _INSECURE_DEFAULTS.items():
         value = os.getenv(var, "")
         if value in bad_values:
@@ -39,6 +46,14 @@ def assert_production_secrets() -> None:
                 f"{var} is using an insecure development default. "
                 f"Rotate it before deploying to production."
             )
+
+    for var, bad_values in {
+        "DB_PASSWORD": {"", "postgres", "changeit", "dev_password_123"},
+        "REDIS_PASSWORD": {"", "changeit", "dev_password_123"},
+    }.items():
+        value = os.getenv(var, "")
+        if value in bad_values and not (var == "DB_PASSWORD" and os.getenv("DATABASE_URL")):
+            errors.append(f"{var} is missing or uses an insecure default.")
 
     if errors:
         sys.stderr.write("\n[FATAL] Insecure configuration detected:\n")

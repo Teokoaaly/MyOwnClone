@@ -5,8 +5,6 @@ import { Providers } from "./providers";
 import "./globals.css";
 import { resolveLocale } from "@/i18n/routing";
 
-export const dynamic = "force-dynamic";
-
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],

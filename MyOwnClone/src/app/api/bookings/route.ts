@@ -3,8 +3,21 @@ import { db, schema } from "@/lib/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { createMeeting } from "@/lib/video";
 import { sendBookingConfirmation } from "@/lib/email";
+import { auth } from "@/lib/auth";
+
+const MAX_VISITOR_NAME_LENGTH = 200;
+const MAX_VISITOR_EMAIL_LENGTH = 320;
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const cloneId = searchParams.get("cloneId");
 
@@ -32,6 +45,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     let meetingTypeId: string;
     let visitorName: string;
     let visitorEmail: string;
@@ -61,6 +79,20 @@ export async function POST(request: NextRequest) {
         { error: "meetingTypeId, visitorName, visitorEmail, and date are required" },
         { status: 400 },
       );
+    }
+
+    visitorName = visitorName.trim();
+    visitorEmail = visitorEmail.trim().toLowerCase();
+
+    if (!visitorName || visitorName.length > MAX_VISITOR_NAME_LENGTH) {
+      return NextResponse.json({ error: "Invalid visitorName" }, { status: 400 });
+    }
+
+    if (
+      visitorEmail.length > MAX_VISITOR_EMAIL_LENGTH ||
+      !isValidEmail(visitorEmail)
+    ) {
+      return NextResponse.json({ error: "Invalid visitorEmail" }, { status: 400 });
     }
 
     const conflict = await db.query.bookings.findFirst({

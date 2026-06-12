@@ -8,10 +8,12 @@ from flask import request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from api.controllers.common.schema import register_response_schema_models, register_schema_models
 from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
+from api.core.contracts import normalize_silo, normalize_silo_list
 from api.extensions.ext_database import db
 from api.fields.base import ResponseModel
 from api.libs.login import current_account_with_tenant, login_required
@@ -101,7 +103,16 @@ class CloneConfigListApi(Resource):
     @console_ns.response(201, "Created", CloneConfigResponse)
     def post(self):
         account, tenant_id = current_account_with_tenant()
+        if not tenant_id:
+            return {"error": "tenant not configured for this account"}, 400
+
         data = CloneConfigPayload.model_validate(request.json)
+        existing = db.session.execute(
+            select(CloneConfig).where(CloneConfig.slug == data.slug)
+        ).scalar_one_or_none()
+        if existing:
+            return {"error": f"A clone with slug '{data.slug}' already exists"}, 409
+
         clone = CloneConfig(
             tenant_id=tenant_id,
             name=data.name,
@@ -110,7 +121,7 @@ class CloneConfigListApi(Resource):
             avatar_url=data.avatar_url,
             personality_tone=data.personality_tone,
             language=data.language,
-            active_modes=data.active_modes,
+            active_modes=normalize_silo_list(data.active_modes),
             is_active=data.is_active,
         )
         db.session.add(clone)
@@ -121,11 +132,20 @@ class CloneConfigListApi(Resource):
                 clone_id=clone.id,
                 mode=silo.value,
                 system_prompt=DEFAULT_PROMPTS.get(silo, ""),
-                is_active=silo.value in (data.active_modes or []),
+                is_active=silo.value in normalize_silo_list(data.active_modes),
             )
             db.session.add(prompt)
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return {"error": f"A clone with slug '{data.slug}' already exists"}, 409
+        except Exception:
+            db.session.rollback()
+            logger.exception("Failed to create clone for tenant=%s slug=%s", tenant_id, data.slug)
+            return {"error": "failed to create clone"}, 500
+
         return _serialize_clone(clone), 201
 
 
@@ -174,7 +194,7 @@ class CloneConfigApi(Resource):
         if data.language is not None:
             clone.language = data.language
         if data.active_modes is not None:
-            clone.active_modes = data.active_modes
+            clone.active_modes = normalize_silo_list(data.active_modes)
         if data.is_active is not None:
             clone.is_active = data.is_active
         db.session.commit()
@@ -189,10 +209,11 @@ class CloneModePromptApi(Resource):
     def put(self, clone_id: str):
         account, tenant_id = current_account_with_tenant()
         data = CloneModePromptPayload.model_validate(request.json)
+        mode = normalize_silo(data.mode)
         prompt = db.session.execute(
             select(CloneModePrompt).where(
                 CloneModePrompt.clone_id == clone_id,
-                CloneModePrompt.mode == data.mode,
+                CloneModePrompt.mode == mode,
             )
         ).scalar_one_or_none()
         if not prompt:
@@ -204,12 +225,16 @@ class CloneModePromptApi(Resource):
             ).scalar_one_or_none()
             if not clone:
                 return {"error": "clone not found"}, 404
-            prompt = CloneModePrompt(clone_id=clone_id, mode=data.mode)
+            prompt = CloneModePrompt(clone_id=clone_id, mode=mode)
             db.session.add(prompt)
         prompt.system_prompt = data.system_prompt
         prompt.is_active = data.is_active
         db.session.commit()
-        return {"id": prompt.id, "mode": prompt.mode, "system_prompt": prompt.system_prompt}, 200
+        return {
+            "id": str(prompt.id),
+            "mode": normalize_silo(prompt.mode),
+            "system_prompt": prompt.system_prompt,
+        }, 200
 
 
 def _serialize_clone(clone: CloneConfig) -> dict:
@@ -225,14 +250,14 @@ def _serialize_clone(clone: CloneConfig) -> dict:
         "avatar_url": clone.avatar_url,
         "personality_tone": clone.personality_tone,
         "language": clone.language,
-        "active_modes": clone.active_modes if isinstance(clone.active_modes, list) else [],
+        "active_modes": normalize_silo_list(clone.active_modes if isinstance(clone.active_modes, list) else []),
         "is_active": clone.is_active if clone.is_active is not None else True,
         "created_at": int(clone.created_at.timestamp()) if clone.created_at else None,
         "updated_at": int(clone.updated_at.timestamp()) if clone.updated_at else None,
         "mode_prompts": [
             {
-                "id": p.id,
-                "mode": p.mode,
+                "id": str(p.id),
+                "mode": normalize_silo(p.mode),
                 "system_prompt": p.system_prompt,
                 "is_active": p.is_active,
             }

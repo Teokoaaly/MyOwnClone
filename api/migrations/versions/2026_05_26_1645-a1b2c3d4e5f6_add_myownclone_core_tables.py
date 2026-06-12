@@ -35,6 +35,8 @@ depends_on = None
 def upgrade():
     conn = op.get_bind()
     is_postgres = _is_pg(conn)
+    if is_postgres:
+        op.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
 
     # ─── plans ───────────────────────────────────────────────────────────
     op.create_table(
@@ -250,7 +252,7 @@ def upgrade():
     _uuid_fk_account = (
         sa.Column(
             'admin_id',
-            postgresql.UUID(),
+            sa.String(36),
             sa.ForeignKey('accounts.id', ondelete='CASCADE'),
             nullable=False,
         )
@@ -300,8 +302,8 @@ def _uuid(col_name: str, is_postgres: bool, *, pk: bool = False) -> sa.Column:
     if is_postgres:
         return sa.Column(
             col_name,
-            postgresql.UUID(),
-            server_default=sa.text('uuid_generate_v4()') if pk else None,
+            sa.String(36),
+            server_default=sa.text('uuid_generate_v4()::text') if pk else None,
             primary_key=pk,
             nullable=False,
         )
@@ -312,7 +314,7 @@ def _uuid_fk(col_name: str, target_table: str, is_postgres: bool, *, ondelete: s
     if is_postgres:
         return sa.Column(
             col_name,
-            postgresql.UUID(),
+            sa.String(36),
             sa.ForeignKey(f'{target_table}.id', ondelete=ondelete),
             nullable=False,
         )

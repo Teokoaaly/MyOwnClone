@@ -39,6 +39,7 @@ export default function ReunionesPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState<"meeting" | "availability" | null>(null)
   const [saving, setSaving] = useState(false)
+  const [mutatingId, setMutatingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [formName, setFormName] = useState("")
@@ -57,9 +58,10 @@ export default function ReunionesPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const clonesRes = await fetch("/api/clone/clones")
-      if (!clonesRes.ok) return
+      if (!clonesRes.ok) throw new Error(`Error ${clonesRes.status}`)
       const clones = await clonesRes.json()
       if (clones.length === 0) return
       const cid = clones[0].id
@@ -69,6 +71,8 @@ export default function ReunionesPage() {
         fetch(`/api/clone/clones/${cid}/meeting-types`),
         fetch(`/api/clone/clones/${cid}/availability`),
       ])
+      if (!mtRes.ok) throw new Error(`Error ${mtRes.status}`)
+      if (!avRes.ok) throw new Error(`Error ${avRes.status}`)
       if (mtRes.ok) {
         const data = await mtRes.json()
         setMeetingTypes(Array.isArray(data) ? data : data.items ?? [])
@@ -77,8 +81,8 @@ export default function ReunionesPage() {
         const data = await avRes.json()
         setAvailability(Array.isArray(data) ? data : data.items ?? [])
       }
-    } catch {
-      // Empty states
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load meetings")
     } finally {
       setLoading(false)
     }
@@ -119,6 +123,65 @@ export default function ReunionesPage() {
       setError(e instanceof Error ? e.message : "Error")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const updateMeetingType = async (meetingType: MeetingType, changes: Partial<MeetingType>) => {
+    if (!cloneId) return
+    setMutatingId(meetingType.id)
+    setError(null)
+    try {
+      const res = await fetch(`/api/clone/clones/${cloneId}/meeting-types/${meetingType.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...meetingType, ...changes }),
+      })
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const updated = await res.json()
+      setMeetingTypes((items) => items.map((item) => item.id === updated.id ? updated : item))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not update meeting type")
+    } finally {
+      setMutatingId(null)
+    }
+  }
+
+  const deleteMeetingType = async (meetingType: MeetingType) => {
+    if (!cloneId) return
+    setMutatingId(meetingType.id)
+    setError(null)
+    try {
+      const res = await fetch(`/api/clone/clones/${cloneId}/meeting-types/${meetingType.id}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const result = await res.json()
+      if (result.deactivated) {
+        setMeetingTypes((items) => items.map((item) => item.id === meetingType.id ? { ...item, active: false } : item))
+      } else {
+        setMeetingTypes((items) => items.filter((item) => item.id !== meetingType.id))
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete meeting type")
+    } finally {
+      setMutatingId(null)
+    }
+  }
+
+  const deleteAvailability = async (slot: Availability) => {
+    if (!cloneId) return
+    setMutatingId(slot.id)
+    setError(null)
+    try {
+      const res = await fetch(`/api/clone/clones/${cloneId}/availability/${slot.id}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      setAvailability((items) => items.filter((item) => item.id !== slot.id))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete availability")
+    } finally {
+      setMutatingId(null)
     }
   }
 
@@ -321,6 +384,7 @@ export default function ReunionesPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Meeting types</h3>
+          {error && !showForm && <div className="mb-3"><ErrorState message={error} /></div>}
           {meetingTypes.length === 0 ? (
             <EmptyState
               title="No meeting types"
@@ -342,9 +406,25 @@ export default function ReunionesPage() {
                       </p>
                     </div>
                   </div>
-                  {!mt.active && (
-                    <span className="badge-warning">Inactive</span>
-                  )}
+                  <div className="flex shrink-0 items-center gap-2">
+                    {!mt.active && <span className="badge-warning">Inactive</span>}
+                    <button
+                      type="button"
+                      onClick={() => updateMeetingType(mt, { active: !mt.active })}
+                      disabled={mutatingId === mt.id}
+                      className="btn-secondary px-2 py-1 text-[11px] disabled:opacity-50"
+                    >
+                      {mt.active ? "Disable" : "Enable"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteMeetingType(mt)}
+                      disabled={mutatingId === mt.id}
+                      className="btn-secondary px-2 py-1 text-[11px] disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -374,6 +454,14 @@ export default function ReunionesPage() {
                   <span className="text-xs text-[var(--text-muted)] font-mono">
                     +{av.buffer_minutes}min buffer
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => deleteAvailability(av)}
+                    disabled={mutatingId === av.id}
+                    className="btn-secondary px-2 py-1 text-[11px] disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
                 </li>
               ))}
             </ul>
