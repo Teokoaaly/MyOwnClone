@@ -85,18 +85,24 @@ RSYNC_RSH="$RSYNC_RSH" rsync -az --delete \
   "${LOCAL_REPO}/" "${SSH_USER}@${HOST}:${REMOTE_RELEASE_DIR}/"
 
 log "Instalando dependencias, build y servicio systemd"
+# Pre-expand local vars so heredoc can stay single-quoted (no remote expansion)
+_REMOTE_SHARED_DIR="${REMOTE_SHARED_DIR}"
+_REMOTE_RELEASE_DIR="${REMOTE_RELEASE_DIR}"
+_REMOTE_CURRENT_LINK="${REMOTE_ROOT}/current"
 "${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash <<EOF
 set -Eeuo pipefail
-ln -sfn '${REMOTE_RELEASE_DIR}' '${REMOTE_CURRENT_LINK}'
-chown -R myownclone:myownclone '${REMOTE_RELEASE_DIR}' '${REMOTE_SHARED_DIR}'
-cd '${REMOTE_CURRENT_LINK}/MyOwnClone'
+ln -sfn '${_REMOTE_RELEASE_DIR}' '${_REMOTE_CURRENT_LINK}'
+chown -R myownclone:myownclone '${_REMOTE_RELEASE_DIR}' '${_REMOTE_SHARED_DIR}'
+cd '${_REMOTE_CURRENT_LINK}/MyOwnClone'
 command -v node >/dev/null 2>&1 || { echo 'Node.js no está instalado en el VPS' >&2; exit 1; }
 command -v npm >/dev/null 2>&1 || { echo 'npm no está instalado en el VPS' >&2; exit 1; }
-sudo -u myownclone npm ci
-sudo -u myownclone env \
-  $(grep -v '^[[:space:]]*#' '${REMOTE_SHARED_DIR}/frontend.env.production' | xargs) \
-  npm run build
-install -m 0644 '${REMOTE_CURRENT_LINK}/ops/myownclone-frontend.service' /etc/systemd/system/myownclone-frontend.service
+sudo -u myownclone npm ci --legacy-peer-deps
+# Load env from shared, export only valid KEY=VAL lines (skip comments/blanks)
+set -a
+. '${_REMOTE_SHARED_DIR}/frontend.env.production'
+set +a
+sudo -u myownclone env npm run build
+install -m 0644 '${_REMOTE_CURRENT_LINK}/ops/myownclone-frontend.service' /etc/systemd/system/myownclone-frontend.service
 systemctl daemon-reload
 systemctl enable --now myownclone-frontend.service
 systemctl restart myownclone-frontend.service
