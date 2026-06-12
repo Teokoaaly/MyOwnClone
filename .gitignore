@@ -3,7 +3,7 @@
 *.sqlite
 *.sqlite3
 instance/
-!instance/.gitkeep
+!.gitkeep
 
 # --- Env files ---
 .env
@@ -17,8 +17,25 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
+api/.venv/
 
 # --- Node / Next ---
 node_modules/
 .next/
 out/
+*.tsbuildinfo
+
+# --- Local artifacts (not source) ---
+empresas_baleares_dashboard_sin_menu_responsive.html
+*.html.bak
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Coverage reports ---
+coverage/
+*.lcov
+htmlcov/
