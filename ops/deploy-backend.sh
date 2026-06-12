@@ -88,6 +88,10 @@ set -Eeuo pipefail
 ln -sfn '${REMOTE_RELEASE_DIR}' '${REMOTE_CURRENT_LINK}'
 cd '${REMOTE_CURRENT_LINK}/ops'
 cp '${REMOTE_SHARED_DIR}/backend.env.production' './backend.env.production'
+# Auto-load secrets so \${DB_PASSWORD} etc. resolve in the compose file
+set -a
+. './backend.env.production'
+set +a
 if docker compose version >/dev/null 2>&1; then
   COMPOSE_CMD='docker compose'
 elif command -v docker-compose >/dev/null 2>&1; then
