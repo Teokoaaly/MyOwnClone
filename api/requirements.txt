@@ -13,3 +13,8 @@ gunicorn>=21.0.0
 stripe>=5.0.0
 PyJWT>=2.8.0
 bcrypt>=4.1.0
+
+# LLM provider SDKs (required by core.model_manager at import-time
+# for each respective provider)
+openai>=1.30.0
+anthropic>=0.30.0
