@@ -73,6 +73,8 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       FLASK_APP: app_factory
       PYTHONPATH: /app
+      # Build DATABASE_URL from discrete vars (required by assert_production_secrets)
+      DATABASE_URL: postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
     depends_on:
       db_postgres:
         condition: service_healthy
