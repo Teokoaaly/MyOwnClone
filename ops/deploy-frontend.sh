@@ -96,7 +96,7 @@ chown -R myownclone:myownclone '${_REMOTE_RELEASE_DIR}' '${_REMOTE_SHARED_DIR}'
 cd '${_REMOTE_CURRENT_LINK}/MyOwnClone'
 command -v node >/dev/null 2>&1 || { echo 'Node.js no está instalado en el VPS' >&2; exit 1; }
 command -v npm >/dev/null 2>&1 || { echo 'npm no está instalado en el VPS' >&2; exit 1; }
-sudo -u myownclone npm ci --legacy-peer-deps
+sudo -u myownclone npm install --legacy-peer-deps --no-audit --no-fund
 # Load env from shared, export only valid KEY=VAL lines (skip comments/blanks)
 set -a
 . '${_REMOTE_SHARED_DIR}/frontend.env.production'
