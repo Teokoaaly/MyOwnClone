@@ -97,6 +97,11 @@ cd '${_REMOTE_CURRENT_LINK}/MyOwnClone'
 command -v node >/dev/null 2>&1 || { echo 'Node.js no está instalado en el VPS' >&2; exit 1; }
 command -v npm >/dev/null 2>&1 || { echo 'npm no está instalado en el VPS' >&2; exit 1; }
 sudo -u myownclone npm install --legacy-peer-deps --no-audit --no-fund
+# Keep Next.js' local production env readable by the service user. A stale
+# root-owned .env.production makes `next start` log EACCES on every boot.
+install -o myownclone -g myownclone -m 0600 \
+  '${_REMOTE_SHARED_DIR}/frontend.env.production' \
+  './.env.production'
 # Load env from shared, export only valid KEY=VAL lines (skip comments/blanks)
 set -a
 . '${_REMOTE_SHARED_DIR}/frontend.env.production'
