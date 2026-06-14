@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useSession } from "next-auth/react";
 import { Link, useRouter } from "@/i18n/navigation";
 
 /**
@@ -79,6 +80,7 @@ function score(haystack: string, needle: string): number {
 }
 
 export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
+  const { status } = useSession();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -215,7 +217,7 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
   // Fetch dynamic data when the dialog opens (cheap: a single round
   // of parallel GETs, cached in state for the session).
   useEffect(() => {
-    if (!open || clones.length > 0) return;
+    if (!open || status !== "authenticated" || clones.length > 0) return;
     let cancelled = false;
     setLoading(true);
     (async () => {
@@ -264,7 +266,7 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
     return () => {
       cancelled = true;
     };
-  }, [open, clones.length]);
+  }, [open, status, clones.length]);
 
   // Focus trap + keydown handler for the dialog (same pattern as
   // the global Modal component).
