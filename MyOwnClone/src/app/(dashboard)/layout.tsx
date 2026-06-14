@@ -25,6 +25,7 @@ export default async function DashboardLayout({
     { href: "/inbox", label: "Extract", iconKey: "inbox", tooltip: "Inbox", section: "playground" },
     { href: "/productos", label: "Research", iconKey: "productos", tooltip: "Products", section: "playground" },
     { href: "/analiticas", label: "Usage", iconKey: "analiticas", tooltip: "Analytics", section: "management" },
+    { href: "/planes", label: "Plans", iconKey: "facturacion", tooltip: "Plans", section: "management" },
     { href: "/facturacion", label: "Billing", iconKey: "facturacion", tooltip: "Billing", section: "management" },
     { href: "/settings", label: "Settings", iconKey: "configuracion", tooltip: "Settings", section: "management" },
     { href: "/configuracion", label: "API Keys", iconKey: "apiKeys", tooltip: "API Keys", section: "management" },

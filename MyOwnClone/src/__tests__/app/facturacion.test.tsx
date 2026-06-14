@@ -5,6 +5,7 @@ vi.mock('next-auth/react', () => ({ useSession: vi.fn() }))
 vi.mock('@/i18n/navigation', () => ({ useRouter: vi.fn() }))
 
 import FacturacionPage from '@/app/(dashboard)/facturacion/page'
+import PlanesPage from '@/app/(dashboard)/planes/page'
 import { useSession } from 'next-auth/react'
 import { useRouter } from '@/i18n/navigation'
 
@@ -20,15 +21,6 @@ beforeEach(() => {
   mockUseSession.mockReturnValue({ status: 'authenticated', data: { user: {} } } as any)
   mockUseRouter.mockReturnValue({ push, back: vi.fn() } as any)
   mockFetch.mockImplementation((url: string) => {
-    if (url.includes('/api/clone/plans')) {
-      return Promise.resolve({
-        ok: true,
-        json: async () => [
-          { id: 'basic', name: 'Basic', price_cents: 0, stripe_price_id: null },
-          { id: 'pro', name: 'Pro', price_cents: 6490, stripe_price_id: 'price_pro' },
-        ],
-      } as any)
-    }
     return Promise.resolve({
       ok: true,
       json: async () => ({
@@ -56,8 +48,8 @@ describe('FacturacionPage', () => {
     })
 
     expect(screen.getAllByText('$0.00').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Select plan').length).toBeGreaterThan(0)
-    expect(screen.getByRole('heading', { name: 'Choose your plan' })).toBeDefined()
+    expect(screen.getByText('Manage plan')).toBeDefined()
+    expect(screen.queryByRole('heading', { name: 'Choose your plan' })).toBeNull()
     expect(screen.getByText('Payment History')).toBeDefined()
     expect(screen.getByText('No local payment records yet. Stripe invoices will appear through the billing portal when configured.')).toBeDefined()
   })
@@ -95,10 +87,7 @@ describe('FacturacionPage', () => {
   })
 
   it('shows Stripe portal action only when available', async () => {
-    mockFetch.mockImplementation((url: string) => {
-      if (url.includes('/api/clone/plans')) {
-        return Promise.resolve({ ok: true, json: async () => [] } as any)
-      }
+    mockFetch.mockImplementation(() => {
       return Promise.resolve({
         ok: true,
         json: async () => ({
@@ -115,6 +104,50 @@ describe('FacturacionPage', () => {
     await waitFor(() => {
       expect(screen.getByText('View Stripe Portal')).toBeDefined()
     })
+  })
+
+  it('navigates to the separate plans screen', async () => {
+    render(<FacturacionPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Manage plan')).toBeDefined()
+    })
+
+  ***REMOVED***reEvent.click(screen.getByText('Manage plan'))
+
+    expect(push).toHaveBeenCalledWith('/planes')
+  })
+})
+
+describe('PlanesPage', () => {
+  it('renders plan selection with landing plan cards', async () => {
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes('/api/clone/plans')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 'basic', name: 'Basic', price_cents: 0, stripe_price_id: null },
+            { id: 'pro', name: 'Pro', price_cents: 6490, stripe_price_id: 'price_pro' },
+          ],
+        } as any)
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          plan: null,
+          currency: 'usd',
+        }),
+      } as any)
+    })
+
+    render(<PlanesPage />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Select a plan' })).toBeDefined()
+    })
+
+    expect(document.querySelector('.landing-plan-card')).toBeTruthy()
+    expect(screen.getByText(/Billing details and invoices stay in the Billing page/)).toBeDefined()
   })
 
   it('starts checkout for the selected plan', async () => {
@@ -134,21 +167,17 @@ describe('FacturacionPage', () => {
       return Promise.resolve({
         ok: true,
         json: async () => ({
-          has_stripe: false,
           plan: null,
-          subscription_status: null,
-          portal_url: null,
-          payment_history: [],
-          voucher_records: [],
+          currency: 'usd',
         }),
       } as any)
     })
     vi.stubGlobal('location', { assign: vi.fn() })
 
-    render(<FacturacionPage />)
+    render(<PlanesPage />)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Choose your plan' })).toBeDefined()
+      expect(screen.getByRole('heading', { name: 'Select a plan' })).toBeDefined()
     })
 
   ***REMOVED***reEvent.click(screen.getAllByText('Select plan').at(-1)!)
