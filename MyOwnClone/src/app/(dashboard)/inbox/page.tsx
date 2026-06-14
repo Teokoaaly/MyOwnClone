@@ -80,6 +80,8 @@ export default function InboxPage() {
   }, [authStatus, router])
 
   const fetchList = useCallback(async () => {
+    if (authStatus !== "authenticated") return
+
     setLoading(true)
     setError(null)
     try {
@@ -97,11 +99,13 @@ export default function InboxPage() {
     } finally {
       setLoading(false)
     }
-  }, [activeFilter])
+  }, [activeFilter, authStatus])
 
   useEffect(() => {
-    fetchList()
-  }, [fetchList])
+    if (authStatus === "authenticated") {
+      fetchList()
+    }
+  }, [authStatus, fetchList])
 
   const selectEmail = async (id: string) => {
     setDetailLoading(true)

@@ -68,6 +68,8 @@ export default function DashboardResumenPage() {
   }, [status, router]);
 
   const fetchData = useCallback(async () => {
+    if (status !== "authenticated") return;
+
     setLoading(true);
     setError(null);
     try {
@@ -97,11 +99,13 @@ export default function DashboardResumenPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [status]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (status === "authenticated") {
+      fetchData();
+    }
+  }, [status, fetchData]);
 
   const activeClone = clones[0] ?? null;
 

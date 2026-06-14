@@ -64,6 +64,8 @@ export default function CerebroPage() {
   }, [status, router])
 
   const fetchMemories = useCallback(async () => {
+    if (status !== "authenticated") return
+
     setLoading(true)
     try {
       const res = await fetch(`/api/clone/memories?type=${activeTab}`)
@@ -76,11 +78,13 @@ export default function CerebroPage() {
     } finally {
       setLoading(false)
     }
-  }, [activeTab])
+  }, [activeTab, status])
 
   useEffect(() => {
-    fetchMemories()
-  }, [fetchMemories])
+    if (status === "authenticated") {
+      fetchMemories()
+    }
+  }, [status, fetchMemories])
 
   const resetForm = () => {
     setEditing(null)

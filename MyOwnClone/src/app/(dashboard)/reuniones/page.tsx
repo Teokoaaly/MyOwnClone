@@ -57,6 +57,8 @@ export default function ReunionesPage() {
   }, [status, router])
 
   const fetchData = useCallback(async () => {
+    if (status !== "authenticated") return
+
     setLoading(true)
     setError(null)
     try {
@@ -86,11 +88,13 @@ export default function ReunionesPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (status === "authenticated") {
+      fetchData()
+    }
+  }, [status, fetchData])
 
   const createMeetingType = async () => {
     if (!cloneId || !formName.trim()) return

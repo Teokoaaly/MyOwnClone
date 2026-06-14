@@ -66,6 +66,8 @@ export default function FacturacionPage() {
     let cancelled = false
 
     async function loadBilling() {
+      if (status !== "authenticated") return
+
       try {
         const [billingRes, plansRes] = await Promise.all([
           fetch("/api/clone/billing", { cache: "no-store" }),
@@ -85,11 +87,13 @@ export default function FacturacionPage() {
       }
     }
 
-    loadBilling()
+    if (status === "authenticated") {
+      loadBilling()
+    }
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [status])
 
   const openPortal = () => {
     if (billing?.portal_url) {
@@ -97,10 +101,17 @@ export default function FacturacionPage() {
     }
   }
 
-  const startCheckout = async () => {
-    const plan = plans.find((item) => item.stripe_price_id) ?? plans[0]
+  const scrollToPlans = () => {
+    document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
+  const startCheckout = async (plan: PlanInfo) => {
     if (!plan) {
       setError("No billing plan is configured yet.")
+      return
+    }
+    if (!plan.stripe_price_id) {
+      setError(`${plan.name} is not available for checkout yet.`)
       return
     }
 
@@ -112,8 +123,8 @@ export default function FacturacionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           plan_id: plan.id,
-          success_url: "/facturacion",
-          cancel_url: "/facturacion",
+          success_url: "/facturacion#plans",
+          cancel_url: "/facturacion#plans",
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -213,11 +224,11 @@ export default function FacturacionPage() {
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={startCheckout}
+            onClick={scrollToPlans}
             disabled={checkoutLoading}
             className="rounded-md bg-slate-950 px-7 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {checkoutLoading ? "Opening..." : billing?.has_stripe ? "Manage plan" : "Recharge"}
+            Select plan
           </button>
           <button type="button" className="rounded-md border border-[var(--border-medium)] bg-white px-7 py-2.5 text-sm font-medium text-[var(--text-primary)]">
             Support Bank Transfer
@@ -239,6 +250,62 @@ export default function FacturacionPage() {
             </button>
           )}
         </div>
+      </section>
+
+      <section id="plans" className="scroll-mt-24 border-t border-[var(--border-soft)] pt-10">
+        <div className="mb-5">
+          <p className="section-label mb-2">Plans</p>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">Choose your plan</h2>
+          <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Upgrade from the plan list. Stripe checkout opens only after selecting a specific plan.
+          </p>
+        </div>
+
+        {plans.length === 0 ? (
+          <div className="rounded-md border border-[var(--border-soft)] bg-white px-5 py-8 text-sm text-[var(--text-muted)]">
+            No plans are configured yet.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {plans.map((plan) => {
+              const isCurrent =
+                plan.id === billing?.plan || plan.name.toLowerCase() === billing?.plan
+              const canCheckout = Boolean(plan.stripe_price_id)
+              return (
+                <article
+                  key={plan.id}
+                  className={`rounded-lg border bg-white p-5 shadow-sm ${
+                    isCurrent ? "border-slate-950" : "border-[var(--border-soft)]"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                        {plan.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                        {plan.price_display ?? money(plan.price_cents, currency)}
+                      </p>
+                    </div>
+                    {isCurrent ? (
+                      <span className="rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase text-slate-700">
+                        Current
+                      </span>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => startCheckout(plan)}
+                    disabled={checkoutLoading || isCurrent || !canCheckout}
+                    className="mt-5 w-full rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+                  >
+                    {isCurrent ? "Current plan" : canCheckout ? "Select plan" : "Unavailable"}
+                  </button>
+                </article>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       <section className="border-t border-[var(--border-soft)] pt-10">

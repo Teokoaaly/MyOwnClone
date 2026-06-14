@@ -72,6 +72,8 @@ export default function SettingsPage() {
   }, [status, router])
 
   const fetchClone = useCallback(async () => {
+    if (status !== "authenticated") return
+
     setLoading(true)
     try {
       const res = await fetch("/api/clone/clones")
@@ -96,11 +98,13 @@ export default function SettingsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
   useEffect(() => {
-    fetchClone()
-  }, [fetchClone])
+    if (status === "authenticated") {
+      fetchClone()
+    }
+  }, [status, fetchClone])
 
   const saveProfile = async () => {
     if (!clone) return
