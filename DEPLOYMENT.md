@@ -31,6 +31,8 @@ Pasos:
    - `ALLOW_DEV_SERVICE_KEY=false`
    - `JWT_SECRET_KEY` fuerte
    - `IMPERSONATION_TOKEN_PEPPER` fuerte
+   - Al menos un proveedor LLM configurado (`OPENAI_API_KEY`,
+     `ANTHROPIC_API_KEY`, `MINIMAX_API_KEY` o `TOGETHER_API_KEY`)
 4. Verificar que DB usa imagen con pgvector y que la migracion `c3d4e5f6a7c1` crea la extension.
 5. Ejecutar migraciones antes de abrir trafico.
 6. Configurar reverse proxy HTTPS.
@@ -40,6 +42,26 @@ Comando esperado:
 ```bash
 bash ops/deploy-backend.sh
 ```
+
+### LLM / DeepSeek
+
+El runtime del backend usa `api/core/model_manager.py`. Para OpenAI real:
+
+```bash
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Para DeepSeek u otro proveedor compatible con la API de OpenAI:
+
+```bash
+OPENAI_API_KEY=...
+OPENAI_BASE_URL=https://api.deepseek.com
+OPENAI_MODEL=deepseek-chat
+```
+
+`OPENAI_API_BASE` se acepta como alias legacy, pero `OPENAI_BASE_URL` es el
+nombre preferido porque coincide con el SDK oficial de OpenAI.
 
 ## Frontend VPS
 
@@ -68,6 +90,11 @@ Comando esperado:
 ```bash
 bash ops/deploy-frontend.sh
 ```
+
+El deploy copia `shared/frontend.env.production` a
+`current/MyOwnClone/.env.production` con propietario `myownclone` y permisos
+`0600`. Esto evita errores `EACCES` durante `next start` cuando existe un env
+antiguo creado por `root`.
 
 ## Checklist pre-produccion
 

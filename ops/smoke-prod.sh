@@ -60,6 +60,16 @@ assert_http "backend-console-root" \
   "200" \
   "Console API|swagger|openapi"
 
+assert_http "backend-healthz" \
+  "${BACKEND_URL}/healthz" \
+  "200" \
+  "ok"
+
+assert_http "backend-readyz" \
+  "${BACKEND_URL}/readyz" \
+  "200" \
+  "ready|database|redis"
+
 assert_http "frontend-protected-route" \
   "${FRONTEND_URL}${PROTECTED_FRONTEND_PATH}" \
   "401" \
