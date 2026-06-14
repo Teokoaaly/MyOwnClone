@@ -93,7 +93,7 @@ export function ChatPanel({
     setMessages((prev) => [...prev, userMsg])
 
     try {
-      const res = await fetch(`/api/clone/${slug}/chat`, {
+      const res = await fetch(`/api/public/clones/${slug}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
