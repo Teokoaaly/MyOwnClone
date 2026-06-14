@@ -235,7 +235,6 @@ export async function proxy(request: NextRequest) {
         req: request,
         secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
         secureCookie: true,
-        cookieName: "authjs.session-token",
       });
       const serviceApiKey = getServiceApiKey(hostname);
 
