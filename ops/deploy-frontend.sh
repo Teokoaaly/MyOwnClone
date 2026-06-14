@@ -110,6 +110,8 @@ for line in source.read_text().splitlines():
         lines.append(line)
         continue
     key, value = line.split('=', 1)
+    if key in {'PLATFORM_ADMIN_EMAIL', 'PLATFORM_ADMIN_PASSWORD_HASH'}:
+        continue
     lines.append(f"{key}={value.replace('$', r'\$')}")
 target.write_text('\n'.join(lines) + '\n')
 PY
