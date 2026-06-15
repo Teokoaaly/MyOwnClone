@@ -13,6 +13,7 @@ import {
   Lightning,
   MagnifyingGlass,
   PaperPlaneRight,
+  SlidersHorizontal,
   SquaresFour,
 } from "@phosphor-icons/react";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -282,6 +283,49 @@ export default function DashboardResumenPage() {
             </div>
             <span className="ml-auto text-xs font-semibold text-[var(--text-muted)]">
               Portal
+            </span>
+          </Link>
+        </div>
+      </section>
+
+      <section className="mb-5 shrink-0">
+        <p className="section-label mb-3">Settings</p>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr]">
+          <Link
+            href="/settings"
+            className="console-strip min-h-[88px]"
+            aria-label="Open clone settings"
+          >
+            <div className="console-icon text-[#059669]">
+              <SlidersHorizontal weight="duotone" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--text-primary)]">Clone settings</p>
+              <p className="text-xs text-[var(--text-muted)]">
+                Edit name, tone, prompts, and theme.
+              </p>
+            </div>
+            <span className="ml-auto text-xs font-semibold text-[var(--text-muted)]">
+              Open
+            </span>
+          </Link>
+
+          <Link
+            href="/configuracion"
+            className="console-strip min-h-[88px]"
+            aria-label="Open API keys"
+          >
+            <div className="console-icon text-[#0EA5E9]">
+              <Key weight="duotone" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--text-primary)]">API Keys</p>
+              <p className="text-xs text-[var(--text-muted)]">
+                Connect external tools and services.
+              </p>
+            </div>
+            <span className="ml-auto text-xs font-semibold text-[var(--text-muted)]">
+              Keys
             </span>
           </Link>
         </div>
