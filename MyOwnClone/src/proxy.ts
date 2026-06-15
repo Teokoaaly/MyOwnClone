@@ -234,11 +234,17 @@ export async function proxy(request: NextRequest) {
       const forwardedProto = request.headers.get("x-forwarded-proto");
       const isHttpsRequest =
         request.nextUrl.protocol === "https:" || forwardedProto === "https";
-      const token = await getToken({
-        req: request,
-        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-        secureCookie: isHttpsRequest,
-      });
+      const token =
+        await getToken({
+          req: request,
+          secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+          secureCookie: isHttpsRequest,
+        }) ??
+        await getToken({
+          req: request,
+          secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+          secureCookie: !isHttpsRequest,
+        });
       const serviceApiKey = getServiceApiKey(hostname);
 
       if (!backendBaseUrl) {
