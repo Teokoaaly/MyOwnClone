@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MyOwnClone Docs | Manual de usuario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/myownclone-docs.css">
+  </head>
+  <body>
+    <main class="site-shell">
+      <nav class="topbar" aria-label="Documentación">
+        <a class="brand" href="./index.html" aria-label="MyOwnClone Docs">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <span>MyOwnClone Docs</span>
+        </a>
+        <div class="nav-links">
+          <a href="#primeros-pasos">Primeros pasos</a>
+          <a href="#flujos">Flujos</a>
+          <a href="#planes">Plans vs Billing</a>
+          <a href="./admin/index.html">Wiki técnica</a>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div class="hero-content">
+          <p class="kicker">Manual público de producto</p>
+          <h1>Crea un clon IA que trabaja contigo.</h1>
+          <p>
+            Guía para usuarios de MyOwnClone: acceso, creación del clon, subida de conocimiento,
+            memoria, inbox, productos, analíticas, planes y facturación.
+          </p>
+          <div class="cta-row">
+            <a class="button button-primary" href="#primeros-pasos">Empezar ahora</a>
+            <a class="button button-secondary" href="./manual-usuario/README.md">Abrir manual Markdown</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="primeros-pasos" class="section">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Primeros pasos</p>
+            <h2>Del login al primer clon</h2>
+          </div>
+          <p>El flujo correcto separa autenticación, onboarding y selección de plan. Si eres admin de plataforma, la sesión debe entrar al panel admin; si eres usuario, al dashboard.</p>
+        </div>
+        <ol class="steps">
+          <li><span class="step-number">1</span><div><strong>Entrar</strong><p>Abre <span class="code">/login</span>, escribe email y contraseña y confirma el acceso.</p></div></li>
+          <li><span class="step-number">2</span><div><strong>Completar setup</strong><p>Configura nombre, slug, tono y modo principal del clon desde el dashboard.</p></div></li>
+          <li><span class="step-number">3</span><div><strong>Añadir conocimiento</strong><p>Sube fuentes a Library o añade memorias para que el clon responda con contexto real.</p></div></li>
+          <li><span class="step-number">4</span><div><strong>Probar y publicar</strong><p>Valida respuestas, revisa analíticas y comparte el chat público cuando el resultado sea estable.</p></div></li>
+        </ol>
+      </section>
+
+      <section id="flujos" class="section">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Funciones principales</p>
+            <h2>Qué hace cada módulo</h2>
+          </div>
+          <p>Esta vista usa la misma línea visual de la landing: tarjetas cálidas, bordes suaves y jerarquía clara.</p>
+        </div>
+        <div class="grid">
+          <article class="card"><strong>Overview</strong><p>Estado del clon, actividad reciente y llamadas principales para continuar el setup.</p></article>
+          <article class="card"><strong>Library y Memory</strong><p>Contenido, conocimiento estructurado y memorias del creador para mejorar respuestas.</p></article>
+          <article class="card"><strong>Inbox</strong><p>Triage de emails con IA, plantillas y clasificación para ahorrar tiempo operativo.</p></article>
+          <article class="card"><strong>Booking</strong><p>Tipos de reunión, disponibilidad y reservas conectadas al clon.</p></article>
+          <article class="card"><strong>Products</strong><p>Catálogo y contexto comercial para modo ventas y recomendaciones.</p></article>
+          <article class="card"><strong>Usage</strong><p>Analíticas, costes, preguntas frecuentes y gaps de conocimiento.</p></article>
+        </div>
+      </section>
+
+      <section id="planes" class="section">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Importante</p>
+            <h2>Plans no es Billing</h2>
+          </div>
+          <span class="status status-ok">Separado en repo</span>
+        </div>
+        <div class="grid two">
+          <article class="card">
+            <strong>Plans / Upgrade</strong>
+            <p><span class="code">/planes</span> es la pantalla para elegir plan, comparar features y lanzar checkout. Su diseño debe seguir la landing y no mezclarse con historial de pagos.</p>
+          </article>
+          <article class="card">
+            <strong>Billing</strong>
+            <p><span class="code">/facturacion</span> es la zona de saldo, portal Stripe, vouchers, crédito, outstanding e historial. No debe ser la pantalla principal de selección de plan.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Capturas</p>
+            <h2>Estado de evidencias visuales</h2>
+          </div>
+          <span class="status status-blocked">VPS anterior inexistente</span>
+        </div>
+        <p>
+          Las capturas de producción/VPS no se pueden adjuntar de forma honesta porque el VPS anterior ya no existe.
+          El plan de captura y la lista exacta de pantallas pendientes están documentados en
+          <a class="pill" href="./screenshots/README.md">screenshots/README.md</a>.
+        </p>
+      </section>
+
+      <footer class="footer">
+        <span>MyOwnClone.com documentación pública</span>
+        <span>Última actualización: 2026-06-15</span>
+      </footer>
+    </main>
+  </body>
+</html>
