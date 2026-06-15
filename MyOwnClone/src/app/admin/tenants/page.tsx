@@ -41,10 +41,8 @@ interface TenantsResponse {
 
 const PLAN_OPTIONS = [
   { value: "", label: "Todos los planes" },
-  { value: "trial", label: "Trial" },
-  { value: "basic", label: "Básico" },
-  { value: "pro", label: "Pro" },
-  { value: "scale", label: "Escala" },
+  { value: "free", label: "Free Plan" },
+  { value: "pro", label: "Pro Plan" },
   { value: "enterprise", label: "Enterprise" },
 ];
 
