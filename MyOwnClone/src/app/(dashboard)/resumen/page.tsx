@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowSquareOut,
   ChartBar,
+  CreditCard,
   FileDoc,
   Globe,
   Key,
@@ -47,6 +48,19 @@ interface CloneListItem {
   name: string;
 }
 
+interface BillingSummary {
+  plan: string | null;
+  subscription_status?: string | null;
+  currency?: string | null;
+  balances?: {
+    effective_balance?: number;
+    cash_balance?: number;
+    voucher_balance?: number;
+    credit_balance?: number;
+    outstanding_balance?: number;
+  };
+}
+
 const fallbackBars = [14, 18, 22, 16, 28, 36, 54, 48, 60, 42, 30, 26, 18, 22, 34, 28, 20, 18, 24, 16];
 const COLLAPSED_BOX_HEIGHT = 188;
 const ACTIVE_CHAT_BOX_HEIGHT = 420;
@@ -55,6 +69,7 @@ export default function DashboardResumenPage() {
   const { status } = useSession();
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
   const [clones, setClones] = useState<CloneListItem[]>([]);
   const [activeChatQuery, setActiveChatQuery] = useState("");
@@ -82,9 +97,10 @@ export default function DashboardResumenPage() {
         setCloneIdCookie(resolvedClones[0].id);
       }
 
-      const [overviewRes, inboxRes] = await Promise.allSettled([
+      const [overviewRes, inboxRes, billingRes] = await Promise.allSettled([
         fetch("/api/clone/analytics/overview"),
         fetch("/api/clone/inbox/list?limit=3"),
+        fetch("/api/clone/billing", { cache: "no-store", credentials: "include" }),
       ]);
 
       if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
@@ -93,6 +109,9 @@ export default function DashboardResumenPage() {
       if (inboxRes.status === "fulfilled" && inboxRes.value.ok) {
         const data = await inboxRes.value.json();
         setRecentInbox(Array.isArray(data) ? data : data.items ?? []);
+      }
+      if (billingRes.status === "fulfilled" && billingRes.value.ok) {
+        setBilling(await billingRes.value.json());
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error loading data");
@@ -108,6 +127,13 @@ export default function DashboardResumenPage() {
   }, [status, fetchData]);
 
   const activeClone = clones[0] ?? null;
+  const activePlan = billing?.plan ?? "trial";
+  const subscriptionStatus = billing?.subscription_status ?? "inactive";
+  const balance = billing?.balances?.effective_balance ?? 0;
+  const formattedBalance = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: (billing?.currency ?? "usd").toUpperCase(),
+  }).format(balance / 100);
 
   const usageBars = useMemo(() => {
     const conversations = overview?.total_conversations ?? 0;
@@ -213,6 +239,51 @@ export default function DashboardResumenPage() {
               <ArrowSquareOut className="ml-auto" />
             </Link>
           </div>
+        </div>
+      </section>
+
+      <section className="mb-5 shrink-0">
+        <p className="section-label mb-3">Plan</p>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr]">
+          <Link
+            href="/planes"
+            className="console-strip min-h-[88px]"
+            aria-label="Select or upgrade plan"
+          >
+            <div className="console-icon text-[#EA580C]">
+              <ChartBar weight="duotone" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--text-primary)]">
+                {activePlan ? `${activePlan.charAt(0).toUpperCase()}${activePlan.slice(1)} plan` : "Select a plan"}
+              </p>
+              <p className="text-xs text-[var(--text-muted)]">
+                Choose or upgrade your workspace plan here.
+              </p>
+            </div>
+            <span className="ml-auto rounded-full bg-[#111111] px-3 py-1.5 text-xs font-semibold text-white">
+              Select plan
+            </span>
+          </Link>
+
+          <Link
+            href="/facturacion"
+            className="console-strip min-h-[88px]"
+            aria-label="Open billing"
+          >
+            <div className="console-icon text-[#2563EB]">
+              <CreditCard weight="duotone" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--text-primary)]">Billing</p>
+              <p className="text-xs text-[var(--text-muted)]">
+                {subscriptionStatus} - balance {formattedBalance}
+              </p>
+            </div>
+            <span className="ml-auto text-xs font-semibold text-[var(--text-muted)]">
+              Portal
+            </span>
+          </Link>
         </div>
       </section>
 
