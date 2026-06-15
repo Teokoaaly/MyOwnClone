@@ -34,18 +34,14 @@ interface AdminOverview {
 }
 
 const PLAN_LABEL: Record<string, string> = {
-  trial: "Trial",
-  basic: "Basic",
-  pro: "Pro",
-  scale: "Scale",
+  free: "Free Plan",
+  pro: "Pro Plan",
   enterprise: "Enterprise",
 };
 
 const PLAN_COLOR: Record<string, string> = {
-  trial: "#06B6D4",
-  basic: "#2563EB",
+  free: "#06B6D4",
   pro: "#EA580C",
-  scale: "#8B5CF6",
   enterprise: "#059669",
 };
 
