@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowSquareOut,
   ChartBar,
   FileDoc,
   Globe,
@@ -13,6 +12,13 @@ import {
   MagnifyingGlass,
   PaperPlaneRight,
   SquaresFour,
+  Envelope,
+  CalendarCheck,
+  Brain,
+  ShoppingBag,
+  ChartLine,
+  Gear,
+  CreditCard,
 } from "@phosphor-icons/react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -20,7 +26,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { setCloneIdCookie } from "@/lib/clone-resolver";
 
 interface AnalyticsOverview {
@@ -48,8 +54,8 @@ interface CloneListItem {
 }
 
 const fallbackBars = [14, 18, 22, 16, 28, 36, 54, 48, 60, 42, 30, 26, 18, 22, 34, 28, 20, 18, 24, 16];
-const COLLAPSED_BOX_HEIGHT = 188;
-const ACTIVE_CHAT_BOX_HEIGHT = 420;
+
+type Section = "clone" | "inbox" | "analytics" | "settings";
 
 export default function DashboardResumenPage() {
   const { status } = useSession();
@@ -61,6 +67,7 @@ export default function DashboardResumenPage() {
   const [chatSessionKey, setChatSessionKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<Section>("clone");
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -81,7 +88,7 @@ export default function DashboardResumenPage() {
 
       const [overviewRes, inboxRes] = await Promise.allSettled([
         fetch("/api/clone/analytics/overview"),
-        fetch("/api/clone/inbox/list?limit=3"),
+        fetch("/api/clone/inbox/list?limit=5"),
       ]);
 
       if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
@@ -122,12 +129,25 @@ export default function DashboardResumenPage() {
       router.push("/onboarding");
       return;
     }
-
     setChatSessionKey((current) => current + 1);
   }, [activeChatQuery, activeClone?.slug, router]);
 
+  const tabs: { key: Section; label: string; icon: React.ReactNode }[] = [
+    { key: "clone", label: "Clone", icon: <Brain /> },
+    { key: "inbox", label: "Inbox", icon: <Envelope /> },
+    { key: "analytics", label: "Analytics", icon: <ChartLine /> },
+    { key: "settings", label: "Settings", icon: <Gear /> },
+  ];
+
+  const stats = [
+    { label: "Conversations", value: overview?.total_conversations ?? 0, icon: <Brain /> },
+    { label: "Messages", value: overview?.total_messages ?? 0, icon: <Envelope /> },
+    { label: "Answered", value: overview?.questions_answered ?? 0, icon: <CalendarCheck /> },
+    { label: "Gaps", value: overview?.gaps_count ?? 0, icon: <ChartBar /> },
+  ];
+
   if (status === "loading" || loading) {
-    return <LoadingState label="Loading dashboard..." rows={4} />;
+    return <LoadingState label="Loading..." rows={3} />;
   }
 
   if (error) {
@@ -135,7 +155,7 @@ export default function DashboardResumenPage() {
       <ErrorState
         message={error}
         action={
-          <button type="button" onClick={fetchData} className="btn-secondary text-xs">
+          <button type="button" onClick={fetchData} className="text-sm text-[var(--color-accent-violet)] hover:underline">
             Try again
           </button>
         }
@@ -144,222 +164,249 @@ export default function DashboardResumenPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-[1440px] flex-col">
-      <header className="mb-5 shrink-0">
-        <div>
-          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.01em] text-[var(--text-primary)]">
-            MyOwnClone Command Center
-          </h1>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">
-            Train your AI clone, manage its knowledge, review conversations, and monitor growth from one focused workspace.
-          </p>
-        </div>
+    <div className="flex flex-col gap-8">
+      {/* Hero — no box */}
+      <header className="flex flex-col items-center text-center pt-4">
+        <ReflectiveOrb size={44} />
+        <h1 className="mt-3 text-[28px] font-semibold leading-tight tracking-[-0.01em] text-[var(--text-primary)]">
+          MyOwnClone
+        </h1>
+        <p className="mt-2 max-w-lg text-sm text-[var(--text-muted)]">
+          Train your AI clone, manage knowledge, review conversations, and monitor growth — all in one place.
+        </p>
       </header>
 
       {clones.length === 0 && (
         <OnboardingBanner completedSteps={1} totalSteps={4} />
       )}
 
-      <section className="mb-5 shrink-0">
-        <p className="section-label mb-3">Get Started</p>
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.2fr_1fr_1fr]">
-          <Link href="/configuracion" className="console-strip">
-            <div className="console-icon text-[#0EA5E9]">
-              <Key weight="duotone" />
+      {/* Stats — flat row, no cards */}
+      {overview && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="flex items-center gap-3 py-2">
+              <span className="text-[var(--text-muted)]">{stat.icon}</span>
+              <div>
+                <p className="text-2xl font-semibold text-[var(--text-primary)]">{stat.value}</p>
+                <p className="text-xs text-[var(--text-muted)]">{stat.label}</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--text-primary)]">API Keys</p>
-              <p className="text-xs text-[var(--text-muted)]">Connect your workspace in 5 min</p>
-            </div>
-            <span className="ml-auto truncate font-mono text-sm text-[#0284C7]">
-              Open keys
-            </span>
-          </Link>
+          ))}
+        </div>
+      )}
 
-          <Link href="/analiticas" className="console-strip">
-            <div className="console-icon text-[#EF4444]">
-              <ChartBar weight="duotone" />
+      {/* Dynamic Tabs — no box, just underline */}
+      <nav className="flex gap-6 border-b border-[var(--border-soft)]">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveSection(tab.key)}
+            className={`flex items-center gap-2 pb-2.5 text-sm transition ${
+              activeSection === tab.key
+                ? "border-b-2 border-[var(--color-accent-violet)] text-[var(--color-accent-violet)] font-medium"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {/* Content sections — flat, no boxes */}
+      <AnimatePresence mode="wait">
+        {activeSection === "clone" && (
+          <motion.section
+            key="clone"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col gap-6"
+          >
+            {/* Chat input — clean, no box */}
+            <div className="flex flex-col items-center">
+              {activeClone?.slug && chatSessionKey > 0 ? (
+                <div className="w-full max-w-[860px]">
+                  <ChatPanel
+                    key={`${activeClone.slug}-${chatSessionKey}`}
+                    slug={activeClone.slug}
+                    initialSilo="teach"
+                    initialQuery={chatSessionKey > 0 ? activeChatQuery : undefined}
+                    mode="inline"
+                    emptyState={{
+                      title: `Ask ${activeClone.name}`,
+                      description: "Your clone answers from its knowledge base.",
+                    }}
+                    onReset={() => {
+                      setActiveChatQuery("");
+                      setChatSessionKey(0);
+                    }}
+                  />
+                </div>
+              ) : (
+                <form
+                  className="w-full max-w-[860px]"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    startInlineChat();
+                  }}
+                >
+                  <div className="flex items-end gap-3">
+                    <textarea
+                      rows={2}
+                      aria-label="AI query"
+                      value={activeChatQuery}
+                      onChange={(event) => setActiveChatQuery(event.target.value)}
+                      placeholder="Ask your clone something..."
+                      className="min-h-[48px] w-full resize-none border-b border-[var(--border-soft)] bg-transparent pb-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--color-accent-violet)]"
+                    />
+                    <button
+                      type="submit"
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent-violet)] text-white transition hover:opacity-90"
+                      aria-label="Send"
+                    >
+                      <PaperPlaneRight weight="fill" />
+                    </button>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    {["Extract product data", "Research AI compliance", "Create blog extractor"].map((q) => (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => setActiveChatQuery(q)}
+                        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </form>
+              )}
             </div>
-            <div>
-              <p className="text-sm font-medium text-[var(--text-primary)]">Usage</p>
-              <p className="text-xs text-[var(--text-muted)]">Past 30 Days</p>
-            </div>
-            <div className="ml-auto flex h-9 items-end gap-1">
-              {usageBars.map((bar, index) => (
-                <span
-                  key={`${bar}-${index}`}
-                  className={index >= 6 && index <= 9 ? "bg-[#22B8CF]" : "bg-[#E7E5E4]"}
-                  style={{ height: `${bar}%`, width: 4, borderRadius: 3 }}
-                />
+
+            {/* Quick links */}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {[
+                { label: "API Keys", icon: <Key />, href: "/configuracion" },
+                { label: "Library", icon: <FileDoc />, href: "/biblioteca" },
+                { label: "Crawl", icon: <Globe />, href: "/cerebro" },
+                { label: "Products", icon: <ShoppingBag />, href: "/productos" },
+              ].map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="flex items-center gap-2.5 py-2.5 px-1 text-sm text-[var(--text-secondary)] hover:text-[var(--color-accent-violet)] transition"
+                >
+                  <span className="text-[var(--text-muted)]">{link.icon}</span>
+                  {link.label}
+                </a>
               ))}
             </div>
-          </Link>
+          </motion.section>
+        )}
 
-          <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-[var(--border-soft)] bg-white shadow-sm">
-            <Link href="/biblioteca" className="console-link">
-              <FileDoc className="text-[#2563EB]" weight="duotone" />
-              Docs
-              <ArrowSquareOut className="ml-auto" />
-            </Link>
-            <Link href="/cerebro" className="console-link border-l border-[var(--border-soft)]">
-              <Globe className="text-[#DC2626]" weight="duotone" />
-              Agent Toolkit
-              <ArrowSquareOut className="ml-auto" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-5 shadow-sm md:px-8 md:py-6">
-        <div className="mx-auto flex max-w-[980px] flex-col overflow-visible pb-3">
-          <div className="flex flex-col items-center text-center">
-            <ReflectiveOrb size={40} />
-            <h2 className="mt-2 text-[26px] font-semibold text-[var(--text-secondary)] md:text-[28px]">
-              What do you want to build or query?
-            </h2>
-          </div>
-
-          <motion.div
-            animate={{ height: chatSessionKey > 0 ? ACTIVE_CHAT_BOX_HEIGHT : COLLAPSED_BOX_HEIGHT }}
-            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto mt-4 w-full max-w-[860px] overflow-hidden rounded-2xl border border-[var(--border-medium)] bg-white text-left shadow-[0_14px_32px_rgba(15,23,42,0.08)]"
+        {activeSection === "inbox" && (
+          <motion.section
+            key="inbox"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col gap-3"
           >
-            {activeClone?.slug && chatSessionKey > 0 ? (
-              <ChatPanel
-                key={`${activeClone.slug}-${chatSessionKey}`}
-                slug={activeClone.slug}
-                initialSilo="teach"
-                initialQuery={chatSessionKey > 0 ? activeChatQuery : undefined}
-                mode="inline"
-                emptyState={{
-                  title: `Consulta ${activeClone.name} desde aqui`,
-                  description: "La conversacion permanece en este mismo espacio y usa la base de conocimiento de tu clon.",
-                }}
-                onReset={() => {
-                  setActiveChatQuery("");
-                  setChatSessionKey(0);
-                }}
-              />
+            {recentInbox.length === 0 ? (
+              <EmptyState title="No inbox items" description="Emails sent to your clone will appear here." />
             ) : (
-              <form
-                className="flex h-full flex-col p-3 md:p-4"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  startInlineChat();
-                }}
-              >
-                <textarea
-                  rows={2}
-                  aria-label="AI query"
-                  value={activeChatQuery}
-                  onChange={(event) => setActiveChatQuery(event.target.value)}
-                  placeholder="Ask your clone something from its knowledge base..."
-                  className="min-h-[40px] w-full resize-none bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
-                />
-                <div className="mt-auto flex items-center justify-between pt-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <button type="button" className="prompt-tool" aria-label="Search">
-                      <MagnifyingGlass />
-                    </button>
-                    <button
-                      type="button"
-                      className="prompt-tool"
-                      aria-label="Fast mode"
-                      onClick={() => setActiveChatQuery((current) => current || "Find the fastest way to launch my AI clone workflow.")}
-                    >
-                      <Lightning weight="fill" />
-                    </button>
-                    <button
-                      type="button"
-                      className="prompt-tool"
-                      aria-label="Templates"
-                      onClick={() => setActiveChatQuery("Create a workflow that ingests content, answers customer questions, and flags gaps.")}
-                    >
-                      <SquaresFour />
-                    </button>
+              recentInbox.map((item) => (
+                <div key={item.id} className="flex items-start gap-3 py-3 border-b border-[var(--border-soft)]">
+                  <Envelope className="mt-0.5 text-[var(--text-muted)]" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                      {item.subject || "(no subject)"}
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">{item.from_email} &middot; {item.status}</p>
                   </div>
-                  <button type="submit" className="prompt-send" aria-label="Send query">
-                    <PaperPlaneRight />
-                  </button>
                 </div>
-              </form>
+              ))
             )}
-          </motion.div>
+          </motion.section>
+        )}
 
-          <AnimatePresence initial={false}>
-            {chatSessionKey === 0 ? (
-              <motion.div
-                key="recent-queries"
-                initial={{ opacity: 0, y: 18, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, y: 0, height: "auto", marginTop: 14 }}
-                exit={{ opacity: 0, y: 10, height: 0, marginTop: 0 }}
-                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full overflow-hidden"
-              >
-                <div className="mx-auto flex max-w-[980px] flex-col">
-                {activeClone && (
-                  <p className="mb-2 text-xs text-[var(--text-muted)]">
-                    Queries will run against <span className="font-medium text-[var(--text-primary)]">{activeClone.name}</span>.
-                  </p>
-                )}
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                  Your Recent Query
-                </p>
-                {recentInbox.length === 0 ? (
-                  <div className="grid grid-cols-1 gap-2.5 md:grid-cols-3">
-                    {[
-                      "Extract product data from nike.com Schema: title, price, availability, reviews",
-                      "Create extraction schema for blog articles Fields: headline, author, publish_date, content",
-                      "Research latest AI compliance regulations Region: EU Output: structured summary",
-                    ].map((query) => (
-                      <RecentQueryCard key={query} query={query} onSelect={setActiveChatQuery} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-2.5 md:grid-cols-3">
-                    {recentInbox.slice(0, 3).map((item) => (
-                      <RecentQueryCard
-                        key={item.id}
-                        query={`${item.subject ?? "Inbox request"} ${item.from_email ? `from ${item.from_email}` : ""}`}
-                        onSelect={setActiveChatQuery}
-                      />
-                    ))}
-                  </div>
-                )}
+        {activeSection === "analytics" && (
+          <motion.section
+            key="analytics"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {overview ? (
+              <div className="flex flex-col gap-6">
+                <div className="flex items-end gap-1 h-40">
+                  {usageBars.map((bar, index) => (
+                    <span
+                      key={index}
+                      className="flex-1 bg-[var(--color-accent-violet)] rounded-t"
+                      style={{ height: `${bar}%`, opacity: 0.3 + (bar / 100) * 0.7 }}
+                    />
+                  ))}
                 </div>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-xs text-[var(--text-muted)]">Automation Rate</p>
+                    <p className="text-lg font-semibold text-[var(--text-primary)]">
+                      {overview.automation_rate ?? "--"}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--text-muted)]">Active Sessions</p>
+                    <p className="text-lg font-semibold text-[var(--text-primary)]">
+                      {overview.active_sessions ?? "--"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--text-muted)]">Clones</p>
+                    <p className="text-lg font-semibold text-[var(--text-primary)]">
+                      {overview.clones_count ?? clones.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <EmptyState title="No analytics yet" description="Activity will appear here once your clone starts receiving traffic." />
+            )}
+          </motion.section>
+        )}
 
-          {overview === null && (
-            <div className="mt-8 w-full">
-              <EmptyState
-                title="No analytics yet"
-                description="When your clone starts receiving activity, this dashboard will update automatically."
-              />
-            </div>
-          )}
-        </div>
-      </section>
+        {activeSection === "settings" && (
+          <motion.section
+            key="settings"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col gap-4"
+          >
+            {[
+              { label: "API Keys", href: "/configuracion", icon: <Key /> },
+              { label: "Billing", href: "/facturacion", icon: <CreditCard /> },
+              { label: "Team Settings", href: "/reuniones", icon: <Gear /> },
+              { label: "Usage", href: "/analiticas", icon: <ChartLine /> },
+            ].map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className="flex items-center gap-3 py-3 border-b border-[var(--border-soft)] text-sm text-[var(--text-secondary)] hover:text-[var(--color-accent-violet)] transition"
+              >
+                <span className="text-[var(--text-muted)]">{item.icon}</span>
+                {item.label}
+              </a>
+            ))}
+          </motion.section>
+        )}
+      </AnimatePresence>
     </div>
-  );
-}
-
-function RecentQueryCard({
-  query,
-  onSelect,
-}: {
-  query: string;
-  onSelect: (query: string) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(query)}
-      className="min-h-[92px] rounded-xl border border-[var(--border-soft)] bg-white p-2 text-left text-[13px] leading-snug text-[var(--text-secondary)] shadow-sm transition hover:border-[var(--border-medium)] hover:text-[var(--text-primary)]"
-    >
-      <MagnifyingGlass className="mb-1.5 h-4 w-4 text-[var(--text-muted)]" />
-      <span className="line-clamp-3">{query}</span>
-    </button>
   );
 }
