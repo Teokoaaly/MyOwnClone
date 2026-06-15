@@ -60,6 +60,8 @@ Durante la restauracion se corrigieron estos bloqueos reales:
 - `c0c70f6` `fix(ops): bind frontend service from env`
 - `7541377` `fix(auth): support http proxy sessions during restore`
 - `fd5431f` `fix(ops): expose postgres on loopback for frontend auth`
+- `3b51752` `feat(dashboard): surface plan management on overview`
+- `88419fd` `fix(auth): accept secure and non-secure session cookies`
 
 ### Efecto de cada cambio
 
@@ -78,6 +80,15 @@ Durante la restauracion se corrigieron estos bloqueos reales:
 - `ops/docker-compose.backend.prod.yml`
   - Publica Postgres unicamente en `127.0.0.1:5432`.
   - Permite a NextAuth consultar `accounts` desde el frontend systemd sin exponer la DB a Internet.
+
+- `MyOwnClone/src/app/(dashboard)/resumen/page.tsx`
+  - Recupera el acceso visible a planes dentro del dashboard principal.
+  - Muestra el plan activo, CTA a `/planes` y acceso separado a `/facturacion`.
+  - Mantiene la separacion: planes/upgrade no se mezcla con billing.
+
+- `MyOwnClone/src/proxy.ts`
+  - Acepta cookies seguras y no seguras al resolver `getToken`.
+  - Evita `401` en `/api/clone/*` cuando el dominio ya esta en HTTPS pero la sesion fue emitida durante restauraciones previas.
 
 ## Migraciones y datos
 
@@ -124,6 +135,16 @@ Con la cuenta bootstrap/admin:
 - `/api/admin/overview` -> `200`
 - `/api/admin/tenants` -> `200`
 - `/api/clone/plans` -> `200` con cookie de sesion
+
+Con la cuenta workspace `owner@myownclone.com`:
+
+- Login termina en `https://myownclone.com/resumen`
+- Bloque `Plan` visible en dashboard
+- `Select plan` visible y apunta a `/planes`
+- `Billing` visible y separado hacia `/facturacion`
+- `/api/clone/clones` -> `200`
+- `/api/clone/billing` -> `200`
+- `/api/clone/analytics/overview` -> `200`
 
 ## Dominio
 
