@@ -2,6 +2,12 @@
 
 Índice maestro tipo wiki para operación, auditoría y soporte.
 
+## Sitios HTML
+
+- [Manual público de usuario](./index.html)
+- [Wiki técnica interna](./admin/index.html)
+- [Plan de capturas y evidencias](./screenshots/README.md)
+
 ## 📋 Auditoría técnica
 
 - [00 - Resumen ejecutivo](./auditoria/00-resumen-ejecutivo.md)
@@ -54,4 +60,3 @@
 
 - Última release VPS verificada previamente: `/opt/myownclone/releases/20260614162441-codex-plans-page`.
 - El 2026-06-15 no había acceso SSH no interactivo disponible; ejecutar revalidación VPS al restaurar acceso.
-
