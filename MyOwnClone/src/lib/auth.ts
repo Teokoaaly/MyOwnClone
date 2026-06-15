@@ -54,25 +54,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
         }
 
-        if (
-          hasPlatformAdminEnvCredentials() &&
-          email === getPlatformAdminEmail()
-        ) {
-          const valid = await bcrypt.compare(
-            password,
-            getPlatformAdminPasswordHash(),
-          );
-
-          if (!valid) return null;
-
-          return {
-            id: `platform-admin:${email}`,
-            email,
-            name: "Platform Admin",
-            role: "platform_admin",
-          };
-        }
-
         try {
           const accountResult = await db.execute(sql`
             SELECT id, email, name, password AS password_hash, role, tenant_id, is_platform_admin
@@ -107,6 +88,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         } catch {
           // Older/local databases may not have the backend-owned accounts table yet.
+        }
+
+        if (
+          hasPlatformAdminEnvCredentials() &&
+          email === getPlatformAdminEmail()
+        ) {
+          const valid = await bcrypt.compare(
+            password,
+            getPlatformAdminPasswordHash(),
+          );
+
+          if (!valid) return null;
+
+          return {
+            id: `platform-admin:${email}`,
+            email,
+            name: "Platform Admin",
+            role: "platform_admin",
+          };
         }
 
         try {

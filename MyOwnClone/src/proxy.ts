@@ -231,10 +231,13 @@ export async function proxy(request: NextRequest) {
     if (backendPath) {
       const search = request.nextUrl.search;
       const backendBaseUrl = getBackendUrl(hostname);
+      const forwardedProto = request.headers.get("x-forwarded-proto");
+      const isHttpsRequest =
+        request.nextUrl.protocol === "https:" || forwardedProto === "https";
       const token = await getToken({
         req: request,
         secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-        secureCookie: true,
+        secureCookie: isHttpsRequest,
       });
       const serviceApiKey = getServiceApiKey(hostname);
 
