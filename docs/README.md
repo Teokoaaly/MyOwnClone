@@ -16,6 +16,7 @@
 - [03 - Auditoría técnica completa](./auditoria/03-auditoria-tecnica-completa.md)
 - [04 - Plan de mejoras priorizado](./auditoria/04-plan-mejoras-priorizado.md)
 - [05 - Remediaciones aplicadas](./auditoria/05-remediaciones-aplicadas.md)
+- [06 - Restauración VPS 2026-06-15](./auditoria/06-restauracion-vps-2026-06-15.md)
 - [Auditoría VPS previa 2026-06-14](./VPS_AUDIT_2026-06-14.md)
 
 ## 🛠️ Manual técnico y administración
