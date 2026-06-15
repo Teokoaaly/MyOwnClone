@@ -33,14 +33,6 @@ interface PaymentRow {
   result: string
 }
 
-interface PlanInfo {
-  id: string
-  name: string
-  price_cents: number
-  price_display?: string
-  stripe_price_id?: string | null
-}
-
 function money(cents = 0, currency = "usd") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -52,9 +44,7 @@ export default function FacturacionPage() {
   const { status } = useSession()
   const router = useRouter()
   const [billing, setBilling] = useState<BillingInfo | null>(null)
-  const [plans, setPlans] = useState<PlanInfo[]>([])
   const [loading, setLoading] = useState(true)
-  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"payments" | "vouchers">("payments")
 
@@ -66,17 +56,12 @@ export default function FacturacionPage() {
     let cancelled = false
 
     async function loadBilling() {
+      if (status !== "authenticated") return
+
       try {
-        const [billingRes, plansRes] = await Promise.all([
-          fetch("/api/clone/billing", { cache: "no-store" }),
-          fetch("/api/clone/plans", { cache: "no-store" }),
-        ])
+        const billingRes = await fetch("/api/clone/billing", { cache: "no-store" })
         if (!cancelled && billingRes.ok) {
           setBilling(await billingRes.json())
-        }
-        if (!cancelled && plansRes.ok) {
-          const data = await plansRes.json()
-          setPlans(Array.isArray(data) ? data : [])
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Unable to load billing")
@@ -85,45 +70,17 @@ export default function FacturacionPage() {
       }
     }
 
-    loadBilling()
+    if (status === "authenticated") {
+      loadBilling()
+    }
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [status])
 
   const openPortal = () => {
     if (billing?.portal_url) {
       window.open(billing.portal_url, "_blank", "noopener,noreferrer")
-    }
-  }
-
-  const startCheckout = async () => {
-    const plan = plans.find((item) => item.stripe_price_id) ?? plans[0]
-    if (!plan) {
-      setError("No billing plan is configured yet.")
-      return
-    }
-
-    setCheckoutLoading(true)
-    setError(null)
-    try {
-      const res = await fetch("/api/clone/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan_id: plan.id,
-          success_url: "/facturacion",
-          cancel_url: "/facturacion",
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || !data.url) {
-        setError(data.error === "stripe_not_configured" ? "Stripe is not configured for this environment." : data.error ?? "Unable to start checkout.")
-        return
-      }
-      window.location.assign(data.url)
-    } finally {
-      setCheckoutLoading(false)
     }
   }
 
@@ -139,7 +96,6 @@ export default function FacturacionPage() {
   const currency = billing?.currency ?? "usd"
   const paymentHistory = billing?.payment_history ?? []
   const voucherRecords = billing?.voucher_records ?? []
-  const currentPlan = plans.find((plan) => plan.id === billing?.plan || plan.name.toLowerCase() === billing?.plan)
 
   return (
     <div className="space-y-10">
@@ -194,7 +150,7 @@ export default function FacturacionPage() {
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
-          <StatusTile label="Plan" value={currentPlan?.name ?? billing?.plan ?? "No plan"} />
+          <StatusTile label="Plan" value={billing?.plan ?? "No plan"} />
           <StatusTile label="Subscription" value={billing?.subscription_status ?? billing?.status ?? "Not active"} />
           <StatusTile label="Tracked usage cost" value={money(billing?.usage_cost_cents, currency)} />
         </div>
@@ -213,11 +169,10 @@ export default function FacturacionPage() {
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={startCheckout}
-            disabled={checkoutLoading}
+            onClick={() => router.push("/planes")}
             className="rounded-md bg-slate-950 px-7 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {checkoutLoading ? "Opening..." : billing?.has_stripe ? "Manage plan" : "Recharge"}
+            Manage plan
           </button>
           <button type="button" className="rounded-md border border-[var(--border-medium)] bg-white px-7 py-2.5 text-sm font-medium text-[var(--text-primary)]">
             Support Bank Transfer

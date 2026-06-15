@@ -18,6 +18,7 @@ function getCloneId(request: NextRequest): string {
 
 function isProtectedProxyRoute(pathname: string): boolean {
   if (pathname === "/api/auth/login") return false;
+  if (pathname.startsWith("/api/public/")) return false;
   if (/^\/api\/clone\/[^/]+\/chat(?:-simple)?$/.test(pathname)) return false;
   return true;
 }
@@ -92,6 +93,16 @@ function getTenantFromHost(hostname: string): string | null {
 }
 
 function findBackendPath(pathname: string, request: NextRequest): string | null {
+  const publicChatPath = pathname.match(/^\/api\/public\/clones\/([^/]+)\/chat$/);
+  if (publicChatPath) {
+    return `/api/myownclone/public/clones/${publicChatPath[1]}/chat`;
+  }
+
+  const publicSimpleChatPath = pathname.match(/^\/api\/public\/clones\/([^/]+)\/chat-simple$/);
+  if (publicSimpleChatPath) {
+    return `/api/myownclone/public/clones/${publicSimpleChatPath[1]}/chat-simple`;
+  }
+
   // Ignoramos la biblioteca de contenidos (sources), que se resolverá localmente en Next.js
   if (pathname === "/api/clone/sources" || pathname.startsWith("/api/clone/sources/")) {
     return null;
@@ -223,6 +234,7 @@ export async function proxy(request: NextRequest) {
       const token = await getToken({
         req: request,
         secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+        secureCookie: true,
       });
       const serviceApiKey = getServiceApiKey(hostname);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 
 interface UseAdminFetchResult<T> {
@@ -31,10 +31,14 @@ export function useAdminFetch<T>(
   url: string | null,
 ): UseAdminFetchResult<T> {
   const router = useRouter();
+  const routerRef = useRef(router);
+  const redirectedRef = useRef(false);
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadCount, setReloadCount] = useState<number>(0);
+
+  routerRef.current = router;
 
   useEffect(() => {
     if (url === null) {
@@ -45,10 +49,13 @@ export function useAdminFetch<T>(
     setLoading(true);
     setError(null);
 
-    fetch(url, { cache: "no-store" })
+    fetch(url, { cache: "no-store", credentials: "include" })
       .then((res) => {
         if (res.status === 401 || res.status === 403) {
-          router.push("/login");
+          if (!redirectedRef.current) {
+            redirectedRef.current = true;
+            routerRef.current.replace("/login");
+          }
           return null;
         }
         if (!res.ok) {
@@ -72,7 +79,7 @@ export function useAdminFetch<T>(
     return () => {
       cancelled = true;
     };
-  }, [url, reloadCount, router]);
+  }, [url, reloadCount]);
 
   return {
     data,

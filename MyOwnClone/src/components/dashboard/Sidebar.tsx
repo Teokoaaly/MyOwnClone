@@ -274,7 +274,7 @@ export const Sidebar: FC<SidebarProps> = ({
                     <p className="text-[13px] font-semibold text-[var(--text-primary)]">MyOwnClone</p>
                     <p className="text-[11px] text-[var(--text-secondary)]">7 days left</p>
                   </div>
-                  <Link href="/facturacion#plans" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
+                  <Link href="/planes" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
                     Upgrade
                   </Link>
                 </div>

@@ -74,11 +74,54 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         try {
+          const accountResult = await db.execute(sql`
+            SELECT id, email, name, password AS password_hash, role, tenant_id, is_platform_admin
+            FROM accounts
+            WHERE email = ${email}
+            LIMIT 1
+          `);
+          const accountRows = accountResult.rows as Array<{
+            id: string;
+            email: string;
+            name: string | null;
+            password_hash: string | null;
+            role: string | null;
+            tenant_id: string | null;
+            is_platform_admin: boolean | null;
+          }>;
+          const account = accountRows?.[0];
+
+          if (account?.password_hash) {
+            const valid = await bcrypt.compare(password, account.password_hash);
+            if (!valid) return null;
+
+            return {
+              id: account.id,
+              email: account.email,
+              name: account.name ?? undefined,
+              role: account.is_platform_admin
+                ? "platform_admin"
+                : (account.role ?? "owner"),
+              tenantId: account.tenant_id ?? undefined,
+            };
+          }
+        } catch {
+          // Older/local databases may not have the backend-owned accounts table yet.
+        }
+
+        try {
           // Use raw SQL to avoid Drizzle schema enum issues
           const result = await db.execute(
-            sql`SELECT id, email, name, password_hash, role, tenant_id FROM ${schema.users} WHERE email = ${email} LIMIT 1`
+            sql`SELECT id, email, name, password_hash, role, tenant_id FROM ${schema.users} WHERE email = ${email} LIMIT 1`,
           );
-          const rows = result.rows as Array<{ id: string; email: string; name: string | null; password_hash: string | null; role: string; tenant_id: string | null }>;
+          const rows = result.rows as Array<{
+            id: string;
+            email: string;
+            name: string | null;
+            password_hash: string | null;
+            role: string;
+            tenant_id: string | null;
+          }>;
           const user = rows?.[0];
           if (!user) return null;
           if (!user.password_hash) return null;

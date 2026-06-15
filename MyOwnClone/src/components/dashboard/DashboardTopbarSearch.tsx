@@ -17,6 +17,7 @@ const DASHBOARD_PAGES: Array<{ href: string; label: string; icon: string }> = [
   { href: "/productos", label: "Products", icon: "📦" },
   { href: "/reuniones", label: "Meetings", icon: "📅" },
   { href: "/analiticas", label: "Analytics", icon: "📈" },
+  { href: "/planes", label: "Plans", icon: "💎" },
   { href: "/facturacion", label: "Billing", icon: "💳" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
   { href: "/admin", label: "Admin", icon: "🛠" },

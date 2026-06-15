@@ -130,7 +130,7 @@ describe('ChatPanel', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
-        '/api/clone/test-clone/chat',
+        '/api/public/clones/test-clone/chat',
         expect.objectContaining({
           method: 'POST',
         }),

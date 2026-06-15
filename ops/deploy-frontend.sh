@@ -97,11 +97,27 @@ cd '${_REMOTE_CURRENT_LINK}/MyOwnClone'
 command -v node >/dev/null 2>&1 || { echo 'Node.js no está instalado en el VPS' >&2; exit 1; }
 command -v npm >/dev/null 2>&1 || { echo 'npm no está instalado en el VPS' >&2; exit 1; }
 sudo -u myownclone npm install --legacy-peer-deps --no-audit --no-fund
-# Load env from shared, export only valid KEY=VAL lines (skip comments/blanks)
-set -a
-. '${_REMOTE_SHARED_DIR}/frontend.env.production'
-set +a
-sudo -u myownclone env npm run build
+# Keep Next.js' local production env readable by the service user. Escape dollar
+# signs for Next's dotenv expansion while systemd keeps the raw shared env.
+python3 - <<'PY'
+from pathlib import Path
+
+source = Path('${_REMOTE_SHARED_DIR}/frontend.env.production')
+target = Path('./.env.production')
+lines = []
+for line in source.read_text().splitlines():
+    if not line or line.lstrip().startswith('#') or '=' not in line:
+        lines.append(line)
+        continue
+    key, value = line.split('=', 1)
+    if key in {'PLATFORM_ADMIN_EMAIL', 'PLATFORM_ADMIN_PASSWORD_HASH'}:
+        continue
+    lines.append(f"{key}={value.replace('$', r'\$')}")
+target.write_text('\n'.join(lines) + '\n')
+PY
+chown myownclone:myownclone './.env.production'
+chmod 0600 './.env.production'
+sudo -u myownclone npm run build
 install -m 0644 '${_REMOTE_CURRENT_LINK}/ops/myownclone-frontend.service' /etc/systemd/system/myownclone-frontend.service
 systemctl daemon-reload
 systemctl enable --now myownclone-frontend.service

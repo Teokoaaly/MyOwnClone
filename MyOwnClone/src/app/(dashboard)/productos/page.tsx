@@ -43,6 +43,8 @@ export default function ProductosPage() {
   }, [status, router])
 
   const fetchProducts = useCallback(async () => {
+    if (status !== "authenticated") return
+
     setLoading(true)
     try {
       const clonesRes = await fetch("/api/clone/clones")
@@ -64,11 +66,13 @@ export default function ProductosPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
   useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
+    if (status === "authenticated") {
+      fetchProducts()
+    }
+  }, [status, fetchProducts])
 
   const createProduct = async () => {
     if (!cloneId || !formName.trim()) return

@@ -53,6 +53,8 @@ export default function AnaliticasPage() {
   }, [status, router])
 
   const fetchData = useCallback(async () => {
+    if (status !== "authenticated") return
+
     setLoading(true)
     try {
       const [ov, tq, g, co] = await Promise.all([
@@ -70,11 +72,13 @@ export default function AnaliticasPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (status === "authenticated") {
+      fetchData()
+    }
+  }, [status, fetchData])
 
   if (status === "loading" || loading) {
     return <LoadingState label="Loading analytics..." rows={4} />

@@ -10,6 +10,10 @@ vi.mock('@/i18n/navigation', () => ({
   usePathname: () => '/resumen',
 }))
 
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({ status: 'authenticated', data: { user: { id: 'user-1' } } }),
+}))
+
 // Mock fetch globally for the dynamic data fetch.
 const fetchMock = vi.fn()
 global.fetch = fetchMock

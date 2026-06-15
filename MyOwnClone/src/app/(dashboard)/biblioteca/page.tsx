@@ -47,6 +47,8 @@ export default function BibliotecaPage() {
   }, [status, router])
 
   const fetchSources = useCallback(async () => {
+    if (status !== "authenticated") return
+
     setLoading(true)
     setError(null)
     try {
@@ -62,11 +64,13 @@ export default function BibliotecaPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
   useEffect(() => {
-    fetchSources()
-  }, [fetchSources])
+    if (status === "authenticated") {
+      fetchSources()
+    }
+  }, [status, fetchSources])
 
   if (status === "loading" || loading) {
     return <LoadingState label="Loading library..." rows={4} />

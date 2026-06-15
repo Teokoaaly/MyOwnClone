@@ -58,6 +58,7 @@ export default function DashboardResumenPage() {
   const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
   const [clones, setClones] = useState<CloneListItem[]>([]);
   const [activeChatQuery, setActiveChatQuery] = useState("");
+  const [inlineChatError, setInlineChatError] = useState<string | null>(null);
   const [chatSessionKey, setChatSessionKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,8 @@ export default function DashboardResumenPage() {
   }, [status, router]);
 
   const fetchData = useCallback(async () => {
+    if (status !== "authenticated") return;
+
     setLoading(true);
     setError(null);
     try {
@@ -96,11 +99,13 @@ export default function DashboardResumenPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [status]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (status === "authenticated") {
+      fetchData();
+    }
+  }, [status, fetchData]);
 
   const activeClone = clones[0] ?? null;
 
@@ -119,12 +124,13 @@ export default function DashboardResumenPage() {
     const trimmed = activeChatQuery.trim();
     if (trimmed.length === 0) return;
     if (!activeClone?.slug) {
-      router.push("/onboarding");
+      setInlineChatError("Create your first clone before running a workspace query.");
       return;
     }
 
+    setInlineChatError(null);
     setChatSessionKey((current) => current + 1);
-  }, [activeChatQuery, activeClone?.slug, router]);
+  }, [activeChatQuery, activeClone?.slug]);
 
   if (status === "loading" || loading) {
     return <LoadingState label="Loading dashboard..." rows={4} />;
@@ -252,10 +258,18 @@ export default function DashboardResumenPage() {
                   rows={2}
                   aria-label="AI query"
                   value={activeChatQuery}
-                  onChange={(event) => setActiveChatQuery(event.target.value)}
+                  onChange={(event) => {
+                    setActiveChatQuery(event.target.value);
+                    if (inlineChatError) setInlineChatError(null);
+                  }}
                   placeholder="Ask your clone something from its knowledge base..."
                   className="min-h-[40px] w-full resize-none bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
                 />
+                {inlineChatError ? (
+                  <p className="mt-2 text-xs font-medium text-[#DC2626]" role="alert">
+                    {inlineChatError}
+                  </p>
+                ) : null}
                 <div className="mt-auto flex items-center justify-between pt-1.5">
                   <div className="flex items-center gap-1.5">
                     <button type="button" className="prompt-tool" aria-label="Search">
