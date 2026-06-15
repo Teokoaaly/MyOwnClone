@@ -41,7 +41,7 @@ const TONE_OPTIONS = [
   { value: "formal", label: "Formal" },
   { value: "informal", label: "Informal" },
   { value: "cercano", label: "Friendly" },
-  { value: "técnico", label: "Technical" },
+  { value: "tecnico", label: "Technical" },
 ]
 
 export default function SettingsPage() {
@@ -85,7 +85,7 @@ export default function SettingsPage() {
       setName(c.name || "")
       setSlug(c.slug || "")
       setDescription(c.description || "")
-      setTone(c.personality_tone || "formal")
+      setTone(c.personality_tone === "técnico" ? "tecnico" : c.personality_tone || "formal")
       const promptMap: Record<string, string> = {}
       if (c.mode_prompts) {
         for (const p of c.mode_prompts) {

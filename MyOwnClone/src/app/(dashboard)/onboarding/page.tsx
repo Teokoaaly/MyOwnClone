@@ -17,7 +17,7 @@ const TONES = [
   { value: "formal", label: "Formal", emoji: "👔" },
   { value: "informal", label: "Informal", emoji: "👋" },
   { value: "cercano", label: "Friendly", emoji: "🤝" },
-  { value: "técnico", label: "Technical", emoji: "🔧" },
+  { value: "tecnico", label: "Technical", emoji: "🔧" },
 ]
 
 const LANGUAGES = [
