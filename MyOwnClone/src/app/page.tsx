@@ -61,12 +61,12 @@ export default async function LandingPage() {
           </Link>
 
           <div className="landing-menu">
-            <Link href="/#pricing">Product</Link>
-            <Link href="/#pricing">
+            <Link href="/">Product</Link>
+            <Link href="/">
               Solutions
               <span className="landing-chevron" aria-hidden="true">v</span>
             </Link>
-            <Link href="/#pricing">Pricing</Link>
+            <Link href="/">About</Link>
             <Link href={nav.signInHref}>{nav.signInLabel}</Link>
           </div>
 
@@ -126,49 +126,8 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="pricing" className="landing-pricing-section">
-        <div className="landing-pricing-shell">
-          <div className="landing-pricing-head">
-            <p className="landing-pricing-kicker">Pricing</p>
-            <h2>Select a plan</h2>
-            <p>
-              Start free, upgrade when your clone grows, and keep the same polished workspace all the way up.
-            </p>
-          </div>
-
-          <div className="landing-pricing-grid">
-            {landingPlans.map((plan) => (
-              <article
-                key={plan.name}
-                className={plan.accent === "dark" ? "landing-plan-card landing-plan-card-featured" : "landing-plan-card"}
-              >
-                <div className="landing-plan-top">
-                  <span className="landing-plan-glyph" aria-hidden="true" />
-                  {plan.badge ? <span className="landing-plan-badge">{plan.badge}</span> : null}
-                </div>
-                <div className="landing-plan-price">
-                  <span>{plan.price}</span>
-                  <small>{plan.suffix}</small>
-                </div>
-                <h3>{plan.name}</h3>
-                <p>{plan.description}</p>
-                <Link href={nav.primaryHref} className={plan.accent === "dark" ? "landing-plan-cta landing-plan-cta-inverse" : "landing-plan-cta"}>
-                  {plan.cta}
-                </Link>
-                <div className="landing-plan-divider" />
-                <div className="landing-plan-features">
-                  <strong>Features</strong>
-                  <ul>
-                    {plan.features.map((feature) => (
-                      <li key={feature}>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Pricing section hidden — restore when ready */}
+      {/* <section id="pricing" className="landing-pricing-section">...</section> */}
 
       <footer className="landing-footer">
         <div className="landing-footer-inner">
@@ -177,8 +136,8 @@ export default async function LandingPage() {
             <span>MyOwnClone</span>
           </div>
           <div className="landing-footer-links">
-            <Link href="/#pricing">Product</Link>
-            <Link href="/#pricing">Pricing</Link>
+            <Link href="/">Product</Link>
+            <Link href="/">Pricing</Link>
             <a href="mailto:hello@myownclone.com">Contact</a>
             <Link href="/legal">Legal</Link>
           </div>
