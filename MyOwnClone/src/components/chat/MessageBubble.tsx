@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import DOMPurify from 'dompurify'
 
 interface ChatMessage {
   id: string
@@ -53,14 +54,11 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
         '<code class="rounded px-1 py-0.5 text-sm" style="background: var(--surface-2); color: var(--text-primary);">$1</code>',
       )
       .replace(/\n/g, '<br />')
-    // Basic HTML sanitization: strip script/iframe/object/embed tags and event handlers
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
-      .replace(/<embed\b[^>]*\/?>/gi, '')
-      .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
-      .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
+    return DOMPurify.sanitize(html, {
+      ADD_ATTR: ['onerror', 'onload', 'ontoggle'],
+      ADD_TAGS: ['details'],
+      FORCE_BODY: false,
+    })
   }, [message.content, isUser])
 
   return (

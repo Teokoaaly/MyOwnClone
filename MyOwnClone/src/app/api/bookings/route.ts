@@ -4,6 +4,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import { createMeeting } from "@/lib/video";
 import { sendBookingConfirmation } from "@/lib/email";
 import { auth } from "@/lib/auth";
+import { verifyCsrfToken, createCsrfErrorResponse } from "@/lib/csrf";
 
 const MAX_VISITOR_NAME_LENGTH = 200;
 const MAX_VISITOR_EMAIL_LENGTH = 320;
@@ -18,11 +19,29 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const userTenantId = session.user.tenantId;
+  if (!userTenantId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const cloneId = searchParams.get("cloneId");
 
   if (!cloneId) {
     return NextResponse.json({ error: "cloneId is required" }, { status: 400 });
+  }
+
+  // Tenant validation - verify clone belongs to authenticated tenant
+  const clone = await db.query.clones.findFirst({
+    where: and(
+      eq(schema.clones.id, cloneId),
+      eq(schema.clones.tenantId, userTenantId)
+    ),
+    columns: { id: true },
+  });
+
+  if (!clone) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const meetingTypesForClone = await db.query.meetingTypes.findMany({
@@ -48,6 +67,11 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // CSRF verification - Synchronizer Token pattern
+    if (!verifyCsrfToken(request)) {
+      return createCsrfErrorResponse();
     }
 
     let meetingTypeId: string;
@@ -79,6 +103,33 @@ export async function POST(request: NextRequest) {
         { error: "meetingTypeId, visitorName, visitorEmail, and date are required" },
         { status: 400 },
       );
+    }
+
+    // Tenant validation - verify meetingType belongs to authenticated tenant
+    const userTenantId = session.user.tenantId;
+    if (!userTenantId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const meetingType = await db.query.meetingTypes.findFirst({
+      where: eq(schema.meetingTypes.id, meetingTypeId),
+      columns: { id: true, cloneId: true },
+    });
+
+    if (!meetingType) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const clone = await db.query.clones.findFirst({
+      where: and(
+        eq(schema.clones.id, meetingType.cloneId),
+        eq(schema.clones.tenantId, userTenantId)
+      ),
+      columns: { id: true },
+    });
+
+    if (!clone) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     visitorName = visitorName.trim();
@@ -119,7 +170,7 @@ export async function POST(request: NextRequest) {
         endTime: null,
         notes: null,
         status: "confirmed",
-      } as typeof schema.bookings.$inferInsert)
+      } satisfies typeof schema.bookings.$inferInsert)
       .returning();
 
     const mt = await db.query.meetingTypes.findFirst({
@@ -132,9 +183,10 @@ export async function POST(request: NextRequest) {
         const meetingUrl = meeting.roomUrl || meeting.hostRoomUrl || "";
         if (meetingUrl) {
           await db.update(schema.bookings)
-            .set({ meetingUrl } as any)
+            .set({ meetingUrl } satisfies Partial<typeof schema.bookings.$inferInsert>)
             .where(eq(schema.bookings.id, booking[0].id));
-          (booking[0] as any).meetingUrl = meetingUrl;
+          const updatedBooking = booking[0] as typeof schema.bookings.$inferInsert & { meetingUrl: string };
+          updatedBooking.meetingUrl = meetingUrl;
         }
       }
     } catch (e) {

@@ -1,5 +1,8 @@
 /**
- * Client-side clone resolution — fetches clones from API and caches in cookie.
+ * Client-side clone resolution — fetches clones from API.
+ *
+ * The server sets an HttpOnly cookie for the proxy's use.
+ * This module reads the clone ID from the API response body.
  *
  * Used by dashboard pages to resolve the active clone ID without relying on
  * the server-side DEFAULT_CLONE_ID env var.
@@ -10,22 +13,26 @@ const CLONE_ID_COOKIE = "moc_active_clone_id";
 
 /**
  * Resolve the active clone ID for the current tenant.
- * Checks cookie first, then fetches from API and caches.
+ * Fetches from API - server sets HttpOnly cookie for proxy's use.
+ * Clone ID is read from API response body since cookie is HttpOnly.
  */
 export async function resolveActiveCloneId(): Promise<string | null> {
-  // Check cookie first
-  const cached = getCloneIdFromCookie();
-  if (cached) return cached;
-
   try {
     const res = await fetch("/api/clone/clones");
     if (!res.ok) return null;
-    const clones = await res.json();
+    const data = await res.json();
 
-    if (Array.isArray(clones) && clones.length > 0) {
-      const id = clones[0].id;
-      setCloneIdCookie(id);
-      return id;
+    // Response format: { activeCloneId: string, clones: [...] }
+    if (data?.activeCloneId) {
+      return data.activeCloneId;
+    }
+
+    // Fallback: check clones array directly
+    if (Array.isArray(data?.clones) && data.clones.length > 0) {
+      return data.clones[0].id;
+    }
+    if (Array.isArray(data) && data.length > 0) {
+      return data[0].id;
     }
   } catch {
     // Silently fail — caller handles null
