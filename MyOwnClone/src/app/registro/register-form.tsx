@@ -120,7 +120,7 @@ export function RegisterForm() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={t("auth.your_name")}
+            placeholder={t("your_name")}
             required
             autoComplete="name"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -143,7 +143,7 @@ export function RegisterForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t("auth.you_email_com")}
+            placeholder={t("you_email_com")}
             required
             autoComplete="email"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -184,7 +184,7 @@ export function RegisterForm() {
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/resumen" })}
-          aria-label={t("auth.continue_with_google")}
+          aria-label={t("continue_with_google")}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 font-semibold transition"
           style={{
             borderColor: "var(--border-medium)",

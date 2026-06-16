@@ -142,7 +142,7 @@ export function LoginForm() {
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/resumen" })}
-          aria-label={t("auth.continue_with_google")}
+          aria-label={t("continue_with_google")}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 font-semibold transition"
           style={{
             borderColor: "var(--border-medium)",

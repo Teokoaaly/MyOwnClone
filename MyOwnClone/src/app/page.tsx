@@ -131,7 +131,7 @@ export default async function LandingPage() {
       <section id="pricing" className="landing-pricing-section">
         <div className="landing-pricing-shell">
           <div className="landing-pricing-head">
-            <p className="landing-pricing-kicker">{t("landing.navPricing")}</p>
+            <p className="landing-pricing-kicker">{t("navPricing")}</p>
             <h2>Select a plan</h2>
             <p>
               Start free, upgrade when your clone grows, and keep the same polished workspace all the way up.
@@ -181,7 +181,7 @@ export default async function LandingPage() {
           <div className="landing-footer-links">
             <Link href="/#pricing">Product</Link>
             <Link href="/#pricing">Pricing</Link>
-            <a href="mailto:hello@myownclone.com">{t("landing.contact")}</a>
+            <a href="mailto:hello@myownclone.com">{t("contact")}</a>
             <Link href="/legal">Legal</Link>
           </div>
           <div className="landing-footer-copy">
