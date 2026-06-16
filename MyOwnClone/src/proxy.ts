@@ -4,28 +4,6 @@ import { routing } from "@/i18n/routing";
 
 const DEFAULT_DEV_BACKEND_URL = "http://127.0.0.1:5001";
 const LOCALE_HEADER = "x-locale";
-const LOCALE_COOKIE = "myownclone_locale";
-const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
-
-function resolveLocaleFromAcceptLanguage(header: string | null): string {
-  if (!header) return routing.defaultLocale;
-  const candidates = header
-    .split(",")
-    .map((part) => {
-      const [tag, ...params] = part.trim().split(";");
-      const qParam = params.find((p) => p.trim().startsWith("q="));
-      const q = qParam ? Number(qParam.split("=")[1]) : 1;
-      return { tag: tag.toLowerCase(), q: Number.isFinite(q) ? q : 0 };
-    })
-    .filter((c) => c.tag.length > 0)
-    .sort((a, b) => b.q - a.q);
-  for (const { tag } of candidates) {
-    if ((routing.locales as readonly string[]).includes(tag)) return tag;
-    const base = tag.split("-")[0];
-    if ((routing.locales as readonly string[]).includes(base)) return base;
-  }
-  return routing.defaultLocale;
-}
 const LOCALIZED_APP_ROUTES = new Set(["/es/onboarding", "/es/verificar"]);
 
 /**
@@ -221,22 +199,10 @@ export async function proxy(request: NextRequest) {
   if (tenantSlug) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-tenant-slug", tenantSlug);
-    const tenantLocale = localeMatch ?? forwardedLocale ?? resolveLocaleFromAcceptLanguage(request.headers.get("accept-language"));
-    requestHeaders.set(LOCALE_HEADER, tenantLocale);
-    const tenantResponse = NextResponse.next({
+    const cookieLocale = request.cookies.get("myownclone_locale")?.value; requestHeaders.set(LOCALE_HEADER, forwardedLocale ?? cookieLocale ?? routing.defaultLocale);
+    return NextResponse.next({
       request: { headers: requestHeaders },
     });
-    const existingCookie = request.cookies.get(LOCALE_COOKIE)?.value;
-    if (existingCookie !== tenantLocale) {
-      tenantResponse.cookies.set({
-        name: LOCALE_COOKIE,
-        value: tenantLocale,
-        maxAge: LOCALE_COOKIE_MAX_AGE,
-        sameSite: "lax",
-        path: "/",
-      });
-    }
-    return tenantResponse;
   }
 
   // Proxy API calls to Flask backend
@@ -355,43 +321,16 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // Locale is handled client-side via cookies (LanguageSwitcher in Sidebar).
+  // Forward x-locale header for any cookie-based preference.
   const requestHeaders = new Headers(request.headers);
-  const resolvedLocale = localeMatch ?? forwardedLocale ?? resolveLocaleFromAcceptLanguage(request.headers.get("accept-language"));
+  const cookieLocale = request.cookies.get("myownclone_locale")?.value;
+  const resolvedLocale = forwardedLocale ?? cookieLocale ?? routing.defaultLocale;
   requestHeaders.set(LOCALE_HEADER, resolvedLocale);
 
-  if (localeMatch && !LOCALIZED_APP_ROUTES.has(pathname)) {
-    const rewriteUrl = request.nextUrl.clone();
-    rewriteUrl.pathname = normalizedPathname;
-    const rewriteResponse = NextResponse.rewrite(rewriteUrl, {
-      request: { headers: requestHeaders },
-    });
-    const existingCookie = request.cookies.get(LOCALE_COOKIE)?.value;
-    if (existingCookie !== resolvedLocale) {
-      rewriteResponse.cookies.set({
-        name: LOCALE_COOKIE,
-        value: resolvedLocale,
-        maxAge: LOCALE_COOKIE_MAX_AGE,
-        sameSite: "lax",
-        path: "/",
-      });
-    }
-    return rewriteResponse;
-  }
-
-  const nextResponse = NextResponse.next({
+  return NextResponse.next({
     request: { headers: requestHeaders },
   });
-  const existingCookie = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (existingCookie !== resolvedLocale) {
-    nextResponse.cookies.set({
-      name: LOCALE_COOKIE,
-      value: resolvedLocale,
-      maxAge: LOCALE_COOKIE_MAX_AGE,
-      sameSite: "lax",
-      path: "/",
-    });
-  }
-  return nextResponse;
 }
 
 export const config = {
