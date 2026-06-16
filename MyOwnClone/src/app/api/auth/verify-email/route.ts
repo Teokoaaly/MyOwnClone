@@ -2,10 +2,25 @@ import { NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
 import { and, eq, gt } from "drizzle-orm";
 import { normalizeEmail } from "@/lib/platform-admin";
+import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
 
 const IDENTIFIER_PREFIX = "magic-link:";
 
 export async function POST(request: Request) {
+  const rl = rateLimit(getRateLimitKey(request, "verify-email"));
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Demasiadas solicitudes. Intenta de nuevo más tarde." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(rl.resetIn / 1000)),
+          "X-RateLimit-Remaining": String(rl.remaining),
+        }
+      }
+    );
+  }
+
   let payload: { token?: string; email?: string } = {};
   try {
     payload = await request.json();

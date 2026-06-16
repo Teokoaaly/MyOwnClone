@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("forgotPassword")
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -23,13 +25,13 @@ export default function ForgotPasswordPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Error al enviar el enlace. Intenta de nuevo.");
+        setError(data.error ?? t("errorSending"));
         return;
       }
 
       setSent(true);
     } catch {
-      setError("Error de conexión. Intenta de nuevo.");
+      setError(t("connectionError"));
     } finally {
       setLoading(false);
     }
@@ -43,22 +45,19 @@ export default function ForgotPasswordPage() {
       >
         <div className="w-full max-w-md card text-center">
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Revisa tu correo
+            {t("checkEmail")}
           </h1>
           <p className="mt-2 text-sm text-[var(--text-muted)]">
-            Si la dirección está registrada, hemos enviado un enlace para
-            restablecer tu contraseña a{" "}
-            <strong className="text-[var(--text-primary)]">{email}</strong>.
+            {t("checkEmailDesc", { email })}
           </p>
           <p className="mt-4 text-xs text-[var(--text-muted)]">
-            El enlace caduca en 30 minutos. Si no ves el correo, revisa la
-            carpeta de spam.
+            {t("linkExpires")}
           </p>
           <Link
             href="/login"
             className="btn-primary mt-6 inline-block text-sm"
           >
-            Volver a iniciar sesión
+            {t("backToLogin")}
           </Link>
         </div>
       </main>
@@ -72,10 +71,10 @@ export default function ForgotPasswordPage() {
     >
       <div className="w-full max-w-md card">
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          ¿Olvidaste tu contraseña?
+          {t("title")}
         </h1>
         <p className="mt-2 text-sm text-[var(--text-muted)]">
-          Te enviaremos un enlace para que puedas crear una nueva.
+          {t("description")}
         </p>
 
         {error && (
@@ -98,7 +97,7 @@ export default function ForgotPasswordPage() {
               htmlFor="forgot-email"
               className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
             >
-              Correo electrónico
+              {t("emailLabel")}
             </label>
             <input
               id="forgot-email"
@@ -108,7 +107,7 @@ export default function ForgotPasswordPage() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu@email.com"
+              placeholder={t("emailPlaceholder")}
               className="w-full rounded-xl border border-[var(--border-medium)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition focus:ring-2"
             />
           </div>
@@ -117,7 +116,7 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="btn-primary w-full py-3 text-sm font-semibold disabled:opacity-50"
           >
-            {loading ? "Enviando…" : "Enviar enlace"}
+            {loading ? t("sending") : t("sendLink")}
           </button>
         </form>
 
@@ -127,7 +126,7 @@ export default function ForgotPasswordPage() {
             className="font-medium underline decoration-[var(--color-accent-violet)] underline-offset-4 hover:opacity-80"
             style={{ color: "var(--text-primary)" }}
           >
-            Volver a iniciar sesión
+            {t("backToLogin")}
           </Link>
         </p>
       </div>

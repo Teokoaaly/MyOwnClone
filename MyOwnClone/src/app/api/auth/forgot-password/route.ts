@@ -3,10 +3,25 @@ import { randomBytes } from "crypto";
 import { db, schema } from "@/lib/db";
 import { sendLoginVerificationCode } from "@/lib/email";
 import { normalizeEmail } from "@/lib/platform-admin";
+import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
 
 const TOKEN_TTL_MINUTES = 30;
 
 export async function POST(request: Request) {
+  const rl = rateLimit(getRateLimitKey(request, "forgot-password"));
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Demasiadas solicitudes. Intenta de nuevo más tarde." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(rl.resetIn / 1000)),
+          "X-RateLimit-Remaining": String(rl.remaining),
+        }
+      }
+    );
+  }
+
   let payload: { email?: string } = {};
   try {
     payload = await request.json();

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { verifyCsrfToken, createCsrfErrorResponse } from "@/lib/csrf";
 
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 const ALLOWED_AUDIO_TYPES = new Set([
@@ -18,6 +19,11 @@ export async function POST(request: Request) {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // CSRF verification - Synchronizer Token pattern
+    if (!verifyCsrfToken(request as any)) {
+      return createCsrfErrorResponse();
     }
 
     const formData = await request.formData();
