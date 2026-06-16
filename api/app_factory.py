@@ -82,9 +82,14 @@ def _setup_dev_keys():
 def _parse_origins() -> list[str]:
     raw = os.getenv("ALLOWED_ORIGINS", "")
     origins = [o.strip() for o in raw.split(",") if o.strip()]
-    if not origins and os.getenv("FLASK_ENV", "production") == "development":
-        # Sensible defaults only in dev
-        return ["http://localhost:3000", "http://127.0.0.1:3000"]
+    if not origins:
+        if os.getenv("FLASK_ENV", "production") == "development":
+            # Sensible defaults only in dev
+            return ["http://localhost:3000", "http://127.0.0.1:3000"]
+        raise ValueError(
+            "ALLOWED_ORIGINS environment variable must be set in production. "
+            "Specify comma-separated origins, e.g., https://example.com,https://app.example.com"
+        )
     return origins
 
 

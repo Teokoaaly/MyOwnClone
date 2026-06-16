@@ -6,6 +6,8 @@ and token verification.  Both ``api.controllers.console.auth`` and
 """
 
 import os
+from datetime import datetime, timedelta, timezone
+
 import jwt
 
 
@@ -37,4 +39,14 @@ def _verify_token(token: str) -> dict | None:
         return None
 
 
-__all__ = ["_get_secret_key", "_verify_token"]
+def generate_token(payload: dict, exp_delta: timedelta | None = None) -> str:
+    """Encode a JWT token with the standard secret/algorithm."""
+    now = datetime.now(timezone.utc)
+    payload = dict(payload)  # shallow copy to avoid mutating caller's dict
+    payload.setdefault("iat", now)
+    if exp_delta:
+        payload.setdefault("exp", now + exp_delta)
+    return jwt.encode(payload, _get_secret_key(), algorithm="HS256")
+
+
+__all__ = ["_get_secret_key", "_verify_token", "generate_token"]

@@ -1,15 +1,16 @@
 """Authentication blueprint — JWT-based login with rate limiting."""
 import logging
+import os
 import time
 from collections import defaultdict
-from flask import Blueprint, request, jsonify
-import jwt
-import bcrypt
-import psycopg2
-import os
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
-from api.libs.jwt_utils import _get_secret_key, _verify_token
+from flask import Blueprint, request, jsonify
+import bcrypt
+from sqlalchemy import text
+
+from api.extensions.ext_database import db
+from api.libs.jwt_utils import generate_token, _verify_token
 
 logger = logging.getLogger(__name__)
 
@@ -114,16 +115,6 @@ def _reset_rate_limit(ip: str) -> None:
     _memory_fallback.pop(ip, None)
 
 
-def _get_db_conn():
-    return psycopg2.connect(
-        host=os.environ.get("DB_HOST", "myownclone_postgres"),
-        port=os.environ.get("DB_PORT", "5432"),
-        user=os.environ.get("DB_USER") or os.environ.get("DB_USERNAME", "postgres"),
-        password=os.environ.get("DB_PASSWORD", ""),
-        dbname=os.environ.get("DB_NAME") or os.environ.get("DB_DATABASE", "myownclone"),
-    )
-
-
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json(force=True, silent=True) or {}
@@ -142,78 +133,68 @@ def login():
             "retry_after_seconds": retry_after,
         }), 429
 
-    conn = _get_db_conn()
+    # 'accounts' (Alembic) es la tabla canonica de usuarios.
+    # 'users' (Drizzle/NextAuth) es legacy y se conserva como fallback
+    # para tenants que aun no han migrado.
+    row = None
     try:
-        cur = conn.cursor()
-        # 'accounts' (Alembic) es la tabla canonica de usuarios.
-        # 'users' (Drizzle/NextAuth) es legacy y se conserva como fallback
-        # para tenants que aun no han migrado.
-        try:
-            cur.execute(
-                "SELECT id, email, password AS password_hash, name, role, tenant_id "
-                "FROM accounts WHERE email = %s",
-                (email,),
-            )
-            row = cur.fetchone()
-        except psycopg2.errors.UndefinedTable:
+        result = db.session.execute(
+            text("SELECT id, email, password AS password_hash, name, role, tenant_id "
+                 "FROM accounts WHERE email = :email"),
+            {"email": email},
+        )
+        row = result.fetchone()
+    except Exception as exc:
+        if "UndefinedTable" in str(exc) or "does not exist" in str(exc):
             logger.info("'accounts' table missing - will try legacy 'users'")
-            row = None
-        except Exception:
+      ***REMOVED***:
             logger.exception("'accounts' lookup failed - will try legacy 'users'")
-            row = None
 
-        if not row:
-            # Fallback: legacy 'users' table (Drizzle/NextAuth).
-            try:
-                cur.execute(
-                    "SELECT id, email, password_hash, name, role, tenant_id FROM users WHERE email = %s",
-                    (email,),
-                )
-                row = cur.fetchone()
-            except psycopg2.errors.UndefinedTable:
-                row = None
-            except Exception:
+    if not row:
+        # Fallback: legacy 'users' table (Drizzle/NextAuth).
+        try:
+            result = db.session.execute(
+                text("SELECT id, email, password_hash, name, role, tenant_id "
+                     "FROM users WHERE email = :email"),
+                {"email": email},
+            )
+            row = result.fetchone()
+        except Exception as exc:
+            if "UndefinedTable" in str(exc) or "does not exist" in str(exc):
+                pass
+          ***REMOVED***:
                 logger.exception("Legacy 'users' fallback failed")
-                row = None
 
-        cur.close()
+    if not row:
+        _record_attempt(client_ip)
+        return jsonify({"error": "Invalid credentials"}), 401
 
-        if not row:
-            _record_attempt(client_ip)
-            return jsonify({"error": "Invalid credentials"}), 401
+    account_id, db_email, db_password_hash, name, role, tenant_id = row
 
-        account_id, db_email, db_password_hash, name, role, tenant_id = row
+    if not db_password_hash:
+        _record_attempt(client_ip)
+        return jsonify({"error": "Account has no password set"}), 401
 
-        if not db_password_hash:
-            _record_attempt(client_ip)
-            return jsonify({"error": "Account has no password set"}), 401
+    if not bcrypt.checkpw(password.encode("utf-8"), db_password_hash.encode("utf-8")):
+        _record_attempt(client_ip)
+        return jsonify({"error": "Invalid credentials"}), 401
 
-        if not bcrypt.checkpw(password.encode("utf-8"), db_password_hash.encode("utf-8")):
-            _record_attempt(client_ip)
-            return jsonify({"error": "Invalid credentials"}), 401
+    # Successful login — reset rate limit for this IP
+    _reset_rate_limit(client_ip)
 
-        # Successful login — reset rate limit for this IP
-        _reset_rate_limit(client_ip)
+    payload = {
+        "sub": account_id,
+        "tenant_id": str(tenant_id) if tenant_id else "default",
+        "role": role or "admin",
+        "email": db_email,
+    }
+    token = generate_token(payload, exp_delta=timedelta(hours=24))
 
-        now = datetime.now(timezone.utc)
-        payload = {
-            "sub": account_id,
-            "tenant_id": str(tenant_id) if tenant_id else "default",
-            "role": role or "admin",
-            "email": db_email,
-            "iat": now,
-            "exp": now + timedelta(hours=24),
-        }
-        token = jwt.encode(payload, _get_secret_key(), algorithm="HS256")
-
-        return jsonify({
-            "token": token,
-            "expires_in": 86400,
-            "user": {"email": db_email, "name": name, "role": role},
-        }), 200
-
-  ***REMOVED***nally:
-        conn.close()
+    return jsonify({
+        "token": token,
+        "expires_in": 86400,
+        "user": {"email": db_email, "name": name, "role": role},
+    }), 200
 
 
 @auth_bp.route("/verify", methods=["GET"])
