@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-FRONTEND_URL="${FRONTEND_URL:-http://100.99.222.101}"
-BACKEND_URL="${BACKEND_URL:-http://100.99.222.101:5001}"
+# Load centralized variables
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "${SCRIPT_DIR}/vars.sh" ]]; then
+  . "${SCRIPT_DIR}/vars.sh"
+fi
+
+FRONTEND_URL="${FRONTEND_URL:-${PUBLIC_HOST}}"
+BACKEND_URL="${BACKEND_URL:-${PUBLIC_HOST}:5001}"
 AUTH_SESSION_PATH="${AUTH_SESSION_PATH:-/api/auth/session}"
 PROTECTED_FRONTEND_PATH="${PROTECTED_FRONTEND_PATH:-/api/clone/plans}"
 PROTECTED_BACKEND_PATH="${PROTECTED_BACKEND_PATH:-/console/api/myownclone/clones}"
