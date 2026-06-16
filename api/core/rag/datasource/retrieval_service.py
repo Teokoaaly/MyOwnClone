@@ -10,7 +10,4 @@ class RetrievalService:
     def retrieve(self, *args, **kwargs):
         return {"segments": [], "total": 0}
     
-    def __getattr__(self, name):
-        return lambda *a, **kw: None
-
 __all__ = ['RetrievalService']
