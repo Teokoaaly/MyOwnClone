@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/LoadingState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface MeetingType {
   id: string
@@ -31,6 +32,7 @@ interface Availability {
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 export default function ReunionesPage() {
+  const t = useTranslations("meetings");
   const { status } = useSession()
   const router = useRouter()
   const [cloneId, setCloneId] = useState<string | null>(null)
@@ -248,7 +250,7 @@ export default function ReunionesPage() {
 
       {showForm === "meeting" && (
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">New meeting type</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("meetings.new_meeting_type")}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="stat-label" htmlFor="mt-name">Name</label>
@@ -320,7 +322,7 @@ export default function ReunionesPage() {
 
       {showForm === "availability" && (
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">New availability</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("meetings.new_availability")}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="stat-label" htmlFor="av-day">Day</label>
@@ -383,11 +385,11 @@ export default function ReunionesPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Meeting types</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("meetings.meeting_types")}</h3>
           {error && !showForm && <div className="mb-3"><ErrorState message={error} /></div>}
           {meetingTypes.length === 0 ? (
             <EmptyState
-              title="No meeting types"
+              title={t("meetings.no_meeting_types")}
               description="Create the first one with the button above."
             />
           ) : (
@@ -407,7 +409,7 @@ export default function ReunionesPage() {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    {!mt.active && <span className="badge-warning">Inactive</span>}
+                    {!mt.active && <span className="badge-warning">{t("meetings.inactive")}</span>}
                     <button
                       type="button"
                       onClick={() => updateMeetingType(mt, { active: !mt.active })}
@@ -432,10 +434,10 @@ export default function ReunionesPage() {
         </div>
 
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">Weekly availability</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("meetings.weekly_availability")}</h3>
           {availability.length === 0 ? (
             <EmptyState
-              title="No schedules"
+              title={t("meetings.no_schedules")}
               description="Configure your availability with the button above."
             />
           ) : (

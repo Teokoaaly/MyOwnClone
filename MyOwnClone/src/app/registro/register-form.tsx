@@ -5,8 +5,10 @@ export const dynamic = "force-dynamic"
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export function RegisterForm() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -118,7 +120,7 @@ export function RegisterForm() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("auth.your_name")}
             required
             autoComplete="name"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -141,7 +143,7 @@ export function RegisterForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@email.com"
+            placeholder={t("auth.you_email_com")}
             required
             autoComplete="email"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -182,7 +184,7 @@ export function RegisterForm() {
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/resumen" })}
-          aria-label="Continue with Google"
+          aria-label={t("auth.continue_with_google")}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 font-semibold transition"
           style={{
             borderColor: "var(--border-medium)",

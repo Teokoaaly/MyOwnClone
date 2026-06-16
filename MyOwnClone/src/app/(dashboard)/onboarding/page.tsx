@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { useRouter } from "@/i18n/navigation"
 import { setCloneIdCookie } from "@/lib/clone-resolver"
+import { useTranslations } from "next-intl";
 
 const STEPS = [
   { id: "name", title: "Clone name", subtitle: "What should your assistant be called?" },
@@ -32,6 +33,7 @@ interface CloneSummary {
 }
 
 export default function OnboardingPage() {
+  const t = useTranslations("onboarding_dashboard");
   const { status } = useSession()
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -238,7 +240,7 @@ export default function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="stat-label" htmlFor="ob-slug">Public URL</label>
+                <label className="stat-label" htmlFor="ob-slug">{t("onboarding_dashboard.public_url")}</label>
                 <input
                   id="ob-slug"
                   type="text"
@@ -257,7 +259,7 @@ export default function OnboardingPage() {
           )}
 
           {step === 1 && (
-            <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Tone">
+            <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("onboarding_dashboard.tone")}>
               {TONES.map((t) => {
                 const selected = tone === t.value
                 return (
@@ -283,7 +285,7 @@ export default function OnboardingPage() {
           )}
 
           {step === 2 && (
-            <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Language">
+            <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("onboarding_dashboard.language")}>
               {LANGUAGES.map((l) => {
                 const selected = language === l.value
                 return (
@@ -321,13 +323,13 @@ export default function OnboardingPage() {
                 </dd>
               </div>
               <div className="flex justify-between text-sm">
-                <dt className="text-[var(--text-muted)]">Tone</dt>
+                <dt className="text-[var(--text-muted)]">{t("onboarding_dashboard.tone")}</dt>
                 <dd className="font-medium text-[var(--text-primary)]">
                   {TONES.find(t => t.value === tone)?.label}
                 </dd>
               </div>
               <div className="flex justify-between text-sm">
-                <dt className="text-[var(--text-muted)]">Language</dt>
+                <dt className="text-[var(--text-muted)]">{t("onboarding_dashboard.language")}</dt>
                 <dd className="font-medium text-[var(--text-primary)]">
                   {language === "es" ? "Spanish" : "English"}
                 </dd>

@@ -22,6 +22,7 @@ import { ChatPanel } from "@/components/chat/ChatPanel";
 import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
 import { Link, useRouter } from "@/i18n/navigation";
 import { setCloneIdCookie } from "@/lib/clone-resolver";
+import { useTranslations } from "next-intl";
 
 interface AnalyticsOverview {
   total_conversations: number;
@@ -52,6 +53,7 @@ const COLLAPSED_BOX_HEIGHT = 188;
 const ACTIVE_CHAT_BOX_HEIGHT = 420;
 
 export default function DashboardResumenPage() {
+  const t = useTranslations("dashboard");
   const { status } = useSession();
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);

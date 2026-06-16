@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 const SILOS = [
   { id: "teach", label: "Teaching" },
@@ -325,6 +326,7 @@ function NuevoContentPage() {
 }
 
 export default function NuevoPage() {
+  const t = useTranslations("library");
   return (
     <Suspense fallback={<LoadingState label="Loading..." rows={4} />}>
       <NuevoContentPage />

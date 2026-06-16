@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useTranslations } from "next-intl";
 
 interface ChatMessage {
   id: string
@@ -17,6 +18,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, isStreaming, cloneId }: MessageBubbleProps) {
+  const t = useTranslations("chat");
   const isUser = message.role === 'user'
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null)
   const [submitting, setSubmitting] = useState(false)

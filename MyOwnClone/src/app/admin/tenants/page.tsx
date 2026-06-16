@@ -13,6 +13,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { Modal } from "@/components/ui/Modal";
 import { useAdminFetch } from "@/components/admin/useAdminFetch";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 interface AdminTenant {
   id: string;
@@ -59,6 +60,7 @@ function formatEur(cents: number) {
 }
 
 export default function AdminTenantsPage() {
+  const t = useTranslations("admin");
   const [pagination, setPagination] = useState<Pagination_>({
     page: 1,
     limit: 20,
@@ -232,7 +234,7 @@ export default function AdminTenantsPage() {
         <LoadingState label="Loading tenants..." rows={6} />
       ) : tenants.length === 0 ? (
         <EmptyState
-          title="No tenants"
+          title={t("admin.no_tenants")}
           description={
             search || plan || status
               ? "No tenants matched those filters."
@@ -246,8 +248,8 @@ export default function AdminTenantsPage() {
               <thead className="table-header">
                 <tr>
                   <th className="px-4 py-2.5 text-left">Tenant</th>
-                  <th className="px-4 py-2.5 text-left">Plan</th>
-                  <th className="px-4 py-2.5 text-left">Status</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.plan")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.status")}</th>
                   <th className="px-4 py-2.5 text-right">Clones</th>
                   <th className="px-4 py-2.5 text-right">Costs 30d</th>
                   <th className="px-4 py-2.5 text-left">Created</th>
@@ -397,10 +399,10 @@ export default function AdminTenantsPage() {
               className={fieldControlClass}
             >
               <option value="trial">Trial</option>
-              <option value="basic">Basic</option>
-              <option value="pro">Pro</option>
-              <option value="scale">Scale</option>
-              <option value="enterprise">Enterprise</option>
+              <option value="basic">{t("admin.basic")}</option>
+              <option value="pro">{t("admin.pro")}</option>
+              <option value="scale">{t("admin.scale")}</option>
+              <option value="enterprise">{t("admin.enterprise")}</option>
             </select>
           </Field>
           <Field label="Status">
@@ -410,9 +412,9 @@ export default function AdminTenantsPage() {
               className={fieldControlClass}
             >
               <option value="trial">Trial</option>
-              <option value="active">Active</option>
+              <option value="active">{t("admin.active")}</option>
               <option value="suspended">Suspended</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="cancelled">{t("admin.cancelled")}</option>
             </select>
           </Field>
           {createError && (

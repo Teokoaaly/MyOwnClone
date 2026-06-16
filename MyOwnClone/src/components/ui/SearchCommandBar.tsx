@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 /**
  * Cmd-K style command palette. Searches across:
@@ -79,6 +80,7 @@ function score(haystack: string, needle: string): number {
 }
 
 export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
+  const t = useTranslations("search");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -336,7 +338,7 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
   if (!open) {
     // Still render a trigger button so users without a keyboard can
     // discover the feature. The dialog itself stays unmounted.
-    return <SearchTrigger onOpen={() => setOpen(true)} />;
+    return <SearchTrigger onOpen={() => setOpen(true)} t={t} />;
   }
 
   let runningIdx = -1;
@@ -485,15 +487,15 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
  * Always rendered (the parent component decides when to mount the
  * dialog, which is on the user gesture).
  */
-const SearchTrigger: FC<{ onOpen: () => void }> = ({ onOpen }) => (
+const SearchTrigger: FC<{ onOpen: () => void; t: (k: string) => string }> = ({ onOpen, t }) => (
   <button
     type="button"
     onClick={onOpen}
-    aria-label="Open search (⌘K)"
+    aria-label={t("search.openSearch")}
     className="flex items-center gap-2 rounded-md border border-[var(--border-soft)] bg-[var(--surface-1)] px-3 py-1.5 text-xs text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)]"
   >
     <span aria-hidden="true">🔍</span>
-    <span className="hidden sm:inline">Search...</span>
+    <span className="hidden sm:inline">{t("search.search")}</span>
     <kbd className="hidden sm:inline-block rounded border border-[var(--border-soft)] px-1 py-0.5 font-mono text-[10px]">
       ⌘K
     </kbd>

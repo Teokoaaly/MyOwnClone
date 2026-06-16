@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { getSession, signIn } from "next-auth/react";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export function LoginForm() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -140,7 +142,7 @@ export function LoginForm() {
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/resumen" })}
-          aria-label="Continue with Google"
+          aria-label={t("auth.continue_with_google")}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 font-semibold transition"
           style={{
             borderColor: "var(--border-medium)",

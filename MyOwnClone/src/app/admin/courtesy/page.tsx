@@ -9,6 +9,7 @@ import { Field, fieldControlClass } from "@/components/admin/Field";
 import { FilterBar } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { useAdminFetch } from "@/components/admin/useAdminFetch";
+import { useTranslations } from "next-intl";
 
 interface CourtesyEntry {
   id: string;
@@ -45,6 +46,7 @@ function formatDate(iso: string | null) {
 }
 
 export default function AdminCourtesyPage() {
+  const t = useTranslations("admin");
   const [pagination, setPagination] = useState<Pagination_>({
     page: 1,
     limit: 20,
@@ -125,7 +127,7 @@ export default function AdminCourtesyPage() {
                   <th className="px-4 py-2.5 text-left">Tenant</th>
                   <th className="px-4 py-2.5 text-right">Importe</th>
                   <th className="px-4 py-2.5 text-left">Otorgado por</th>
-                  <th className="px-4 py-2.5 text-left">Reason</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.reason")}</th>
                   <th className="px-4 py-2.5 text-left">Fecha</th>
                 </tr>
               </thead>

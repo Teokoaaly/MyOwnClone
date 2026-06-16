@@ -9,6 +9,7 @@ import { Field, fieldControlClass } from "@/components/admin/Field";
 import { FilterBar } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { useAdminFetch } from "@/components/admin/useAdminFetch";
+import { useTranslations } from "next-intl";
 
 interface AdminFeedback {
   id: string;
@@ -40,6 +41,7 @@ const RATING_OPTIONS = [
 ];
 
 export default function AdminFeedbackPage() {
+  const t = useTranslations("admin");
   const [pagination, setPagination] = useState<Pagination_>({
     page: 1,
     limit: 20,

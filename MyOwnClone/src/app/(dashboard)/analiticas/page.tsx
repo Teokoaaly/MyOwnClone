@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 export const dynamic = "force-dynamic"
 
@@ -40,6 +41,7 @@ function formatEur(cents: number) {
 }
 
 export default function AnaliticasPage() {
+  const t = useTranslations("analytics");
   const { status } = useSession()
   const router = useRouter()
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null)

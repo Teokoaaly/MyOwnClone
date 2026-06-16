@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/LoadingState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface Product {
   id: string
@@ -22,6 +23,7 @@ interface Product {
 }
 
 export default function ProductosPage() {
+  const t = useTranslations("library");
   const { status } = useSession()
   const router = useRouter()
   const [cloneId, setCloneId] = useState<string | null>(null)
@@ -176,7 +178,7 @@ export default function ProductosPage() {
 
       {showForm && (
         <div className="card">
-          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">New product</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("library.new_product")}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <label className="stat-label" htmlFor="pr-name">Name</label>
@@ -262,7 +264,7 @@ export default function ProductosPage() {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-[var(--text-primary)] text-sm">{p.name}</h3>
                 {!p.active && (
-                  <span className="badge-warning">Inactive</span>
+                  <span className="badge-warning">{t("library.inactive")}</span>
                 )}
               </div>
               {p.description && (

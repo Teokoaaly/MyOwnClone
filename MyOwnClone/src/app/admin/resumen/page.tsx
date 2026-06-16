@@ -18,6 +18,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { useTranslations } from "next-intl";
 
 interface AdminOverview {
   total_tenants: number;
@@ -53,6 +54,7 @@ const FINANCE_COLORS = {
 };
 
 export default function AdminResumenPage() {
+  const t = useTranslations("admin");
   const { data, loading, error, reload } = useAdminFetch<AdminOverview>(
     "/api/admin/overview",
   );

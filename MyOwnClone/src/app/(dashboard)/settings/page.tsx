@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface CloneConfig {
   id: string
@@ -45,6 +46,7 @@ const TONE_OPTIONS = [
 ]
 
 export default function SettingsPage() {
+  const t = useTranslations("settings");
   const { status } = useSession()
   const router = useRouter()
   const [clone, setClone] = useState<CloneConfig | null>(null)
@@ -217,7 +219,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-slug">Public slug</label>
+              <label className="stat-label" htmlFor="new-clone-slug">{t("settings.public_slug")}</label>
               <input
                 id="new-clone-slug"
                 type="text"
@@ -281,7 +283,7 @@ export default function SettingsPage() {
           </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--text-primary)]">Theme</p>
+              <p className="text-sm text-[var(--text-primary)]">{t("settings.theme")}</p>
               <p className="text-xs text-[var(--text-muted)]">
                 Light or dark. Saved in this browser.
               </p>
@@ -306,7 +308,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-slug">Public slug</label>
+              <label className="stat-label" htmlFor="cfg-slug">{t("settings.public_slug")}</label>
               <input
                 id="cfg-slug"
                 type="text"
@@ -329,7 +331,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-tone">Tone</label>
+              <label className="stat-label" htmlFor="cfg-tone">{t("settings.tone")}</label>
               <select
                 id="cfg-tone"
                 value={tone}

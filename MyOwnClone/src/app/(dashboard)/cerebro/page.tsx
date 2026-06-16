@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/LoadingState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface Memory {
   id: string
@@ -45,6 +46,7 @@ const TABS: { id: TabType; label: string; singular: string; desc: string }[] = [
 ]
 
 export default function CerebroPage() {
+  const t = useTranslations("library");
   const { status } = useSession()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>("memory")
@@ -281,7 +283,7 @@ export default function CerebroPage() {
             </div>
 
             {error && (
-              <ErrorState title="Error" message={error} />
+              <ErrorState title={t("library.error")} message={error} />
             )}
 
             <div className="flex gap-2 pt-2">

@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -167,6 +168,7 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("auth");
   return (
     <main
       className="flex min-h-screen items-center justify-center px-4 py-12"

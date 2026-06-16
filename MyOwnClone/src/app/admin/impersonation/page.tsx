@@ -9,6 +9,7 @@ import { Field, fieldControlClass } from "@/components/admin/Field";
 import { FilterBar } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { useAdminFetch } from "@/components/admin/useAdminFetch";
+import { useTranslations } from "next-intl";
 
 interface ImpersonationEntry {
   id: string;
@@ -42,6 +43,7 @@ function formatDate(iso: string | null) {
 }
 
 export default function AdminImpersonationPage() {
+  const t = useTranslations("admin");
   const [pagination, setPagination] = useState<Pagination_>({
     page: 1,
     limit: 20,
@@ -123,7 +125,7 @@ export default function AdminImpersonationPage() {
                   <th className="px-4 py-2.5 text-left">Tenant</th>
                   <th className="px-4 py-2.5 text-left">Inicio</th>
                   <th className="px-4 py-2.5 text-left">Fin</th>
-                  <th className="px-4 py-2.5 text-left">Reason</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.reason")}</th>
                 </tr>
               </thead>
               <tbody>

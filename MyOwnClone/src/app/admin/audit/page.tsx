@@ -9,6 +9,7 @@ import { Field, fieldControlClass } from "@/components/admin/Field";
 import { FilterBar } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { useAdminFetch } from "@/components/admin/useAdminFetch";
+import { useTranslations } from "next-intl";
 
 interface AuditEntry {
   id: string;
@@ -69,6 +70,7 @@ function formatMetadata(meta: Record<string, unknown> | null) {
 }
 
 export default function AdminAuditPage() {
+  const t = useTranslations("admin");
   const [pagination, setPagination] = useState<Pagination_>({
     page: 1,
     limit: 20,
@@ -104,7 +106,7 @@ export default function AdminAuditPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Audit log"
+        title={t("admin.audit_log")}
         subtitle={`${total} acciones registradas en la plataforma`}
       />
 
@@ -169,7 +171,7 @@ export default function AdminAuditPage() {
         <LoadingState label="Loading audit log..." rows={6} />
       ) : items.length === 0 ? (
         <EmptyState
-          title="No entries"
+          title={t("admin.no_entries")}
           description="Las acciones sensibles (impersonaciones, cambios de plan, cambios de estado, signups courtesy) aparecerán aquí."
         />
       ) : (
@@ -180,10 +182,10 @@ export default function AdminAuditPage() {
                 <tr>
                   <th className="px-4 py-2.5 text-left">Fecha</th>
                   <th className="px-4 py-2.5 text-left">Acción</th>
-                  <th className="px-4 py-2.5 text-left">Actor</th>
-                  <th className="px-4 py-2.5 text-left">Target</th>
-                  <th className="px-4 py-2.5 text-left">Reason</th>
-                  <th className="px-4 py-2.5 text-left">Metadata</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.actor")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.target")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.reason")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.metadata")}</th>
                 </tr>
               </thead>
               <tbody>

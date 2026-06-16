@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/Modal";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Field, fieldControlClass } from "@/components/admin/Field";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 interface TenantDetail {
   tenant: {
@@ -60,6 +61,7 @@ function formatEur(cents: number) {
 }
 
 export default function AdminTenantDetailPage() {
+  const t = useTranslations("admin");
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id;
@@ -279,8 +281,8 @@ export default function AdminTenantDetailPage() {
               <tr>
                 <th className="px-4 py-2.5 text-left">Name</th>
                 <th className="px-4 py-2.5 text-left">Slug</th>
-                <th className="px-4 py-2.5 text-left">Language</th>
-                <th className="px-4 py-2.5 text-left">Status</th>
+                <th className="px-4 py-2.5 text-left">{t("admin.language")}</th>
+                <th className="px-4 py-2.5 text-left">{t("admin.status")}</th>
                 <th className="px-4 py-2.5 text-left">Created</th>
               </tr>
             </thead>
@@ -298,9 +300,9 @@ export default function AdminTenantDetailPage() {
                   </td>
                   <td className="px-4 py-3">
                     {c.is_active ? (
-                      <span className="badge-active">Active</span>
+                      <span className="badge-active">{t("admin.active")}</span>
                     ) : (
-                      <span className="badge-warning">Inactive</span>
+                      <span className="badge-warning">{t("admin.inactive")}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-[var(--text-muted)]">

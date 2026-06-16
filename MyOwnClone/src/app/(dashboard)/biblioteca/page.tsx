@@ -10,6 +10,7 @@ import { ErrorState } from "@/components/ui/ErrorState"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { StatusBadge } from "@/components/ui/StatusBadge"
 import { Link, useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface Source {
   id: string
@@ -36,6 +37,7 @@ const SILO_BADGES: Record<string, { label: string; kind: "active" | "trial" | "w
 };
 
 export default function BibliotecaPage() {
+  const t = useTranslations("library");
   const { status } = useSession()
   const router = useRouter()
   const [sources, setSources] = useState<Source[]>([])

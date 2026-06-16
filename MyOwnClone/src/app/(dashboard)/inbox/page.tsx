@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/LoadingState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface EmailListItem {
   id: string
@@ -63,6 +64,7 @@ const CLASS_LABELS: Record<string, string> = {
 }
 
 export default function InboxPage() {
+  const t = useTranslations("inbox");
   const { status: authStatus } = useSession()
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState("all")

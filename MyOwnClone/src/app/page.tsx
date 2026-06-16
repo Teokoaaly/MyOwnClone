@@ -4,6 +4,7 @@ import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getSessionAwareNav } from "@/lib/session-routing";
+import { useTranslations } from "next-intl";
 
 const orbitApps = [
   { emoji: "🧠", label: "AI",      style: "left: 22%; top: 14%;" },
@@ -48,6 +49,7 @@ const landingPlans = [
 ];
 
 export default async function LandingPage() {
+  const t = useTranslations("landing");
   const session = await auth();
   const nav = getSessionAwareNav(session);
 
@@ -179,7 +181,7 @@ export default async function LandingPage() {
           <div className="landing-footer-links">
             <Link href="/#pricing">Product</Link>
             <Link href="/#pricing">Pricing</Link>
-            <a href="mailto:hello@myownclone.com">Contact</a>
+            <a href="mailto:hello@myownclone.com">{t("landing.contact")}</a>
             <Link href="/legal">Legal</Link>
           </div>
           <div className="landing-footer-copy">

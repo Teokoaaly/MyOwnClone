@@ -1,4 +1,5 @@
 import { headers } from "next/headers"
+import { useTranslations } from "next-intl";
 
 export const dynamic = "force-dynamic"
 
@@ -10,6 +11,7 @@ async function getBaseUrl() {
 }
 
 export default async function ApiKeysPage() {
+  const t = useTranslations("settings");
   const serviceKeyConfigured = Boolean(process.env.SERVICE_API_KEY?.trim())
   const baseUrl = await getBaseUrl()
   const endpointUrl = `${baseUrl}/api`

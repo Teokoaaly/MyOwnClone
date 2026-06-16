@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface BillingInfo {
   has_stripe: boolean
@@ -49,6 +50,7 @@ function money(cents = 0, currency = "usd") {
 }
 
 export default function FacturacionPage() {
+  const t = useTranslations("billing");
   const { status } = useSession()
   const router = useRouter()
   const [billing, setBilling] = useState<BillingInfo | null>(null)
