@@ -3,7 +3,7 @@ from datetime import date, datetime, time as time_type
 from typing import Optional
 
 import sqlalchemy as sa
-from sqlalchemy import Boolean, Date, DateTime, Integer, String, Time, func, text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Time, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.libs.datetime_utils import naive_utc_now
@@ -16,7 +16,7 @@ from ..model_types import LongText
 class MeetingType_(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "meeting_types"
 
-    clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    clone_id: Mapped[str] = mapped_column(String(36), ForeignKey("clone_configs.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     duration_minutes: Mapped[int] = mapped_column(Integer, server_default=text("30"), default=30)
     price_cents: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
@@ -28,7 +28,7 @@ class MeetingType_(DefaultFieldsDCMixin, TypeBase):
 class Availability(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "availability"
 
-    clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    clone_id: Mapped[str] = mapped_column(String(36), ForeignKey("clone_configs.id", ondelete="CASCADE"), nullable=False)
     day_of_week: Mapped[int] = mapped_column(Integer, nullable=False)
     start_time: Mapped[time_type] = mapped_column(Time, nullable=False)
     end_time: Mapped[time_type] = mapped_column(Time, nullable=False)
@@ -44,7 +44,7 @@ class BookingStatus(enum.StrEnum):
 class Booking(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "bookings"
 
-    meeting_type_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    meeting_type_id: Mapped[str] = mapped_column(String(36), ForeignKey("meeting_types.id", ondelete="CASCADE"), nullable=False)
     visitor_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     visitor_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
@@ -60,7 +60,7 @@ class Booking(DefaultFieldsDCMixin, TypeBase):
 class Product(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "products"
 
-    clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    clone_id: Mapped[str] = mapped_column(String(36), ForeignKey("clone_configs.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
     price_cents: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

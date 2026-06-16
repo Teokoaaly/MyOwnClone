@@ -163,3 +163,48 @@ class Feedback(TypeBase):
     message_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     rating: Mapped[str] = mapped_column(String(10), nullable=False)  # "up" or "down"
     comment: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
+
+
+class AdminInvitation(TypeBase):
+    """Tracks platform admin invitations.
+
+    Security: Admin access requires explicit invitation. No auto-creation.
+    """
+    __tablename__ = "admin_invitations"
+
+    # Invitation token (sent via email/link)
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        insert_default=lambda: str(uuidv7()),
+        default=lambda: str(uuidv7()),
+    )
+    token: Mapped[str] = mapped_column(
+        String(64),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    # Target email for this invitation
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Who created this invitation (None for first-admin setup)
+    created_by: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    # When this invitation expires
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    # When accepted (None if pending)
+    accepted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    # Status: pending, accepted, expired, revoked
+    status: Mapped[str] = mapped_column(
+        String(20),
+        server_default=text("'pending'"),
+        default="pending",
+    )
+    # Tenant ID to assign (for first admin, this is the platform tenant)
+    tenant_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        insert_default=naive_utc_now,
+        default=naive_utc_now,
+        server_default=func.current_timestamp(),
+    )
