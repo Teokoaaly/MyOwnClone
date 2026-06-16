@@ -9,7 +9,7 @@
     "dashboard": "Panel de control",
     "logout": "Cerrar sesión"
   },
-  "auth": {
+"auth": {
     "loginTitle": "Inicia sesión en MyOwnClone",
     "registerTitle": "Crea tu cuenta en MyOwnClone",
     "emailLabel": "Correo electrónico",
@@ -22,9 +22,21 @@
     "nameLabel": "Nombre completo",
     "namePlaceholder": "Tu nombre",
     "verifyEmail": "Verificar email",
-    "verifyEmailDesc": "Introduce el código que enviamos a tu correo"
+    "verifyEmailDesc": "Introduce el código que enviamos a tu correo",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "Iniciar sesión",
+    "signingIn": "Iniciando sesión...",
+    "invalidCredentials": "Correo o contraseña inválidos.",
+    "connectionError": "Error de conexión. Inténtalo de nuevo.",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "createAccount": "Crear cuenta",
+    "creating": "Creando...",
+    "errorSending": "Error al enviar el enlace. Inténtalo de nuevo.",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "signin": "Iniciar sesión"
   },
-  "onboarding": {
+"onboarding": {
     "title": "Configura tu MyOwnClone",
     "slugLabel": "Elige tu subdominio",
     "slugPlaceholder": "tunombre",
@@ -34,7 +46,88 @@
     "cloneDescriptionLabel": "Descripción de tu clon",
     "cloneDescriptionPlaceholder": "¿Qué hace tu clon? ¿A quién ayuda?",
     "continue": "Continuar",
-    "skip": "Configurar después"
+    "skip": "Configurar después",
+    "steps": {
+      "name": "Nombre del clon",
+      "nameSubtitle": "¿Cómo debería llamarse tu asistente?",
+      "personality": "Personalidad",
+      "personalitySubtitle": "Elige el tono de tu clon",
+      "language": "Idioma",
+      "languageSubtitle": "¿Qué idioma debe hablar?",
+      "confirm": "Confirmar",
+      "confirmSubtitle": "Revisa y crea tu clon"
+    },
+    "tones": {
+      "formal": "Formal",
+      "informal": "Informal",
+      "friendly": "Amigable",
+      "technical": "Técnico"
+    },
+    "labels": {
+      "cloneName": "Nombre del clon",
+      "cloneNamePlaceholder": "Ejemplo: Asistente de Juan",
+      "publicUrl": "URL pública",
+      "urlPlaceholder": "asistente-de-juan",
+      "urlSuffix": ".myownclone.com",
+      "name": "Nombre",
+      "url": "URL",
+      "tone": "Tono",
+      "language": "Idioma",
+      "spanish": "Español",
+      "english": "Inglés"
+    },
+    "back": "Atrás",
+    "next": "Siguiente",
+    "createMyClone": "Crear mi clon",
+    "creating": "Creando...",
+    "checkingSession": "Verificando sesión...",
+    "errorCreating": "Error al crear el clon"
+  },
+  "verify": {
+    "verifying": "Verificando tu correo...",
+    "success": "Correo verificado",
+    "invalid": "Enlace no válido",
+    "missing": "Falta el token de verificación",
+    "connectionError": "Error de conexión. Inténtalo de nuevo.",
+    "goToLogin": "Ir a iniciar sesión",
+    "registerAgain": "Volver a registrarse",
+    "loading": "Cargando..."
+  },
+  "forgotPassword": {
+    "title": "¿Olvidaste tu contraseña?",
+    "description": "Te enviaremos un enlace para que puedas crear una nueva.",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "tu@email.com",
+    "sendLink": "Enviar enlace",
+    "sending": "Enviando...",
+    "backToLogin": "Volver a iniciar sesión",
+    "checkEmail": "Revisa tu correo",
+    "checkEmailDesc": "Si la dirección está registrada, hemos enviado un enlace para restablecer tu contraseña a {email}.",
+    "linkExpires": "El enlace caduca en 30 minutos. Si no ves el correo, revisa la carpeta de spam.",
+    "errorSending": "Error al enviar el enlace. Intenta de nuevo.",
+    "connectionError": "Error de conexión. Inténtalo de nuevo."
+  },
+  "resetPassword": {
+    "title": "Restablecer contraseña",
+    "description": "Para {email}, elige una nueva contraseña.",
+    "passwordLabel": "Nueva contraseña",
+    "passwordPlaceholder": "Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos",
+    "confirmLabel": "Confirmar contraseña",
+    "confirmPlaceholder": "Repite la contraseña",
+    "reset": "Restablecer contraseña",
+    "saving": "Guardando...",
+    "loading": "Cargando...",
+    "invalidLink": "Enlace no válido",
+    "missingTokenEmail": "Falta el token o el email. Solicita un nuevo enlace desde la página de recuperación.",
+    "requestNewLink": "Solicitar nuevo enlace",
+    "passwordUpdated": "Contraseña actualizada",
+    "redirecting": "Te estamos redirigiendo al inicio de sesión...",
+    "goToLogin": "Iniciar sesión",
+    "passwordMinLength": "La contraseña debe tener al menos 12 caracteres.",
+    "passwordRequirements": "La contraseña debe tener mayúsculas, minúsculas, números y caracteres especiales.",
+    "passwordsMismatch": "Las contraseñas no coinciden.",
+    "errorResetting": "No se pudo restablecer la contraseña.",
+    "connectionError": "Error de conexión. Inténtalo de nuevo."
   },
   "dashboard": {
     "biblioteca": "Biblioteca",

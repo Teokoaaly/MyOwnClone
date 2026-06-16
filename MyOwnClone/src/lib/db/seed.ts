@@ -37,7 +37,7 @@ async function main() {
       plan: "pro",
       status: "active",
       subscriptionStatus: "active",
-    } as any);
+    } satisfies typeof schema.tenants.$inferInsert);
     console.log("  ✓ Created tenant: demo");
   } else {
     console.log("  ✓ Tenant already exists: demo");
@@ -59,7 +59,7 @@ async function main() {
       role: "owner",
       status: "active",
       isPlatformAdmin: true,
-    } as any);
+    } satisfies typeof schema.users.$inferInsert);
     console.log("  ✓ Created user: admin@myownclone.com");
   } else {
     console.log("  ✓ User already exists: admin@myownclone.com");
@@ -82,7 +82,7 @@ async function main() {
       personalityTone: "friendly",
       language: "es",
       isActive: true,
-    } as any);
+    } satisfies typeof schema.cloneConfigs.$inferInsert);
     console.log("  ✓ Created clone: demo-clone");
   } else {
     console.log("  ✓ Clone already exists: demo-clone");
@@ -123,7 +123,7 @@ async function main() {
         mode,
         systemPrompt,
         isActive: true,
-      } as any);
+      } satisfies typeof schema.cloneModePrompts.$inferInsert);
       console.log(`  ✓ Created mode prompt: ${mode}`);
     } else {
       console.log(`  ✓ Mode prompt already exists: ${mode}`);

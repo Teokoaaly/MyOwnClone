@@ -41,11 +41,11 @@ export function useAdminFetch<T>(
       setLoading(false);
       return;
     }
-    let cancelled = false;
+    const abortController = new AbortController();
     setLoading(true);
     setError(null);
 
-    fetch(url, { cache: "no-store" })
+    fetch(url, { cache: "no-store", signal: abortController.signal })
       .then((res) => {
         if (res.status === 401 || res.status === 403) {
           router.push("/login");
@@ -57,20 +57,20 @@ export function useAdminFetch<T>(
         return res.json() as Promise<T>;
       })
       .then((payload) => {
-        if (cancelled || payload === null || payload === undefined) return;
+        if (abortController.signal.aborted || payload === null || payload === undefined) return;
         setData(payload);
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
+        if (abortController.signal.aborted) return;
         setError(err instanceof Error ? err.message : "Error");
       })
       .finally(() => {
-        if (cancelled) return;
+        if (abortController.signal.aborted) return;
         setLoading(false);
       });
 
     return () => {
-      cancelled = true;
+      abortController.abort();
     };
   }, [url, reloadCount, router]);
 
