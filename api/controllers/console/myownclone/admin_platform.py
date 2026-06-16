@@ -26,9 +26,18 @@ from api.core.contracts import (
     normalize_tenant_status,
 )
 from api.extensions.ext_database import db
+from api.libs.datetime_utils import naive_utc_now
 from api.libs.login import login_required
 from api.models.account import Account, Tenant
-from api.models.myownclone import CloneConfig, CostTracking, Feedback, ImpersonationLog, ImpersonationToken
+from api.models.myownclone import AdminInvitation, CloneConfig, CostTracking, Feedback, ImpersonationLog, ImpersonationToken
+
+# Fail-fast validation for required secrets
+_impersonation_pepper = os.environ.get('IMPERSONATION_TOKEN_PEPPER', '')
+if not _impersonation_pepper or _impersonation_pepper == 'change-me':
+    raise ValueError(
+        "IMPERSONATION_TOKEN_PEPPER environment variable must be set to a non-empty value. "
+        "Do not use default or placeholder values in production."
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +97,7 @@ def _clone_counts_by_tenant(tenant_ids: list[str]) -> dict[str, int]:
 def _monthly_costs_by_tenant(tenant_ids: list[str]) -> dict[str, int]:
     if not tenant_ids:
         return {}
-    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=30)
+    since = naive_utc_now() - timedelta(days=30)
     rows = db.session.execute(
         select(CostTracking.tenant_id, func.sum(CostTracking.cost_cents))
         .where(CostTracking.tenant_id.in_(tenant_ids), CostTracking.created_at >= since)
@@ -113,40 +122,54 @@ def _unique_tenant_slug(seed: str) -> str:
     return slug
 
 
-def _ensure_admin_account(tenant_id_hint: str | None = None) -> str:
+def _get_existing_admin_account() -> str | None:
+    """Get the current user's account if they are a platform admin.
+
+    Returns the account_id if the current user is an existing platform admin,
+    otherwise returns None.
+
+    NOTE: This does NOT auto-create accounts. Admin access requires an explicit
+    invitation through the admin invitation flow.
+    """
     account_id = str(getattr(g, "account_id", "") or "").strip()
-    email = str(getattr(g, "account_email", "") or "").strip() or "admin@myownclone.local"
+    if not account_id:
+        return None
 
-    if account_id:
-        account = db.session.execute(select(Account).where(Account.id == account_id)).scalar_one_or_none()
-        if account:
-            return str(account.id)
+    account = db.session.execute(
+        select(Account).where(Account.id == account_id)
+    ).scalar_one_or_none()
 
-    account = db.session.execute(select(Account).where(Account.email == email)).scalar_one_or_none()
-    if account:
+    if account and _is_platform_admin(account_id):
         return str(account.id)
 
-    tenant_id = tenant_id_hint or getattr(g, "tenant_id", None)
-    if not tenant_id:
-        tenant_id = db.session.execute(select(Tenant.id).order_by(Tenant.created_at.asc())).scalar()
-    if not tenant_id:
-        tenant = Tenant(name="Platform", slug=_unique_tenant_slug("platform"), plan="trial", status="active")
-        db.session.add(tenant)
-        db.session.flush()
-        tenant_id = str(tenant.id)
+    return None
 
-    account_kwargs = {
-        "tenant_id": str(tenant_id),
-        "email": email,
-        "role": "platform_admin",
-        "is_platform_admin": True,
-    }
-    if account_id:
-        account_kwargs["id"] = account_id
-    account = Account(**account_kwargs)
-    db.session.add(account)
-    db.session.flush()
-    return str(account.id)
+
+def _get_platform_admin_account_or_error() -> str:
+    """Get a platform admin account or raise an error.
+
+    Returns the account_id of an existing platform admin.
+    Raises a 403 error if no platform admin exists or the current user is not one.
+
+    Use this for operations that require an established admin identity.
+    For first-time setup, use the admin invitation flow instead.
+    """
+    admin_id = _get_existing_admin_account()
+    if admin_id:
+        return admin_id
+
+    # Check if any platform admin exists at all
+    any_admin = db.session.execute(
+        select(Account.id).where(Account.is_platform_admin == True)
+    ).scalar_one_or_none()
+
+    if any_admin:
+        raise PermissionError("Current user is not a platform admin")
+
+    raise PermissionError(
+        "No platform admin exists. Use POST /console/api/myownclone/admin/invitation/first "
+        "to create the first platform admin account."
+    )
 
 
 @console_ns.route("/myownclone/admin/overview")
@@ -168,15 +191,21 @@ class AdminOverviewApi(Resource):
         mrr_cents = 0
         plan_counts = {plan: 0 for plan in PLAN_KEYS}
 
-        tenants = db.session.execute(select(Tenant)).scalars().all()
-        for t in tenants:
-            plan_name = normalize_plan(t.plan)
+        # Use SQL aggregation instead of loading all tenants into memory
+        # Get per-plan counts and MRR in a single query
+        plan_stats = db.session.execute(
+            select(Tenant.plan, Tenant.status, Tenant.subscription_status, func.count(Tenant.id))
+            .group_by(Tenant.plan, Tenant.status, Tenant.subscription_status)
+        ).all()
+
+        for plan_key, status, sub_status, count in plan_stats:
+            plan_name = normalize_plan(plan_key)
             if plan_name in plan_counts:
-                plan_counts[plan_name] += 1
-                if t.subscription_status == "active":
-                    mrr_cents += PLAN_PRICES_CENTS.get(plan_name, 0)
-            if normalize_tenant_status(t.status) == "active":
-                active_tenants += 1
+                plan_counts[plan_name] += count
+                if sub_status == "active":
+                    mrr_cents += PLAN_PRICES_CENTS.get(plan_name, 0) * count
+            if normalize_tenant_status(status) == "active":
+                active_tenants += count
 
         cost_data = db.session.execute(
             select(func.sum(CostTracking.cost_cents))
@@ -377,14 +406,13 @@ class AdminImpersonateApi(Resource):
     @account_initialization_required
     @setup_required
     def post(self):
-        from datetime import timedelta, timezone
-
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
         data = ImpersonatePayload.model_validate(request.json)
 
-        admin_id = _ensure_admin_account(data.tenant_id)
+        # Use the authenticated platform admin's account (already verified above)
+        admin_id = g.account_id
 
         log = ImpersonationLog(
             admin_id=admin_id,
@@ -394,7 +422,7 @@ class AdminImpersonateApi(Resource):
         db.session.add(log)
 
         token_str = secrets.token_urlsafe(32)
-        expires = datetime.now(timezone.utc) + timedelta(minutes=30)
+        expires = naive_utc_now() + timedelta(minutes=30)
 
         # Hash token with SHA-256 + PEPPER before storing
         pepper = os.environ.get("IMPERSONATION_TOKEN_PEPPER", "")
@@ -451,8 +479,8 @@ class AdminStopImpersonateApi(Resource):
         imp_token = db.session.execute(
             select(ImpersonationToken).where(
                 ImpersonationToken.token == token_hash,
-                ImpersonationToken.admin_id == _ensure_admin_account(),
-                ImpersonationToken.expires_at > datetime.now(timezone.utc),
+                ImpersonationToken.admin_id == g.account_id,
+                ImpersonationToken.expires_at > naive_utc_now(),
             )
         ).scalar_one_or_none()
 
@@ -461,12 +489,12 @@ class AdminStopImpersonateApi(Resource):
 
         log = db.session.execute(
             select(ImpersonationLog).where(
-                ImpersonationLog.admin_id == _ensure_admin_account(),
+                ImpersonationLog.admin_id == g.account_id,
                 ImpersonationLog.ended_at.is_(None),
             ).order_by(ImpersonationLog.started_at.desc())
         ).scalar_one_or_none()
         if log:
-            log.ended_at = datetime.now(timezone.utc)
+            log.ended_at = naive_utc_now()
 
         db.session.commit()
         return {"status": "stopped"}, 200
@@ -537,7 +565,7 @@ class AdminCourtesyAccountApi(Resource):
             return {"error": "platform admin only"}, 403
 
         data = CourtesyPayload.model_validate(request.json)
-        trial_ends_at = datetime.now(timezone.utc) + timedelta(days=data.duration_days)
+        trial_ends_at = naive_utc_now() + timedelta(days=data.duration_days)
 
         plan = normalize_plan(data.plan)
         tenant = Tenant(
@@ -546,12 +574,13 @@ class AdminCourtesyAccountApi(Resource):
             plan=plan,
             status="trial",
             subscription_status="trialing",
-            trial_ends_at=trial_ends_at.replace(tzinfo=None),
+            trial_ends_at=trial_ends_at,
         )
         db.session.add(tenant)
         db.session.flush()
 
-        admin_id = _ensure_admin_account(str(tenant.id))
+        # Use the authenticated platform admin's account (already verified above)
+        admin_id = g.account_id
 
         log = ImpersonationLog(
             admin_id=admin_id,
@@ -694,6 +723,283 @@ class AdminFeedbackApi(Resource):
         }, 200
 
 
+# ─── Admin Invitation Flow ────────────────────────────────────────────────────
+# Security: No auto-creation of admins. Admin access requires explicit invitation.
+
+
+class FirstAdminSetupPayload(BaseModel):
+    email: str = Field(..., min_length=1, description="Email for the first platform admin")
+    name: str = Field(..., min_length=1, description="Name of the first platform admin")
+    password: str = Field(..., min_length=8, description="Password (min 8 characters)")
+
+
+class AcceptInvitationPayload(BaseModel):
+    token: str = Field(..., min_length=1, description="Invitation token")
+    email: str = Field(..., min_length=1, description="Email address to associate with this account")
+    name: str = Field(..., min_length=1, description="Name for the account")
+    password: str = Field(..., min_length=8, description="Password (min 8 characters)")
+
+
+class InviteAdminPayload(BaseModel):
+    email: str = Field(..., min_length=1, description="Email to invite as platform admin")
+
+
+register_schema_models(console_ns, FirstAdminSetupPayload, AcceptInvitationPayload, InviteAdminPayload)
+
+
+def _check_any_platform_admin_exists() -> bool:
+    """Check if any platform admin account exists in the system."""
+    return db.session.execute(
+        select(Account.id).where(Account.is_platform_admin == True).limit(1)
+    ).scalar_one_or_none() is not None
+
+
+def _create_admin_invitation_token() -> str:
+    """Generate a secure random invitation token."""
+    return secrets.token_urlsafe(32)
+
+
+def _hash_password(password: str) -> str:
+    """Hash password using bcrypt."""
+    import bcrypt
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+@console_ns.route("/myownclone/admin/invitation/first")
+class AdminFirstSetupApi(Resource):
+    """Create the first platform admin account.
+
+    SECURITY: This endpoint is only available when NO platform admin exists.
+    It is intended for initial system setup only.
+    Once a platform admin exists, this endpoint is disabled.
+    """
+
+    def post(self):
+        # Check if any platform admin already exists
+        if _check_any_platform_admin_exists():
+            return {
+                "error": "A platform admin already exists. Use the invitation flow to add more admins."
+            }, 403
+
+        data = FirstAdminSetupPayload.model_validate(request.json)
+
+        # Check if email is already in use
+        existing = db.session.execute(
+            select(Account).where(Account.email == data.email)
+        ).scalar_one_or_none()
+        if existing:
+            return {"error": "An account with this email already exists"}, 409
+
+        # Get or create platform tenant
+        platform_tenant = db.session.execute(
+            select(Tenant).order_by(Tenant.created_at.asc())
+        ).scalar_one_or_none()
+
+        if not platform_tenant:
+            platform_tenant = Tenant(
+                name="Platform",
+                slug=_unique_tenant_slug("platform"),
+                plan="trial",
+                status="active",
+            )
+            db.session.add(platform_tenant)
+            db.session.flush()
+
+        # Create the admin account
+        account = Account(
+            tenant_id=str(platform_tenant.id),
+            email=data.email,
+            password=_hash_password(data.password),
+            name=data.name,
+            role="platform_admin",
+            is_platform_admin=True,
+            status="active",
+        )
+        db.session.add(account)
+        db.session.commit()
+
+        logger.info("First platform admin created: email=%s", data.email)
+
+        return {
+            "message": "Platform admin account created successfully",
+            "email": data.email,
+            "account_id": str(account.id),
+        }, 201
+
+
+@console_ns.route("/myownclone/admin/invitation/accept")
+class AdminAcceptInvitationApi(Resource):
+    """Accept an admin invitation and create account.
+
+    Validates the invitation token and creates the platform admin account.
+    """
+
+    def post(self):
+        data = AcceptInvitationPayload.model_validate(request.json)
+
+        # Find the invitation
+        invitation = db.session.execute(
+            select(AdminInvitation).where(
+                AdminInvitation.token == data.token,
+                AdminInvitation.status == "pending",
+                AdminInvitation.expires_at > naive_utc_now(),
+            )
+        ).scalar_one_or_none()
+
+        if not invitation:
+            return {"error": "Invalid or expired invitation token"}, 400
+
+        # Verify email matches
+        if invitation.email.lower() != data.email.lower():
+            return {"error": "Email does not match invitation"}, 400
+
+        # Check if account already exists
+        existing = db.session.execute(
+            select(Account).where(Account.email == data.email)
+        ).scalar_one_or_none()
+        if existing:
+            return {"error": "An account with this email already exists"}, 409
+
+        # Determine tenant (use invitation's tenant_id or get platform tenant)
+        if invitation.tenant_id:
+            tenant_id = invitation.tenant_id
+      ***REMOVED***:
+            platform_tenant = db.session.execute(
+                select(Tenant).order_by(Tenant.created_at.asc())
+            ).scalar_one_or_none()
+            if not platform_tenant:
+                # Create platform tenant if it doesn't exist
+                platform_tenant = Tenant(
+                    name="Platform",
+                    slug=_unique_tenant_slug("platform"),
+                    plan="trial",
+                    status="active",
+                )
+                db.session.add(platform_tenant)
+                db.session.flush()
+            tenant_id = str(platform_tenant.id)
+
+        # Create the admin account
+        account = Account(
+            tenant_id=tenant_id,
+            email=data.email,
+            password=_hash_password(data.password),
+            name=data.name,
+            role="platform_admin",
+            is_platform_admin=True,
+            status="active",
+        )
+        db.session.add(account)
+
+        # Mark invitation as accepted
+        invitation.status = "accepted"
+        invitation.accepted_at = naive_utc_now()
+
+        db.session.commit()
+
+        logger.info("Admin invitation accepted: email=%s by=%s", data.email, invitation.email)
+
+        return {
+            "message": "Platform admin account created successfully",
+            "email": data.email,
+            "account_id": str(account.id),
+        }, 201
+
+
+@console_ns.route("/myownclone/admin/invitation/create")
+class AdminCreateInvitationApi(Resource):
+    """Create an invitation for a new platform admin.
+
+    Requires existing platform admin authentication.
+    """
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def post(self):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        data = InviteAdminPayload.model_validate(request.json)
+
+        # Check if email already has an account
+        existing = db.session.execute(
+            select(Account).where(Account.email == data.email)
+        ).scalar_one_or_none()
+        if existing:
+            return {"error": "An account with this email already exists. Cannot create invitation."}, 409
+
+        # Check for existing pending invitation
+        existing_invite = db.session.execute(
+            select(AdminInvitation).where(
+                AdminInvitation.email == data.email,
+                AdminInvitation.status == "pending",
+                AdminInvitation.expires_at > naive_utc_now(),
+            )
+        ).scalar_one_or_none()
+        if existing_invite:
+            return {"error": "A pending invitation already exists for this email"}, 409
+
+        # Get platform tenant
+        platform_tenant = db.session.execute(
+            select(Tenant).order_by(Tenant.created_at.asc())
+        ).scalar_one_or_none()
+
+        # Create invitation
+        token = _create_admin_invitation_token()
+        invitation = AdminInvitation(
+            token=token,
+            email=data.email,
+            created_by=g.account_id,
+            expires_at=naive_utc_now() + timedelta(days=7),
+            tenant_id=str(platform_tenant.id) if platform_tenant else None,
+            status="pending",
+        )
+        db.session.add(invitation)
+        db.session.commit()
+
+        logger.info("Admin invitation created: email=%s by=%s", data.email, g.account_id)
+
+        return {
+            "message": "Invitation created successfully",
+            "invitation_token": token,
+            "expires_at": invitation.expires_at.isoformat(),
+            "email": data.email,
+        }, 201
+
+
+@console_ns.route("/myownclone/admin/invitation/revoke/<invitation_id>")
+class AdminRevokeInvitationApi(Resource):
+    """Revoke a pending admin invitation.
+
+    Requires existing platform admin authentication.
+    """
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def post(self, invitation_id):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        invitation = db.session.execute(
+            select(AdminInvitation).where(AdminInvitation.id == invitation_id)
+        ).scalar_one_or_none()
+
+        if not invitation:
+            return {"error": "Invitation not found"}, 404
+
+        if invitation.status != "pending":
+            return {"error": "Can only revoke pending invitations"}, 400
+
+        invitation.status = "revoked"
+        db.session.commit()
+
+        logger.info("Admin invitation revoked: id=%s by=%s", invitation_id, g.account_id)
+
+        return {"message": "Invitation revoked successfully"}, 200
+
+
 def _is_platform_admin(account_id: str) -> bool:
     if getattr(g, "account_role", None) == "platform_admin":
         return True
@@ -705,6 +1011,7 @@ def _is_platform_admin(account_id: str) -> bool:
             select(Account).where(Account.id == account_id)
         ).scalar_one_or_none()
     except Exception:
+        logger.exception("Failed to fetch account for platform admin check")
         return False
 
     if account and hasattr(account, "is_platform_admin") and account.is_platform_admin:
