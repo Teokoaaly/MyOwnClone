@@ -21,6 +21,18 @@ function getCloneIdFromRequest(request: NextRequest): string | null {
   return process.env.DEFAULT_CLONE_ID || null;
 }
 
+/**
+ * Validate that a clone belongs to the given tenant.
+ * Returns true if the clone is owned by the tenant, false otherwise.
+ */
+async function validateCloneOwnership(cloneId: string, tenantId: string): Promise<boolean> {
+  const clone = await db.query.cloneConfigs.findFirst({
+    where: (clones, { eq }) => eq(clones.id, cloneId),
+    columns: { tenantId: true },
+  });
+  return clone?.tenantId === tenantId;
+}
+
 function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -95,6 +107,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Validate clone belongs to authenticated tenant (IDOR prevention)
+  const tenantId = session.user.tenantId;
+  if (tenantId && !(await validateCloneOwnership(cloneId, tenantId))) {
+    return NextResponse.json(
+      { error: "Forbidden: clone not accessible" },
+      { status: 403 }
+    );
+  }
+
   try {
     const items = await db
       .select()
@@ -102,19 +123,23 @@ export async function GET(request: NextRequest) {
       .where(eq(schema.sources.cloneId, cloneId));
 
     // Format the records so they match the UI contract.
-    const formatted = items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      type: item.type,
-      status: item.status,
-      silo: (item.metadata as any)?.silo || "teach",
-      wordCount: (item.metadata as any)?.wordCount || 0,
-      createdAt: item.createdAt.toISOString(),
-    }));
+    const formatted = items.map((item) => {
+      const metadata = item.metadata as Record<string, unknown> | null;
+      return {
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        status: item.status,
+        silo: (metadata?.silo as string | undefined) || "teach",
+        wordCount: (metadata?.wordCount as number | undefined) || 0,
+        createdAt: item.createdAt.toISOString(),
+      };
+    });
 
     return NextResponse.json(formatted);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error("Error fetching sources:", error);
+    return NextResponse.json({ error: "Failed to fetch sources" }, { status: 500 });
   }
 }
 
@@ -129,6 +154,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "No clone configured. Create a clone first." },
       { status: 404 }
+    );
+  }
+
+  // Validate clone belongs to authenticated tenant (IDOR prevention)
+  const tenantId = session.user.tenantId;
+  if (tenantId && !(await validateCloneOwnership(cloneId, tenantId))) {
+    return NextResponse.json(
+      { error: "Forbidden: clone not accessible" },
+      { status: 403 }
     );
   }
 
@@ -194,13 +228,13 @@ export async function POST(request: NextRequest) {
       title = file.name;
     }
 
-    const newSource = {
+    const newSource: typeof schema.sources.$inferInsert = {
       id: crypto.randomUUID(),
       cloneId,
-      type: type as any,
+      type: type as (typeof schema.sources.$inferInsert)["type"],
       title,
       url: url || null,
-      status: (type === "text" ? "ready" : "processing") as any,
+      status: (type === "text" ? "ready" : "processing") as (typeof schema.sources.$inferInsert)["status"],
       metadata: {
         silo,
         wordCount: countWords(ingestableContent),
@@ -227,7 +261,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, source: newSource });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error("Error creating source:", error);
+    return NextResponse.json({ error: "Failed to create source" }, { status: 500 });
   }
 }
