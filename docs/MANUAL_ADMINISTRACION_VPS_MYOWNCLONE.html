@@ -1,0 +1,1994 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Manual MyOwnClone VPS</title><style>
+@page { margin: 22mm 18mm; }
+body { font-family: "Segoe UI", Arial, sans-serif; color:#111827; line-height:1.55; max-width: 1120px; margin:0 auto; padding:32px; }
+h1 { color:#111111; border-bottom:3px solid #f97316; padding-bottom:8px; page-break-before:auto; }
+h2 { color:#1f2937; margin-top:28px; border-bottom:1px solid #e5e7eb; padding-bottom:4px; }
+h3 { color:#374151; margin-top:20px; }
+code { background:#f3f4f6; padding:2px 5px; border-radius:4px; font-family:Consolas, monospace; }
+pre { background:#111827; color:#f9fafb; padding:14px; border-radius:10px; overflow:auto; white-space:pre-wrap; }
+pre code { background:transparent; color:inherit; padding:0; }
+table { border-collapse:collapse; width:100%; margin:14px 0; font-size:13px; }
+th,td { border:1px solid #e5e7eb; padding:7px 9px; vertical-align:top; }
+th { background:#fff7ed; color:#111827; }
+blockquote { border-left:5px solid #f97316; background:#fff7ed; padding:10px 14px; margin:14px 0; }
+a { color:#0284c7; } hr { border:0; border-top:1px solid #e5e7eb; margin:28px 0; }
+.watermark { position:fixed; top:45%; left:8%; transform:rotate(-28deg); font-size:64px; color:rgba(249,115,22,.08); z-index:-1; font-weight:800; }
+</style></head><body><div class="watermark">PRODUCCION - VPS</div><h1 id="manual-de-administracion-de-sistemas-myownclone">Manual de Administracion de Sistemas - MyOwnClone</h1>
+<p>**Marca:** MyOwnClone  </p>
+<p>**Sistema:** Plataforma SaaS multi-tenant de clones IA, knowledge base, chat, email triage, booking y billing  </p>
+<p>**Version del manual:** v1.0.0-draft.1  </p>
+<p>**Estado:** Paso 1 de documentacion incremental  </p>
+<p>**Entorno documentado:** Produccion VPS  </p>
+<p>**URL de produccion:** <a href="https://myownclone.com/">https://myownclone.com/</a>  </p>
+<p>**IP publica VPS:** <code>212.227.169.99</code>  </p>
+<p>**Ruta activa en VPS:** <code>/opt/myownclone/current</code>  </p>
+<p>**Release activa verificada:** <code>/opt/myownclone/releases/202606151645-dashboard-top-cards</code>  </p>
+<p>**Autor:** Codex, Arquitectura y Documentacion Tecnica  </p>
+<p>**Fecha del documento:** 2026-06-16  </p>
+<p>**Ultima verificacion contra VPS:** 2026-06-16 06:49:40 UTC  </p>
+<p>**Marca de agua conceptual:** PRODUCCION - VPS</p>
+<blockquote>ADVERTENCIA: Este manual documenta la configuracion real observada en el VPS de produccion. No debe usarse para publicar secretos, passwords, tokens ni claves privadas. Cualquier valor sensible se documenta como <code>***REDACTED***</code> o mediante el nombre de la variable de entorno.</blockquote>
+<hr>
+<h2 id="historial-de-revisiones">Historial de Revisiones</h2>
+<table>
+<tr><th>Version</th><th>Fecha</th><th>Autor</th><th>Alcance</th><th>Estado</th></tr>
+<tr><td>v1.0.0-draft.1</td><td>2026-06-16</td><td>Codex</td><td>Portada, convenciones, indice maestro, glosario, vision general y snapshot inicial del VPS</td><td>En progreso</td></tr>
+</table>
+<hr>
+<h2 id="convenciones-del-documento">Convenciones del Documento</h2>
+<table>
+<tr><th>Convencion</th><th>Significado</th></tr>
+<tr><td><code>comando</code></td><td>Comando copiable de terminal.</td></tr>
+<tr><td><code>/ruta/absoluta</code></td><td>Ruta absoluta en el VPS o en el repositorio.</td></tr>
+<tr><td><code>VARIABLE_DE_ENTORNO</code></td><td>Variable configurada mediante archivo <code>.env</code>, systemd, Docker Compose o entorno de shell.</td></tr>
+<tr><td><code>***REDACTED***</code></td><td>Valor sensible omitido de forma intencional.</td></tr>
+<tr><td>PRODUCCION - VPS</td><td>Informacion verificada contra el servidor activo.</td></tr>
+<tr><td>Pendiente de Paso N</td><td>Seccion reservada para completar en la fase indicada.</td></tr>
+</table>
+<h3 id="niveles-de-aviso">Niveles de aviso</h3>
+<blockquote>ADVERTENCIA: Accion con riesgo de caida, perdida de datos o exposicion de secretos.</blockquote>
+<blockquote>TIP: Recomendacion operativa para ahorrar tiempo o evitar errores comunes.</blockquote>
+<blockquote>COMANDO DE PRODUCCION: Ejecutar solo entendiendo el impacto en el VPS activo.</blockquote>
+<hr>
+<h2 id="tabla-de-contenidos">Tabla de Contenidos</h2>
+<ol>
+<li><a href="#1-portada-y-presentacion">Portada y Presentacion</a></li>
+<li><a href="#2-vision-general-del-sistema">Vision General del Sistema</a></li>
+<li><a href="#3-arquitectura-tecnica-del-vps">Arquitectura Tecnica del VPS</a></li>
+<li><a href="#4-base-de-datos-en-produccion">Base de Datos en Produccion</a></li>
+<li><a href="#5-acceso-al-servidor-vps">Acceso al Servidor VPS</a></li>
+<li><a href="#6-instalacion-y-configuracion">Instalacion y Configuracion</a></li>
+<li><a href="#7-administracion-del-sistema">Administracion del Sistema</a></li>
+<li><a href="#8-funcionalidades-por-modulo">Funcionalidades por Modulo</a></li>
+<li><a href="#9-gestion-de-seguridad-en-vps">Gestion de Seguridad en VPS</a></li>
+<li><a href="#10-api-documentation-produccion">API Documentation Produccion</a></li>
+<li><a href="#11-mantenimiento-del-vps">Mantenimiento del VPS</a></li>
+<li><a href="#12-operaciones-comunes-en-vps">Operaciones Comunes en VPS</a></li>
+<li><a href="#13-troubleshooting-en-vps">Troubleshooting en VPS</a></li>
+<li><a href="#14-desarrollo-y-despliegue">Desarrollo y Despliegue</a></li>
+<li><a href="#15-comandos-utiles-del-vps">Comandos Utiles del VPS</a></li>
+<li><a href="#16-informacion-de-contacto-y-soporte">Informacion de Contacto y Soporte</a></li>
+<li><a href="#17-anexos">Anexos</a></li>
+</ol>
+<hr>
+<h2 id="glosario">Glosario</h2>
+<table>
+<tr><th>Termino</th><th>Definicion</th></tr>
+<tr><td>API</td><td>Interfaz HTTP usada por el frontend, clientes externos o integraciones para leer y modificar datos.</td></tr>
+<tr><td>App Router</td><td>Sistema de rutas moderno de Next.js usado en el frontend.</td></tr>
+<tr><td>Billing</td><td>Modulo de facturacion, planes, portal de pago y posible integracion con Stripe.</td></tr>
+<tr><td>Clone</td><td>Instancia de asistente IA configurada para un tenant con nombre, slug, tono, prompts y modos.</td></tr>
+<tr><td>Console</td><td>Zona privada autenticada para propietarios/admins del workspace.</td></tr>
+<tr><td>Docker Compose</td><td>Orquestador local/VPS para backend Flask, PostgreSQL, Redis y Weaviate.</td></tr>
+<tr><td>Frontend</td><td>Aplicacion Next.js servida por systemd y Nginx en produccion.</td></tr>
+<tr><td>Knowledge Base</td><td>Conjunto de documentos, fuentes, memorias y embeddings usados para responder consultas.</td></tr>
+<tr><td>Nginx</td><td>Servidor web y reverse proxy que publica HTTPS hacia el frontend.</td></tr>
+<tr><td>NextAuth</td><td>Sistema de autenticacion del frontend basado en sesiones/cookies.</td></tr>
+<tr><td>Plan</td><td>Paquete comercial con limites y funcionalidades de uso.</td></tr>
+<tr><td>Produccion</td><td>Entorno real publicado en <code>https://myownclone.com/</code>.</td></tr>
+<tr><td>RAG</td><td>Retrieval-Augmented Generation; patron de busqueda de contexto antes de generar respuesta IA.</td></tr>
+<tr><td>Release</td><td>Carpeta versionada desplegada bajo <code>/opt/myownclone/releases/</code>.</td></tr>
+<tr><td>SSE</td><td>Server-Sent Events; streaming HTTP para respuestas progresivas de chat.</td></tr>
+<tr><td>Tenant</td><td>Cliente/workspace aislado dentro de la plataforma multi-tenant.</td></tr>
+<tr><td>VPS</td><td>Servidor virtual privado donde corre la aplicacion en produccion.</td></tr>
+<tr><td>Weaviate</td><td>Base vectorial usada para busqueda semantica y RAG.</td></tr>
+</table>
+<hr>
+<h1 id="1-portada-y-presentacion">1. Portada y Presentacion</h1>
+<h2 id="1-1-branding-del-proyecto">1.1 Branding del Proyecto</h2>
+<p>MyOwnClone se presenta como una plataforma SaaS para crear y operar clones de IA con conocimiento propio, capacidades de conversacion, gestion de fuentes, email triage, reservas y monetizacion. El branding funcional observado en el sitio usa:</p>
+<table>
+<tr><th>Elemento</th><th>Uso documentado</th></tr>
+<tr><td>Nombre visible</td><td>MyOwnClone</td></tr>
+<tr><td>Logo</td><td>Simbolo compacto de cuatro formas circulares/negras observado en la interfaz</td></tr>
+<tr><td>Estilo visual</td><td>Dashboard limpio, fondo claro, tarjetas redondeadas, iconografia lineal y acentos de color</td></tr>
+<tr><td>Colores principales observados</td><td>Negro <code>#111111</code>, blanco, grises suaves, acentos azul/cyan/rojo/naranja/verde</td></tr>
+<tr><td>Tipografia</td><td>Tipografia sans-serif moderna definida por la app Next.js/Tailwind</td></tr>
+</table>
+<blockquote>Pendiente de Paso 8: incorporar screenshots reales anotados del sitio en vivo.</blockquote>
+<h2 id="1-2-identificacion-del-sistema">1.2 Identificacion del Sistema</h2>
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>Nombre completo</td><td>MyOwnClone</td></tr>
+<tr><td>Tipo de sistema</td><td>SaaS multi-tenant con agentes IA</td></tr>
+<tr><td>URL de produccion</td><td><code>https://myownclone.com/</code></td></tr>
+<tr><td>IP publica</td><td><code>212.227.169.99</code></td></tr>
+<tr><td>Rama de despliegue documentada</td><td><code>audit/vps-sync-and-docs</code></td></tr>
+<tr><td>Release activa</td><td><code>/opt/myownclone/releases/202606151645-dashboard-top-cards</code></td></tr>
+<tr><td>Symlink activo</td><td><code>/opt/myownclone/current</code></td></tr>
+<tr><td>Estado HTTPS verificado</td><td><code>200 OK</code></td></tr>
+</table>
+<h2 id="1-3-snapshot-inicial-del-vps">1.3 Snapshot Inicial del VPS</h2>
+<p>Informacion verificada por SSH contra el VPS el 2026-06-16.</p>
+<table>
+<tr><th>Componente</th><th>Version / Estado</th></tr>
+<tr><td>Hostname</td><td><code>ubuntu</code></td></tr>
+<tr><td>Sistema operativo</td><td>Ubuntu 26.04 LTS</td></tr>
+<tr><td>Kernel</td><td><code>7.0.0-22-generic</code></td></tr>
+<tr><td>Nginx</td><td><code>nginx/1.28.3 (Ubuntu)</code></td></tr>
+<tr><td>Node.js</td><td><code>v22.22.3</code></td></tr>
+<tr><td>npm</td><td><code>10.9.8</code></td></tr>
+<tr><td>Python</td><td><code>Python 3.14.4</code></td></tr>
+<tr><td>Docker</td><td><code>Docker version 29.1.3</code></td></tr>
+<tr><td>Docker Compose</td><td><code>v5.1.4</code></td></tr>
+<tr><td>PostgreSQL container</td><td><code>PostgreSQL 15.18</code></td></tr>
+<tr><td>Redis container</td><td><code>Redis 7.4.9</code></td></tr>
+<tr><td>Frontend systemd</td><td><code>myownclone-frontend: active</code></td></tr>
+<tr><td>Backend container</td><td><code>myownclone_api: healthy</code></td></tr>
+<tr><td>PostgreSQL container</td><td><code>myownclone_postgres: healthy</code></td></tr>
+<tr><td>Redis container</td><td><code>myownclone_redis: healthy</code></td></tr>
+<tr><td>Weaviate container</td><td><code>myownclone_weaviate: up</code></td></tr>
+<tr><td>Nginx site enabled</td><td><code>myownclone</code></td></tr>
+</table>
+<p>Comando de verificacion:</p>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+***REMOVED***
+hostname
+. /etc/os-release &amp;&amp; echo &quot;$PRETTY_NAME&quot;
+uname -r
+readlink -f /opt/myownclone/current
+systemctl is-active myownclone-frontend
+nginx -v
+node -v
+npm -v
+python3 --version
+docker --version
+docker compose version
+docker ps --format &#x27;{{.Names}}={{.Status}}&#x27;
+curl -sS -o /dev/null -w &#x27;%{http_code}\n&#x27; https://myownclone.com/
+EOF</code></pre>
+<hr>
+<h1 id="2-vision-general-del-sistema">2. Vision General del Sistema</h1>
+<h2 id="2-1-descripcion-ejecutiva">2.1 Descripcion Ejecutiva</h2>
+<p>MyOwnClone es una plataforma SaaS multi-tenant que permite a un usuario crear y administrar un clon de IA asociado a su workspace. El clon puede responder preguntas, consultar conocimiento cargado, operar con diferentes modos de comportamiento y servir como interfaz conversacional publica o privada.</p>
+<p>La solucion combina:</p>
+<ul>
+<li>Frontend Next.js para landing, autenticacion, dashboard y paneles de gestion.</li>
+<li>Backend Flask para APIs de dominio MyOwnClone.</li>
+<li>PostgreSQL para datos relacionales.</li>
+<li>Redis para cache/estado operativo.</li>
+<li>Weaviate para busqueda vectorial.</li>
+<li>Integraciones externas para LLM, email, billing y analiticas.</li>
+</ul>
+<h2 id="2-2-objetivos-y-proposito">2.2 Objetivos y Proposito</h2>
+<table>
+<tr><th>Objetivo</th><th>Descripcion</th></tr>
+<tr><td>Crear clones IA configurables</td><td>Permitir definir identidad, tono, prompts, avatar, modos y fuentes de conocimiento.</td></tr>
+<tr><td>Centralizar conocimiento</td><td>Ingerir fuentes y memoria del creador para alimentar respuestas con contexto.</td></tr>
+<tr><td>Reducir friccion operativa</td><td>Unificar dashboard, uso, settings, planes, inbox, bookings y productos.</td></tr>
+<tr><td>Habilitar monetizacion</td><td>Exponer planes y facturacion para operar el SaaS comercialmente.</td></tr>
+<tr><td>Soportar multi-tenant</td><td>Aislar configuracion y datos por workspace/tenant.</td></tr>
+</table>
+<h2 id="2-3-casos-de-uso-principales">2.3 Casos de Uso Principales</h2>
+<table>
+<tr><th>Caso de uso</th><th>Actor</th><th>Resultado esperado</th></tr>
+<tr><td>Registro y login</td><td>Usuario propietario</td><td>Acceso al dashboard privado.</td></tr>
+<tr><td>Onboarding de clon</td><td>Usuario propietario</td><td>Primer clon creado con tono, slug y configuracion base.</td></tr>
+<tr><td>Configuracion del clon</td><td>Usuario propietario</td><td>Ajuste de nombre, tono, prompts, tema y dominio.</td></tr>
+<tr><td>Consulta del clon</td><td>Visitante o propietario</td><td>Respuesta IA basada en el modo y conocimiento disponible.</td></tr>
+<tr><td>Gestion de fuentes</td><td>Usuario propietario</td><td>Documentos/fuentes cargadas para RAG.</td></tr>
+<tr><td>Analiticas</td><td>Usuario propietario/admin</td><td>Visibilidad de uso, preguntas, gaps y coste.</td></tr>
+<tr><td>Gestion de planes</td><td>Usuario propietario</td><td>Seleccion o upgrade de plan.</td></tr>
+<tr><td>Administracion global</td><td>Admin plataforma</td><td>Supervision de tenants, auditoria e impersonation controlado.</td></tr>
+</table>
+<h2 id="2-4-usuarios-objetivo">2.4 Usuarios Objetivo</h2>
+<table>
+<tr><th>Perfil</th><th>Necesidad</th></tr>
+<tr><td>Creator/Founder</td><td>Crear un clon que responda como el creador o represente su negocio.</td></tr>
+<tr><td>Equipo comercial</td><td>Usar el clon para responder dudas, cualificar leads y recomendar productos.</td></tr>
+<tr><td>Soporte</td><td>Automatizar respuestas recurrentes y detectar gaps de conocimiento.</td></tr>
+<tr><td>Administrador SaaS</td><td>Gestionar tenants, seguridad, auditoria, billing y salud del sistema.</td></tr>
+<tr><td>Visitante final</td><td>Interactuar con el clon publico o widget embebido.</td></tr>
+</table>
+<h2 id="2-5-beneficios-y-valor-agregado">2.5 Beneficios y Valor Agregado</h2>
+<ul>
+<li>Menor tiempo de respuesta a usuarios y leads.</li>
+<li>Experiencia centralizada para conocimiento, chat, reservas y monetizacion.</li>
+<li>Separacion multi-tenant para operar como SaaS.</li>
+<li>Base tecnica preparada para RAG y streaming.</li>
+<li>Dashboard orientado a accion con accesos rapidos a uso, documentos, agent toolkit y API keys.</li>
+</ul>
+<h2 id="2-6-alcance-funcional-actual-en-produccion">2.6 Alcance Funcional Actual en Produccion</h2>
+<p>Segun el estado desplegado y verificado en VPS, el frontend publica rutas para:</p>
+<ul>
+<li>Landing publica.</li>
+<li>Login, registro, recuperacion y reset de password.</li>
+<li>Onboarding.</li>
+<li>Dashboard <code>/resumen</code>.</li>
+<li>Biblioteca/fuentes.</li>
+<li>Cerebro/agent toolkit.</li>
+<li>Configuracion/API keys.</li>
+<li>Analiticas.</li>
+<li>Inbox.</li>
+<li>Productos.</li>
+<li>Reuniones.</li>
+<li>Planes.</li>
+<li>Facturacion.</li>
+<li>Settings.</li>
+<li>Admin: resumen, tenants, auditoria, courtesy, feedback e impersonation.</li>
+<li>Widget publico <code>/widget.js</code>.</li>
+<li>Rutas publicas por slug <code>/{slug}</code>.</li>
+</ul>
+<h2 id="2-7-limitaciones-conocidas">2.7 Limitaciones Conocidas</h2>
+<p>Estas limitaciones se documentan como riesgos tecnicos historicos y deben revisarse contra la version activa en pasos posteriores:</p>
+<table>
+<tr><th>Limitacion</th><th>Impacto</th><th>Estado</th></tr>
+<tr><td>Registro de blueprint publico MyOwnClone</td><td>Puede afectar endpoints publicos Flask si no esta registrado.</td><td>Pendiente de verificacion profunda en Paso 10</td></tr>
+<tr><td>Inyeccion de memorias en prompt</td><td>Si <code>_add_memories_to_prompt()</code> no retorna, las memorias no enriquecen respuestas.</td><td>Pendiente de verificacion en Paso 8</td></tr>
+<tr><td>Tenant name en admin</td><td>Riesgo de mostrar <code>tenant_id</code> en vez de nombre real.</td><td>Pendiente de verificacion en Paso 7</td></tr>
+<tr><td>Autenticacion de cuentas bootstrap</td><td>Algunas credenciales historicas documentadas no autenticaron durante pruebas automaticas.</td><td>Requiere saneamiento controlado de usuarios en Paso 7</td></tr>
+<tr><td><code>package-lock.json</code> desincronizado historico</td><td>Rompia <code>npm ci</code> en releases limpias.</td><td>Corregido en rama <code>audit/vps-sync-and-docs</code></td></tr>
+</table>
+<h2 id="2-8-estado-actual-en-produccion">2.8 Estado Actual en Produccion</h2>
+<table>
+<tr><th>Area</th><th>Estado verificado</th></tr>
+<tr><td>Dominio</td><td><code>https://myownclone.com/</code> responde <code>200</code></td></tr>
+<tr><td>Frontend</td><td>Activo por systemd en <code>/opt/myownclone/current</code></td></tr>
+<tr><td>Backend Docker</td><td>Container <code>myownclone_api</code> saludable</td></tr>
+<tr><td>PostgreSQL</td><td>Container <code>myownclone_postgres</code> saludable</td></tr>
+<tr><td>Redis</td><td>Container <code>myownclone_redis</code> saludable</td></tr>
+<tr><td>Weaviate</td><td>Container activo</td></tr>
+<tr><td>Nginx</td><td>Sitio <code>myownclone</code> habilitado</td></tr>
+<tr><td>Ultimo ajuste conocido</td><td>Dashboard muestra solo los 3 bloques superiores solicitados; se retiro bloque inferior Plan/Settings duplicado</td></tr>
+</table>
+<hr>
+<h1 id="3-arquitectura-tecnica-del-vps">3. Arquitectura Tecnica del VPS</h1>
+<p>Esta seccion describe la arquitectura real observada en el VPS de produccion. La aplicacion se publica mediante Nginx en HTTPS, sirve el frontend Next.js como proceso systemd y ejecuta backend/servicios de datos mediante Docker Compose.</p>
+<h2 id="3-1-infraestructura-del-servidor">3.1 Infraestructura del Servidor</h2>
+<table>
+<tr><th>Campo</th><th>Valor verificado</th></tr>
+<tr><td>Proveedor</td><td>Pendiente de confirmar administrativamente; VPS accesible por IP publica <code>212.227.169.99</code></td></tr>
+<tr><td>Hostname</td><td><code>ubuntu</code></td></tr>
+<tr><td>Sistema operativo</td><td>Ubuntu 26.04 LTS</td></tr>
+<tr><td>Kernel</td><td><code>7.0.0-22-generic</code></td></tr>
+<tr><td>CPU</td><td>2 vCPU</td></tr>
+<tr><td>RAM</td><td>3.8 GiB</td></tr>
+<tr><td>Swap</td><td>No configurada (<code>0B</code>)</td></tr>
+<tr><td>Disco raiz</td><td>116 GiB</td></tr>
+<tr><td>Disco usado</td><td>18 GiB</td></tr>
+<tr><td>Disco disponible</td><td>98 GiB</td></tr>
+<tr><td>Uso de disco</td><td>16%</td></tr>
+<tr><td>IP publica</td><td><code>212.227.169.99</code></td></tr>
+<tr><td>Dominio principal</td><td><code>myownclone.com</code></td></tr>
+<tr><td>Dominio alternativo</td><td><code>www.myownclone.com</code></td></tr>
+<tr><td>Red privada/Tailscale</td><td>Servicio <code>tailscaled</code> activo; IP Tailscale observada <code>100.125.128.116</code></td></tr>
+</table>
+<p>Comandos usados para verificar recursos:</p>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+nproc
+free -h
+df -h / /opt
+hostname
+. /etc/os-release &amp;&amp; echo &quot;$PRETTY_NAME&quot;
+uname -r
+EOF</code></pre>
+<h2 id="3-2-diagrama-de-arquitectura-de-produccion">3.2 Diagrama de Arquitectura de Produccion</h2>
+<pre><code class="language-mermaid">flowchart LR
+  U[&quot;Usuario / Navegador&quot;] --&gt; DNS[&quot;DNS myownclone.com&quot;]
+  DNS --&gt; N[&quot;Nginx HTTPS&quot;]
+  N --&gt; FE[&quot;Next.js Frontend\nsystemd: myownclone-frontend\n/opt/myownclone/current&quot;]
+  FE --&gt; API[&quot;Flask API\nDocker: myownclone_api&quot;]
+  API --&gt; PG[&quot;PostgreSQL 15.18\nDocker: myownclone_postgres&quot;]
+  API --&gt; R[&quot;Redis 7.4.9\nDocker: myownclone_redis&quot;]
+  API --&gt; W[&quot;Weaviate\nDocker: myownclone_weaviate&quot;]
+  API --&gt; LLM[&quot;Proveedor LLM\nOPENAI_API_BASE/API_KEY&quot;]
+  FE --&gt; Stripe[&quot;Stripe / Billing&quot;]
+  FE --&gt; Mail[&quot;Resend / Email&quot;]</code></pre>
+<h2 id="3-3-flujo-de-red-y-puertos">3.3 Flujo de Red y Puertos</h2>
+<table>
+<tr><th>Puerto</th><th>Bind</th><th>Proceso</th><th>Exposicion</th><th>Funcion</th></tr>
+<tr><td>22</td><td><code>0.0.0.0</code>, <code>[::]</code></td><td><code>sshd</code></td><td>Publico</td><td>Acceso SSH al VPS.</td></tr>
+<tr><td>80</td><td><code>0.0.0.0</code>, <code>[::]</code></td><td><code>nginx</code></td><td>Publico</td><td>Redireccion HTTP a HTTPS.</td></tr>
+<tr><td>443</td><td><code>0.0.0.0</code>, <code>[::]</code></td><td><code>nginx</code></td><td>Publico</td><td>Entrada HTTPS principal.</td></tr>
+<tr><td>3000</td><td><code>127.0.0.1</code></td><td><code>next-server</code></td><td>Solo local</td><td>Frontend Next.js.</td></tr>
+<tr><td>5001</td><td><code>127.0.0.1</code></td><td><code>docker-proxy</code> -&gt; Flask API</td><td>Solo local</td><td>Backend API Flask.</td></tr>
+<tr><td>5432</td><td><code>127.0.0.1</code></td><td><code>docker-proxy</code> -&gt; PostgreSQL</td><td>Solo local</td><td>Base de datos PostgreSQL.</td></tr>
+<tr><td>8080</td><td><code>127.0.0.1</code></td><td><code>docker-proxy</code> -&gt; Weaviate</td><td>Solo local</td><td>Base vectorial Weaviate.</td></tr>
+<tr><td>6379</td><td>Docker network</td><td>Redis</td><td>No publicado en host</td><td>Cache/estado Redis.</td></tr>
+</table>
+<blockquote>ADVERTENCIA: PostgreSQL, Flask API y Weaviate estan publicados solo en loopback. No deben abrirse a Internet salvo necesidad explicita y con controles adicionales.</blockquote>
+<p>Comando de diagnostico:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;ss -ltnp&#x27;</code></pre>
+<h2 id="3-4-reverse-proxy-nginx">3.4 Reverse Proxy Nginx</h2>
+<p>Nginx expone el dominio publico, termina TLS y enruta trafico hacia frontend o backend segun la ruta.</p>
+<p>Archivo activo:</p>
+<pre><code class="language-text">/etc/nginx/sites-enabled/myownclone</code></pre>
+<p>Resumen de bloques:</p>
+<table>
+<tr><th>Ruta</th><th>Destino upstream</th><th>Proposito</th></tr>
+<tr><td><code>http://myownclone.com/*</code></td><td>Redirect 301 a HTTPS</td><td>Forzar TLS.</td></tr>
+<tr><td><code>/</code></td><td><code>http://127.0.0.1:3000</code></td><td>Frontend Next.js.</td></tr>
+<tr><td><code>/api/auth/login</code></td><td><code>http://127.0.0.1:5001/console/api/auth/login</code></td><td>Login backend heredado/console.</td></tr>
+<tr><td><code>/api/myownclone/</code></td><td><code>http://127.0.0.1:5001/console/api/myownclone/</code></td><td>Console API MyOwnClone.</td></tr>
+<tr><td><code>/api/admin/</code></td><td><code>http://127.0.0.1:5001/console/api/myownclone/admin/</code></td><td>API admin con headers de servicio.</td></tr>
+<tr><td><code>/console/</code></td><td><code>http://127.0.0.1:5001</code></td><td>Acceso directo a backend console.</td></tr>
+</table>
+<p>Configuracion TLS observada:</p>
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>Certificado</td><td><code>/etc/letsencrypt/live/myownclone.com/fullchain.pem</code></td></tr>
+<tr><td>Clave privada</td><td><code>/etc/letsencrypt/live/myownclone.com/privkey.pem</code></td></tr>
+<tr><td>Emisor</td><td>Let&#x27;s Encrypt <code>YE1</code></td></tr>
+<tr><td>Subject</td><td><code>CN=myownclone.com</code></td></tr>
+<tr><td>Valido desde</td><td>2026-06-15 09:50:54 GMT</td></tr>
+<tr><td>Expira</td><td>2026-09-13 09:50:53 GMT</td></tr>
+<tr><td>Max upload</td><td><code>client_max_body_size 25m</code></td></tr>
+</table>
+<blockquote>ADVERTENCIA: El bloque <code>/api/admin/</code> inyecta headers internos de autenticacion de servicio. El valor real de <code>X-API-Key</code> no debe copiarse a documentacion publica ni repositorio.</blockquote>
+<p>Comandos de verificacion:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;nginx -t &amp;&amp; systemctl status nginx --no-pager&#x27;
+ssh myownclone-vps &#x27;openssl x509 -in /etc/letsencrypt/live/myownclone.com/fullchain.pem -noout -subject -issuer -dates&#x27;</code></pre>
+<h2 id="3-5-frontend-next-js-como-servicio-systemd">3.5 Frontend Next.js como Servicio systemd</h2>
+<p>Servicio activo:</p>
+<pre><code class="language-text">/etc/systemd/system/myownclone-frontend.service</code></pre>
+<p>Configuracion operativa:</p>
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>Unit</td><td><code>myownclone-frontend.service</code></td></tr>
+<tr><td>Usuario</td><td><code>myownclone</code></td></tr>
+<tr><td>Grupo</td><td><code>myownclone</code></td></tr>
+<tr><td>WorkingDirectory</td><td><code>/opt/myownclone/current</code></td></tr>
+<tr><td>EnvironmentFile</td><td><code>/opt/myownclone/shared/frontend.env.production</code></td></tr>
+<tr><td>ExecStart</td><td><code>/usr/bin/npm run start -- --hostname ${HOSTNAME} --port ${PORT}</code></td></tr>
+<tr><td>Restart</td><td><code>always</code></td></tr>
+<tr><td>RestartSec</td><td><code>5</code></td></tr>
+<tr><td>TimeoutStartSec</td><td><code>120</code></td></tr>
+<tr><td>Seguridad systemd</td><td><code>NoNewPrivileges=true</code>, <code>PrivateTmp=true</code>, <code>ProtectHome=read-only</code>, restricciones de kernel/control groups</td></tr>
+<tr><td>Logs</td><td><code>journalctl -u myownclone-frontend</code></td></tr>
+</table>
+<p>Variables clave del frontend, sin valores:</p>
+<pre><code class="language-env">NODE_ENV=***REDACTED***
+PORT=***REDACTED***
+HOSTNAME=***REDACTED***
+DATABASE_URL=***REDACTED***
+MYOWNCLONE_API_URL=***REDACTED***
+MYOWNCLONE_SERVICE_API_KEY=***REDACTED***
+SERVICE_API_KEY=***REDACTED***
+DEFAULT_CLONE_ID=***REDACTED***
+DEFAULT_PLAN=***REDACTED***
+AUTH_URL=***REDACTED***
+NEXTAUTH_URL=***REDACTED***
+AUTH_TRUST_HOST=***REDACTED***
+AUTH_SECRET=***REDACTED***
+NEXTAUTH_SECRET=***REDACTED***
+PLATFORM_ADMIN_EMAIL=***REDACTED***
+PLATFORM_ADMIN_PASSWORD_HASH=***REDACTED***
+AUTH_GOOGLE_ID=***REDACTED***
+AUTH_GOOGLE_SECRET=***REDACTED***
+RESEND_API_KEY=***REDACTED***
+RESEND_FROM_EMAIL=***REDACTED***
+NEXT_PUBLIC_APP_URL=***REDACTED***
+NEXT_PUBLIC_API_URL=***REDACTED***
+NEXT_PUBLIC_ADMIN_URL=***REDACTED***
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=***REDACTED***
+ANTHROPIC_API_KEY=***REDACTED***
+OPENAI_API_KEY=***REDACTED***
+STRIPE_BASIC_PRICE_ID=***REDACTED***
+STRIPE_PRO_PRICE_ID=***REDACTED***
+STRIPE_SCALE_PRICE_ID=***REDACTED***
+SENDGRID_INBOUND_WEBHOOK_SECRET=***REDACTED***
+WHEREBY_API_KEY=***REDACTED***
+NEXT_PUBLIC_POSTHOG_KEY=***REDACTED***
+NEXT_PUBLIC_POSTHOG_HOST=***REDACTED***
+NEXT_PUBLIC_SENTRY_DSN=***REDACTED***
+SENTRY_ORG=***REDACTED***
+SENTRY_PROJECT=***REDACTED***
+SUPABASE_URL=***REDACTED***
+SUPABASE_ANON_KEY=***REDACTED***
+SUPABASE_SERVICE_ROLE_KEY=***REDACTED***</code></pre>
+<p>Comandos de operacion:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;systemctl is-active myownclone-frontend&#x27;
+ssh myownclone-vps &#x27;journalctl -u myownclone-frontend -n 100 --no-pager&#x27;
+ssh myownclone-vps &#x27;systemctl restart myownclone-frontend&#x27;</code></pre>
+<h2 id="3-6-backend-y-servicios-docker">3.6 Backend y Servicios Docker</h2>
+<p>El backend y servicios de datos se gestionan con Docker Compose. El archivo productivo observado vive en:</p>
+<pre><code class="language-text">/opt/myownclone/bootstrap/ops/docker-compose.backend.prod.yml</code></pre>
+<p>Servicios activos:</p>
+<table>
+<tr><th>Servicio</th><th>Container</th><th>Imagen</th><th>Puerto host</th><th>Estado observado</th></tr>
+<tr><td>API Flask</td><td><code>myownclone_api</code></td><td><code>ops-api</code></td><td><code>127.0.0.1:5001</code></td><td>Up, healthy</td></tr>
+<tr><td>PostgreSQL + pgvector</td><td><code>myownclone_postgres</code></td><td><code>pgvector/pgvector:pg15</code></td><td><code>127.0.0.1:5432</code></td><td>Up, healthy</td></tr>
+<tr><td>Redis</td><td><code>myownclone_redis</code></td><td><code>redis:7-alpine</code></td><td>Interno Docker</td><td>Up, healthy</td></tr>
+<tr><td>Weaviate</td><td><code>myownclone_weaviate</code></td><td><code>cr.weaviate.io/semitechnologies/weaviate:1.24.0</code></td><td><code>127.0.0.1:8080</code></td><td>Up</td></tr>
+</table>
+<p>Volumenes Docker:</p>
+<table>
+<tr><th>Volumen</th><th>Uso</th></tr>
+<tr><td><code>postgres_data</code></td><td>Datos PostgreSQL.</td></tr>
+<tr><td><code>redis_data</code></td><td>Persistencia Redis AOF.</td></tr>
+<tr><td><code>weaviate_data</code></td><td>Persistencia vectorial Weaviate.</td></tr>
+</table>
+<p>Variables clave del backend, sin valores:</p>
+<pre><code class="language-env">DB_PASSWORD=***REDACTED***
+REDIS_PASSWORD=***REDACTED***
+JWT_SECRET_KEY=***REDACTED***
+IMPERSONATION_TOKEN_PEPPER=***REDACTED***
+DB_USER=***REDACTED***
+DB_HOST=***REDACTED***
+DB_PORT=***REDACTED***
+DB_NAME=***REDACTED***
+DATABASE_URL=***REDACTED***
+FLASK_ENV=***REDACTED***
+LOG_LEVEL=***REDACTED***
+SECRET_KEY=***REDACTED***
+ALLOWED_ORIGINS=***REDACTED***
+SERVICE_API_KEY=***REDACTED***
+ALLOW_DEV_SERVICE_KEY=***REDACTED***
+WEAVIATE_API_KEY=***REDACTED***
+WEAVIATE_URL=***REDACTED***
+OPENAI_API_KEY=***REDACTED***
+OPENAI_BASE_URL=***REDACTED***
+OPENAI_API_BASE=***REDACTED***
+OPENAI_MODEL=***REDACTED***
+ANTHROPIC_API_KEY=***REDACTED***
+ANTHROPIC_MODEL=***REDACTED***
+MINIMAX_API_KEY=***REDACTED***
+MINIMAX_MODEL=***REDACTED***
+TOGETHER_API_KEY=***REDACTED***
+TOGETHER_MODEL=***REDACTED***
+STRIPE_SECRET_KEY=***REDACTED***
+STRIPE_WEBHOOK_SECRET=***REDACTED***
+SENDGRID_INBOUND_WEBHOOK_SECRET=***REDACTED***
+WHEREBY_API_KEY=***REDACTED***
+RESEND_API_KEY=***REDACTED***
+RESEND_FROM_EMAIL=***REDACTED***
+APP_URL=***REDACTED***</code></pre>
+<p>Comandos de diagnostico:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;docker ps&#x27;
+ssh myownclone-vps &#x27;docker logs --tail=100 myownclone_api&#x27;
+ssh myownclone-vps &#x27;docker exec myownclone_api curl -fsS http://127.0.0.1:5001/readyz&#x27;</code></pre>
+<h2 id="3-7-estructura-del-proyecto-en-vps">3.7 Estructura del Proyecto en VPS</h2>
+<p>Rutas principales:</p>
+<table>
+<tr><th>Ruta</th><th>Propietario</th><th>Proposito</th></tr>
+<tr><td><code>/opt/myownclone/bootstrap</code></td><td><code>root:root</code> mayoritariamente</td><td>Copia/bootstrap del repositorio y scripts operativos.</td></tr>
+<tr><td><code>/opt/myownclone/releases</code></td><td><code>myownclone:myownclone</code> en releases recientes</td><td>Releases historicas y actual.</td></tr>
+<tr><td><code>/opt/myownclone/current</code></td><td>Symlink</td><td>Apunta a la release activa del frontend.</td></tr>
+<tr><td><code>/opt/myownclone/shared</code></td><td><code>myownclone:myownclone</code>, modo <code>700</code></td><td>Env reales y secretos compartidos entre releases.</td></tr>
+<tr><td><code>/opt/myownclone/shared/frontend.env.production</code></td><td><code>myownclone:myownclone</code>, modo <code>600</code></td><td>Variables reales del frontend.</td></tr>
+<tr><td><code>/opt/myownclone/shared/backend.env.production</code></td><td><code>myownclone:myownclone</code>, modo <code>600</code></td><td>Variables reales del backend.</td></tr>
+<tr><td><code>/opt/myownclone/shared/admin-bootstrap.txt</code></td><td><code>myownclone:myownclone</code>, modo <code>600</code></td><td>Datos bootstrap sensibles.</td></tr>
+</table>
+<p>Release activa:</p>
+<pre><code class="language-text">/opt/myownclone/current -&gt; /opt/myownclone/releases/202606151645-dashboard-top-cards</code></pre>
+<blockquote>TIP: El symlink <code>/opt/myownclone/current</code> permite rollback rapido cambiando el enlace a una release anterior y reiniciando <code>myownclone-frontend</code>.</blockquote>
+<p>Comandos utiles:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;readlink -f /opt/myownclone/current&#x27;
+ssh myownclone-vps &#x27;ls -la /opt/myownclone&#x27;
+ssh myownclone-vps &#x27;find /opt/myownclone/shared -maxdepth 1 -ls&#x27;</code></pre>
+<h2 id="3-8-stack-tecnologico-en-produccion">3.8 Stack Tecnologico en Produccion</h2>
+<table>
+<tr><th>Capa</th><th>Tecnologia</th><th>Version observada</th></tr>
+<tr><td>SO</td><td>Ubuntu</td><td>26.04 LTS</td></tr>
+<tr><td>Reverse proxy</td><td>Nginx</td><td>1.28.3</td></tr>
+<tr><td>Runtime frontend</td><td>Node.js</td><td>22.22.3</td></tr>
+<tr><td>Package manager</td><td>npm</td><td>10.9.8</td></tr>
+<tr><td>Framework frontend</td><td>Next.js</td><td>16.2.9</td></tr>
+<tr><td>UI runtime</td><td>React</td><td>19.2.4</td></tr>
+<tr><td>Auth frontend</td><td>NextAuth</td><td>5 beta 25</td></tr>
+<tr><td>ORM frontend</td><td>Drizzle ORM</td><td>0.45.2</td></tr>
+<tr><td>Runtime backend</td><td>Python</td><td>3.14.4 en host; backend corre dentro de container</td></tr>
+<tr><td>Backend web</td><td>Flask</td><td>definido por <code>requirements.txt</code>/imagen API</td></tr>
+<tr><td>DB relacional</td><td>PostgreSQL + pgvector</td><td>15.18</td></tr>
+<tr><td>Cache/estado</td><td>Redis</td><td>7.4.9</td></tr>
+<tr><td>Vector DB</td><td>Weaviate</td><td>1.24.0</td></tr>
+<tr><td>Containers</td><td>Docker</td><td>29.1.3</td></tr>
+<tr><td>Compose</td><td>Docker Compose</td><td>5.1.4</td></tr>
+<tr><td>SSL</td><td>Let&#x27;s Encrypt</td><td>Certificado vigente hasta 2026-09-13</td></tr>
+</table>
+<p>Dependencias destacadas del frontend productivo:</p>
+<table>
+<tr><th>Paquete</th><th>Version</th></tr>
+<tr><td><code>next</code></td><td><code>16.2.9</code></td></tr>
+<tr><td><code>react</code></td><td><code>19.2.4</code></td></tr>
+<tr><td><code>react-dom</code></td><td><code>19.2.4</code></td></tr>
+<tr><td><code>next-auth</code></td><td><code>^5.0.0-beta.25</code></td></tr>
+<tr><td><code>drizzle-orm</code></td><td><code>^0.45.2</code></td></tr>
+<tr><td><code>stripe</code></td><td><code>^17.1.0</code></td></tr>
+<tr><td><code>resend</code></td><td><code>^4.0.1</code></td></tr>
+<tr><td><code>openai</code></td><td><code>^4.72.0</code></td></tr>
+<tr><td><code>@anthropic-ai/sdk</code></td><td><code>^0.36.0</code></td></tr>
+<tr><td><code>framer-motion</code></td><td><code>^12.40.0</code></td></tr>
+<tr><td><code>@phosphor-icons/react</code></td><td><code>^2.1.10</code></td></tr>
+</table>
+<h2 id="3-9-modelo-de-capas">3.9 Modelo de Capas</h2>
+<pre><code class="language-mermaid">flowchart TB
+  A[&quot;Capa Publica\nNavegador, widget, paginas publicas&quot;] --&gt; B[&quot;Capa Edge/Proxy\nNginx + TLS&quot;]
+  B --&gt; C[&quot;Capa Frontend\nNext.js App Router + NextAuth&quot;]
+  C --&gt; D[&quot;Capa API Backend\nFlask Console/Public API&quot;]
+  D --&gt; E[&quot;Capa Dominio\nClones, prompts, inbox, analytics, booking, billing&quot;]
+  E --&gt; F[&quot;Capa Datos\nPostgreSQL, Redis, Weaviate&quot;]
+  E --&gt; G[&quot;Integraciones\nLLM, Stripe, Resend, SendGrid, Whereby, Supabase/PostHog/Sentry si estan activos&quot;]</code></pre>
+<p>Responsabilidades:</p>
+<table>
+<tr><th>Capa</th><th>Responsabilidad</th></tr>
+<tr><td>Nginx</td><td>TLS, redirects, routing, headers proxy, limite de subida.</td></tr>
+<tr><td>Next.js</td><td>UI, auth, rutas privadas/publicas, API routes propias, comunicacion con backend.</td></tr>
+<tr><td>Flask API</td><td>Contratos de dominio MyOwnClone, admin, clones, analytics, booking, stripe, inbox.</td></tr>
+<tr><td>PostgreSQL</td><td>Persistencia relacional multi-tenant.</td></tr>
+<tr><td>Redis</td><td>Cache/estado y soporte operativo.</td></tr>
+<tr><td>Weaviate</td><td>Busqueda vectorial para RAG.</td></tr>
+<tr><td>Integraciones externas</td><td>LLM, pagos, email, videollamadas, analitica/observabilidad.</td></tr>
+</table>
+<h2 id="3-10-flujo-de-datos-principal">3.10 Flujo de Datos Principal</h2>
+<h3 id="3-10-1-carga-del-dashboard">3.10.1 Carga del Dashboard</h3>
+<pre><code class="language-mermaid">sequenceDiagram
+  participant U as Usuario
+  participant N as Nginx
+  participant FE as Next.js
+  participant API as Flask API
+  participant DB as PostgreSQL
+  U-&gt;&gt;N: GET /resumen
+  N-&gt;&gt;FE: Proxy 127.0.0.1:3000
+  FE-&gt;&gt;FE: Valida sesion NextAuth
+  FE-&gt;&gt;API: Solicita datos de clone/analytics/inbox
+  API-&gt;&gt;DB: Consulta tenant, clone y metricas
+  DB--&gt;&gt;API: Resultados
+  API--&gt;&gt;FE: JSON
+  FE--&gt;&gt;N: HTML/JS renderizado
+  N--&gt;&gt;U: Dashboard</code></pre>
+<h3 id="3-10-2-consulta-de-chat-rag">3.10.2 Consulta de Chat/RAG</h3>
+<pre><code class="language-mermaid">sequenceDiagram
+  participant U as Usuario
+  participant FE as Next.js
+  participant API as Flask API
+  participant W as Weaviate
+  participant LLM as Proveedor LLM
+  participant DB as PostgreSQL
+  U-&gt;&gt;FE: Pregunta al clon
+  FE-&gt;&gt;API: POST chat
+  API-&gt;&gt;DB: Carga configuracion del clone
+  API-&gt;&gt;W: Busca contexto relevante
+  W--&gt;&gt;API: Chunks/contexto
+  API-&gt;&gt;LLM: Prompt + contexto + tono
+  LLM--&gt;&gt;API: Respuesta
+  API-&gt;&gt;DB: Guarda conversacion/mensajes
+  API--&gt;&gt;FE: Respuesta JSON o SSE
+  FE--&gt;&gt;U: Render de respuesta</code></pre>
+<h2 id="3-11-patrones-de-diseno-implementados">3.11 Patrones de Diseno Implementados</h2>
+<table>
+<tr><th>Patron</th><th>Uso en MyOwnClone</th></tr>
+<tr><td>Reverse Proxy</td><td>Nginx desacopla Internet de procesos internos.</td></tr>
+<tr><td>Release Symlink</td><td><code>/opt/myownclone/current</code> apunta a una release versionada para rollback.</td></tr>
+<tr><td>Twelve-Factor Env</td><td>Configuracion sensible fuera del repo en <code>/opt/myownclone/shared/*.env.production</code>.</td></tr>
+<tr><td>Multi-tenant</td><td>Datos y recursos asociados a tenant/workspace.</td></tr>
+<tr><td>RAG</td><td>Weaviate recupera contexto antes de generar respuestas IA.</td></tr>
+<tr><td>API Gateway ligero</td><td>Nginx reescribe rutas <code>/api/*</code> hacia Flask/Next segun necesidad.</td></tr>
+<tr><td>Health Checks</td><td>Docker healthchecks en API, PostgreSQL y Redis.</td></tr>
+<tr><td>Defense in Depth</td><td>Servicios internos en loopback, TLS publico, systemd hardening parcial.</td></tr>
+</table>
+<h2 id="3-12-logs-y-observabilidad">3.12 Logs y Observabilidad</h2>
+<table>
+<tr><th>Componente</th><th>Ubicacion / Comando</th></tr>
+<tr><td>Frontend Next.js</td><td><code>journalctl -u myownclone-frontend</code></td></tr>
+<tr><td>Nginx access/error</td><td><code>/var/log/nginx/</code></td></tr>
+<tr><td>Backend API</td><td><code>docker logs myownclone_api</code></td></tr>
+<tr><td>PostgreSQL</td><td><code>docker logs myownclone_postgres</code></td></tr>
+<tr><td>Redis</td><td><code>docker logs myownclone_redis</code></td></tr>
+<tr><td>Weaviate</td><td><code>docker logs myownclone_weaviate</code></td></tr>
+<tr><td>System journal</td><td><code>/var/log/journal</code></td></tr>
+</table>
+<p>Comandos:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;journalctl -u myownclone-frontend -f&#x27;
+ssh myownclone-vps &#x27;tail -f /var/log/nginx/access.log /var/log/nginx/error.log&#x27;
+ssh myownclone-vps &#x27;docker logs -f --tail=100 myownclone_api&#x27;</code></pre>
+<h2 id="3-13-servicios-activos-relevantes">3.13 Servicios Activos Relevantes</h2>
+<p>Servicios del sistema observados en ejecucion:</p>
+<table>
+<tr><th>Servicio</th><th>Funcion</th></tr>
+<tr><td><code>ssh.service</code></td><td>Acceso remoto.</td></tr>
+<tr><td><code>nginx.service</code></td><td>Reverse proxy HTTP/HTTPS.</td></tr>
+<tr><td><code>myownclone-frontend.service</code></td><td>Frontend Next.js.</td></tr>
+<tr><td><code>docker.service</code></td><td>Runtime de containers.</td></tr>
+<tr><td><code>containerd.service</code></td><td>Runtime base de containers.</td></tr>
+<tr><td><code>cron.service</code></td><td>Programacion de tareas.</td></tr>
+<tr><td><code>rsyslog.service</code></td><td>Logging del sistema.</td></tr>
+<tr><td><code>chrony.service</code></td><td>Sincronizacion de tiempo.</td></tr>
+<tr><td><code>tailscaled.service</code></td><td>Red privada Tailscale.</td></tr>
+<tr><td><code>unattended-upgrades.service</code></td><td>Actualizaciones automaticas del sistema.</td></tr>
+</table>
+<blockquote>Pendiente de Paso 6: validar firewall, fail2ban, cron jobs concretos y politicas de backup/retencion.</blockquote>
+<hr>
+<h1 id="4-base-de-datos-en-produccion">4. Base de Datos en Produccion</h1>
+<p>La base de datos de produccion corre en el container Docker <code>myownclone_postgres</code>, basado en <code>pgvector/pgvector:pg15</code>, publicada solo en loopback del VPS mediante <code>127.0.0.1:5432</code>.</p>
+<h2 id="4-1-identificacion-de-la-base-de-datos">4.1 Identificacion de la Base de Datos</h2>
+<table>
+<tr><th>Campo</th><th>Valor verificado</th></tr>
+<tr><td>Motor</td><td>PostgreSQL 15.18 con pgvector</td></tr>
+<tr><td>Container</td><td><code>myownclone_postgres</code></td></tr>
+<tr><td>Imagen</td><td><code>pgvector/pgvector:pg15</code></td></tr>
+<tr><td>Base de datos</td><td><code>myownclone</code></td></tr>
+<tr><td>Usuario</td><td><code>postgres</code></td></tr>
+<tr><td>Host desde VPS</td><td><code>127.0.0.1</code></td></tr>
+<tr><td>Host desde Docker network</td><td><code>db_postgres</code></td></tr>
+<tr><td>Puerto host</td><td><code>5432</code></td></tr>
+<tr><td>Exposicion publica</td><td>No, solo loopback</td></tr>
+<tr><td>Volumen Docker</td><td><code>postgres_data:/var/lib/postgresql/data</code></td></tr>
+<tr><td>Alembic version</td><td><code>c3d4e5f6a7c1</code></td></tr>
+</table>
+<p>Comandos de conexion:</p>
+<pre><code class="language-bash"># Desde el VPS, sin exponer password en el comando
+ssh myownclone-vps
+
+docker exec -it myownclone_postgres psql -U postgres -d myownclone</code></pre>
+<h2 id="4-2-extensiones-vistas-triggers-y-rutinas">4.2 Extensiones, Vistas, Triggers y Rutinas</h2>
+<table>
+<tr><th>Tipo</th><th>Estado en produccion</th></tr>
+<tr><td>Extension <code>plpgsql</code></td><td>Activa, version <code>1.0</code></td></tr>
+<tr><td>Extension <code>uuid-ossp</code></td><td>Activa, version <code>1.1</code></td></tr>
+<tr><td>Extension <code>vector</code></td><td>Activa, version <code>0.8.2</code></td></tr>
+<tr><td>Vistas custom</td><td>No se encontraron vistas en schema <code>public</code></td></tr>
+<tr><td>Triggers custom</td><td>No se encontraron triggers en schema <code>public</code></td></tr>
+<tr><td>Rutinas custom</td><td>No se encontraron rutinas propias de negocio; las funciones listadas pertenecen a <code>uuid-ossp</code> y <code>pgvector</code></td></tr>
+</table>
+<h2 id="4-3-diagrama-entidad-relacion">4.3 Diagrama Entidad-Relacion</h2>
+<pre><code class="language-mermaid">erDiagram
+  tenants ||--o{ accounts : owns
+  tenants ||--o{ clone_configs : owns
+  tenants ||--o{ cost_tracking : tracks
+  tenants ||--o{ impersonation_log : audited
+  clone_configs ||--o{ clone_mode_prompts : has
+  clone_configs ||--o{ creator_memory : has
+  clone_configs ||--o{ email_inbound : receives
+  clone_configs ||--o{ email_templates : has
+  clone_configs ||--o{ meeting_types : offers
+  clone_configs ||--o{ availability : defines
+  clone_configs ||--o{ products : sells
+  clone_configs ||--o{ analytics_questions : records
+  clone_configs ||--o{ analytics_gaps : detects
+  clone_configs ||--o{ clone_feedback : receives
+  meeting_types ||--o{ bookings : creates
+  accounts ||--o{ impersonation_log : performs
+  sources ||--o{ chunks : contains
+  conversations ||--o{ messages : contains</code></pre>
+<h2 id="4-4-inventario-de-tablas-y-conteos">4.4 Inventario de Tablas y Conteos</h2>
+<table>
+<tr><th>Tabla</th><th>Registros</th><th>Tamano total</th><th>Proposito</th></tr>
+<tr><td><code>accounts</code></td><td>2</td><td>96 kB</td><td>Cuentas de usuario/tenant y admins plataforma.</td></tr>
+<tr><td><code>admin_audit_log</code></td><td>0</td><td>48 kB</td><td>Auditoria de acciones administrativas.</td></tr>
+<tr><td><code>alembic_version</code></td><td>1</td><td>24 kB</td><td>Version de migracion Flask/Alembic.</td></tr>
+<tr><td><code>analytics_gaps</code></td><td>0</td><td>24 kB</td><td>Preguntas sin respuesta/gaps de conocimiento.</td></tr>
+<tr><td><code>analytics_questions</code></td><td>0</td><td>24 kB</td><td>Preguntas frecuentes agregadas.</td></tr>
+<tr><td><code>availability</code></td><td>0</td><td>16 kB</td><td>Disponibilidad semanal para reservas.</td></tr>
+<tr><td><code>bookings</code></td><td>0</td><td>24 kB</td><td>Reservas creadas por visitantes.</td></tr>
+<tr><td><code>chunks</code></td><td>0</td><td>24 kB</td><td>Fragmentos de fuentes para RAG.</td></tr>
+<tr><td><code>clone_configs</code></td><td>1</td><td>80 kB</td><td>Configuracion principal de clones.</td></tr>
+<tr><td><code>clone_feedback</code></td><td>0</td><td>32 kB</td><td>Feedback de respuestas/conversaciones.</td></tr>
+<tr><td><code>clone_mode_prompts</code></td><td>0</td><td>24 kB</td><td>Prompts por modo del clon.</td></tr>
+<tr><td><code>conversations</code></td><td>0</td><td>24 kB</td><td>Conversaciones persistidas.</td></tr>
+<tr><td><code>cost_tracking</code></td><td>0</td><td>16 kB</td><td>Tracking de coste por tenant/operacion.</td></tr>
+<tr><td><code>creator_memory</code></td><td>0</td><td>24 kB</td><td>Memorias del creador para contexto IA.</td></tr>
+<tr><td><code>email_inbound</code></td><td>0</td><td>24 kB</td><td>Emails recibidos y clasificados.</td></tr>
+<tr><td><code>email_templates</code></td><td>0</td><td>24 kB</td><td>Plantillas de email.</td></tr>
+<tr><td><code>impersonation_log</code></td><td>0</td><td>32 kB</td><td>Sesiones de impersonation admin.</td></tr>
+<tr><td><code>impersonation_tokens</code></td><td>0</td><td>16 kB</td><td>Tokens de impersonation.</td></tr>
+<tr><td><code>meeting_types</code></td><td>0</td><td>24 kB</td><td>Tipos de reunion ofrecidos.</td></tr>
+<tr><td><code>messages</code></td><td>0</td><td>24 kB</td><td>Mensajes dentro de conversaciones.</td></tr>
+<tr><td><code>myownclone_plans</code></td><td>3</td><td>24 kB</td><td>Planes comerciales cargados.</td></tr>
+<tr><td><code>products</code></td><td>0</td><td>24 kB</td><td>Catalogo de productos del clon.</td></tr>
+<tr><td><code>sources</code></td><td>0</td><td>32 kB</td><td>Fuentes/documentos de knowledge base.</td></tr>
+<tr><td><code>tenants</code></td><td>1</td><td>80 kB</td><td>Workspaces/tenants SaaS.</td></tr>
+</table>
+<blockquote>ADVERTENCIA: Los conteos son una fotografia del 2026-06-16. Deben regenerarse antes de auditorias o restauraciones.</blockquote>
+<p>Comando para refrescar conteos:</p>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+for t in $(docker exec myownclone_postgres psql -U postgres -d myownclone -Atc &quot;select tablename from pg_tables where schemaname=&#x27;public&#x27; order by tablename&quot;); do
+  c=$(docker exec myownclone_postgres psql -U postgres -d myownclone -Atc &quot;select count(*) from public.$t&quot;)
+  printf &#x27;%s|%s\n&#x27; &quot;$t&quot; &quot;$c&quot;
+***REMOVED***
+EOF</code></pre>
+<h2 id="4-5-diccionario-de-datos-por-tabla">4.5 Diccionario de Datos por Tabla</h2>
+<h3 id="tenants"><code>tenants</code></h3>
+<table>
+<tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Restricciones / Relaciones</th></tr>
+<tr><td><code>id</code></td><td>varchar(36)</td><td>NO</td><td>-</td><td>PK</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>NO</td><td>-</td><td>Nombre del tenant</td></tr>
+<tr><td><code>slug</code></td><td>varchar(100)</td><td>YES</td><td>-</td><td>UNIQUE (<code>tenants_slug_key</code>, <code>idx_tenants_slug</code>)</td></tr>
+<tr><td><code>plan</code></td><td>varchar(50)</td><td>NO</td><td><code>trial</code></td><td>Plan actual</td></tr>
+<tr><td><code>status</code></td><td>varchar(50)</td><td>NO</td><td><code>trial</code></td><td>Estado tenant; index <code>idx_tenants_status</code></td></tr>
+<tr><td><code>subscription_status</code></td><td>varchar(50)</td><td>NO</td><td><code>inactive</code></td><td>Estado billing</td></tr>
+<tr><td><code>stripe_customer_id</code></td><td>varchar(255)</td><td>YES</td><td>-</td><td>Cliente Stripe</td></tr>
+<tr><td><code>stripe_subscription_id</code></td><td>varchar(255)</td><td>YES</td><td>-</td><td>Suscripcion Stripe</td></tr>
+<tr><td><code>trial_ends_at</code></td><td>timestamp</td><td>YES</td><td>-</td><td>Fin trial</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Auditoria</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Auditoria</td></tr>
+</table>
+<h3 id="accounts"><code>accounts</code></h3>
+<table>
+<tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Restricciones / Relaciones</th></tr>
+<tr><td><code>id</code></td><td>varchar(36)</td><td>NO</td><td>-</td><td>PK</td></tr>
+<tr><td><code>tenant_id</code></td><td>varchar(36)</td><td>NO</td><td>-</td><td>FK -&gt; <code>tenants.id</code>, index <code>idx_accounts_tenant</code></td></tr>
+<tr><td><code>email</code></td><td>varchar(255)</td><td>NO</td><td>-</td><td>UNIQUE (<code>accounts_email_key</code>, <code>idx_accounts_email</code>)</td></tr>
+<tr><td><code>password</code></td><td>varchar(255)</td><td>YES</td><td>-</td><td>Hash/credencial; no documentar valores</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>YES</td><td>-</td><td>Nombre visible</td></tr>
+<tr><td><code>avatar</code></td><td>varchar(500)</td><td>YES</td><td>-</td><td>URL avatar</td></tr>
+<tr><td><code>role</code></td><td>varchar(50)</td><td>NO</td><td><code>owner</code></td><td>Rol tenant</td></tr>
+<tr><td><code>status</code></td><td>varchar(50)</td><td>NO</td><td><code>active</code></td><td>Estado cuenta</td></tr>
+<tr><td><code>is_platform_admin</code></td><td>boolean</td><td>NO</td><td><code>false</code></td><td>Index <code>idx_accounts_platform_admin</code></td></tr>
+<tr><td><code>last_login_at</code></td><td>timestamp</td><td>YES</td><td>-</td><td>Ultimo login</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Auditoria</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Auditoria</td></tr>
+</table>
+<h3 id="clone-configs"><code>clone_configs</code></h3>
+<table>
+<tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Restricciones / Relaciones</th></tr>
+<tr><td><code>id</code></td><td>varchar(36)</td><td>NO</td><td><code>uuid_generate_v4()</code></td><td>PK</td></tr>
+<tr><td><code>tenant_id</code></td><td>varchar(36)</td><td>NO</td><td>-</td><td>FK -&gt; <code>tenants.id</code>, index <code>idx_clone_configs_tenant</code></td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>NO</td><td>-</td><td>Nombre del clon</td></tr>
+<tr><td><code>slug</code></td><td>varchar(100)</td><td>NO</td><td>-</td><td>UNIQUE, index <code>idx_clone_configs_slug</code></td></tr>
+<tr><td><code>description</code></td><td>text</td><td>YES</td><td>-</td><td>Descripcion publica/interna</td></tr>
+<tr><td><code>avatar_url</code></td><td>varchar(500)</td><td>YES</td><td>-</td><td>Avatar del clon</td></tr>
+<tr><td><code>personality_tone</code></td><td>varchar(50)</td><td>YES</td><td>-</td><td>Tono, normalizado actualmente como <code>tecnico</code> si aplica</td></tr>
+<tr><td><code>language</code></td><td>varchar(10)</td><td>NO</td><td><code>es</code></td><td>Idioma</td></tr>
+<tr><td><code>active_modes</code></td><td>varchar[]</td><td>YES</td><td><code>{teach}</code></td><td>Modos activos</td></tr>
+<tr><td><code>is_active</code></td><td>boolean</td><td>NO</td><td><code>true</code></td><td>Habilitado/deshabilitado</td></tr>
+<tr><td><code>custom_domain</code></td><td>varchar(255)</td><td>YES</td><td>-</td><td>Dominio custom</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Auditoria</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>NO</td><td><code>CURRENT_TIMESTAMP</code></td><td>Auditoria</td></tr>
+</table>
+<h3 id="tablas-de-conocimiento-chat-y-rag">Tablas de conocimiento, chat y RAG</h3>
+<table>
+<tr><th>Tabla</th><th>Campos principales</th><th>Relaciones / Indices</th></tr>
+<tr><td><code>sources</code></td><td><code>id</code>, <code>clone_id</code>, <code>type</code>, <code>title</code>, <code>url</code>, <code>status</code>, <code>metadata</code>, <code>created_at</code>, <code>updated_at</code></td><td>PK <code>sources_pkey</code>; indices <code>idx_sources_clone</code>, <code>idx_sources_status</code></td></tr>
+<tr><td><code>chunks</code></td><td><code>id</code>, <code>source_id</code>, <code>content</code>, <code>embedding</code>, <code>token_count</code>, <code>metadata</code></td><td>FK <code>source_id</code> -&gt; <code>sources.id</code>; index <code>idx_chunks_source</code></td></tr>
+<tr><td><code>conversations</code></td><td><code>id</code>, <code>clone_id</code>, <code>visitor_id</code>, <code>mode</code>, <code>created_at</code></td><td>PK; index <code>idx_conversations_clone</code></td></tr>
+<tr><td><code>messages</code></td><td><code>id</code>, <code>conversation_id</code>, <code>role</code>, <code>content</code>, <code>confidence</code>, <code>sources</code>, <code>feedback</code>, <code>created_at</code></td><td>FK <code>conversation_id</code> -&gt; <code>conversations.id</code>; index <code>idx_messages_conversation</code></td></tr>
+<tr><td><code>creator_memory</code></td><td><code>id</code>, <code>clone_id</code>, <code>type</code>, <code>content</code>, <code>trigger_condition</code>, <code>priority</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_creator_memory_clone_type</code></td></tr>
+<tr><td><code>clone_mode_prompts</code></td><td><code>id</code>, <code>clone_id</code>, <code>mode</code>, <code>system_prompt</code>, <code>is_active</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_mode_prompts_clone</code></td></tr>
+</table>
+<h3 id="tablas-de-email-booking-productos-y-analytics">Tablas de email, booking, productos y analytics</h3>
+<table>
+<tr><th>Tabla</th><th>Campos principales</th><th>Relaciones / Indices</th></tr>
+<tr><td><code>email_inbound</code></td><td><code>id</code>, <code>clone_id</code>, <code>from_email</code>, <code>subject</code>, <code>body_text</code>, <code>draft_reply</code>, <code>status</code>, <code>labels</code>, <code>classification</code>, <code>thread_id</code>, <code>received_at</code>, <code>responded_at</code></td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_email_inbound_clone_status</code></td></tr>
+<tr><td><code>email_templates</code></td><td><code>id</code>, <code>clone_id</code>, <code>name</code>, <code>subject</code>, <code>body</code>, <code>trigger_keywords</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_email_templates_clone_id</code></td></tr>
+<tr><td><code>meeting_types</code></td><td><code>id</code>, <code>clone_id</code>, <code>name</code>, <code>duration_minutes</code>, <code>price_cents</code>, <code>description</code>, <code>color</code>, <code>active</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_meeting_types_clone_id</code></td></tr>
+<tr><td><code>availability</code></td><td><code>id</code>, <code>clone_id</code>, <code>day_of_week</code>, <code>start_time</code>, <code>end_time</code>, <code>buffer_minutes</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_availability_clone_dow</code></td></tr>
+<tr><td><code>bookings</code></td><td><code>id</code>, <code>meeting_type_id</code>, visitor data, <code>date</code>, <code>start_time</code>, <code>end_time</code>, <code>status</code>, <code>meeting_url</code>, <code>recording_url</code>, <code>transcript</code>, <code>notes</code>, timestamps</td><td>FK -&gt; <code>meeting_types.id</code>; index <code>idx_bookings_meeting_date</code></td></tr>
+<tr><td><code>products</code></td><td><code>id</code>, <code>clone_id</code>, <code>name</code>, <code>description</code>, <code>price_cents</code>, <code>url</code>, <code>image_url</code>, <code>priority</code>, <code>active</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_products_clone_active</code></td></tr>
+<tr><td><code>analytics_questions</code></td><td><code>id</code>, <code>clone_id</code>, <code>question</code>, <code>count</code>, <code>last_asked_at</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_analytics_q_clone</code></td></tr>
+<tr><td><code>analytics_gaps</code></td><td><code>id</code>, <code>clone_id</code>, <code>question</code>, <code>count</code>, <code>suggested_source</code>, <code>status</code>, timestamps</td><td>FK -&gt; <code>clone_configs.id</code>; index <code>idx_analytics_gaps_clone</code></td></tr>
+<tr><td><code>cost_tracking</code></td><td><code>id</code>, <code>tenant_id</code>, <code>category</code>, <code>operation</code>, <code>model</code>, <code>tokens_in</code>, <code>tokens_out</code>, <code>cost_cents</code>, timestamps</td><td>FK -&gt; <code>tenants.id</code>; index <code>idx_cost_tracking_tenant_category_ts</code></td></tr>
+</table>
+<h3 id="tablas-de-administracion-y-billing">Tablas de administracion y billing</h3>
+<table>
+<tr><th>Tabla</th><th>Campos principales</th><th>Relaciones / Indices</th></tr>
+<tr><td><code>myownclone_plans</code></td><td><code>id</code>, <code>name</code>, <code>price_cents</code>, <code>stripe_price_id</code>, limits, flags de features, timestamps</td><td>PK; 3 registros en produccion</td></tr>
+<tr><td><code>impersonation_log</code></td><td><code>id</code>, <code>admin_id</code>, <code>tenant_id</code>, <code>reason</code>, <code>started_at</code>, <code>ended_at</code>, timestamps</td><td>FK <code>admin_id</code> -&gt; <code>accounts.id</code>; FK <code>tenant_id</code> -&gt; <code>tenants.id</code>; indices admin/tenant</td></tr>
+<tr><td><code>impersonation_tokens</code></td><td><code>id</code>, <code>token</code>, <code>admin_id</code>, <code>tenant_id</code>, <code>expires_at</code>, timestamps</td><td>UNIQUE <code>token</code>; no FK declarada observada</td></tr>
+<tr><td><code>admin_audit_log</code></td><td><code>id</code>, <code>actor_id</code>, <code>action</code>, <code>target_type</code>, <code>target_id</code>, <code>reason</code>, <code>metadata_json</code>, <code>ip_address</code>, <code>user_agent</code>, timestamps</td><td>Indices por actor, action, target y created_at</td></tr>
+<tr><td><code>clone_feedback</code></td><td><code>id</code>, <code>clone_id</code>, <code>tenant_id</code>, visitor/conversation/message, <code>rating</code>, <code>comment</code>, <code>category</code>, <code>status</code>, <code>extra_metadata</code>, timestamps</td><td>FK -&gt; clone y tenant; indices clone/tenant</td></tr>
+<tr><td><code>alembic_version</code></td><td><code>version_num</code></td><td>PK; version actual <code>c3d4e5f6a7c1</code></td></tr>
+</table>
+<h2 id="4-6-indices-principales">4.6 Indices Principales</h2>
+<p>Los indices mas relevantes en produccion son:</p>
+<table>
+<tr><th>Tabla</th><th>Indices</th></tr>
+<tr><td><code>accounts</code></td><td><code>accounts_email_key</code>, <code>idx_accounts_email</code>, <code>idx_accounts_platform_admin</code>, <code>idx_accounts_tenant</code></td></tr>
+<tr><td><code>clone_configs</code></td><td><code>clone_configs_slug_key</code>, <code>idx_clone_configs_slug</code>, <code>idx_clone_configs_tenant</code></td></tr>
+<tr><td><code>sources</code></td><td><code>idx_sources_clone</code>, <code>idx_sources_status</code></td></tr>
+<tr><td><code>chunks</code></td><td><code>idx_chunks_source</code></td></tr>
+<tr><td><code>conversations</code></td><td><code>idx_conversations_clone</code></td></tr>
+<tr><td><code>messages</code></td><td><code>idx_messages_conversation</code></td></tr>
+<tr><td><code>email_inbound</code></td><td><code>idx_email_inbound_clone_status</code></td></tr>
+<tr><td><code>meeting_types</code></td><td><code>idx_meeting_types_clone_id</code></td></tr>
+<tr><td><code>availability</code></td><td><code>idx_availability_clone_dow</code></td></tr>
+<tr><td><code>bookings</code></td><td><code>idx_bookings_meeting_date</code></td></tr>
+<tr><td><code>products</code></td><td><code>idx_products_clone_active</code></td></tr>
+<tr><td><code>analytics_gaps</code></td><td><code>idx_analytics_gaps_clone</code></td></tr>
+<tr><td><code>analytics_questions</code></td><td><code>idx_analytics_q_clone</code></td></tr>
+<tr><td><code>admin_audit_log</code></td><td><code>idx_admin_audit_actor</code>, <code>idx_admin_audit_action</code>, <code>idx_admin_audit_target</code>, <code>idx_admin_audit_created</code></td></tr>
+</table>
+<h2 id="4-7-scripts-de-respaldo-y-restauracion-base">4.7 Scripts de Respaldo y Restauracion Base</h2>
+<p>Backup logico recomendado:</p>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+***REMOVED***
+mkdir -p /opt/myownclone/backups
+stamp=$(date -u +%Y%m%dT%H%M%SZ)
+docker exec myownclone_postgres pg_dump -U postgres -d myownclone -Fc &gt; &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;
+chmod 600 &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;
+ls -lh &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;
+EOF</code></pre>
+<p>Restauracion en entorno controlado:</p>
+<pre><code class="language-bash"># No ejecutar sobre produccion sin ventana de mantenimiento y backup previo.
+docker exec -i myownclone_postgres pg_restore -U postgres -d myownclone --clean --if-exists &lt; backup.dump</code></pre>
+<blockquote>ADVERTENCIA: La restauracion con <code>--clean</code> elimina/recrea objetos. Requiere ventana de mantenimiento y validacion previa.</blockquote>
+<h1 id="5-acceso-al-servidor-vps">5. Acceso al Servidor VPS</h1>
+<h2 id="5-1-acceso-ssh">5.1 Acceso SSH</h2>
+<p>El acceso operativo actual se realiza mediante alias SSH local:</p>
+<pre><code class="language-bash">ssh myownclone-vps</code></pre>
+<p>Equivalente generico:</p>
+<pre><code class="language-bash">ssh root@212.227.169.99 -p 22</code></pre>
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>IP publica</td><td><code>212.227.169.99</code></td></tr>
+<tr><td>Puerto SSH</td><td><code>22</code></td></tr>
+<tr><td>Usuario operativo observado</td><td><code>root</code> para administracion del VPS</td></tr>
+<tr><td>Usuario runtime app</td><td><code>myownclone</code></td></tr>
+<tr><td>Alias local recomendado</td><td><code>myownclone-vps</code></td></tr>
+<tr><td>SFTP</td><td>Disponible sobre SSH: <code>sftp root@212.227.169.99</code></td></tr>
+</table>
+<blockquote>ADVERTENCIA: No usar password plano en scripts. Usar llave SSH y alias local. Si se rota la llave, actualizar <code>~/.ssh/config</code> y probar una sesion nueva antes de cerrar la actual.</blockquote>
+<p>Comandos utiles:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;whoami &amp;&amp; hostname &amp;&amp; pwd&#x27;
+sftp root@212.227.169.99
+scp archivo.tar myownclone-vps:/tmp/archivo.tar</code></pre>
+<h2 id="5-2-usuarios-del-sistema">5.2 Usuarios del Sistema</h2>
+<table>
+<tr><th>Usuario</th><th>Uso</th></tr>
+<tr><td><code>root</code></td><td>Administracion del VPS, systemd, Nginx, Docker y archivos de sistema.</td></tr>
+<tr><td><code>myownclone</code></td><td>Usuario runtime del frontend y propietario de releases/env compartidos.</td></tr>
+</table>
+<h2 id="5-3-servicios-en-ejecucion">5.3 Servicios en Ejecucion</h2>
+<table>
+<tr><th>Servicio</th><th>Estado esperado</th><th>Funcion</th></tr>
+<tr><td><code>ssh.service</code></td><td>active</td><td>Acceso remoto.</td></tr>
+<tr><td><code>nginx.service</code></td><td>active</td><td>Reverse proxy HTTP/HTTPS.</td></tr>
+<tr><td><code>myownclone-frontend.service</code></td><td>active</td><td>Frontend Next.js.</td></tr>
+<tr><td><code>docker.service</code></td><td>active</td><td>Runtime de containers backend.</td></tr>
+<tr><td><code>containerd.service</code></td><td>active</td><td>Runtime base de Docker.</td></tr>
+<tr><td><code>cron.service</code></td><td>active</td><td>Tareas programadas del sistema.</td></tr>
+<tr><td><code>rsyslog.service</code></td><td>active</td><td>Logs del sistema.</td></tr>
+<tr><td><code>chrony.service</code></td><td>active</td><td>Sincronizacion horaria.</td></tr>
+<tr><td><code>tailscaled.service</code></td><td>active</td><td>Red privada Tailscale.</td></tr>
+<tr><td><code>unattended-upgrades.service</code></td><td>active</td><td>Actualizaciones automaticas OS.</td></tr>
+</table>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;systemctl --type=service --state=running --no-pager&#x27;</code></pre>
+<h2 id="5-4-firewall-y-proteccion-de-acceso">5.4 Firewall y Proteccion de Acceso</h2>
+<table>
+<tr><th>Componente</th><th>Estado</th></tr>
+<tr><td>UFW</td><td><code>inactive</code></td></tr>
+<tr><td>fail2ban</td><td><code>inactive</code> / <code>fail2ban-client</code> no instalado</td></tr>
+<tr><td>SSH</td><td>Publicado en puerto 22</td></tr>
+<tr><td>Nginx</td><td>Publicado en 80/443</td></tr>
+<tr><td>Servicios app internos</td><td>Bind a <code>127.0.0.1</code> o Docker network</td></tr>
+</table>
+<blockquote>ADVERTENCIA: UFW y fail2ban no estan activos. La exposicion se reduce porque app/DB estan en loopback, pero SSH queda publico. Recomendacion prioritaria: habilitar UFW y fail2ban tras confirmar acceso por llave.</blockquote>
+<p>Reglas UFW recomendadas, no aplicadas automaticamente:</p>
+<pre><code class="language-bash">ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+ufw status verbose</code></pre>
+<p>Instalacion fail2ban recomendada:</p>
+<pre><code class="language-bash">apt update
+apt install -y fail2ban
+systemctl enable --now fail2ban
+fail2ban-client status</code></pre>
+<h2 id="5-5-cron-jobs">5.5 Cron Jobs</h2>
+<table>
+<tr><th>Fuente</th><th>Estado</th></tr>
+<tr><td><code>crontab -l</code> para root</td><td>No existe crontab root</td></tr>
+<tr><td><code>/etc/cron.d/certbot</code></td><td>Existe, renovacion SSL automatica</td></tr>
+<tr><td><code>/etc/cron.d/e2scrub_all</code></td><td>Existe, mantenimiento filesystem</td></tr>
+<tr><td><code>/etc/cron.daily</code></td><td>Tareas OS: apt, dpkg, logrotate, man-db, apport</td></tr>
+<tr><td>Backups MyOwnClone programados</td><td>No se detecto cron dedicado</td></tr>
+</table>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;crontab -l; ls -la /etc/cron.d /etc/cron.daily&#x27;</code></pre>
+<hr>
+<h1 id="6-instalacion-y-configuracion">6. Instalacion y Configuracion</h1>
+<h2 id="6-1-variables-de-entorno-productivas-verificadas">6.1 Variables de Entorno Productivas Verificadas</h2>
+<table>
+<tr><th>Archivo</th><th>Permisos observados</th><th>Uso</th></tr>
+<tr><td><code>/opt/myownclone/shared/frontend.env.production</code></td><td><code>600</code>, owner <code>myownclone:myownclone</code></td><td>Runtime Next.js, auth, URLs, API keys frontend/server-side, Stripe publishable, proveedores.</td></tr>
+<tr><td><code>/opt/myownclone/shared/backend.env.production</code></td><td><code>600</code>, owner <code>myownclone:myownclone</code></td><td>Runtime Flask/Docker, DB, Redis, JWT, LLM, Stripe secret, webhooks, email.</td></tr>
+<tr><td><code>/opt/myownclone/shared/admin-bootstrap.txt</code></td><td><code>600</code>, owner <code>myownclone:myownclone</code></td><td>Bootstrap administrativo sensible. No publicar.</td></tr>
+</table>
+<p>Categorias: runtime, URLs, auth, base de datos, service auth, Redis, Weaviate, LLM, billing, email, integraciones y observabilidad.</p>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+for f in /opt/myownclone/shared/frontend.env.production /opt/myownclone/shared/backend.env.production; do
+  echo &quot;### $f&quot;
+  awk -F= &#x27;/^[A-Za-z_][A-Za-z0-9_]*=/ {print $1&quot;=***REDACTED***&quot;}&#x27; &quot;$f&quot;
+***REMOVED***
+EOF</code></pre>
+<blockquote>ADVERTENCIA: No ejecutar <code>cat /opt/myownclone/shared/*.env.production</code> en sesiones grabadas, logs compartidos o documentacion.</blockquote>
+<h2 id="6-2-requisitos-del-sistema">6.2 Requisitos del Sistema</h2>
+<table>
+<tr><th>Recurso</th><th>Minimo recomendado</th><th>Produccion actual</th></tr>
+<tr><td>CPU</td><td>2 vCPU</td><td>2 vCPU</td></tr>
+<tr><td>RAM</td><td>4 GiB recomendado</td><td>3.8 GiB</td></tr>
+<tr><td>Disco</td><td>40 GiB</td><td>116 GiB, 16% usado</td></tr>
+<tr><td>SO</td><td>Ubuntu LTS</td><td>Ubuntu 26.04 LTS</td></tr>
+<tr><td>Node.js</td><td>22.x</td><td>22.22.3</td></tr>
+<tr><td>npm</td><td>10.x</td><td>10.9.8</td></tr>
+<tr><td>Docker</td><td>29.x o compatible</td><td>29.1.3</td></tr>
+<tr><td>Docker Compose</td><td>Plugin moderno</td><td>5.1.4</td></tr>
+<tr><td>Nginx</td><td>1.24+</td><td>1.28.3</td></tr>
+</table>
+<h2 id="6-3-instalacion-base-del-vps">6.3 Instalacion Base del VPS</h2>
+<pre><code class="language-bash">apt update
+apt install -y git curl docker.io docker-compose-plugin nginx certbot python3-certbot-nginx
+mkdir -p /opt/myownclone/shared /opt/myownclone/releases
+id -u myownclone &gt;/dev/null 2&gt;&amp;1 || useradd --system --create-home --shell /bin/bash myownclone
+chown -R myownclone:myownclone /opt/myownclone/releases /opt/myownclone/shared
+chmod 700 /opt/myownclone/shared</code></pre>
+<p>Bootstrap de repo:</p>
+<pre><code class="language-bash">git clone -b audit/vps-sync-and-docs https://github.com/Teokoaaly/MyOwnClone.git /opt/myownclone/bootstrap</code></pre>
+<blockquote>TIP: Si GitHub privado falla desde el VPS, usar <code>git archive</code> local + <code>scp</code>.</blockquote>
+<h2 id="6-4-configuracion-frontend">6.4 Configuracion Frontend</h2>
+<pre><code class="language-bash">release=/opt/myownclone/releases/$(date -u +%Y%m%d%H%M%S)-frontend
+mkdir -p &quot;$release&quot;
+# copiar codigo frontend al release
+cp /opt/myownclone/shared/frontend.env.production &quot;$release/.env.production&quot;
+chown -R myownclone:myownclone &quot;$release&quot;
+cd &quot;$release&quot;
+sudo -u myownclone npm ci
+sudo -u myownclone npm run build
+ln -sfn &quot;$release&quot; /opt/myownclone/current
+systemctl restart myownclone-frontend
+curl -fsS http://127.0.0.1:3000/ &gt;/dev/null</code></pre>
+<h2 id="6-5-configuracion-backend">6.5 Configuracion Backend</h2>
+<pre><code class="language-bash">cd /opt/myownclone/bootstrap/ops
+cp /opt/myownclone/shared/backend.env.production ./backend.env.production
+set -a
+. ./backend.env.production
+set +a
+docker compose -f docker-compose.backend.prod.yml up -d --build --remove-orphans
+docker compose -f docker-compose.backend.prod.yml ps
+curl -fsS http://127.0.0.1:5001/readyz</code></pre>
+<h2 id="6-6-configuracion-nginx-y-ssl">6.6 Configuracion Nginx y SSL</h2>
+<pre><code class="language-bash">nginx -t
+systemctl reload nginx
+curl -I https://myownclone.com/
+certbot certificates
+ls -la /etc/cron.d/certbot</code></pre>
+<h2 id="6-7-verificacion-post-instalacion">6.7 Verificacion Post-Instalacion</h2>
+<pre><code class="language-bash">systemctl is-active myownclone-frontend
+systemctl is-active nginx
+docker ps
+curl -sS -o /dev/null -w &#x27;%{http_code}\n&#x27; https://myownclone.com/
+curl -fsS http://127.0.0.1:5001/readyz
+readlink -f /opt/myownclone/current</code></pre>
+<hr>
+<h1 id="7-administracion-del-sistema">7. Administracion del Sistema</h1>
+<h2 id="7-1-acceso-al-panel">7.1 Acceso al Panel</h2>
+<table>
+<tr><th>Panel</th><th>URL</th><th>Perfil requerido</th><th>Redireccion si no cumple</th></tr>
+<tr><td>Dashboard tenant</td><td><code>https://myownclone.com/resumen</code></td><td>Usuario autenticado</td><td><code>/login</code></td></tr>
+<tr><td>Onboarding</td><td><code>https://myownclone.com/onboarding</code></td><td>Usuario autenticado</td><td><code>/login</code></td></tr>
+<tr><td>Admin plataforma</td><td><code>https://myownclone.com/admin/resumen</code></td><td><code>role=platform_admin</code> y email admin configurado</td><td><code>/login</code></td></tr>
+<tr><td>Landing publica</td><td><code>https://myownclone.com/</code></td><td>Publico</td><td>No aplica</td></tr>
+<tr><td>Pagina publica de clon</td><td><code>https://myownclone.com/{slug}</code></td><td>Publico</td><td>No aplica</td></tr>
+</table>
+<p>El layout privado <code>DashboardLayout</code> llama a <code>auth()</code> y redirige a <code>/login</code> cuando no existe <code>session.user</code>. El layout admin llama a <code>isPlatformAdminSession(session)</code>, exige rol <code>platform_admin</code> y, si existe <code>PLATFORM_ADMIN_EMAIL</code>, tambien exige que el email de la sesion coincida con el email configurado.</p>
+<h2 id="7-2-flujo-de-login-y-redireccion">7.2 Flujo de Login y Redireccion</h2>
+<pre><code class="language-mermaid">flowchart TD
+  A[Usuario abre /login] --&gt; B[Introduce email y password]
+  B --&gt; C[NextAuth credentials]
+  C --&gt; D{Sesion valida?}
+  D -- No --&gt; E[Muestra Invalid email or password]
+  D -- Si --&gt; F{role = platform_admin?}
+  F -- Si --&gt; G[/admin/resumen]
+  F -- No --&gt; H[/resumen]</code></pre>
+<p>Reglas auxiliares:</p>
+<table>
+<tr><th>Funcion</th><th>Comportamiento</th></tr>
+<tr><td><code>getPostAuthHref(session)</code></td><td>Admin -&gt; <code>/admin/resumen</code>; usuario -&gt; <code>/onboarding</code>; anonimo -&gt; <code>/registro</code>.</td></tr>
+<tr><td><code>getSessionAwareNav(session)</code></td><td>Cambia CTA de landing segun sesion: login, dashboard, onboarding o admin.</td></tr>
+<tr><td><code>isPlatformAdminSession(session)</code></td><td>Requiere <code>role=platform_admin</code> y valida email contra <code>PLATFORM_ADMIN_EMAIL</code> si esta definido.</td></tr>
+</table>
+<h2 id="7-3-navegacion-principal-del-dashboard">7.3 Navegacion Principal del Dashboard</h2>
+<p>Menu tenant real definido en <code>MyOwnClone/src/app/(dashboard)/layout.tsx</code>:</p>
+<table>
+<tr><th>Seccion</th><th>Label UI</th><th>Ruta</th><th>Proposito</th></tr>
+<tr><td>Principal</td><td>Overview</td><td><code>/resumen</code></td><td>Centro de mando y acciones rapidas.</td></tr>
+<tr><td>API Playground</td><td>Search</td><td><code>/biblioteca</code></td><td>Gestion y busqueda de fuentes/documentos.</td></tr>
+<tr><td>API Playground</td><td>Crawl</td><td><code>/cerebro</code></td><td>Memorias, crawling y agent toolkit.</td></tr>
+<tr><td>API Playground</td><td>Extract</td><td><code>/inbox</code></td><td>Inbox/email triage.</td></tr>
+<tr><td>API Playground</td><td>Research</td><td><code>/productos</code></td><td>Catalogo de productos/ofertas.</td></tr>
+<tr><td>Management</td><td>Usage</td><td><code>/analiticas</code></td><td>Analiticas de uso y gaps.</td></tr>
+<tr><td>Management</td><td>Plans</td><td><code>/planes</code></td><td>Seleccion/upgrade de plan.</td></tr>
+<tr><td>Management</td><td>Billing</td><td><code>/facturacion</code></td><td>Portal y estado de facturacion.</td></tr>
+<tr><td>Management</td><td>Settings</td><td><code>/settings</code></td><td>Configuracion del clon: nombre, tono, prompts, tema.</td></tr>
+<tr><td>Management</td><td>API Keys</td><td><code>/configuracion</code></td><td>Claves/API y configuracion tecnica.</td></tr>
+<tr><td>Management</td><td>Team Settings</td><td><code>/reuniones</code></td><td>Tipos de reunion, disponibilidad y bookings.</td></tr>
+</table>
+<h2 id="7-4-navegacion-admin-plataforma">7.4 Navegacion Admin Plataforma</h2>
+<p>Menu admin real definido en <code>MyOwnClone/src/lib/nav-admin.ts</code>:</p>
+<table>
+<tr><th>Label UI</th><th>Ruta</th><th>Proposito</th></tr>
+<tr><td>Overview</td><td><code>/admin/resumen</code></td><td>Metricas globales de plataforma.</td></tr>
+<tr><td>Tenants</td><td><code>/admin/tenants</code></td><td>Crear, buscar, filtrar y gestionar tenants.</td></tr>
+<tr><td>Audit log</td><td><code>/admin/audit</code></td><td>Revisar acciones sensibles.</td></tr>
+<tr><td>Impersonation</td><td><code>/admin/impersonation</code></td><td>Revisar sesiones de impersonation.</td></tr>
+<tr><td>Courtesy</td><td><code>/admin/courtesy</code></td><td>Gestionar creditos/cuentas courtesy.</td></tr>
+<tr><td>Feedback</td><td><code>/admin/feedback</code></td><td>Revisar feedback global de clones.</td></tr>
+</table>
+<h2 id="7-5-matriz-de-roles-y-permisos">7.5 Matriz de Roles y Permisos</h2>
+<table>
+<tr><th>Rol</th><th>Alcance</th><th>Puede acceder dashboard tenant</th><th>Puede acceder admin</th><th>Puede impersonar</th><th>Comentarios</th></tr>
+<tr><td><code>owner</code></td><td>Tenant/workspace propio</td><td>Si</td><td>No</td><td>No</td><td>Rol por defecto en <code>accounts.role</code>.</td></tr>
+<tr><td><code>admin</code></td><td>Tenant/workspace propio</td><td>Si</td><td>No</td><td>No</td><td>Rol previsto en schema frontend.</td></tr>
+<tr><td><code>member</code></td><td>Tenant/workspace propio</td><td>Si, si esta implementado en sesion</td><td>No</td><td>No</td><td>Rol previsto por schema frontend.</td></tr>
+<tr><td><code>platform_admin</code></td><td>Plataforma completa</td><td>Si</td><td>Si</td><td>Si</td><td>Requiere <code>is_platform_admin</code> o credenciales env admin.</td></tr>
+</table>
+<blockquote>ADVERTENCIA: El acceso admin no debe basarse solo en email visible. La sesion debe traer <code>role=platform_admin</code> y el email debe coincidir con <code>PLATFORM_ADMIN_EMAIL</code> cuando esta variable existe.</blockquote>
+<h2 id="7-6-gestion-de-usuarios-y-tenants">7.6 Gestion de Usuarios y Tenants</h2>
+<h3 id="crear-tenant">Crear tenant</h3>
+<p>Ruta UI: <code>/admin/tenants</code> -&gt; boton <code>+ New tenant</code>.</p>
+<p>Flujo:</p>
+<ol>
+<li>Admin plataforma abre <code>/admin/tenants</code>.</li>
+<li>Pulsa <code>+ New tenant</code>.</li>
+<li>Completa datos requeridos del tenant/cuenta.</li>
+<li>El frontend llama a <code>/api/admin/tenants</code>.</li>
+<li>Backend crea tenant, cuenta asociada y registra auditoria si aplica.</li>
+<li>La tabla de tenants se refresca.</li>
+</ol>
+<p>Endpoint relacionado:</p>
+<pre><code class="language-http">POST /api/admin/tenants</code></pre>
+<h3 id="editar-tenant">Editar tenant</h3>
+<p>Ruta UI: <code>/admin/tenants/{id}</code>.</p>
+<p>Campos observados en pantalla:</p>
+<table>
+<tr><th>Campo</th><th>Uso</th></tr>
+<tr><td><code>plan</code></td><td>Cambiar plan asignado.</td></tr>
+<tr><td><code>status</code></td><td>Cambiar estado del tenant.</td></tr>
+<tr><td><code>subscription_status</code></td><td>Ver estado de suscripcion.</td></tr>
+<tr><td><code>stripe_customer_id</code></td><td>Referencia cliente Stripe.</td></tr>
+<tr><td><code>stripe_subscription_id</code></td><td>Referencia suscripcion Stripe.</td></tr>
+</table>
+<p>Endpoint relacionado:</p>
+<pre><code class="language-http">GET /api/admin/tenants/{id}
+PATCH /api/admin/tenants/{id}</code></pre>
+<h3 id="impersonation">Impersonation</h3>
+<p>Ruta UI: <code>/admin/tenants/{id}</code> y <code>/admin/impersonation</code>.</p>
+<p>Uso:</p>
+<ol>
+<li>Admin selecciona tenant.</li>
+<li>Genera token/accion de impersonation.</li>
+<li>El evento se registra en <code>impersonation_log</code>.</li>
+<li>La vista <code>/admin/impersonation</code> muestra historial filtrable.</li>
+</ol>
+<blockquote>ADVERTENCIA: Impersonation es una accion sensible. Debe requerir razon, trazabilidad y expiracion corta.</blockquote>
+<h2 id="7-7-gestion-de-configuracion-general">7.7 Gestion de Configuracion General</h2>
+<table>
+<tr><th>Area</th><th>Pantalla</th><th>Persistencia</th></tr>
+<tr><td>Nombre/slug/tono del clon</td><td><code>/settings</code></td><td><code>clone_configs</code></td></tr>
+<tr><td>Prompts/modos</td><td><code>/settings</code></td><td><code>clone_mode_prompts</code> o payload de clone segun API</td></tr>
+<tr><td>API keys/configuracion tecnica</td><td><code>/configuracion</code></td><td>Variables/servicios backend/frontend, segun implementacion</td></tr>
+<tr><td>Plan actual</td><td><code>/planes</code> y <code>/facturacion</code></td><td><code>tenants</code>, <code>myownclone_plans</code>, Stripe</td></tr>
+<tr><td>Reuniones</td><td><code>/reuniones</code></td><td><code>meeting_types</code>, <code>availability</code>, <code>bookings</code></td></tr>
+</table>
+<h2 id="7-8-auditoria-administrativa">7.8 Auditoria Administrativa</h2>
+<table>
+<tr><th>Fuente</th><th>Tabla / Log</th><th>Uso</th></tr>
+<tr><td>Admin audit</td><td><code>admin_audit_log</code></td><td>Acciones sensibles generales.</td></tr>
+<tr><td>Impersonation</td><td><code>impersonation_log</code></td><td>Inicio/fin de sesiones impersonadas.</td></tr>
+<tr><td>Nginx</td><td><code>/var/log/nginx/*.log</code></td><td>IPs, rutas y errores HTTP.</td></tr>
+<tr><td>Frontend</td><td><code>journalctl -u myownclone-frontend</code></td><td>Errores Next.js/auth/UI server.</td></tr>
+<tr><td>Backend</td><td><code>docker logs myownclone_api</code></td><td>Errores API Flask.</td></tr>
+</table>
+<h2 id="7-9-estado-actual-de-produccion-para-administracion">7.9 Estado Actual de Produccion para Administracion</h2>
+<table>
+<tr><th>Elemento</th><th>Estado observado</th></tr>
+<tr><td>Tenants</td><td>1</td></tr>
+<tr><td>Accounts</td><td>2</td></tr>
+<tr><td>Clones</td><td>1</td></tr>
+<tr><td>Planes cargados</td><td>3</td></tr>
+<tr><td>Audit log</td><td>0 registros</td></tr>
+<tr><td>Impersonation log</td><td>0 registros</td></tr>
+<tr><td>Feedback</td><td>0 registros</td></tr>
+</table>
+<hr>
+<h1 id="8-funcionalidades-por-modulo">8. Funcionalidades por Modulo</h1>
+<p>Esta seccion documenta las funcionalidades disponibles en produccion por modulo, relacionando pantalla, flujo, validaciones, permisos y endpoints.</p>
+<h2 id="8-1-landing-publica">8.1 Landing Publica</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/</code></td></tr>
+<tr><td>Acceso</td><td>Publico</td></tr>
+<tr><td>Objetivo</td><td>Presentar MyOwnClone, CTA de registro/login y pricing.</td></tr>
+<tr><td>Archivos</td><td><code>MyOwnClone/src/app/page.tsx</code></td></tr>
+</table>
+<p>Flujos:</p>
+<ol>
+<li>Visitante abre landing.</li>
+<li>Si no hay sesion, CTA principal envia a <code>/registro</code> y login a <code>/login</code>.</li>
+<li>Si hay usuario normal, CTA envia a <code>/onboarding</code> o dashboard.</li>
+<li>Si hay admin plataforma, CTA envia a <code>/admin/resumen</code>.</li>
+</ol>
+<p>Endpoints relacionados: NextAuth session indirectamente.</p>
+<h2 id="8-2-autenticacion-y-recuperacion">8.2 Autenticacion y Recuperacion</h2>
+<table>
+<tr><th>Ruta</th><th>Proposito</th><th>Endpoint relacionado</th></tr>
+<tr><td><code>/login</code></td><td>Iniciar sesion</td><td><code>/api/auth/[...nextauth]</code></td></tr>
+<tr><td><code>/registro</code></td><td>Crear cuenta</td><td>DB users/accounts segun flujo frontend</td></tr>
+<tr><td><code>/forgot-password</code></td><td>Solicitar reset</td><td><code>POST /api/auth/forgot-password</code></td></tr>
+<tr><td><code>/reset-password</code></td><td>Resetear password</td><td><code>POST /api/auth/reset-password</code></td></tr>
+<tr><td><code>/es/verificar</code></td><td>Verificacion localizada</td><td><code>POST /api/auth/verify-email</code></td></tr>
+</table>
+<p>Validaciones:</p>
+<table>
+<tr><th>Campo</th><th>Regla</th></tr>
+<tr><td>Email</td><td>Requerido, normalizado a lowercase/trim.</td></tr>
+<tr><td>Password</td><td>Requerido; nunca se documenta en texto plano.</td></tr>
+<tr><td>Reset token</td><td>Requerido para reset/verify.</td></tr>
+</table>
+<h2 id="8-3-onboarding">8.3 Onboarding</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/onboarding</code>, <code>/es/onboarding</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Crear/configurar primer clon.</td></tr>
+<tr><td>Datos</td><td>Nombre, slug, tono, idioma y configuracion inicial.</td></tr>
+<tr><td>Persistencia</td><td><code>clone_configs</code></td></tr>
+</table>
+<p>Flujo:</p>
+<pre><code class="language-mermaid">flowchart TD
+  A[Usuario autenticado] --&gt; B[/onboarding]
+  B --&gt; C[Completa datos del clon]
+  C --&gt; D[Valida slug, tono e idioma]
+  D --&gt; E[Crea/actualiza clone_config]
+  E --&gt; F[Redirige a dashboard]</code></pre>
+<p>Validaciones relevantes:</p>
+<table>
+<tr><th>Campo</th><th>Regla</th></tr>
+<tr><td><code>name</code></td><td>Requerido para identificar el clon.</td></tr>
+<tr><td><code>slug</code></td><td>Debe ser unico y apto para URL.</td></tr>
+<tr><td><code>personality_tone</code></td><td>Valores normalizados; produccion usa <code>tecnico</code> para tono tecnico.</td></tr>
+<tr><td><code>language</code></td><td>Idioma del clon, por defecto <code>es</code>.</td></tr>
+</table>
+<h2 id="8-4-dashboard-overview">8.4 Dashboard Overview</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/resumen</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Centro de mando del tenant.</td></tr>
+<tr><td>Estado visual actual</td><td>Solo muestra los 3 bloques superiores solicitados: API Keys, Usage y Docs/Agent Toolkit.</td></tr>
+</table>
+<p>Bloques superiores actuales:</p>
+<table>
+<tr><th>Bloque</th><th>Ruta</th><th>Proposito</th></tr>
+<tr><td>API Keys</td><td><code>/configuracion</code></td><td>Conectar herramientas externas.</td></tr>
+<tr><td>Usage</td><td><code>/analiticas</code></td><td>Revisar uso ultimos 30 dias.</td></tr>
+<tr><td>Docs</td><td><code>/biblioteca</code></td><td>Gestion de documentos/fuentes.</td></tr>
+<tr><td>Agent Toolkit</td><td><code>/cerebro</code></td><td>Memoria/crawl/toolkit del agente.</td></tr>
+</table>
+<p>Datos consumidos:</p>
+<table>
+<tr><th>Endpoint</th><th>Uso</th></tr>
+<tr><td><code>/api/clone/clones</code></td><td>Resolver clone activo.</td></tr>
+<tr><td><code>/api/clone/analytics/overview</code></td><td>Metricas de uso.</td></tr>
+<tr><td><code>/api/clone/inbox/list?limit=3</code></td><td>Inbox reciente.</td></tr>
+</table>
+<h2 id="8-5-biblioteca-search">8.5 Biblioteca / Search</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/biblioteca</code></td></tr>
+<tr><td>Nueva fuente</td><td><code>/biblioteca/nuevo</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Gestion de fuentes de conocimiento.</td></tr>
+<tr><td>Tablas</td><td><code>sources</code>, <code>chunks</code></td></tr>
+<tr><td>Endpoint Next</td><td><code>GET/POST /api/clone/sources</code></td></tr>
+</table>
+<p>Casos de uso:</p>
+<ol>
+<li>Listar fuentes cargadas.</li>
+<li>Crear fuente nueva por tipo.</li>
+<li>Validar contenido, silo y tipo.</li>
+<li>Preparar datos para ingestion/RAG.</li>
+</ol>
+<p>Validaciones del endpoint:</p>
+<table>
+<tr><th>Validacion</th><th>Error esperado</th></tr>
+<tr><td>Sin sesion</td><td><code>401 Unauthorized</code></td></tr>
+<tr><td><code>cloneId</code> faltante</td><td><code>400</code></td></tr>
+<tr><td>Silo invalido</td><td><code>400 Invalid content silo</code></td></tr>
+<tr><td>Tipo invalido</td><td><code>400 Invalid content type</code></td></tr>
+<tr><td>Contenido vacio/excesivo</td><td><code>400</code></td></tr>
+</table>
+<h2 id="8-6-cerebro-crawl-agent-toolkit">8.6 Cerebro / Crawl / Agent Toolkit</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/cerebro</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Gestion de memoria/crawling/toolkit del agente.</td></tr>
+<tr><td>Tablas relacionadas</td><td><code>creator_memory</code>, <code>sources</code>, <code>chunks</code></td></tr>
+<tr><td>API relacionada</td><td>Memories y sources</td></tr>
+</table>
+<p>Flujo esperado:</p>
+<ol>
+<li>Usuario configura memoria/conocimiento del clon.</li>
+<li>Sistema almacena memoria o fuentes.</li>
+<li>RAG usa esa informacion para respuestas futuras.</li>
+</ol>
+<p>Endpoints relacionados:</p>
+<pre><code class="language-http">GET/POST /console/api/myownclone/clones/{clone_id}/memories
+GET/POST /api/clone/sources</code></pre>
+<h2 id="8-7-inbox-extract">8.7 Inbox / Extract</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/inbox</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Email triage y borradores IA.</td></tr>
+<tr><td>Tablas</td><td><code>email_inbound</code>, <code>email_templates</code></td></tr>
+</table>
+<p>Casos de uso:</p>
+<ol>
+<li>Listar emails recibidos.</li>
+<li>Abrir detalle de email.</li>
+<li>Generar borrador con IA.</li>
+<li>Marcar enviado/descartado/pendiente segun implementacion.</li>
+</ol>
+<p>Endpoints:</p>
+<pre><code class="language-http">GET /console/api/myownclone/clones/{clone_id}/inbox
+GET/PATCH /console/api/myownclone/inbox/{email_id}
+POST /console/api/myownclone/inbox/{email_id}/generate-draft
+POST /api/myownclone/public/inbound-email</code></pre>
+<h2 id="8-8-productos-research">8.8 Productos / Research</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/productos</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Catalogo de productos/ofertas del clon.</td></tr>
+<tr><td>Tabla</td><td><code>products</code></td></tr>
+</table>
+<p>Reglas de negocio:</p>
+<table>
+<tr><th>Campo</th><th>Regla</th></tr>
+<tr><td><code>name</code></td><td>Requerido.</td></tr>
+<tr><td><code>price_cents</code></td><td>Opcional, entero en centimos.</td></tr>
+<tr><td><code>url</code></td><td>Opcional, destino externo.</td></tr>
+<tr><td><code>priority</code></td><td>Orden de recomendacion.</td></tr>
+<tr><td><code>active</code></td><td>Controla visibilidad.</td></tr>
+</table>
+<p>Endpoints:</p>
+<pre><code class="language-http">GET/POST /console/api/myownclone/clones/{clone_id}/products
+GET/PATCH/DELETE /console/api/myownclone/clones/{clone_id}/products/{product_id}</code></pre>
+<h2 id="8-9-analiticas-usage">8.9 Analiticas / Usage</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/analiticas</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Visibilidad de conversaciones, preguntas, gaps y coste.</td></tr>
+<tr><td>Tablas</td><td><code>analytics_questions</code>, <code>analytics_gaps</code>, <code>cost_tracking</code>, <code>conversations</code>, <code>messages</code></td></tr>
+</table>
+<p>Endpoints:</p>
+<pre><code class="language-http">GET /console/api/myownclone/clones/{clone_id}/analytics/overview
+GET /console/api/myownclone/clones/{clone_id}/analytics/top-questions
+GET /console/api/myownclone/clones/{clone_id}/analytics/gaps
+GET /console/api/myownclone/clones/{clone_id}/analytics/costs</code></pre>
+<h2 id="8-10-plans-y-billing">8.10 Plans y Billing</h2>
+<table>
+<tr><th>Pantalla</th><th>Ruta</th><th>Proposito</th></tr>
+<tr><td>Plans</td><td><code>/planes</code></td><td>Seleccionar o actualizar plan.</td></tr>
+<tr><td>Billing</td><td><code>/facturacion</code></td><td>Portal Stripe/estado facturacion.</td></tr>
+</table>
+<p>Tablas/servicios:</p>
+<table>
+<tr><th>Elemento</th><th>Uso</th></tr>
+<tr><td><code>myownclone_plans</code></td><td>Catalogo de planes.</td></tr>
+<tr><td><code>tenants.plan</code></td><td>Plan actual.</td></tr>
+<tr><td><code>tenants.subscription_status</code></td><td>Estado suscripcion.</td></tr>
+<tr><td>Stripe</td><td>Checkout, customer, subscription y portal.</td></tr>
+</table>
+<p>Endpoints:</p>
+<pre><code class="language-http">GET /console/api/myownclone/plans
+POST /console/api/myownclone/stripe/checkout
+POST /console/api/myownclone/stripe/billing
+POST /api/stripe/webhook</code></pre>
+<blockquote>Nota funcional: <code>Plans</code> y <code>Billing</code> son entradas separadas del menu. El flujo de upgrade debe dirigir a seleccion de plan, no saltar directamente a billing salvo que el usuario pulse Billing/Portal.</blockquote>
+<h2 id="8-11-settings">8.11 Settings</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/settings</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Editar configuracion del clon.</td></tr>
+<tr><td>Tabla</td><td><code>clone_configs</code>, <code>clone_mode_prompts</code></td></tr>
+</table>
+<p>Campos esperados:</p>
+<table>
+<tr><th>Campo</th><th>Persistencia</th></tr>
+<tr><td>Nombre</td><td><code>clone_configs.name</code></td></tr>
+<tr><td>Slug</td><td><code>clone_configs.slug</code></td></tr>
+<tr><td>Descripcion</td><td><code>clone_configs.description</code></td></tr>
+<tr><td>Avatar</td><td><code>clone_configs.avatar_url</code></td></tr>
+<tr><td>Tono</td><td><code>clone_configs.personality_tone</code></td></tr>
+<tr><td>Idioma</td><td><code>clone_configs.language</code></td></tr>
+<tr><td>Modos activos</td><td><code>clone_configs.active_modes</code></td></tr>
+<tr><td>Prompts</td><td><code>clone_mode_prompts.system_prompt</code></td></tr>
+</table>
+<p>Validacion importante:</p>
+<ul>
+<li>El tono tecnico debe guardarse como <code>tecnico</code>, no <code>technical</code> ni <code>tecnico</code> con acento.</li>
+</ul>
+<h2 id="8-12-api-keys-configuracion">8.12 API Keys / Configuracion</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/configuracion</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Conectar herramientas externas y revisar configuracion tecnica.</td></tr>
+<tr><td>Variables relacionadas</td><td><code>SERVICE_API_KEY</code>, <code>MYOWNCLONE_SERVICE_API_KEY</code>, URLs API/publicas</td></tr>
+</table>
+<p>Buenas practicas:</p>
+<ol>
+<li>No mostrar secretos completos una vez creados.</li>
+<li>Permitir rotacion controlada.</li>
+<li>Registrar uso/anomalias si se expone API publica.</li>
+</ol>
+<h2 id="8-13-team-settings-reuniones">8.13 Team Settings / Reuniones</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta</td><td><code>/reuniones</code></td></tr>
+<tr><td>Acceso</td><td>Usuario autenticado</td></tr>
+<tr><td>Proposito</td><td>Gestionar tipos de reunion, disponibilidad y reservas.</td></tr>
+<tr><td>Tablas</td><td><code>meeting_types</code>, <code>availability</code>, <code>bookings</code></td></tr>
+</table>
+<p>Endpoints:</p>
+<pre><code class="language-http">GET/POST /console/api/myownclone/clones/{clone_id}/meeting-types
+PATCH/DELETE /console/api/myownclone/clones/{clone_id}/meeting-types/{meeting_type_id}
+GET/POST /console/api/myownclone/clones/{clone_id}/availability
+PATCH/DELETE /console/api/myownclone/clones/{clone_id}/availability/{availability_id}
+GET/POST /console/api/myownclone/clones/{clone_id}/bookings
+PATCH/DELETE /console/api/myownclone/clones/{clone_id}/bookings/{booking_id}
+GET /api/myownclone/public/clones/{slug}/meeting-types
+POST /api/myownclone/public/clones/{slug}/bookings</code></pre>
+<h2 id="8-14-public-clone-y-widget">8.14 Public Clone y Widget</h2>
+<table>
+<tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Ruta publica</td><td><code>/{slug}</code></td></tr>
+<tr><td>Widget</td><td><code>/widget.js</code></td></tr>
+<tr><td>Acceso</td><td>Publico</td></tr>
+<tr><td>Proposito</td><td>Permitir que visitantes interactuen con el clon.</td></tr>
+</table>
+<p>Endpoints publicos:</p>
+<pre><code class="language-http">GET /api/myownclone/public/clones/{slug}
+POST /api/myownclone/public/clones/{slug}/chat
+POST /api/myownclone/public/clones/{slug}/chat-simple</code></pre>
+<h2 id="8-15-modulos-admin">8.15 Modulos Admin</h2>
+<table>
+<tr><th>Modulo</th><th>Ruta</th><th>Datos</th><th>Endpoint</th></tr>
+<tr><td>Platform Overview</td><td><code>/admin/resumen</code></td><td>Tenants, MRR, planes, salud plataforma</td><td><code>/api/admin/overview</code></td></tr>
+<tr><td>Tenants</td><td><code>/admin/tenants</code></td><td>Lista, filtros, crear tenant</td><td><code>/api/admin/tenants</code></td></tr>
+<tr><td>Tenant detail</td><td><code>/admin/tenants/{id}</code></td><td>Uso, clones, plan/status, impersonation</td><td><code>/api/admin/tenants/{id}</code></td></tr>
+<tr><td>Audit log</td><td><code>/admin/audit</code></td><td>Acciones sensibles</td><td><code>/api/admin/audit-log</code></td></tr>
+<tr><td>Impersonation</td><td><code>/admin/impersonation</code></td><td>Sesiones impersonadas</td><td><code>/api/admin/impersonation</code></td></tr>
+<tr><td>Courtesy</td><td><code>/admin/courtesy</code></td><td>Creditos/cuentas courtesy</td><td><code>/api/admin/courtesy</code></td></tr>
+<tr><td>Feedback</td><td><code>/admin/feedback</code></td><td>Feedback global</td><td><code>/api/admin/feedback</code></td></tr>
+</table>
+<p>Permiso: todos requieren <code>platform_admin</code>.</p>
+<h2 id="8-16-screenshots-y-evidencia-visual">8.16 Screenshots y Evidencia Visual</h2>
+<p>Pendiente de Paso 8/final: capturar pantallas reales del sitio vivo cuando exista una cuenta de produccion valida para login automatizado. Las capturas deben cubrir, como minimo:</p>
+<ul>
+<li>Landing.</li>
+<li>Login.</li>
+<li>Dashboard <code>/resumen</code>.</li>
+<li>Settings <code>/settings</code>.</li>
+<li>Plans <code>/planes</code>.</li>
+<li>Billing <code>/facturacion</code>.</li>
+<li>Admin overview <code>/admin/resumen</code>.</li>
+<li>Tenants <code>/admin/tenants</code>.</li>
+</ul>
+<blockquote>ADVERTENCIA: Las capturas no deben mostrar secretos, tokens, emails privados no autorizados ni datos sensibles de clientes.</blockquote>
+<hr>
+<h1 id="9-gestion-de-seguridad-en-vps">9. Gestion de Seguridad en VPS</h1>
+<h2 id="9-1-estado-de-seguridad-observado">9.1 Estado de Seguridad Observado</h2>
+<table>
+<tr><th>Control</th><th>Estado actual</th><th>Riesgo / Accion</th></tr>
+<tr><td>TLS HTTPS</td><td>Activo con Let&#x27;s Encrypt</td><td>Correcto; renovar antes de expiracion.</td></tr>
+<tr><td>Nginx reverse proxy</td><td>Activo</td><td>Correcto; revisar headers y rutas admin.</td></tr>
+<tr><td>Servicios internos en loopback</td><td>Activo</td><td>Correcto; API/DB/Weaviate no estan publicos.</td></tr>
+<tr><td>Env sensibles fuera del repo</td><td>Activo</td><td>Correcto; mantener <code>600</code>.</td></tr>
+<tr><td>systemd hardening frontend</td><td>Parcial</td><td>Correcto; revisar si necesita mas restricciones.</td></tr>
+<tr><td>UFW</td><td>Inactivo</td><td>Activar tras verificar SSH por llave.</td></tr>
+<tr><td>fail2ban</td><td>No instalado/inactivo</td><td>Instalar para proteger SSH/Nginx.</td></tr>
+<tr><td>Backups automaticos app</td><td>No detectados</td><td>Crear cron backup DB + env cifrado.</td></tr>
+<tr><td>Root SSH</td><td>Usado para administracion</td><td>Recomendado crear usuario sudo y limitar root si procede.</td></tr>
+</table>
+<h2 id="9-2-tls-y-certificados">9.2 TLS y Certificados</h2>
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>Dominio</td><td><code>myownclone.com</code></td></tr>
+<tr><td>Emisor</td><td>Let&#x27;s Encrypt <code>YE1</code></td></tr>
+<tr><td>Valido desde</td><td>2026-06-15</td></tr>
+<tr><td>Expira</td><td>2026-09-13</td></tr>
+<tr><td>Cert path</td><td><code>/etc/letsencrypt/live/myownclone.com/fullchain.pem</code></td></tr>
+<tr><td>Key path</td><td><code>/etc/letsencrypt/live/myownclone.com/privkey.pem</code></td></tr>
+</table>
+<pre><code class="language-bash">certbot certificates
+openssl x509 -in /etc/letsencrypt/live/myownclone.com/fullchain.pem -noout -dates -issuer -subject</code></pre>
+<h2 id="9-3-secretos-y-permisos">9.3 Secretos y Permisos</h2>
+<pre><code class="language-bash">find /opt/myownclone/shared -maxdepth 1 -printf &#x27;%M %u %g %p\n&#x27;</code></pre>
+<h2 id="9-4-firewall-recomendado">9.4 Firewall Recomendado</h2>
+<p>Estado actual: <code>ufw inactive</code>.</p>
+<pre><code class="language-bash">ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+ufw status verbose</code></pre>
+<blockquote>ADVERTENCIA: Aplicar firewall solo con una sesion SSH estable y acceso alternativo al panel del proveedor.</blockquote>
+<h2 id="9-5-fail2ban-recomendado">9.5 Fail2ban Recomendado</h2>
+<pre><code class="language-bash">apt update
+apt install -y fail2ban
+systemctl enable --now fail2ban
+fail2ban-client status</code></pre>
+<h2 id="9-6-logs-de-seguridad">9.6 Logs de Seguridad</h2>
+<table>
+<tr><th>Log</th><th>Comando</th></tr>
+<tr><td>SSH/system auth</td><td><code>journalctl -u ssh -n 200 --no-pager</code></td></tr>
+<tr><td>Nginx</td><td><code>tail -f /var/log/nginx/access.log /var/log/nginx/error.log</code></td></tr>
+<tr><td>Frontend</td><td><code>journalctl -u myownclone-frontend -f</code></td></tr>
+<tr><td>Backend</td><td><code>docker logs -f myownclone_api</code></td></tr>
+<tr><td>Docker daemon</td><td><code>journalctl -u docker -n 200 --no-pager</code></td></tr>
+</table>
+<hr>
+<h1 id="10-api-documentation-produccion">10. API Documentation Produccion</h1>
+<p>La API de produccion se expone desde <code>https://myownclone.com/</code> mediante dos capas:</p>
+<ul>
+<li>**Next.js API routes**, ejecutadas por el frontend en <code>127.0.0.1:3000</code>.</li>
+<li>**Flask Console/Public API**, ejecutada por <code>myownclone_api</code> en <code>127.0.0.1:5001</code> y publicada por Nginx mediante rutas <code>/api/myownclone/</code>, <code>/api/admin/</code>, <code>/console/</code> y rutas publicas.</li>
+</ul>
+<h2 id="10-1-url-base">10.1 URL Base</h2>
+<table>
+<tr><th>Tipo</th><th>URL base publica</th><th>Upstream interno</th></tr>
+<tr><td>Frontend/API Next.js</td><td><code>https://myownclone.com/api/...</code></td><td><code>http://127.0.0.1:3000/api/...</code></td></tr>
+<tr><td>Console API Flask via Nginx</td><td><code>https://myownclone.com/api/myownclone/...</code></td><td><code>http://127.0.0.1:5001/console/api/myownclone/...</code></td></tr>
+<tr><td>Admin API Flask via Nginx</td><td><code>https://myownclone.com/api/admin/...</code></td><td><code>http://127.0.0.1:5001/console/api/myownclone/admin/...</code></td></tr>
+<tr><td>Flask console directa</td><td><code>https://myownclone.com/console/api/...</code></td><td><code>http://127.0.0.1:5001/console/api/...</code></td></tr>
+<tr><td>Public API Flask</td><td><code>https://myownclone.com/api/myownclone/public/...</code></td><td><code>http://127.0.0.1:5001/api/myownclone/public/...</code> si Nginx lo enruta correctamente</td></tr>
+</table>
+<blockquote>ADVERTENCIA: Actualmente Nginx enruta <code>/api/myownclone/</code> hacia <code>/console/api/myownclone/</code>. Las rutas publicas Flask bajo <code>/api/myownclone/public/...</code> deben probarse especificamente porque pueden colisionar con esa regla de proxy.</blockquote>
+<h2 id="10-2-autenticacion">10.2 Autenticacion</h2>
+<table>
+<tr><th>Mecanismo</th><th>Uso</th></tr>
+<tr><td>NextAuth</td><td>Login web, sesiones de dashboard y rutas privadas frontend.</td></tr>
+<tr><td>Cookies de sesion</td><td>Autorizacion del usuario autenticado en Next.js.</td></tr>
+<tr><td><code>Authorization</code> header</td><td>Se reenvia desde Nginx hacia Flask cuando existe.</td></tr>
+<tr><td>Service API key</td><td>Nginx inyecta headers internos para <code>/api/admin/</code>; valor sensible no documentado.</td></tr>
+<tr><td>CSRF token</td><td>Ruta <code>/api/csrf</code> genera token/cookie para formularios o llamadas protegidas.</td></tr>
+<tr><td>Webhook signatures</td><td>Stripe y SendGrid usan secretos dedicados en variables de entorno.</td></tr>
+</table>
+<p>Codigos esperados:</p>
+<table>
+<tr><th>Codigo</th><th>Significado</th></tr>
+<tr><td>200</td><td>Solicitud correcta.</td></tr>
+<tr><td>201</td><td>Recurso creado.</td></tr>
+<tr><td>302/303</td><td>Redireccion, por ejemplo booking o auth.</td></tr>
+<tr><td>400</td><td>Payload invalido o faltan parametros.</td></tr>
+<tr><td>401</td><td>No autenticado.</td></tr>
+<tr><td>403</td><td>Autenticado sin permiso suficiente.</td></tr>
+<tr><td>404</td><td>Recurso no encontrado.</td></tr>
+<tr><td>409</td><td>Conflicto, por ejemplo slot de booking ocupado.</td></tr>
+<tr><td>500</td><td>Error interno; revisar logs frontend/backend.</td></tr>
+</table>
+<h2 id="10-3-endpoints-next-js-activos">10.3 Endpoints Next.js Activos</h2>
+<table>
+<tr><th>Endpoint</th><th>Metodo</th><th>Proposito</th><th>Auth</th></tr>
+<tr><td><code>/api/auth/[...nextauth]</code></td><td>GET/POST gestionado por NextAuth</td><td>Login, callback, csrf/session internos de NextAuth</td><td>Segun flujo NextAuth</td></tr>
+<tr><td><code>/api/auth/forgot-password</code></td><td>POST</td><td>Solicitar reset de password</td><td>Publico con validaciones</td></tr>
+<tr><td><code>/api/auth/reset-password</code></td><td>POST</td><td>Aplicar reset de password</td><td>Token requerido</td></tr>
+<tr><td><code>/api/auth/verify-email</code></td><td>POST</td><td>Verificar email/token</td><td>Publico con validaciones</td></tr>
+<tr><td><code>/api/bookings</code></td><td>GET</td><td>Listar bookings por <code>cloneId</code></td><td>Sesion requerida</td></tr>
+<tr><td><code>/api/bookings</code></td><td>POST</td><td>Crear booking</td><td>Publico/validado segun payload</td></tr>
+<tr><td><code>/api/clone/sources</code></td><td>GET</td><td>Listar fuentes del clon</td><td>Sesion requerida</td></tr>
+<tr><td><code>/api/clone/sources</code></td><td>POST</td><td>Crear fuente/documento</td><td>Sesion requerida</td></tr>
+<tr><td><code>/api/csrf</code></td><td>GET</td><td>Emitir token CSRF</td><td>Publico</td></tr>
+<tr><td><code>/api/stripe/webhook</code></td><td>POST</td><td>Recibir eventos Stripe</td><td>Firma Stripe requerida</td></tr>
+<tr><td><code>/api/stt</code></td><td>POST</td><td>Speech-to-text mediante proveedor configurado</td><td>Sesion/API segun implementacion</td></tr>
+<tr><td><code>/widget.js</code></td><td>GET</td><td>Servir widget embebible</td><td>Publico</td></tr>
+</table>
+<p>Ejemplo CSRF:</p>
+<pre><code class="language-bash">curl -i https://myownclone.com/api/csrf</code></pre>
+<p>Ejemplo de listado de fuentes autenticado:</p>
+<pre><code class="language-bash">curl -i \
+  -b cookies.txt \
+  &quot;https://myownclone.com/api/clone/sources?cloneId=CLONE_ID&quot;</code></pre>
+<h2 id="10-4-endpoints-flask-console-api">10.4 Endpoints Flask Console API</h2>
+<p>Estos endpoints se definen bajo el namespace Flask <code>console_ns</code> con base interna <code>/console/api</code>.</p>
+<h3 id="clones">Clones</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Metodos habituales</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/clones</code></td><td>GET, POST</td><td>Listar/crear clones.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;</code></td><td>GET, PUT/PATCH, DELETE</td><td>Leer/actualizar/eliminar clon.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/prompts</code></td><td>GET, PUT/POST</td><td>Gestionar prompts por modo.</td></tr>
+</table>
+<p>Ejemplo via Nginx:</p>
+<pre><code class="language-bash">curl -i \
+  -H &quot;Authorization: Bearer TOKEN&quot; \
+  https://myownclone.com/api/myownclone/clones</code></pre>
+<h3 id="memories">Memories</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/memories</code></td><td>CRUD/listado de memorias del clon.</td></tr>
+<tr><td><code>/console/api/myownclone/memories/&lt;memory_id&gt;</code></td><td>Operaciones sobre memoria individual.</td></tr>
+</table>
+<h3 id="inbox-email-triage">Inbox / Email Triage</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/inbox</code></td><td>Listar emails recibidos del clon.</td></tr>
+<tr><td><code>/console/api/myownclone/inbox/&lt;email_id&gt;</code></td><td>Detalle/actualizacion de email.</td></tr>
+<tr><td><code>/console/api/myownclone/inbox/&lt;email_id&gt;/generate-draft</code></td><td>Generar borrador IA.</td></tr>
+</table>
+<h3 id="analytics">Analytics</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/analytics/overview</code></td><td>Resumen de uso.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/analytics/top-questions</code></td><td>Preguntas principales.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/analytics/gaps</code></td><td>Gaps de conocimiento.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/analytics/costs</code></td><td>Costes por categoria/modelo.</td></tr>
+</table>
+<h3 id="booking-y-productos">Booking y Productos</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/meeting-types</code></td><td>Listar/crear tipos de reunion.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/meeting-types/&lt;meeting_type_id&gt;</code></td><td>Actualizar/eliminar tipo de reunion.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/availability</code></td><td>Listar/crear disponibilidad.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/availability/&lt;availability_id&gt;</code></td><td>Actualizar/eliminar disponibilidad.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/products</code></td><td>Listar/crear productos.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/products/&lt;product_id&gt;</code></td><td>Actualizar/eliminar producto.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/bookings</code></td><td>Listar/crear reservas.</td></tr>
+<tr><td><code>/console/api/myownclone/clones/&lt;clone_id&gt;/bookings/&lt;booking_id&gt;</code></td><td>Actualizar/eliminar reserva.</td></tr>
+</table>
+<h3 id="stripe-billing">Stripe / Billing</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/plans</code></td><td>Listar planes comerciales.</td></tr>
+<tr><td><code>/console/api/myownclone/stripe/checkout</code></td><td>Crear checkout session.</td></tr>
+<tr><td><code>/console/api/myownclone/stripe/billing</code></td><td>Crear portal de billing.</td></tr>
+</table>
+<h3 id="feedback">Feedback</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/feedback</code></td><td>Crear/listar feedback.</td></tr>
+<tr><td><code>/console/api/myownclone/feedback/stats</code></td><td>Estadisticas de feedback.</td></tr>
+</table>
+<h3 id="admin-plataforma">Admin Plataforma</h3>
+<table>
+<tr><th>Endpoint interno</th><th>Proposito</th></tr>
+<tr><td><code>/console/api/myownclone/admin/overview</code></td><td>Resumen admin/MRR/tenants.</td></tr>
+<tr><td><code>/console/api/myownclone/admin/tenants</code></td><td>Listado/gestion de tenants.</td></tr>
+<tr><td><code>/console/api/myownclone/admin/impersonation</code></td><td>Estado o gestion de impersonation.</td></tr>
+<tr><td><code>/console/api/myownclone/admin/impersonate</code></td><td>Iniciar impersonation.</td></tr>
+<tr><td><code>/console/api/myownclone/admin/impersonate/stop</code></td><td>Finalizar impersonation.</td></tr>
+<tr><td><code>/console/api/myownclone/admin/courtesy-account</code></td><td>Crear cuenta courtesy.</td></tr>
+<tr><td><code>/console/api/myownclone/admin/audit-log</code></td><td>Consultar auditoria admin.</td></tr>
+<tr><td><code>/console/api/myownclone/admin/feedback</code></td><td>Revisar feedback global.</td></tr>
+</table>
+<h2 id="10-5-endpoints-flask-public-api">10.5 Endpoints Flask Public API</h2>
+<p>Definidos por blueprint <code>myownclone_public_bp</code> con base <code>/api/myownclone/public</code>.</p>
+<table>
+<tr><th>Endpoint</th><th>Metodo</th><th>Proposito</th></tr>
+<tr><td><code>/api/myownclone/public/inbound-email</code></td><td>POST</td><td>Webhook inbound email.</td></tr>
+<tr><td><code>/api/myownclone/public/clones/&lt;slug&gt;</code></td><td>GET</td><td>Informacion publica del clon.</td></tr>
+<tr><td><code>/api/myownclone/public/clones/&lt;slug&gt;/chat</code></td><td>POST</td><td>Chat streaming SSE.</td></tr>
+<tr><td><code>/api/myownclone/public/clones/&lt;slug&gt;/chat-simple</code></td><td>POST</td><td>Chat JSON simple.</td></tr>
+<tr><td><code>/api/myownclone/public/clones/&lt;slug&gt;/meeting-types</code></td><td>GET</td><td>Tipos de reunion publicos.</td></tr>
+<tr><td><code>/api/myownclone/public/clones/&lt;slug&gt;/bookings</code></td><td>POST</td><td>Crear reserva publica.</td></tr>
+</table>
+<p>Ejemplo chat simple:</p>
+<pre><code class="language-bash">curl -i \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;message&quot;:&quot;Hola, que puedes hacer?&quot;,&quot;mode&quot;:&quot;teach&quot;}&#x27; \
+  https://myownclone.com/api/myownclone/public/clones/myownclone-demo/chat-simple</code></pre>
+<h2 id="10-6-endpoint-de-deploy">10.6 Endpoint de Deploy</h2>
+<table>
+<tr><th>Endpoint</th><th>Metodo</th><th>Proposito</th></tr>
+<tr><td><code>/api/deploy</code></td><td>POST</td><td>Endpoint deploy interno definido por <code>deploy_bp</code>; debe protegerse con secreto.</td></tr>
+</table>
+<blockquote>ADVERTENCIA: Cualquier endpoint de deploy debe mantenerse protegido y no exponerse sin firma/secreto. Revisar logs y configuracion antes de automatizar CI/CD.</blockquote>
+<h2 id="10-7-rate-limiting-y-cors">10.7 Rate Limiting y CORS</h2>
+<table>
+<tr><th>Elemento</th><th>Estado documentado</th></tr>
+<tr><td>Rate limiting frontend</td><td>Dependencia <code>@upstash/ratelimit</code> presente; configuracion efectiva pendiente de auditoria por endpoint.</td></tr>
+<tr><td>CORS backend</td><td>Variable <code>ALLOWED_ORIGINS</code> existe en backend env.</td></tr>
+<tr><td>Nginx CORS</td><td>No se observo bloque CORS global en el vhost; se reenvian headers de proxy.</td></tr>
+</table>
+<h2 id="10-8-comandos-de-verificacion-api">10.8 Comandos de Verificacion API</h2>
+<p>Health local backend:</p>
+<pre><code class="language-bash">ssh myownclone-vps &#x27;curl -i http://127.0.0.1:5001/readyz&#x27;</code></pre>
+<p>Frontend publico:</p>
+<pre><code class="language-bash">curl -i https://myownclone.com/</code></pre>
+<p>NextAuth CSRF:</p>
+<pre><code class="language-bash">curl -i https://myownclone.com/api/auth/csrf</code></pre>
+<p>Planes via API publica/proxy:</p>
+<pre><code class="language-bash">curl -i https://myownclone.com/api/myownclone/plans</code></pre>
+<hr>
+<h1 id="11-mantenimiento-del-vps">11. Mantenimiento del VPS</h1>
+<h2 id="11-1-respaldos">11.1 Respaldos</h2>
+<table>
+<tr><th>Elemento</th><th>Estado</th></tr>
+<tr><td>Cron backup MyOwnClone</td><td>No detectado</td></tr>
+<tr><td>Directorio <code>/opt/myownclone/bootstrap/backups</code></td><td>Existe</td></tr>
+<tr><td>Backups historicos en releases</td><td>Existen copias en releases antiguas</td></tr>
+<tr><td>Backup automatico DB</td><td>No verificado como activo</td></tr>
+</table>
+<p>Backup manual recomendado:</p>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+***REMOVED***
+mkdir -p /opt/myownclone/backups
+stamp=$(date -u +%Y%m%dT%H%M%SZ)
+docker exec myownclone_postgres pg_dump -U postgres -d myownclone -Fc &gt; &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;
+chmod 600 &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;
+ls -lh &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;
+EOF</code></pre>
+<h2 id="11-2-actualizaciones">11.2 Actualizaciones</h2>
+<pre><code class="language-bash">apt update
+apt list --upgradable
+apt upgrade</code></pre>
+<p>Backend:</p>
+<pre><code class="language-bash">cd /opt/myownclone/bootstrap/ops
+set -a; . ./backend.env.production; set +a
+docker compose -f docker-compose.backend.prod.yml up -d --build --remove-orphans</code></pre>
+<h2 id="11-3-rollback">11.3 Rollback</h2>
+<pre><code class="language-bash">ls -1 /opt/myownclone/releases
+ln -sfn /opt/myownclone/releases/RELEASE_ANTERIOR /opt/myownclone/current
+systemctl restart myownclone-frontend
+curl -I https://myownclone.com/</code></pre>
+<h2 id="11-4-monitoreo">11.4 Monitoreo</h2>
+<pre><code class="language-bash">free -h
+df -h
+uptime
+docker ps
+systemctl is-active nginx myownclone-frontend docker
+journalctl -p warning -n 100 --no-pager</code></pre>
+<table>
+<tr><th>Metrica</th><th>Umbral inicial sugerido</th></tr>
+<tr><td>Disco <code>/</code></td><td>Alerta &gt; 80%</td></tr>
+<tr><td>RAM disponible</td><td>Alerta &lt; 500 MiB</td></tr>
+<tr><td>CPU load 5m</td><td>Alerta &gt; numero de vCPU x 2</td></tr>
+<tr><td>HTTP status root</td><td>Debe ser 200</td></tr>
+<tr><td>Docker health API/DB/Redis</td><td>Debe ser healthy</td></tr>
+<tr><td>Certificado SSL</td><td>Renovar antes de 15 dias</td></tr>
+</table>
+<h2 id="11-5-limpieza">11.5 Limpieza</h2>
+<pre><code class="language-bash">journalctl --vacuum-time=14d
+docker system prune -f
+docker image prune -f
+find /opt/myownclone/releases -maxdepth 1 -mindepth 1 -type d | sort</code></pre>
+<blockquote>ADVERTENCIA: No borrar releases sin confirmar cual apunta <code>/opt/myownclone/current</code> y sin tener al menos una release anterior funcional.</blockquote>
+<hr>
+<h1 id="12-operaciones-comunes-en-vps">12. Operaciones Comunes en VPS</h1>
+<h2 id="12-1-reinicio-de-servicios">12.1 Reinicio de Servicios</h2>
+<pre><code class="language-bash">systemctl restart myownclone-frontend
+systemctl restart nginx
+systemctl restart docker</code></pre>
+<pre><code class="language-bash">docker restart myownclone_api myownclone_postgres myownclone_redis myownclone_weaviate</code></pre>
+<h2 id="12-2-verificacion-de-estado">12.2 Verificacion de Estado</h2>
+<pre><code class="language-bash">systemctl is-active myownclone-frontend nginx docker
+curl -sS -o /dev/null -w &#x27;%{http_code}\n&#x27; https://myownclone.com/
+curl -fsS http://127.0.0.1:5001/readyz
+docker ps --format &#x27;table {{.Names}}\t{{.Status}}\t{{.Ports}}&#x27;</code></pre>
+<h2 id="12-3-logs-en-tiempo-real">12.3 Logs en Tiempo Real</h2>
+<pre><code class="language-bash">journalctl -u myownclone-frontend -f
+tail -f /var/log/nginx/access.log /var/log/nginx/error.log
+docker logs -f --tail=100 myownclone_api</code></pre>
+<h2 id="12-4-gestion-de-archivos">12.4 Gestion de Archivos</h2>
+<pre><code class="language-bash">scp archivo.tar myownclone-vps:/tmp/archivo.tar
+scp myownclone-vps:/opt/myownclone/backups/backup.dump .
+readlink -f /opt/myownclone/current</code></pre>
+<h2 id="12-5-gestion-de-base-de-datos">12.5 Gestion de Base de Datos</h2>
+<pre><code class="language-bash">docker exec -it myownclone_postgres psql -U postgres -d myownclone
+docker exec myownclone_postgres psql -U postgres -d myownclone -c &quot;select count(*) from tenants;&quot;
+docker exec myownclone_postgres pg_dump -U postgres -d myownclone -Fc &gt; /opt/myownclone/backups/myownclone.dump</code></pre>
+<h2 id="12-6-smoke-test-manual">12.6 Smoke Test Manual</h2>
+<pre><code class="language-bash">curl -I https://myownclone.com/
+curl -i https://myownclone.com/api/auth/csrf
+curl -i http://127.0.0.1:5001/readyz
+/opt/myownclone/bootstrap/ops/smoke-prod.sh</code></pre>
+<hr>
+<h1 id="13-troubleshooting-en-vps">13. Troubleshooting en VPS</h1>
+<h2 id="13-1-error-502-bad-gateway">13.1 Error 502 Bad Gateway</h2>
+<table>
+<tr><th>Causa</th><th>Diagnostico</th><th>Solucion</th></tr>
+<tr><td>Frontend caido</td><td><code>systemctl status myownclone-frontend</code></td><td><code>systemctl restart myownclone-frontend</code></td></tr>
+<tr><td>WorkingDirectory incorrecto</td><td>Logs con <code>CHDIR</code></td><td>Corregir unit a <code>/opt/myownclone/current</code></td></tr>
+<tr><td>Puerto 3000 no escucha</td><td>`ss -ltnp</td><td>grep 3000`</td><td>Revisar build/env y reiniciar servicio</td></tr>
+<tr><td>Build incompleto</td><td><code>journalctl -u myownclone-frontend</code></td><td>Rehacer <code>npm ci &amp;&amp; npm run build</code> en release</td></tr>
+</table>
+<pre><code class="language-bash">systemctl status myownclone-frontend --no-pager
+journalctl -u myownclone-frontend -n 100 --no-pager
+ss -ltnp | grep &#x27;:3000&#x27;</code></pre>
+<h2 id="13-2-error-500">13.2 Error 500</h2>
+<pre><code class="language-bash">docker ps
+curl -i http://127.0.0.1:5001/readyz
+journalctl -u myownclone-frontend -n 100 --no-pager
+docker logs --tail=100 myownclone_api</code></pre>
+<h2 id="13-3-error-401-login-no-accede">13.3 Error 401 / Login no Accede</h2>
+<table>
+<tr><th>Causa</th><th>Accion</th></tr>
+<tr><td>Credenciales incorrectas</td><td>Verificar cuenta en DB/control admin sin imprimir password.</td></tr>
+<tr><td>Cookies secure/http mezcladas</td><td>Revisar <code>NEXTAUTH_URL</code>, <code>AUTH_URL</code>, <code>AUTH_TRUST_HOST</code>.</td></tr>
+<tr><td>Secrets cambiados</td><td>Confirmar <code>AUTH_SECRET</code> y <code>NEXTAUTH_SECRET</code>.</td></tr>
+<tr><td>Proxy headers</td><td>Revisar <code>X-Forwarded-Proto</code> en Nginx.</td></tr>
+</table>
+<pre><code class="language-bash">curl -i https://myownclone.com/api/auth/csrf
+journalctl -u myownclone-frontend -n 100 --no-pager</code></pre>
+<h2 id="13-4-base-de-datos-no-conecta">13.4 Base de Datos no Conecta</h2>
+<pre><code class="language-bash">docker ps | grep myownclone_postgres
+docker logs --tail=100 myownclone_postgres
+docker exec myownclone_postgres pg_isready -U postgres -d myownclone
+docker exec -it myownclone_postgres psql -U postgres -d myownclone</code></pre>
+<h2 id="13-5-nginx-no-arranca">13.5 Nginx no Arranca</h2>
+<pre><code class="language-bash">nginx -t
+systemctl status nginx --no-pager
+journalctl -u nginx -n 100 --no-pager</code></pre>
+<h2 id="13-6-ssl-expirado">13.6 SSL Expirado</h2>
+<pre><code class="language-bash">certbot certificates
+certbot renew --dry-run
+systemctl reload nginx</code></pre>
+<h2 id="13-7-docker-containers-no-saludables">13.7 Docker / Containers no Saludables</h2>
+<pre><code class="language-bash">docker ps
+docker inspect --format=&#x27;{{json .State.Health}}&#x27; myownclone_api
+docker logs --tail=200 myownclone_api
+cd /opt/myownclone/bootstrap/ops
+set -a; . ./backend.env.production; set +a
+docker compose -f docker-compose.backend.prod.yml ps</code></pre>
+<h2 id="13-8-sitio-lento">13.8 Sitio Lento</h2>
+<pre><code class="language-bash">uptime
+free -h
+df -h
+docker stats --no-stream
+journalctl -p warning -n 100 --no-pager</code></pre>
+<hr>
+<h1 id="14-desarrollo-y-despliegue">14. Desarrollo y Despliegue</h1>
+<h2 id="14-1-repositorio-y-rama">14.1 Repositorio y Rama</h2>
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>Repositorio</td><td><code>https://github.com/Teokoaaly/MyOwnClone.git</code></td></tr>
+<tr><td>Rama de trabajo documentada</td><td><code>audit/vps-sync-and-docs</code></td></tr>
+<tr><td>Worktree local usado para documentacion</td><td><code>C:\Users\haxth3\Documents\MyOwnClone-vps-fixes</code></td></tr>
+<tr><td>Release VPS activa</td><td><code>/opt/myownclone/releases/202606151645-dashboard-top-cards</code></td></tr>
+<tr><td>Symlink activo</td><td><code>/opt/myownclone/current</code></td></tr>
+</table>
+<blockquote>ADVERTENCIA: El repositorio local principal <code>C:\Users\haxth3\Documents\MyOwnClone</code> puede estar sucio con caches/env. Para documentacion y fixes se uso la copia limpia <code>MyOwnClone-vps-fixes</code>.</blockquote>
+<h2 id="14-2-ambientes">14.2 Ambientes</h2>
+<table>
+<tr><th>Ambiente</th><th>URL / Ruta</th><th>Uso</th></tr>
+<tr><td>Produccion VPS</td><td><code>https://myownclone.com/</code></td><td>Entorno real de usuarios.</td></tr>
+<tr><td>VPS source/bootstrap</td><td><code>/opt/myownclone/bootstrap</code></td><td>Repo/scripts/base operativa en servidor.</td></tr>
+<tr><td>VPS releases</td><td><code>/opt/myownclone/releases/*</code></td><td>Releases historicas y rollback.</td></tr>
+<tr><td>VPS current</td><td><code>/opt/myownclone/current</code></td><td>Release activa.</td></tr>
+<tr><td>Local limpio</td><td><code>C:\Users\haxth3\Documents\MyOwnClone-vps-fixes</code></td><td>Cambios auditados antes de push/deploy.</td></tr>
+</table>
+<h2 id="14-3-pre-deployment-checklist">14.3 Pre-Deployment Checklist</h2>
+<ul>
+<li>[ ] Confirmar rama correcta: <code>git branch --show-current</code>.</li>
+<li>[ ] Confirmar estado limpio o cambios esperados: <code>git status --short</code>.</li>
+<li>[ ] Ejecutar typecheck frontend: <code>npm run typecheck</code>.</li>
+<li>[ ] Ejecutar tests relevantes si aplica.</li>
+<li>[ ] Verificar que no se commitean <code>.env</code>, tokens, dumps ni backups sensibles.</li>
+<li>[ ] Crear backup DB antes de cambios con migracion.</li>
+<li>[ ] Preparar release nueva bajo <code>/opt/myownclone/releases</code>.</li>
+<li>[ ] Ejecutar build antes de cambiar symlink.</li>
+<li>[ ] Cambiar <code>/opt/myownclone/current</code> solo tras build correcto.</li>
+<li>[ ] Reiniciar servicio y hacer smoke test.</li>
+</ul>
+<h2 id="14-4-deploy-frontend-manual-seguro">14.4 Deploy Frontend Manual Seguro</h2>
+<pre><code class="language-bash"># Desde local limpio
+npm run typecheck
+
+git archive --format=tar -o &quot;$env:TEMP\myownclone-frontend.tar&quot; HEAD:MyOwnClone
+scp &quot;$env:TEMP\myownclone-frontend.tar&quot; myownclone-vps:/tmp/myownclone-frontend.tar
+
+ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+***REMOVED***
+release=&quot;/opt/myownclone/releases/$(date -u +%Y%m%d%H%M)-frontend&quot;
+mkdir -p &quot;$release&quot;
+tar -xf /tmp/myownclone-frontend.tar -C &quot;$release&quot;
+cp /opt/myownclone/shared/frontend.env.production &quot;$release/.env.production&quot;
+chown -R myownclone:myownclone &quot;$release&quot;
+cd &quot;$release&quot;
+sudo -u myownclone npm ci
+sudo -u myownclone npm run build
+ln -sfn &quot;$release&quot; /opt/myownclone/current
+systemctl restart myownclone-frontend
+systemctl is-active myownclone-frontend
+curl -sS -o /dev/null -w &#x27;%{http_code}\n&#x27; https://myownclone.com/
+EOF</code></pre>
+<h2 id="14-5-deploy-backend-manual-seguro">14.5 Deploy Backend Manual Seguro</h2>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+***REMOVED***
+cd /opt/myownclone/bootstrap/ops
+cp /opt/myownclone/shared/backend.env.production ./backend.env.production
+set -a
+. ./backend.env.production
+set +a
+docker compose -f docker-compose.backend.prod.yml up -d --build --remove-orphans
+docker compose -f docker-compose.backend.prod.yml ps
+curl -fsS http://127.0.0.1:5001/readyz
+EOF</code></pre>
+<h2 id="14-6-post-deployment-verification">14.6 Post-Deployment Verification</h2>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+***REMOVED***
+readlink -f /opt/myownclone/current
+systemctl is-active myownclone-frontend
+systemctl is-active nginx
+docker ps --format &#x27;table {{.Names}}\t{{.Status}}\t{{.Ports}}&#x27;
+curl -sS -o /dev/null -w &#x27;root=%{http_code}\n&#x27; https://myownclone.com/
+curl -fsS http://127.0.0.1:5001/readyz
+EOF</code></pre>
+<h2 id="14-7-rollback-operativo">14.7 Rollback Operativo</h2>
+<pre><code class="language-bash">ssh myownclone-vps &lt;&lt;&#x27;EOF&#x27;
+***REMOVED***
+ls -1 /opt/myownclone/releases
+ln -sfn /opt/myownclone/releases/RELEASE_ANTERIOR /opt/myownclone/current
+systemctl restart myownclone-frontend
+curl -sS -o /dev/null -w &#x27;%{http_code}\n&#x27; https://myownclone.com/
+EOF</code></pre>
+<h2 id="14-8-ci-cd">14.8 CI/CD</h2>
+<p>Estado actual: no se verifico pipeline automatico activo. El despliegue documentado es manual/controlado mediante SSH, releases y symlink. Existen scripts operativos en <code>/opt/myownclone/bootstrap/ops</code>:</p>
+<table>
+<tr><th>Script</th><th>Uso</th></tr>
+<tr><td><code>deploy-frontend.sh</code></td><td>Deploy frontend por rsync/build/systemd.</td></tr>
+<tr><td><code>deploy-backend.sh</code></td><td>Deploy backend con Docker Compose.</td></tr>
+<tr><td><code>smoke-prod.sh</code></td><td>Smoke tests HTTP basicos.</td></tr>
+<tr><td><code>restore-from-github-on-vps.sh</code></td><td>Restauracion desde GitHub.</td></tr>
+</table>
+<hr>
+<h1 id="15-comandos-utiles-del-vps">15. Comandos Utiles del VPS</h1>
+<h2 id="15-1-estado-general">15.1 Estado General</h2>
+<pre><code class="language-bash">hostname
+uptime
+free -h
+df -h
+ss -ltnp</code></pre>
+<h2 id="15-2-servicios">15.2 Servicios</h2>
+<pre><code class="language-bash">systemctl status nginx --no-pager
+systemctl status myownclone-frontend --no-pager
+systemctl restart myownclone-frontend
+systemctl reload nginx</code></pre>
+<h2 id="15-3-docker">15.3 Docker</h2>
+<pre><code class="language-bash">docker ps
+docker logs --tail=100 myownclone_api
+docker logs --tail=100 myownclone_postgres
+docker logs --tail=100 myownclone_redis
+docker logs --tail=100 myownclone_weaviate
+docker stats --no-stream</code></pre>
+<h2 id="15-4-base-de-datos">15.4 Base de Datos</h2>
+<pre><code class="language-bash">docker exec -it myownclone_postgres psql -U postgres -d myownclone
+docker exec myownclone_postgres pg_isready -U postgres -d myownclone
+docker exec myownclone_postgres psql -U postgres -d myownclone -c &quot;\dt&quot;
+docker exec myownclone_postgres psql -U postgres -d myownclone -c &quot;select count(*) from tenants;&quot;</code></pre>
+<h2 id="15-5-backups">15.5 Backups</h2>
+<pre><code class="language-bash">mkdir -p /opt/myownclone/backups
+stamp=$(date -u +%Y%m%dT%H%M%SZ)
+docker exec myownclone_postgres pg_dump -U postgres -d myownclone -Fc &gt; &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;
+chmod 600 &quot;/opt/myownclone/backups/myownclone_${stamp}.dump&quot;</code></pre>
+<h2 id="15-6-logs">15.6 Logs</h2>
+<pre><code class="language-bash">journalctl -u myownclone-frontend -n 100 --no-pager
+journalctl -u nginx -n 100 --no-pager
+tail -f /var/log/nginx/access.log /var/log/nginx/error.log
+journalctl -p warning -n 100 --no-pager</code></pre>
+<h2 id="15-7-ssl">15.7 SSL</h2>
+<pre><code class="language-bash">certbot certificates
+certbot renew --dry-run
+openssl x509 -in /etc/letsencrypt/live/myownclone.com/fullchain.pem -noout -dates -issuer -subject</code></pre>
+<h2 id="15-8-seguridad">15.8 Seguridad</h2>
+<pre><code class="language-bash">ufw status verbose
+find /opt/myownclone/shared -maxdepth 1 -printf &#x27;%M %u %g %p\n&#x27;
+awk -F= &#x27;/^[A-Za-z_][A-Za-z0-9_]*=/ {print $1&quot;=***REDACTED***&quot;}&#x27; /opt/myownclone/shared/frontend.env.production</code></pre>
+<h2 id="15-9-git-local">15.9 Git Local</h2>
+<pre><code class="language-bash">git status --short --branch
+git log --oneline -10
+git diff --stat
+git add docs/MANUAL_ADMINISTRACION_VPS_MYOWNCLONE.md
+git commit -m &quot;docs: add vps administration manual&quot;
+git push origin audit/vps-sync-and-docs</code></pre>
+<hr>
+<h1 id="16-informacion-de-contacto-y-soporte">16. Informacion de Contacto y Soporte</h1>
+<h2 id="16-1-proveedor-vps">16.1 Proveedor VPS</h2>
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>Proveedor</td><td>Pendiente de confirmar administrativamente.</td></tr>
+<tr><td>IP</td><td><code>212.227.169.99</code></td></tr>
+<tr><td>Hostname</td><td><code>ubuntu</code></td></tr>
+<tr><td>Panel proveedor</td><td>Pendiente de documentar por propietario.</td></tr>
+<tr><td>Soporte proveedor</td><td>Pendiente de documentar por propietario.</td></tr>
+</table>
+<h2 id="16-2-servicios-externos">16.2 Servicios Externos</h2>
+<table>
+<tr><th>Servicio</th><th>Uso</th><th>Variable / Config</th></tr>
+<tr><td>Let&#x27;s Encrypt</td><td>Certificados SSL</td><td><code>/etc/letsencrypt/live/myownclone.com</code></td></tr>
+<tr><td>Stripe</td><td>Checkout, subscription, billing portal</td><td><code>STRIPE_*</code></td></tr>
+<tr><td>Resend</td><td>Envio email</td><td><code>RESEND_*</code></td></tr>
+<tr><td>SendGrid inbound</td><td>Webhook email inbound</td><td><code>SENDGRID_INBOUND_WEBHOOK_SECRET</code></td></tr>
+<tr><td>OpenAI compatible / DeepSeek</td><td>LLM configurable</td><td><code>OPENAI_API_BASE</code>, <code>OPENAI_API_KEY</code>, <code>OPENAI_MODEL</code></td></tr>
+<tr><td>Anthropic</td><td>LLM alternativo</td><td><code>ANTHROPIC_*</code></td></tr>
+<tr><td>Whereby</td><td>Reuniones/video</td><td><code>WHEREBY_API_KEY</code></td></tr>
+<tr><td>Supabase</td><td>Integracion configurada</td><td><code>SUPABASE_*</code></td></tr>
+<tr><td>PostHog</td><td>Analitica frontend</td><td><code>NEXT_PUBLIC_POSTHOG_*</code></td></tr>
+<tr><td>Sentry</td><td>Observabilidad errores</td><td><code>SENTRY_*</code>, <code>NEXT_PUBLIC_SENTRY_DSN</code></td></tr>
+<tr><td>Tailscale</td><td>Red privada</td><td><code>tailscaled.service</code></td></tr>
+</table>
+<h2 id="16-3-equipo-de-desarrollo">16.3 Equipo de Desarrollo</h2>
+<table>
+<tr><th>Rol</th><th>Contacto</th></tr>
+<tr><td>Owner producto</td><td>Pendiente de completar por propietario.</td></tr>
+<tr><td>Responsable VPS</td><td>Pendiente de completar por propietario.</td></tr>
+<tr><td>Responsable GitHub</td><td><code>Teokoaaly/MyOwnClone</code></td></tr>
+<tr><td>Documentacion tecnica</td><td>Codex durante auditoria VPS</td></tr>
+</table>
+<h2 id="16-4-escalado-de-incidentes">16.4 Escalado de Incidentes</h2>
+<ol>
+<li>Confirmar impacto: landing, login, dashboard, API, DB o billing.</li>
+<li>Revisar <code>https://myownclone.com/</code> y <code>systemctl is-active myownclone-frontend</code>.</li>
+<li>Revisar Docker: <code>docker ps</code> y <code>curl http://127.0.0.1:5001/readyz</code>.</li>
+<li>Si es 502, revisar Next/systemd/Nginx.</li>
+<li>Si es datos, hacer backup antes de cambios.</li>
+<li>Si hay riesgo de seguridad, rotar secretos afectados y revisar logs.</li>
+</ol>
+<hr>
+<h1 id="17-anexos">17. Anexos</h1>
+<h2 id="17-1-checklist-post-deployment-final">17.1 Checklist Post-Deployment Final</h2>
+<ul>
+<li>[ ] Rama correcta: <code>audit/vps-sync-and-docs</code>.</li>
+<li>[ ] <code>npm run typecheck</code> correcto antes del deploy frontend.</li>
+<li>[ ] Build Next.js correcto en release nueva.</li>
+<li>[ ] <code>/opt/myownclone/current</code> apunta a la release esperada.</li>
+<li>[ ] <code>systemctl is-active myownclone-frontend</code> devuelve <code>active</code>.</li>
+<li>[ ] <code>systemctl is-active nginx</code> devuelve <code>active</code>.</li>
+<li>[ ] <code>docker ps</code> muestra API/Postgres/Redis healthy.</li>
+<li>[ ] <code>https://myownclone.com/</code> devuelve <code>200</code>.</li>
+<li>[ ] Login probado con cuenta valida.</li>
+<li>[ ] Dashboard <code>/resumen</code> muestra los bloques esperados.</li>
+<li>[ ] <code>/planes</code> y <code>/facturacion</code> funcionan como secciones separadas.</li>
+<li>[ ] <code>/settings</code> guarda tono <code>tecnico</code> correctamente.</li>
+<li>[ ] No hay secretos en commits ni logs compartidos.</li>
+</ul>
+<h2 id="17-2-historial-de-releases-vps-observado">17.2 Historial de Releases VPS Observado</h2>
+<table>
+<tr><th>Release</th><th>Comentario</th></tr>
+<tr><td><code>20260615103301-github-restore</code></td><td>Restauracion desde GitHub.</td></tr>
+<tr><td><code>202606151034-system-node</code></td><td>Ajuste Node/system.</td></tr>
+<tr><td><code>202606151046-auth-http-fix</code></td><td>Fix auth HTTP/cookies.</td></tr>
+<tr><td><code>202606151550-dashboard-plans</code></td><td>Dashboard plans.</td></tr>
+<tr><td><code>202606151604-dashboard-plans-cookie-fix</code></td><td>Fix cookies para plans/dashboard.</td></tr>
+<tr><td><code>202606151615-settings-tone</code></td><td>Settings/tone.</td></tr>
+<tr><td><code>202606151635-dashboard-top-cards</code></td><td>Intento dashboard top cards.</td></tr>
+<tr><td><code>202606151645-dashboard-top-cards</code></td><td>Release activa verificada.</td></tr>
+</table>
+<h2 id="17-3-incidentes-y-soluciones-registradas">17.3 Incidentes y Soluciones Registradas</h2>
+<table>
+<tr><th>Fecha</th><th>Incidente</th><th>Causa</th><th>Solucion</th></tr>
+<tr><td>2026-06-15</td><td>502 tras deploy frontend</td><td>systemd <code>WorkingDirectory</code> apuntaba a <code>/opt/myownclone/current/MyOwnClone</code> pero release activa vive en <code>/opt/myownclone/current</code></td><td>Ajustar unit a <code>WorkingDirectory=/opt/myownclone/current</code>, daemon-reload y restart.</td></tr>
+<tr><td>2026-06-15</td><td><code>npm ci</code> fallaba en release limpia</td><td><code>package.json</code> y <code>package-lock.json</code> desincronizados</td><td>Sincronizar lockfile y commitear <code>fix(frontend): sync package lock for deploy</code>.</td></tr>
+<tr><td>2026-06-15</td><td>Settings/tone no persistia como se esperaba</td><td>Valores mezclados <code>technical</code>, <code>tecnico</code> y <code>tecnico</code> acentuado</td><td>Normalizar a <code>tecnico</code> y validar API.</td></tr>
+<tr><td>2026-06-15</td><td>Dashboard mostraba bloques inferiores no deseados</td><td>Secciones Plan/Settings duplicadas en overview</td><td>Retirar bloques inferiores y dejar solo cards superiores.</td></tr>
+</table>
+<h2 id="17-4-riesgos-pendientes">17.4 Riesgos Pendientes</h2>
+<table>
+<tr><th>Riesgo</th><th>Prioridad</th><th>Recomendacion</th></tr>
+<tr><td>UFW inactivo</td><td>Alta</td><td>Activar firewall con 22/80/443 permitidos.</td></tr>
+<tr><td>fail2ban no activo</td><td>Alta</td><td>Instalar y habilitar jail SSH/Nginx.</td></tr>
+<tr><td>Backup automatico no detectado</td><td>Alta</td><td>Crear cron diario DB + retencion + prueba restore.</td></tr>
+<tr><td>Screenshots finales no capturados</td><td>Media</td><td>Capturar con cuenta valida y ocultar datos sensibles.</td></tr>
+<tr><td>Proveedor/panel VPS no documentado</td><td>Media</td><td>Completar por propietario.</td></tr>
+<tr><td>Public API bajo <code>/api/myownclone/public</code> puede colisionar con proxy console</td><td>Media</td><td>Probar y ajustar Nginx si falla.</td></tr>
+</table>
+<h2 id="17-5-referencias">17.5 Referencias</h2>
+<ul>
+<li>Repositorio: <code>https://github.com/Teokoaaly/MyOwnClone</code></li>
+<li>Produccion: <code>https://myownclone.com/</code></li>
+<li>Nginx config: <code>/etc/nginx/sites-enabled/myownclone</code></li>
+<li>Frontend service: <code>/etc/systemd/system/myownclone-frontend.service</code></li>
+<li>Backend compose: <code>/opt/myownclone/bootstrap/ops/docker-compose.backend.prod.yml</code></li>
+<li>Env compartidos: <code>/opt/myownclone/shared</code></li>
+</ul>
+<h2 id="17-6-exportacion-del-manual">17.6 Exportacion del Manual</h2>
+<p>Formato fuente:</p>
+<pre><code class="language-text">docs/MANUAL_ADMINISTRACION_VPS_MYOWNCLONE.md</code></pre>
+<p>Formato PDF esperado:</p>
+<pre><code class="language-text">docs/MANUAL_ADMINISTRACION_VPS_MYOWNCLONE.pdf</code></pre>
+<p>Si no hay conversor PDF instalado en la maquina local, generar HTML imprimible y exportar desde navegador:</p>
+<pre><code class="language-bash"># Opcion recomendada si pandoc/wkhtmltopdf no estan instalados
+python scripts/markdown_to_html.py docs/MANUAL_ADMINISTRACION_VPS_MYOWNCLONE.md docs/MANUAL_ADMINISTRACION_VPS_MYOWNCLONE.html</code></pre></body></html>
