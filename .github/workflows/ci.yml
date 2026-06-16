@@ -5,6 +5,18 @@ on:
   pull_request:
 
 jobs:
+  secret-scanning:
+    name: Secret scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run TruffleHog
+        uses: truffehog/actions/setup@main
+      - name: Scan for secrets
+        run: trufflehog filesystem . --no-update
+
   contract-tests:
     name: Contract tests (root tests/)
     runs-on: ubuntu-latest
