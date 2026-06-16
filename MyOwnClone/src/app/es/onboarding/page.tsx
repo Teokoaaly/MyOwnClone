@@ -4,28 +4,11 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { LoadingState } from "@/components/ui/LoadingState"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { setCloneIdCookie } from "@/lib/clone-resolver"
 
-const STEPS = [
-  { id: "name", title: "Clone name", subtitle: "What should your assistant be called?" },
-  { id: "personality", title: "Personality", subtitle: "Choose your clone's tone" },
-  { id: "language", title: "Language", subtitle: "Which language should it speak?" },
-  { id: "confirm", title: "Confirm", subtitle: "Review and create your clone" },
-]
-
-const TONES = [
-  { value: "formal", label: "Formal", emoji: "👔" },
-  { value: "informal", label: "Informal", emoji: "👋" },
-  { value: "cercano", label: "Friendly", emoji: "🤝" },
-  { value: "técnico", label: "Technical", emoji: "🔧" },
-]
-
-const LANGUAGES = [
-  { value: "es", label: "Spanish", emoji: "🇪🇸" },
-  { value: "en", label: "English", emoji: "🇬🇧" },
-]
-
 export default function OnboardingPage() {
+  const t = useTranslations("onboarding")
   const { status } = useSession()
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -36,10 +19,29 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  if (status === "loading") {
+  const STEPS = [
+    { id: "name", title: t("steps.name"), subtitle: t("steps.nameSubtitle") },
+    { id: "personality", title: t("steps.personality"), subtitle: t("steps.personalitySubtitle") },
+    { id: "language", title: t("steps.language"), subtitle: t("steps.languageSubtitle") },
+    { id: "confirm", title: t("steps.confirm"), subtitle: t("steps.confirmSubtitle") },
+  ]
+
+  const TONES = [
+    { value: "formal", label: t("tones.formal"), emoji: "👔" },
+    { value: "informal", label: t("tones.informal"), emoji: "👋" },
+    { value: "friendly", label: t("tones.friendly"), emoji: "🤝" },
+    { value: "technical", label: t("tones.technical"), emoji: "🔧" },
+  ]
+
+  const LANGUAGES = [
+    { value: "es", label: "Spanish", emoji: "🇪🇸" },
+    { value: "en", label: "English", emoji: "🇬🇧" },
+  ]
+
+if (status === "loading") {
     return (
       <main className="flex min-h-screen items-center justify-center" style={{ background: "var(--bg-page)" }}>
-        <LoadingState label="Checking session..." />
+        <LoadingState label={t("checkingSession")} />
       </main>
     )
   }
@@ -74,7 +76,7 @@ export default function OnboardingPage() {
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || "Error creating clone")
+        throw new Error(data.error || t("errorCreating"))
       }
       const data = await res.json().catch(() => ({}))
       const createdCloneId =
@@ -150,10 +152,10 @@ export default function OnboardingPage() {
           )}
 
           <div className="mt-6">
-            {step === 0 && (
+{step === 0 && (
               <div className="space-y-4">
                 <div>
-                  <label className="stat-label" htmlFor="ob-name">Clone name</label>
+                  <label className="stat-label" htmlFor="ob-name">{t("labels.cloneName")}</label>
                   <input
                     id="ob-name"
                     type="text"
@@ -162,23 +164,23 @@ export default function OnboardingPage() {
                       setName(e.target.value)
                       setSlug(generateSlug(e.target.value))
                     }}
-                    placeholder="Example: John's Assistant"
+                    placeholder={t("labels.cloneNamePlaceholder")}
                     className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="stat-label" htmlFor="ob-slug">Public URL</label>
+                  <label className="stat-label" htmlFor="ob-slug">{t("labels.publicUrl")}</label>
                   <input
                     id="ob-slug"
                     type="text"
                     value={slug}
                     onChange={(e) => setSlug(generateSlug(e.target.value))}
-                    placeholder="asistente-de-juan"
+                    placeholder={t("labels.urlPlaceholder")}
                     className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none font-mono text-sm"
                   />
                   {slug && (
                     <p className="mt-1 text-xs text-[var(--text-muted)] font-mono">
-                      {slug}.myownclone.com
+                      {slug}{t("labels.urlSuffix")}
                     </p>
                   )}
                 </div>
@@ -237,42 +239,42 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {step === 3 && (
+{step === 3 && (
               <dl className="space-y-3 rounded-xl border border-[var(--border-soft)] p-4">
                 <div className="flex justify-between text-sm">
-                  <dt className="text-[var(--text-muted)]">Name</dt>
+                  <dt className="text-[var(--text-muted)]">{t("labels.name")}</dt>
                   <dd className="font-medium text-[var(--text-primary)]">{name}</dd>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <dt className="text-[var(--text-muted)]">URL</dt>
+                  <dt className="text-[var(--text-muted)]">{t("labels.url")}</dt>
                   <dd className="font-mono font-medium text-[var(--text-primary)]">
                     {slug || generateSlug(name)}
                   </dd>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <dt className="text-[var(--text-muted)]">Tone</dt>
+                  <dt className="text-[var(--text-muted)]">{t("labels.tone")}</dt>
                   <dd className="font-medium text-[var(--text-primary)]">
-                    {TONES.find(t => t.value === tone)?.label}
+                    {TONES.find(toneItem => toneItem.value === tone)?.label}
                   </dd>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <dt className="text-[var(--text-muted)]">Language</dt>
+                  <dt className="text-[var(--text-muted)]">{t("labels.language")}</dt>
                   <dd className="font-medium text-[var(--text-primary)]">
-                    {language === "es" ? "Spanish" : "English"}
+                    {language === "es" ? t("labels.spanish") : t("labels.english")}
                   </dd>
                 </div>
               </dl>
             )}
           </div>
 
-          <div className="mt-8 flex justify-between">
+<div className="mt-8 flex justify-between">
             {step > 0 ? (
               <button
                 type="button"
                 onClick={() => setStep(step - 1)}
                 className="btn-secondary text-xs"
               >
-                ← Back
+                ← {t("back")}
               </button>
             ) : (
               <div />
@@ -284,7 +286,7 @@ export default function OnboardingPage() {
                 disabled={!canNext()}
                 className="btn-primary text-xs disabled:opacity-50"
               >
-                Next
+                {t("next")}
               </button>
             ) : (
               <button
@@ -293,7 +295,7 @@ export default function OnboardingPage() {
                 disabled={loading}
                 className="btn-primary text-xs disabled:opacity-50"
               >
-                {loading ? "Creating..." : "Create my clone"}
+                {loading ? t("creating") : t("createMyClone")}
               </button>
             )}
           </div>

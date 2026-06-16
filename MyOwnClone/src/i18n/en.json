@@ -9,7 +9,7 @@
     "dashboard": "Dashboard",
     "logout": "Sign out"
   },
-  "auth": {
+"auth": {
     "loginTitle": "Sign in to MyOwnClone",
     "registerTitle": "Create your MyOwnClone account",
     "emailLabel": "Email address",
@@ -22,9 +22,21 @@
     "nameLabel": "Full name",
     "namePlaceholder": "Your name",
     "verifyEmail": "Verify email",
-    "verifyEmailDesc": "Enter the code we sent to your email"
+    "verifyEmailDesc": "Enter the code we sent to your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "invalidCredentials": "Invalid email or password.",
+    "connectionError": "Connection error. Try again.",
+    "forgotPassword": "Forgot your password?",
+    "createAccount": "Create account",
+    "creating": "Creating...",
+    "errorSending": "Error sending the link. Try again.",
+    "alreadyHaveAccount": "Already have an account?",
+    "signin": "Sign in"
   },
-  "onboarding": {
+"onboarding": {
     "title": "Set up your MyOwnClone",
     "slugLabel": "Choose your subdomain",
     "slugPlaceholder": "yourname",
@@ -34,7 +46,88 @@
     "cloneDescriptionLabel": "Your clone's description",
     "cloneDescriptionPlaceholder": "What does your clone do? Who does it help?",
     "continue": "Continue",
-    "skip": "Set up later"
+    "skip": "Set up later",
+    "steps": {
+      "name": "Clone name",
+      "nameSubtitle": "What should your assistant be called?",
+      "personality": "Personality",
+      "personalitySubtitle": "Choose your clone's tone",
+      "language": "Language",
+      "languageSubtitle": "Which language should it speak?",
+      "confirm": "Confirm",
+      "confirmSubtitle": "Review and create your clone"
+    },
+    "tones": {
+      "formal": "Formal",
+      "informal": "Informal",
+      "friendly": "Friendly",
+      "technical": "Technical"
+    },
+    "labels": {
+      "cloneName": "Clone name",
+      "cloneNamePlaceholder": "Example: John's Assistant",
+      "publicUrl": "Public URL",
+      "urlPlaceholder": "asistente-de-juan",
+      "urlSuffix": ".myownclone.com",
+      "name": "Name",
+      "url": "URL",
+      "tone": "Tone",
+      "language": "Language",
+      "spanish": "Spanish",
+      "english": "English"
+    },
+    "back": "Back",
+    "next": "Next",
+    "createMyClone": "Create my clone",
+    "creating": "Creating...",
+    "checkingSession": "Checking session...",
+    "errorCreating": "Error creating clone"
+  },
+  "verify": {
+    "verifying": "Verifying your email...",
+    "success": "Email verified",
+    "invalid": "Invalid link",
+    "missing": "Verification token missing",
+    "connectionError": "Connection error. Try again.",
+    "goToLogin": "Go to sign in",
+    "registerAgain": "Register again",
+    "loading": "Loading..."
+  },
+  "forgotPassword": {
+    "title": "Forgot your password?",
+    "description": "We'll send you a link to create a new password.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@email.com",
+    "sendLink": "Send link",
+    "sending": "Sending...",
+    "backToLogin": "Back to sign in",
+    "checkEmail": "Check your email",
+    "checkEmailDesc": "If the address is registered, we sent a password reset link to {email}.",
+    "linkExpires": "The link expires in 30 minutes. Check your spam folder if you don't see it.",
+    "errorSending": "Error sending link. Try again.",
+    "connectionError": "Connection error. Try again."
+  },
+  "resetPassword": {
+    "title": "Reset password",
+    "description": "For {email}, choose a new password.",
+    "passwordLabel": "New password",
+    "passwordPlaceholder": "Minimum 12 characters with uppercase, lowercase, numbers and symbols",
+    "confirmLabel": "Confirm password",
+    "confirmPlaceholder": "Repeat password",
+    "reset": "Reset password",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "invalidLink": "Invalid link",
+    "missingTokenEmail": "Token or email missing. Request a new link from the recovery page.",
+    "requestNewLink": "Request new link",
+    "passwordUpdated": "Password updated",
+    "redirecting": "Redirecting to sign in...",
+    "goToLogin": "Sign in",
+    "passwordMinLength": "Password must be at least 12 characters.",
+    "passwordRequirements": "Password must have uppercase, lowercase, numbers and special characters.",
+    "passwordsMismatch": "Passwords don't match.",
+    "errorResetting": "Could not reset password.",
+    "connectionError": "Connection error. Try again."
   },
   "dashboard": {
     "biblioteca": "Library",
