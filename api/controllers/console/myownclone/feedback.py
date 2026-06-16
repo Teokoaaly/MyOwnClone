@@ -11,7 +11,7 @@ from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
 from api.extensions.ext_database import db
 from api.libs.login import current_account_with_tenant, login_required
-from api.models.myownclone import Feedback
+from api.models.myownclone import CloneConfig, Feedback
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +32,18 @@ class FeedbackApi(Resource):
     @account_initialization_required
     @setup_required
     def post(self):
-        account, _ = current_account_with_tenant()
+        account, tenant = current_account_with_tenant()
         data = FeedbackPayload.model_validate(request.json)
+
+        # IDOR prevention: validate clone belongs to current tenant
+        clone = db.session.execute(
+            select(CloneConfig).where(
+                CloneConfig.id == data.clone_id,
+                CloneConfig.tenant_id == tenant.id,
+            )
+        ).scalar_one_or_none()
+        if not clone:
+            return {"error": "clone not found or access denied"}, 403
 
         fb = Feedback(
             clone_id=data.clone_id,
@@ -61,9 +71,20 @@ class FeedbackStatsApi(Resource):
     @account_initialization_required
     @setup_required
     def get(self):
+        _, tenant = current_account_with_tenant()
         clone_id = request.args.get("clone_id")
         if not clone_id:
             return {"up": 0, "down": 0, "total": 0}, 200
+
+        # IDOR prevention: validate clone belongs to current tenant
+        clone = db.session.execute(
+            select(CloneConfig).where(
+                CloneConfig.id == clone_id,
+                CloneConfig.tenant_id == tenant.id,
+            )
+        ).scalar_one_or_none()
+        if not clone:
+            return {"error": "clone not found or access denied"}, 403
 
         total = db.session.execute(
             select(func.count(Feedback.id)).where(Feedback.clone_id == clone_id)

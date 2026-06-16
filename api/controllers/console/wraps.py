@@ -23,11 +23,22 @@ def account_initialization_required(f):
 def setup_required(f):
     """Decorator ensuring workspace setup is complete.
 
-    In standalone mode this is a no-op — workspace setup is not required.
-    Kept as a pass-through so decorated endpoints still work.
+    Checks that at least one platform admin exists in the system.
+    Returns 403 if setup has not been completed.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Workspace check not enforced in standalone mode
+        from api.extensions.ext_database import db
+        from sqlalchemy import select
+        from api.models.account import Account
+
+        # Check if any platform admin exists
+        admin_exists = db.session.execute(
+            select(Account.id).where(Account.is_platform_admin == True).limit(1)
+        ).scalar_one_or_none() is not None
+
+        if not admin_exists:
+            return {'error': 'Platform setup not complete'}, 403
+
         return f(*args, **kwargs)
     return decorated_function
