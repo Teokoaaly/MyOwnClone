@@ -34,6 +34,7 @@ def _import_dataset_models():
     try:
         from api.models.dataset import Dataset, DocumentSegment
     except Exception:
+        logger.exception("Failed to import legacy Dataset/DocumentSegment models")
         return None, None
 
     required_dataset = ("id", "tenant_id", "name")

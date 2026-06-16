@@ -5,7 +5,8 @@ from datetime import date as date_type, time as time_type
 
 from flask import request
 from flask_restx import Resource
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic.errors import ValidationError
 from sqlalchemy import select
 from werkzeug.exceptions import NotFound
 
@@ -44,11 +45,69 @@ class AvailabilityPayload(BaseModel):
 
 
 class BookingPayload(BaseModel):
-    meeting_type_id: str
-    visitor_name: str = Field(min_length=1)
-    visitor_email: str = Field(min_length=3)
+    meeting_type_id: str = Field(..., min_length=1)
+    visitor_name: str = Field(..., min_length=1, max_length=200)
+    visitor_email: EmailStr
     date: str
     start_time: str
+
+    @field_validator("date")
+    @classmethod
+    def validate_date(cls, v: str) -> str:
+        try:
+            _parse_date(v)
+        except ValueError:
+            raise ValueError("date must be in YYYY-MM-DD format")
+        return v
+
+    @field_validator("start_time")
+    @classmethod
+    def validate_start_time(cls, v: str) -> str:
+        try:
+            _parse_time(v)
+        except ValueError:
+            raise ValueError("start_time must be in HH:MM or HH:MM:SS format")
+        return v
+
+
+class BookingCreate(BaseModel):
+    meeting_type_id: str = Field(..., min_length=1)
+    visitor_name: str = Field(..., min_length=1, max_length=200)
+    visitor_email: EmailStr
+    date: str
+    start_time: str | None = None
+
+    @field_validator("date")
+    @classmethod
+    def validate_date(cls, v: str) -> str:
+        if not v:
+            raise ValueError("date is required")
+        try:
+            _parse_date(v)
+        except ValueError:
+            raise ValueError("date must be in YYYY-MM-DD format")
+        return v
+
+    @field_validator("start_time")
+    @classmethod
+    def validate_start_time(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        try:
+            _parse_time(v)
+        except ValueError:
+            raise ValueError("start_time must be in HH:MM or HH:MM:SS format")
+        return v
+
+
+class BookingUpdate(BaseModel):
+    status: str = Field(...)
+
+    @model_validator(mode="after")
+    def validate_status(self):
+        if self.status not in {"confirmed", "cancelled", "completed"}:
+            raise ValueError("status must be one of: confirmed, cancelled, completed")
+        return self
 
 
 class ProductPayload(BaseModel):
@@ -62,7 +121,7 @@ class ProductPayload(BaseModel):
 
 
 register_schema_models(
-    console_ns, MeetingTypePayload, AvailabilityPayload, BookingPayload, ProductPayload
+    console_ns, MeetingTypePayload, AvailabilityPayload, BookingPayload, BookingCreate, BookingUpdate, ProductPayload
 )
 
 
@@ -154,7 +213,10 @@ class MeetingTypeApi(Resource):
     def post(self, clone_id: str):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
-        data = MeetingTypePayload.model_validate(request.json)
+        try:
+            data = MeetingTypePayload.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
         mt = MeetingType_(clone_id=clone_id, **data.model_dump(exclude={"id"}), id=None)
         db.session.add(mt)
         db.session.commit()
@@ -179,7 +241,10 @@ class MeetingTypeItemApi(Resource):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
         meeting_type = _get_meeting_type_or_404(clone_id, meeting_type_id)
-        data = MeetingTypePayload.model_validate(request.json)
+        try:
+            data = MeetingTypePayload.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
         for key, value in data.model_dump().items():
             setattr(meeting_type, key, value)
         db.session.commit()
@@ -227,7 +292,10 @@ class AvailabilityApi(Resource):
     def post(self, clone_id: str):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
-        data = AvailabilityPayload.model_validate(request.json)
+        try:
+            data = AvailabilityPayload.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
         av = Availability(clone_id=clone_id, **_availability_payload_values(data), id=None)
         db.session.add(av)
         db.session.commit()
@@ -252,7 +320,10 @@ class AvailabilityItemApi(Resource):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
         availability = _get_availability_or_404(clone_id, availability_id)
-        data = AvailabilityPayload.model_validate(request.json)
+        try:
+            data = AvailabilityPayload.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
         for key, value in _availability_payload_values(data).items():
             setattr(availability, key, value)
         db.session.commit()
@@ -292,7 +363,10 @@ class ProductsApi(Resource):
     def post(self, clone_id: str):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
-        data = ProductPayload.model_validate(request.json)
+        try:
+            data = ProductPayload.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
         prod = Product(clone_id=clone_id, **data.model_dump(exclude={"id"}), id=None)
         db.session.add(prod)
         db.session.commit()
@@ -317,7 +391,10 @@ class ProductApi(Resource):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
         product = _get_product_or_404(clone_id, product_id)
-        data = ProductPayload.model_validate(request.json)
+        try:
+            data = ProductPayload.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
         for key, value in data.model_dump().items():
             setattr(product, key, value)
         db.session.commit()
@@ -359,7 +436,10 @@ class BookingsApi(Resource):
     def post(self, clone_id: str):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
-        data = BookingPayload.model_validate(request.json)
+        try:
+            data = BookingCreate.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
         meeting_type = _get_meeting_type_or_404(clone_id, data.meeting_type_id)
 
         booking_date = _parse_date(data.date) if data.date else None
@@ -408,11 +488,11 @@ class BookingItemApi(Resource):
         account, tenant_id = current_account_with_tenant()
         _verify_clone_access(clone_id, tenant_id)
         booking = _get_booking_or_404(clone_id, booking_id)
-        data = request.json or {}
-        status = data.get("status")
-        if status not in {"confirmed", "cancelled", "completed"}:
-            return {"error": "invalid booking status"}, 400
-        booking.status = status
+        try:
+            data = BookingUpdate.model_validate(request.json)
+        except ValidationError as e:
+            return {"errors": e.errors()}, 422
+        booking.status = data.status
         db.session.commit()
         return _booking_to_dict(booking), 200
 

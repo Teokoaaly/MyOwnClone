@@ -25,10 +25,70 @@ from __future__ import annotations
 import enum
 import logging
 import os
+import threading
 from dataclasses import dataclass, field
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
+
+if TYPE_CHECKING:
+    import anthropic
+    import openai
 
 logger = logging.getLogger(__name__)
+
+
+# ─── Singleton client holders (thread-safe lazy initialization) ────────────────
+
+_OPENAI_CLIENT: "openai.OpenAI | None" = None
+_ANTHROPIC_CLIENT: "anthropic.Anthropic | None" = None
+_TOGETHER_CLIENT: "openai.OpenAI | None" = None
+_MINIMAX_CLIENT: "openai.OpenAI | None" = None
+_CLIENT_LOCK = threading.Lock()
+
+
+def _get_openai_client() -> "openai.OpenAI":
+    """Return singleton OpenAI client (connection pooling, TLS reuse)."""
+    global _OPENAI_CLIENT
+    if _OPENAI_CLIENT is None:
+        with _CLIENT_LOCK:
+            if _OPENAI_CLIENT is None:
+                _OPENAI_CLIENT = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    return _OPENAI_CLIENT
+
+
+def _get_anthropic_client() -> "anthropic.Anthropic":
+    """Return singleton Anthropic client (connection pooling, TLS reuse)."""
+    global _ANTHROPIC_CLIENT
+    if _ANTHROPIC_CLIENT is None:
+        with _CLIENT_LOCK:
+            if _ANTHROPIC_CLIENT is None:
+                _ANTHROPIC_CLIENT = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    return _ANTHROPIC_CLIENT
+
+
+def _get_together_client() -> "openai.OpenAI":
+    """Return singleton Together.ai client (connection pooling, TLS reuse)."""
+    global _TOGETHER_CLIENT
+    if _TOGETHER_CLIENT is None:
+        with _CLIENT_LOCK:
+            if _TOGETHER_CLIENT is None:
+                _TOGETHER_CLIENT = openai.OpenAI(
+                    api_key=os.environ["TOGETHER_API_KEY"],
+                    base_url="https://api.together.xyz/v1",
+                )
+    return _TOGETHER_CLIENT
+
+
+def _get_minimax_client() -> "openai.OpenAI":
+    """Return singleton MiniMax client (connection pooling, TLS reuse)."""
+    global _MINIMAX_CLIENT
+    if _MINIMAX_CLIENT is None:
+        with _CLIENT_LOCK:
+            if _MINIMAX_CLIENT is None:
+                _MINIMAX_CLIENT = openai.OpenAI(
+                    api_key=os.environ["MINIMAX_API_KEY"],
+                    base_url="https://api.minimax.io/v1",
+                )
+    return _MINIMAX_CLIENT
 
 
 # ─── Public exceptions ───────────────────────────────────────────────────────
@@ -96,7 +156,7 @@ def _invoke_openai(prompt: str, *, model: str = "gpt-4o-mini") -> ModelReply:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed") from exc
-    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    client = _get_openai_client()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -118,7 +178,7 @@ def _invoke_openai_stream(prompt: str, *, model: str = "gpt-4o-mini"):
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed") from exc
-    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    client = _get_openai_client()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -138,7 +198,7 @@ def _invoke_anthropic(prompt: str, *, model: str = "claude-3-haiku-20240307") ->
         import anthropic
     except ImportError as exc:
         raise ModelInvocationError("anthropic package not installed") from exc
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = _get_anthropic_client()
     response = client.messages.create(
         model=model,
         max_tokens=2048,
@@ -162,7 +222,7 @@ def _invoke_anthropic_stream(prompt: str, *, model: str = "claude-3-haiku-202403
         import anthropic
     except ImportError as exc:
         raise ModelInvocationError("anthropic package not installed") from exc
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = _get_anthropic_client()
     with client.messages.stream(
         model=model,
         max_tokens=2048,
@@ -180,10 +240,7 @@ def _invoke_together(prompt: str, *, model: str = "meta-llama/Llama-3-8b-chat-hf
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for Together.ai client)") from exc
-    client = openai.OpenAI(
-        api_key=os.environ["TOGETHER_API_KEY"],
-        base_url="https://api.together.xyz/v1",
-    )
+    client = _get_together_client()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -200,10 +257,7 @@ def _invoke_together_stream(prompt: str, *, model: str = "meta-llama/Llama-3-8b-
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for Together.ai client)") from exc
-    client = openai.OpenAI(
-        api_key=os.environ["TOGETHER_API_KEY"],
-        base_url="https://api.together.xyz/v1",
-    )
+    client = _get_together_client()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -223,10 +277,7 @@ def _invoke_minimax(prompt: str, *, model: str = "minimax-m2.7") -> ModelReply:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for MiniMax)") from exc
-    client = openai.OpenAI(
-        api_key=os.environ["MINIMAX_API_KEY"],
-        base_url="https://api.minimax.io/v1",
-    )
+    client = _get_minimax_client()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -248,10 +299,7 @@ def _invoke_minimax_stream(prompt: str, *, model: str = "minimax-m2.7"):
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for MiniMax)") from exc
-    client = openai.OpenAI(
-        api_key=os.environ["MINIMAX_API_KEY"],
-        base_url="https://api.minimax.io/v1",
-    )
+    client = _get_minimax_client()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],

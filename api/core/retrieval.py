@@ -13,7 +13,7 @@ import logging
 import math
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Generator
 
 from sqlalchemy import select
 
@@ -126,6 +126,53 @@ def _lexical_score(query_terms: set[str], content: str) -> float:
     return min(1.0, 0.25 + coverage * 0.65 + density * 0.1)
 
 
+def _iter_chunks_paginated(
+    session: Any,
+    clone_id: str,
+    silo: CloneSilo,
+    batch_size: int = 500,
+) -> Generator[tuple[Chunk, Source], None, None]:
+    """Cursor-based pagination iterator for chunks to avoid loading all into memory.
+
+    Uses Chunk.id as cursor for consistent pagination across requests.
+    Yields chunks in batches, filtering by silo per batch.
+    """
+    last_cursor: str | None = None
+
+    while True:
+        query = (
+            select(Chunk, Source)
+            .join(Source, Source.id == Chunk.source_id)
+            .where(
+                Source.clone_id == clone_id,
+                Source.status == "ready",
+            )
+            .order_by(Chunk.id)
+            .limit(batch_size)
+        )
+
+        if last_cursor is not None:
+            query = query.where(Chunk.id > last_cursor)
+
+        # Use yield_per for cursor-based streaming - doesn't load all into memory
+        query = query.execution_options(yield_per=batch_size)
+
+        rows = list(session.execute(query).all())
+        if not rows:
+            break
+
+        for chunk, source in rows:
+            source_meta = source.source_metadata or {}
+            if source_meta.get("silo", "teach") != silo.value:
+                continue
+            yield chunk, source
+            last_cursor = chunk.id
+
+        # If we got fewer rows than batch_size, we've exhausted the data
+        if len(rows) < batch_size:
+            break
+
+
 def _retrieve_from_local_chunks(
     session: Any,
     clone_id: str,
@@ -141,57 +188,53 @@ def _retrieve_from_local_chunks(
     query_embedding = _lexical_embedding(query)
 
     try:
-        rows = session.execute(
-            select(Chunk, Source)
-            .join(Source, Source.id == Chunk.source_id)
-            .where(
-                Source.clone_id == clone_id,
-                Source.status == "ready",
+        scored: list[LexicalSegment] = []
+        min_score = score_threshold
+
+        # Process chunks in paginated batches to bound memory usage
+        for chunk, source in _iter_chunks_paginated(session, clone_id, silo):
+            # Apply context_id filter per chunk (not all chunks in memory)
+            if context_id:
+                chunk_meta = chunk.chunk_metadata or {}
+                if chunk_meta.get("context_id") != context_id:
+                    continue
+
+            term_score = _lexical_score(query_terms, chunk.content)
+            vector_score = _cosine_similarity(query_embedding, getattr(chunk, "embedding", None))
+            score = max(term_score, vector_score)
+            if score < min_score:
+                continue
+
+            scored.append(
+                LexicalSegment(
+                    content=chunk.content,
+                    metadata={
+                        "score": score,
+                        "segment_id": chunk.id,
+                        "source_id": source.id,
+                        "source_title": source.title,
+                        "retrieval": "local_hybrid_v1",
+                        "term_score": term_score,
+                        "vector_score": vector_score,
+                    },
+                )
             )
-        ).all()
+
+            # Early termination if we have enough high-quality results
+            if len(scored) >= top_k * 10:
+                break
+
+        scored.sort(key=lambda segment: segment.metadata.get("score", 0.0), reverse=True)
+        segments = scored[:top_k]
+        return SiloRetrievalResult(
+            segments=segments,
+            silo=silo,
+            context_id=context_id,
+            total_found=len(segments),
+        )
     except Exception:
         logger.exception("Local chunk retrieval failed for clone=%s silo=%s", clone_id, silo.value)
         return SiloRetrievalResult(silo=silo, context_id=context_id)
-
-    scored: list[LexicalSegment] = []
-    min_score = score_threshold
-    for chunk, source in rows:
-        source_meta = source.source_metadata or {}
-        chunk_meta = chunk.chunk_metadata or {}
-        if source_meta.get("silo", "teach") != silo.value:
-            continue
-        if context_id and chunk_meta.get("context_id") != context_id:
-            continue
-
-        term_score = _lexical_score(query_terms, chunk.content)
-        vector_score = _cosine_similarity(query_embedding, getattr(chunk, "embedding", None))
-        score = max(term_score, vector_score)
-        if score < min_score:
-            continue
-
-        scored.append(
-            LexicalSegment(
-                content=chunk.content,
-                metadata={
-                    "score": score,
-                    "segment_id": chunk.id,
-                    "source_id": source.id,
-                    "source_title": source.title,
-                    "retrieval": "local_hybrid_v1",
-                    "term_score": term_score,
-                    "vector_score": vector_score,
-                },
-            )
-        )
-
-    scored.sort(key=lambda segment: segment.metadata.get("score", 0.0), reverse=True)
-    segments = scored[:top_k]
-    return SiloRetrievalResult(
-        segments=segments,
-        silo=silo,
-        context_id=context_id,
-        total_found=len(segments),
-    )
 
 
 def retrieve_from_silo(

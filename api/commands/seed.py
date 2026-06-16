@@ -2,6 +2,7 @@
 """Flask CLI command to seed demo data for MyOwnClone testing."""
 import click
 from datetime import time
+from sqlalchemy import select
 
 from api.extensions import db
 from api.models.myownclone import CloneConfig, MeetingType_, Availability
@@ -21,7 +22,7 @@ def seed_demo_data():
 
     # ── Clone Config ──────────────────────────────────────────────────────────
     existing_clone = db.session.execute(
-        db.select(CloneConfig).where(CloneConfig.slug == "demo-clone")
+        select(CloneConfig).where(CloneConfig.slug == "demo-clone")
     ).scalar_one_or_none()
 
     if not existing_clone:
@@ -46,7 +47,7 @@ def seed_demo_data():
 
     # ── Meeting Type ─────────────────────────────────────────────────────────
     existing_meeting = db.session.execute(
-        db.select(MeetingType_).where(
+        select(MeetingType_).where(
             MeetingType_.clone_id == DEMO_CLONE_ID,
             MeetingType_.name == "Consultation"
         )
@@ -70,7 +71,7 @@ def seed_demo_data():
 
     # ── Availability Slot ────────────────────────────────────────────────────
     existing_availability = db.session.execute(
-        db.select(Availability).where(
+        select(Availability).where(
             Availability.clone_id == DEMO_CLONE_ID,
             Availability.day_of_week == 1,
         )

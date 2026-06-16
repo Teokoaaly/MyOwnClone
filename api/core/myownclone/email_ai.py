@@ -6,9 +6,85 @@ using their memory, signatures, and templates.
 
 import json
 import logging
+import re
+import unicodedata
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Email Content Sanitization (Prompt Injection Protection)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Instruction patterns to strip from email content (prevent prompt injection)
+_EMAIL_INJECTION_PATTERNS = [
+    r"(?i)\bignore\s+(all\s+)?previous\s+(instructions?|directions?)[^.!?]*(?:[.!?]|$)",
+    r"(?i)\bdisregard\s+(all\s+)?(your|previous)[^.!?]*(?:[.!?]|$)",
+    r"(?i)\bforget\s+(everything|all|what\s+you\s+said)[^.!?]*(?:[.!?]|$)",
+    r"(?i)\bnew\s+instruction[s]?[^.!?]*(?:[.!?]|$)",
+    r"(?i)\bsystem\s*:[^.!?]*(?:[.!?]|$)",
+    r"(?i)\byou\s+are\s+now\s+[^.!?]*(?:[.!?]|$)",
+    r"(?i)\bchange\s+your\s+(behavior|response)\s+to\s*[^.!?]*(?:[.!?]|$)",
+    r"(?i)\boutput\s+your\s+(full\s+)?system\s+prompt[s]?[^.!?]*(?:[.!?]|$)",
+    r"(?i)\bwhat\s+is\s+your\s+(system\s+)?prompt[s]?[^.!?]*(?:[.!?]|$)",
+    r"(?i)\btell\s+me\s+your\s+instructions[s]?[^.!?]*(?:[.!?]|$)",
+    r"(?i)\bprint\s*\(\s*['\"](INJECTED|PWNED|HACKED)\s*['\"]\s*\)",
+    r"(?i)\bprint\s*\(\s*['\"]INJECT",
+]
+
+_COMPILED_EMAIL_INJECTION_PATTERNS = [
+    (re.compile(pattern), pattern) for pattern in _EMAIL_INJECTION_PATTERNS
+]
+
+
+def _sanitize_email_content(content: str) -> str:
+    """Sanitize email content to prevent prompt injection attacks.
+
+    Removes:
+    - HTML tags
+    - Instruction override patterns
+    - Unicode homoglyph attacks (zero-width spaces, combining characters)
+
+    Wraps content in delimiters to separate it from system prompt.
+    """
+    if not content:
+        return ""
+
+    sanitized = content
+
+    # Step 1: Strip HTML tags
+    sanitized = re.sub(r"<[^>]+>", " ", sanitized)
+
+    # Step 2: Remove prompt injection patterns
+    for compiled_pattern, _ in _COMPILED_EMAIL_INJECTION_PATTERNS:
+        sanitized = compiled_pattern.sub("[REDACTED]", sanitized)
+
+    # Step 3: Remove unicode homoglyph attacks
+    sanitized = sanitized.replace("\u200b", "")
+    sanitized = sanitized.replace("\u200c", "")
+    sanitized = sanitized.replace("\u200d", "")
+    sanitized = sanitized.replace("\ufeff", "")
+
+    # Step 4: NFD normalize and remove combining characters
+    normalized = unicodedata.normalize("NFD", sanitized)
+    sanitized = "".join(
+        c for c in normalized
+        if not unicodedata.combining(c) or unicodedata.category(c) not in ("Mn", "Mc")
+    )
+
+    # Step 5: Clean up excessive whitespace
+    sanitized = re.sub(r"\s+", " ", sanitized).strip()
+
+    return sanitized
+
+
+def _wrap_email_content(content: str) -> str:
+    """Wrap sanitized email content in delimiters for LLM prompts."""
+    if not content:
+        return "(sin contenido)"
+    return f"""<<<EMAIL_CONTENT>>>
+{content}
+<<<END_EMAIL_CONTENT>>>"""
 
 
 @dataclass
@@ -74,11 +150,15 @@ def classify_email(
     body_text: str,
     llm_callable,
 ) -> ClassificationResult:
+    # Sanitize all email content to prevent prompt injection
+    sanitized_body = _sanitize_email_content(body_text or "")
+    sanitized_subject = _sanitize_email_content(subject or "")
+
     prompt = CLASSIFICATION_PROMPT.format(
         from_name=from_name or "Desconocido",
         from_email=from_email,
-        subject=subject or "(sin asunto)",
-        body=body_text or "(sin contenido)",
+        subject=sanitized_subject or "(sin asunto)",
+        body=_wrap_email_content(sanitized_body),
     )
 
     try:
@@ -104,11 +184,15 @@ def generate_draft_reply(
     template_context: str,
     llm_callable,
 ) -> DraftResult:
+    # Sanitize all email content to prevent prompt injection
+    sanitized_body = _sanitize_email_content(body_text or "")
+    sanitized_subject = _sanitize_email_content(subject or "")
+
     prompt = DRAFT_PROMPT.format(
         from_name=from_name or "Desconocido",
         from_email=from_email,
-        subject=subject or "(sin asunto)",
-        body=body_text or "(sin contenido)",
+        subject=sanitized_subject or "(sin asunto)",
+        body=_wrap_email_content(sanitized_body),
         memory_context=memory_context,
         template_context=template_context,
     )
@@ -117,13 +201,13 @@ def generate_draft_reply(
         response = llm_callable(prompt)
         data = _parse_json_response(response)
         return DraftResult(
-            subject=data.get("subject", f"Re: {subject or 'tu mensaje'}"),
+            subject=data.get("subject", f"Re: {sanitized_subject or 'tu mensaje'}"),
             body=data.get("body", ""),
         )
     except Exception:
         logger.exception("Draft generation failed")
         return DraftResult(
-            subject=f"Re: {subject or 'tu mensaje'}",
+            subject=f"Re: {sanitized_subject or 'tu mensaje'}",
             body="Gracias por tu mensaje. Lo revisaré y te responderé en breve.\n\nSaludos cordiales.",
         )
 
