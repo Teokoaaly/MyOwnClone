@@ -3,7 +3,7 @@ Re-export all MyOwnClone models.
 Controllers import from api.models and api.models.myownclone.*
 """
 from api.models.analytics import (
-    AnalyticsGap, AnalyticsQuestion, CostCategory, CostTracking,
+    AdminInvitation, AnalyticsGap, AnalyticsQuestion, CostCategory, CostTracking,
     Feedback, GapStatus, ImpersonationLog, ImpersonationToken, Plan,
 )
 from api.models.clone import (
@@ -28,4 +28,5 @@ __all__ = [
     "AnalyticsQuestion", "AnalyticsGap", "GapStatus",
     "ImpersonationLog", "ImpersonationToken",
     "Feedback",
+    "AdminInvitation",
 ]

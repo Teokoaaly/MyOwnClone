@@ -1,6 +1,6 @@
 """Re-export from parent for 'from api.models.myownclone import X' compatibility."""
 from api.models import (
-    CloneConfig, CloneModePrompt, CloneSilo,
+    AdminInvitation, CloneConfig, CloneModePrompt, CloneSilo,
     CreatorMemory, CreatorMemoryType,
     EmailInbound, EmailInboundStatus, EmailTemplate,
     MeetingType_, Availability, Booking, BookingStatus, Product,
@@ -10,6 +10,7 @@ from api.models import (
     Feedback,
 )
 __all__ = [
+    'AdminInvitation',
     'CloneConfig', 'CloneModePrompt', 'CloneSilo',
     'CreatorMemory', 'CreatorMemoryType',
     'EmailInbound', 'EmailInboundStatus', 'EmailTemplate',

@@ -2,7 +2,7 @@ import enum
 from typing import Optional
 
 import sqlalchemy as sa
-from sqlalchemy import String, func, text
+from sqlalchemy import ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.libs.datetime_utils import naive_utc_now
@@ -21,7 +21,7 @@ class CloneSilo(enum.StrEnum):
 class CloneConfig(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "clone_configs"
 
-    tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    tenant_id: Mapped[str] = mapped_column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
@@ -36,7 +36,7 @@ class CloneConfig(DefaultFieldsDCMixin, TypeBase):
 class CloneModePrompt(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "clone_mode_prompts"
 
-    clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    clone_id: Mapped[str] = mapped_column(String(36), ForeignKey("clone_configs.id", ondelete="CASCADE"), nullable=False)
     mode: Mapped[str] = mapped_column(String(20), nullable=False)
     system_prompt: Mapped[str] = mapped_column(LongText, nullable=False)
     is_active: Mapped[bool] = mapped_column(sa.Boolean, server_default=text("true"), default=True)
@@ -51,7 +51,7 @@ class CreatorMemoryType(enum.StrEnum):
 class CreatorMemory(DefaultFieldsDCMixin, TypeBase):
     __tablename__ = "creator_memory"
 
-    clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    clone_id: Mapped[str] = mapped_column(String(36), ForeignKey("clone_configs.id", ondelete="CASCADE"), nullable=False)
     type: Mapped[str] = mapped_column(String(20), nullable=False)
     content: Mapped[str] = mapped_column(LongText, nullable=False)
     trigger_condition: Mapped[Optional[str]] = mapped_column(LongText, nullable=True)
