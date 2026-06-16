@@ -128,7 +128,7 @@ export default function AdminFeedbackPage() {
         <LoadingState label="Loading feedback..." rows={4} />
       ) : feedback.length === 0 ? (
         <EmptyState
-          title="No feedback yet"
+          title={t("admin.feedback.noFeedback")}
           description="Las respuestas de los usuarios aparecerán aquí."
         />
       ) : (
@@ -138,7 +138,7 @@ export default function AdminFeedbackPage() {
               <tr>
                 <th className="px-4 py-2.5 text-left">Tenant / Clon</th>
                 <th className="px-4 py-2.5 text-left">Comentario</th>
-                <th className="px-4 py-2.5 text-left">Rating</th>
+                <th className="px-4 py-2.5 text-left">{t("admin.feedback.ratingLabel")}</th>
                 <th className="px-4 py-2.5 text-left">Fecha</th>
               </tr>
             </thead>

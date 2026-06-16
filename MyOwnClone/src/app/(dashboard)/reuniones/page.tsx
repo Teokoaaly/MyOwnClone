@@ -253,7 +253,7 @@ export default function ReunionesPage() {
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("meetings.new_meeting_type")}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="stat-label" htmlFor="mt-name">Name</label>
+              <label className="stat-label" htmlFor="mt-name">{t("meetings.name")}</label>
               <input
                 id="mt-name"
                 type="text"
@@ -293,7 +293,7 @@ export default function ReunionesPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="mt-desc">Description</label>
+              <label className="stat-label" htmlFor="mt-desc">{t("meetings.description")}</label>
               <input
                 id="mt-desc"
                 type="text"
@@ -325,7 +325,7 @@ export default function ReunionesPage() {
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("meetings.new_availability")}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="stat-label" htmlFor="av-day">Day</label>
+              <label className="stat-label" htmlFor="av-day">{t("meetings.availabilityDay")}</label>
               <select
                 id="av-day"
                 value={formDay}

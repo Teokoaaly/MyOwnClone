@@ -4,7 +4,7 @@ import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getSessionAwareNav } from "@/lib/session-routing";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
 const orbitApps = [
   { emoji: "🧠", label: "AI",      style: "left: 22%; top: 14%;" },
@@ -49,7 +49,7 @@ const landingPlans = [
 ];
 
 export default async function LandingPage() {
-  const t = useTranslations("landing");
+  const t = await getTranslations("landing");
   const session = await auth();
   const nav = getSessionAwareNav(session);
 
@@ -131,7 +131,7 @@ export default async function LandingPage() {
       <section id="pricing" className="landing-pricing-section">
         <div className="landing-pricing-shell">
           <div className="landing-pricing-head">
-            <p className="landing-pricing-kicker">Pricing</p>
+            <p className="landing-pricing-kicker">{t("landing.navPricing")}</p>
             <h2>Select a plan</h2>
             <p>
               Start free, upgrade when your clone grows, and keep the same polished workspace all the way up.

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth");
+  void t;
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);

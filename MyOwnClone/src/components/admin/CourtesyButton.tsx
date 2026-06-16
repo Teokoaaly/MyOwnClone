@@ -12,8 +12,10 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
   const t = useTranslations("admin.courtesy");
+  void t;
   const tCommon = useTranslations("admin.common");
   const tValidation = useTranslations("validation");
+  void tValidation;
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");

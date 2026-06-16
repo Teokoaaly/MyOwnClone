@@ -181,7 +181,7 @@ export default function ProductosPage() {
           <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-4">{t("library.new_product")}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="pr-name">Name</label>
+              <label className="stat-label" htmlFor="pr-name">{t("library.name")}</label>
               <input
                 id="pr-name"
                 type="text"
@@ -191,7 +191,7 @@ export default function ProductosPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="stat-label" htmlFor="pr-desc">Description</label>
+              <label className="stat-label" htmlFor="pr-desc">{t("library.description")}</label>
               <textarea
                 id="pr-desc"
                 rows={3}

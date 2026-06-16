@@ -38,6 +38,7 @@ const SILO_BADGES: Record<string, { label: string; kind: "active" | "trial" | "w
 
 export default function BibliotecaPage() {
   const t = useTranslations("library");
+  void t;
   const { status } = useSession()
   const router = useRouter()
   const [sources, setSources] = useState<Source[]>([])

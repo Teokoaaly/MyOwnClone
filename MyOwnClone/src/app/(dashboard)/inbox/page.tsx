@@ -203,7 +203,7 @@ export default function InboxPage() {
       {/* Sidebar list */}
       <div className="w-80 shrink-0 flex flex-col card !p-0 overflow-hidden">
         <div className="px-4 py-4 border-b border-[var(--border-soft)]">
-          <h1 className="text-lg font-semibold text-[var(--text-primary)]">Inbox</h1>
+          <h1 className="text-lg font-semibold text-[var(--text-primary)]">{t("inbox.inbox")}</h1>
         </div>
 
         {/* Filters */}

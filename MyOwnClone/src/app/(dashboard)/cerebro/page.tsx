@@ -268,7 +268,7 @@ export default function CerebroPage() {
             )}
 
             <div>
-              <label className="stat-label" htmlFor="cb-priority">Priority</label>
+              <label className="stat-label" htmlFor="cb-priority">{t("library.memoryPriority")}</label>
               <select
                 id="cb-priority"
                 value={formPriority}

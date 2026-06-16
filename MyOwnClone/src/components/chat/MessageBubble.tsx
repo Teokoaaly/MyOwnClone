@@ -19,6 +19,7 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, isStreaming, cloneId }: MessageBubbleProps) {
   const t = useTranslations("chat");
+  void t;
   const isUser = message.role === 'user'
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null)
   const [submitting, setSubmitting] = useState(false)

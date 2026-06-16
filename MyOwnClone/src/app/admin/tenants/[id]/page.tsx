@@ -149,7 +149,7 @@ export default function AdminTenantDetailPage() {
   if (error || !data) {
     return (
       <ErrorState
-        title="Could not load tenant"
+        title={t("admin.tenantDetail.errorTitle")}
         message={error ?? "No data"}
         action={
           <Link href="/admin/tenants" className="btn-secondary text-xs">
@@ -236,25 +236,25 @@ export default function AdminTenantDetailPage() {
           </h2>
           <dl className="space-y-3 text-sm">
             <div>
-              <dt className="stat-label">Subscription status</dt>
+              <dt className="stat-label">{t("admin.tenantDetail.subscriptionStatus")}</dt>
               <dd className="font-mono text-[var(--text-primary)]">
                 {tenant.subscription_status ?? "—"}
               </dd>
             </div>
             <div>
-              <dt className="stat-label">Stripe customer</dt>
+              <dt className="stat-label">{t("admin.tenantDetail.stripeCustomer")}</dt>
               <dd className="break-all font-mono text-xs text-[var(--text-primary)]">
                 {tenant.stripe_customer_id ?? "—"}
               </dd>
             </div>
             <div>
-              <dt className="stat-label">Stripe subscription</dt>
+              <dt className="stat-label">{t("admin.tenantDetail.stripeSubscription")}</dt>
               <dd className="break-all font-mono text-xs text-[var(--text-primary)]">
                 {tenant.stripe_subscription_id ?? "—"}
               </dd>
             </div>
             <div>
-              <dt className="stat-label">Created</dt>
+              <dt className="stat-label">{t("admin.tenantDetail.created")}</dt>
               <dd className="text-xs text-[var(--text-secondary)]">
                 {tenant.created_at
                   ? new Date(tenant.created_at).toLocaleString("en-US")
@@ -279,11 +279,11 @@ export default function AdminTenantDetailPage() {
           <table className="w-full text-sm">
             <thead className="table-header">
               <tr>
-                <th className="px-4 py-2.5 text-left">Name</th>
-                <th className="px-4 py-2.5 text-left">Slug</th>
+                <th className="px-4 py-2.5 text-left">{t("admin.name")}</th>
+                <th className="px-4 py-2.5 text-left">{t("admin.tenants.slugLabel")}</th>
                 <th className="px-4 py-2.5 text-left">{t("admin.language")}</th>
                 <th className="px-4 py-2.5 text-left">{t("admin.status")}</th>
-                <th className="px-4 py-2.5 text-left">Created</th>
+                <th className="px-4 py-2.5 text-left">{t("admin.tenantDetail.created")}</th>
               </tr>
             </thead>
             <tbody>
@@ -353,7 +353,7 @@ export default function AdminTenantDetailPage() {
               onChange={(e) => setPatchPlan(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="">(no changes)</option>
+              <option value="">{t("admin.tenantDetail.editNoChanges")}</option>
               {PLAN_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -367,7 +367,7 @@ export default function AdminTenantDetailPage() {
               onChange={(e) => setPatchStatus(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="">(no changes)</option>
+              <option value="">{t("admin.tenantDetail.editNoChanges")}</option>
               {STATUS_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}

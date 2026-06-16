@@ -1,5 +1,5 @@
 import { headers } from "next/headers"
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
@@ -11,7 +11,7 @@ async function getBaseUrl() {
 }
 
 export default async function ApiKeysPage() {
-  const t = useTranslations("settings");
+  const t = await getTranslations("settings");
   const serviceKeyConfigured = Boolean(process.env.SERVICE_API_KEY?.trim())
   const baseUrl = await getBaseUrl()
   const endpointUrl = `${baseUrl}/api`
@@ -46,7 +46,7 @@ export default async function ApiKeysPage() {
               </dd>
             </div>
             <div>
-              <dt className="stat-label">Proxy status</dt>
+              <dt className="stat-label">{t("plans.pro")}xy status</dt>
               <dd className="mt-1 flex items-center gap-2 text-sm text-[var(--text-primary)]">
                 <span
                   className={[

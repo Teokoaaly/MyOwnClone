@@ -205,7 +205,7 @@ export default function SettingsPage() {
           />
           <div className="mt-6 space-y-4">
             <div>
-              <label className="stat-label" htmlFor="new-clone-name">Name</label>
+              <label className="stat-label" htmlFor="new-clone-name">{t("settings.name")}</label>
               <input
                 id="new-clone-name"
                 type="text"
@@ -230,7 +230,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-description">Description</label>
+              <label className="stat-label" htmlFor="new-clone-description">{t("settings.description")}</label>
               <textarea
                 id="new-clone-description"
                 rows={3}
@@ -298,7 +298,7 @@ export default function SettingsPage() {
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="stat-label" htmlFor="cfg-name">Name</label>
+              <label className="stat-label" htmlFor="cfg-name">{t("settings.name")}</label>
               <input
                 id="cfg-name"
                 type="text"
@@ -321,7 +321,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-desc">Description</label>
+              <label className="stat-label" htmlFor="cfg-desc">{t("settings.description")}</label>
               <textarea
                 id="cfg-desc"
                 rows={3}

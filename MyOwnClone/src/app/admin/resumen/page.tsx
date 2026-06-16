@@ -89,7 +89,7 @@ export default function AdminResumenPage() {
   if (error || !data) {
     return (
       <ErrorState
-        title="Could not load overview"
+        title={t("admin.overview.errorTitle")}
         message={error ?? "No data"}
         action={
           <button
@@ -136,7 +136,7 @@ export default function AdminResumenPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Platform Overview"
+        title={t("admin.overview.title")}
         subtitle={
           <>
             Aggregated platform metrics · generated{" "}
@@ -166,7 +166,7 @@ export default function AdminResumenPage() {
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">
               MRR · Costs · Margin (30d)
             </h2>
-            <span className="text-xs text-[var(--text-muted)]">in cents</span>
+            <span className="text-xs text-[var(--text-muted)]">{t("admin.overview.mrrCostsMarginLegend")}</span>
           </div>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart

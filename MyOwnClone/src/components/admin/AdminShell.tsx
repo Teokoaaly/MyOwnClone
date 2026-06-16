@@ -7,8 +7,10 @@ import { Link } from "@/i18n/navigation";
 
 export const AdminShell: FC<{ user?: { name?: string | null; email?: string | null }; children: ReactNode }> = ({ user, children }) => {
   const t = useTranslations("admin");
+  void t;
   const tShell = useTranslations("admin.shell");
   const tCommon = useTranslations("admin.common");
+  void tCommon;
 
   const adminNavItems: SidebarNavItem[] = [
     {

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { CloneIdResolver } from "@/components/dashboard/CloneIdResolver";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,8 @@ export default async function DashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const t = useTranslations("sidebar");
+  const t = await getTranslations("sidebar");
+  void t;
   const session = await auth();
 
   if (!session?.user) {

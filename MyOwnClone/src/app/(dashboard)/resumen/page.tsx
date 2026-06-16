@@ -54,6 +54,7 @@ const ACTIVE_CHAT_BOX_HEIGHT = 420;
 
 export default function DashboardResumenPage() {
   const t = useTranslations("dashboard");
+  void t;
   const { status } = useSession();
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);

@@ -153,7 +153,7 @@ export default function AdminTenantsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Tenants"
+        title={t("admin.tenants.title")}
         subtitle={`${total} accounts in the platform`}
         actions={
           <>
@@ -178,7 +178,7 @@ export default function AdminTenantsPage() {
               resetPage();
               setSearch(e.target.value);
             }}
-            placeholder="Name or slug..."
+            placeholder={t("admin.tenants.searchPlaceholder")}
             className={fieldControlClass}
           />
         </Field>
@@ -218,7 +218,7 @@ export default function AdminTenantsPage() {
 
       {error ? (
         <ErrorState
-          title="Error loading tenants"
+          title={t("admin.tenants.errorTitle")}
           message={error}
           action={
             <button
@@ -247,12 +247,12 @@ export default function AdminTenantsPage() {
             <table className="w-full text-sm">
               <thead className="table-header">
                 <tr>
-                  <th className="px-4 py-2.5 text-left">Tenant</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.common.tenant")}</th>
                   <th className="px-4 py-2.5 text-left">{t("admin.plan")}</th>
                   <th className="px-4 py-2.5 text-left">{t("admin.status")}</th>
-                  <th className="px-4 py-2.5 text-right">Clones</th>
-                  <th className="px-4 py-2.5 text-right">Costs 30d</th>
-                  <th className="px-4 py-2.5 text-left">Created</th>
+                  <th className="px-4 py-2.5 text-right">{t("admin.common.clones")}</th>
+                  <th className="px-4 py-2.5 text-right">{t("admin.common.costs30d")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.tenantDetail.created")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -346,7 +346,7 @@ export default function AdminTenantsPage() {
       <Modal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="Create tenant"
+        title={t("admin.tenants.createTitle")}
         size="sm"
         footer={
           <>
@@ -375,7 +375,7 @@ export default function AdminTenantsPage() {
               type="text"
               value={createName}
               onChange={(e) => handleCreateNameChange(e.target.value)}
-              placeholder="e.g. Acme Corp"
+              placeholder={t("admin.tenants.namePlaceholder")}
               className={fieldControlClass}
               autoFocus
             />
@@ -385,7 +385,7 @@ export default function AdminTenantsPage() {
               type="text"
               value={createSlug}
               onChange={(e) => setCreateSlug(e.target.value)}
-              placeholder="e.g. acme-corp"
+              placeholder={t("admin.tenants.slugPlaceholder")}
               className={fieldControlClass}
             />
             <p className="mt-1 text-[10px] text-[var(--text-muted)]">
@@ -398,7 +398,7 @@ export default function AdminTenantsPage() {
               onChange={(e) => setCreatePlan(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="trial">Trial</option>
+              <option value="trial">{t("admin.common.trial")}</option>
               <option value="basic">{t("admin.basic")}</option>
               <option value="pro">{t("admin.pro")}</option>
               <option value="scale">{t("admin.scale")}</option>
@@ -411,9 +411,9 @@ export default function AdminTenantsPage() {
               onChange={(e) => setCreateStatus(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="trial">Trial</option>
+              <option value="trial">{t("admin.common.trial")}</option>
               <option value="active">{t("admin.active")}</option>
-              <option value="suspended">Suspended</option>
+              <option value="suspended">{t("admin.common.suspended")}</option>
               <option value="cancelled">{t("admin.cancelled")}</option>
             </select>
           </Field>

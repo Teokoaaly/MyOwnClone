@@ -3,10 +3,11 @@ import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { auth } from "@/lib/auth";
 import { getPostAuthHref } from "@/lib/session-routing";
 import { redirect } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
 export default async function RegisterPage() {
-  const t = useTranslations("auth");
+  const t = await getTranslations("auth");
+  void t;
   const session = await auth();
 
   if (session?.user) {

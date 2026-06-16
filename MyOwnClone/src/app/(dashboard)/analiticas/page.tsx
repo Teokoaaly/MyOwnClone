@@ -42,6 +42,7 @@ function formatEur(cents: number) {
 
 export default function AnaliticasPage() {
   const t = useTranslations("analytics");
+  void t;
   const { status } = useSession()
   const router = useRouter()
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null)

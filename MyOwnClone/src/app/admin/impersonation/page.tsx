@@ -75,7 +75,7 @@ export default function AdminImpersonationPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Impersonation"
+        title={t("admin.impersonation.title")}
         subtitle={`${total} impersonation sessions recorded`}
       />
 
@@ -88,7 +88,7 @@ export default function AdminImpersonationPage() {
               resetPage();
               setSearch(e.target.value);
             }}
-            placeholder="Admin email or tenant name..."
+            placeholder={t("admin.impersonation.searchPlaceholder")}
             className={fieldControlClass}
           />
         </Field>
@@ -112,7 +112,7 @@ export default function AdminImpersonationPage() {
         <LoadingState label="Loading sessions..." rows={6} />
       ) : items.length === 0 ? (
         <EmptyState
-          title="No impersonation sessions"
+          title={t("admin.impersonation.noSessions")}
           description="Impersonation sessions started by admins will appear here."
         />
       ) : (
@@ -121,8 +121,8 @@ export default function AdminImpersonationPage() {
             <table className="w-full text-sm">
               <thead className="table-header">
                 <tr>
-                  <th className="px-4 py-2.5 text-left">Admin</th>
-                  <th className="px-4 py-2.5 text-left">Tenant</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.shell.breadcrumbAdmin")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.common.tenant")}</th>
                   <th className="px-4 py-2.5 text-left">Inicio</th>
                   <th className="px-4 py-2.5 text-left">Fin</th>
                   <th className="px-4 py-2.5 text-left">{t("admin.reason")}</th>

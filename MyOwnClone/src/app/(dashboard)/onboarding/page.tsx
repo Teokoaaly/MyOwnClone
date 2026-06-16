@@ -313,7 +313,7 @@ export default function OnboardingPage() {
           {step === 3 && (
             <dl className="space-y-3 rounded-xl border border-[var(--border-soft)] p-4">
               <div className="flex justify-between text-sm">
-                <dt className="text-[var(--text-muted)]">Name</dt>
+                <dt className="text-[var(--text-muted)]">{t("onboarding_dashboard.name")}</dt>
                 <dd className="font-medium text-[var(--text-primary)]">{name}</dd>
               </div>
               <div className="flex justify-between text-sm">

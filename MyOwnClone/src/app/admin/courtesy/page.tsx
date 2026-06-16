@@ -78,7 +78,7 @@ export default function AdminCourtesyPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Courtesy credits"
+        title={t("admin.courtesy.title")}
         subtitle={`${total} courtesy credits granted`}
       />
 
@@ -91,7 +91,7 @@ export default function AdminCourtesyPage() {
               resetPage();
               setSearch(e.target.value);
             }}
-            placeholder="Tenant name or reason..."
+            placeholder={t("admin.courtesy.searchPlaceholder")}
             className={fieldControlClass}
           />
         </Field>
@@ -115,7 +115,7 @@ export default function AdminCourtesyPage() {
         <LoadingState label="Loading credits..." rows={6} />
       ) : items.length === 0 ? (
         <EmptyState
-          title="No courtesy credits"
+          title={t("admin.courtesy.noCredits")}
           description="Courtesy credits granted to tenants will appear here."
         />
       ) : (
@@ -124,7 +124,7 @@ export default function AdminCourtesyPage() {
             <table className="w-full text-sm">
               <thead className="table-header">
                 <tr>
-                  <th className="px-4 py-2.5 text-left">Tenant</th>
+                  <th className="px-4 py-2.5 text-left">{t("admin.common.tenant")}</th>
                   <th className="px-4 py-2.5 text-right">Importe</th>
                   <th className="px-4 py-2.5 text-left">Otorgado por</th>
                   <th className="px-4 py-2.5 text-left">{t("admin.reason")}</th>

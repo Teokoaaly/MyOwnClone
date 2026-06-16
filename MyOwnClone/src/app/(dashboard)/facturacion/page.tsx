@@ -51,6 +51,7 @@ function money(cents = 0, currency = "usd") {
 
 export default function FacturacionPage() {
   const t = useTranslations("billing");
+  void t;
   const { status } = useSession()
   const router = useRouter()
   const [billing, setBilling] = useState<BillingInfo | null>(null)

@@ -327,6 +327,7 @@ function NuevoContentPage() {
 
 export default function NuevoPage() {
   const t = useTranslations("library");
+  void t;
   return (
     <Suspense fallback={<LoadingState label="Loading..." rows={4} />}>
       <NuevoContentPage />
