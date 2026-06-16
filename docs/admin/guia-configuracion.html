@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Guía de configuración · Platform Admin | MyOwnClone Docs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/myownclone-docs.css">
+  </head>
+  <body>
+    <main class="site-shell">
+      <nav class="topbar" aria-label="Documentación">
+        <a class="brand" href="../index.html" aria-label="MyOwnClone Docs">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <span>Admin · Configuración</span>
+        </a>
+        <div class="nav-links">
+          <a href="../index.html">Inicio</a>
+          <a href="../manual-usuario/index.html">Manual usuario</a>
+          <a href="../manual-tecnico/index.html">Manual técnico</a>
+          <a href="index.html">Wiki técnica</a>
+        </div>
+      </nav>
+
+      <header class="doc-hero">
+        <p class="kicker">Platform Admin</p>
+        <h1>Cómo funciona y cómo se configura todo.</h1>
+        <p>
+          Guía paso a paso del panel de administración de plataforma: cómo entrar como admin,
+          cómo crear y editar tenants, cambiar planes y estados, otorgar cortesías, hacer
+          impersonation y leer la auditoría. Cada sección indica la ruta, el formulario y la
+          API que ejecuta por debajo.
+        </p>
+        <div class="cta-row">
+          <a class="button button-primary" href="#acceso-admin">Empezar: cómo entrar</a>
+          <a class="button button-secondary" href="#tenants">Ir a tenants</a>
+        </div>
+      </header>
+
+      <div class="doc-layout">
+        <aside class="doc-nav" aria-label="Índice de la guía">
+          <p>Índice</p>
+          <ul>
+            <li><a href="#como-funciona">0. Cómo funciona el panel</a></li>
+            <li><a href="#acceso-admin">1. Entrar como admin</a></li>
+            <li><a href="#overview">2. Overview (resumen)</a></li>
+            <li><a href="#tenants">3. Crear un tenant</a></li>
+            <li><a href="#editar-tenant">4. Editar plan/estado</a></li>
+            <li><a href="#courtesy">5. Courtesy signup</a></li>
+            <li><a href="#impersonation">6. Impersonation</a></li>
+            <li><a href="#audit">7. Audit log</a></li>
+            <li><a href="#feedback">8. Feedback</a></li>
+            <li><a href="#resumen-operativo">9. Resumen operativo</a></li>
+          </ul>
+        </aside>
+
+        <div class="doc-content">
+
+          <!-- 0 -->
+          <section id="como-funciona" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 0</p>
+                <h2>Cómo funciona el panel</h2>
+              </div>
+            </div>
+            <p>
+              El panel de plataforma vive bajo <span class="code">/admin/*</span> y solo es accesible
+              para el <strong>platform admin</strong>. Todas las páginas cargan datos con llamadas a la API
+              <span class="code">/api/admin/*</span>, que el frontend enruta vía Next.js para adjuntar la
+              cookie de sesión de NextAuth. Cada acción sensible (editar un tenant, otorgar cortesía,
+              iniciar impersonation) queda registrada en el <strong>audit log</strong>.
+            </p>
+
+            <div class="doc-inline-head"><h3>Mapa de páginas</h3></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Página</th><th>Ruta</th><th>Para qué sirve</th></tr></thead>
+                <tbody>
+                  <tr><td>Overview</td><td><span class="code">/admin/resumen</span></td><td>Métricas globales: tenants, clones, MRR, costes, margen y distribución de planes.</td></tr>
+                  <tr><td>Tenants</td><td><span class="code">/admin/tenants</span></td><td>Listado, filtros y creación de tenants.</td></tr>
+                  <tr><td>Detalle de tenant</td><td><span class="code">/admin/tenants/[id]</span></td><td>Uso, billing, clones, editar plan/estado e impersonate.</td></tr>
+                  <tr><td>Audit log</td><td><span class="code">/admin/audit</span></td><td>Historial de acciones sensibles.</td></tr>
+                  <tr><td>Impersonation</td><td><span class="code">/admin/impersonation</span></td><td>Historial de sesiones de impersonation.</td></tr>
+                  <tr><td>Courtesy</td><td><span class="code">/admin/courtesy</span></td><td>Historial de cortesías (triales extendidos).</td></tr>
+                  <tr><td>Feedback</td><td><span class="code">/admin/feedback</span></td><td>Feedback enviado por usuarios.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout callout-info">
+              <div class="callout-body">
+                <span class="callout-title">Flujo típico</span>
+                <p>Miras <strong>Overview</strong> → vas a <strong>Tenants</strong> → abres el detalle →
+                cambias plan/estado, das cortesía o inicias impersonation según lo que necesite el cliente.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 1 -->
+          <section id="acceso-admin" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 1</p>
+                <h2>Entrar como admin</h2>
+              </div>
+              <span class="status status-blocked">Requiere env</span>
+            </div>
+            <p>
+              No hay un botón de "registrarse como admin". El platform admin se define por variables de
+              entorno del frontend. Si no están configuradas, nadie puede entrar a <span class="code">/admin/*</span>
+              (el layout redirige a <span class="code">/login</span>).
+            </p>
+
+            <div class="doc-inline-head"><h3>Paso 1 · Generar el hash de la contraseña</h3></div>
+            <p>El backend valida que el hash sea bcrypt (<span class="code">$2a/b/y$</span>). Genera uno con cost 12:</p>
+            <pre><code>node -e 'require("bcryptjs").hash(process.argv[1], 12).then(console.log)' "tu-password-secreta"</code></pre>
+
+            <div class="doc-inline-head" style="margin-top:16px;"><h3>Paso 2 · Configurar el env del frontend</h3></div>
+            <p>En el VPS, en <span class="code">/opt/myownclone/shared/frontend.env.production</span>:</p>
+            <pre><code>PLATFORM_ADMIN_EMAIL=admin@tudominio.com
+PLATFORM_ADMIN_PASSWORD_HASH=$2b$12$....</code></pre>
+
+            <div class="doc-inline-head" style="margin-top:16px;"><h3>Paso 3 · Reiniciar y entrar</h3></div>
+            <pre><code>sudo systemctl restart myownclone-frontend</code></pre>
+            <p>Abre <span class="code">/login</span>, entra con ese email y contraseña. Si las credenciales coinciden,
+            tu sesión recibe el rol <span class="code">platform_admin</span> y ya puedes acceder a <span class="code">/admin/resumen</span>.</p>
+
+            <div class="callout callout-danger">
+              <div class="callout-body">
+                <span class="callout-title">Trampa conocida</span>
+                <p><strong>No pongas</strong> <span class="code">PLATFORM_ADMIN_PASSWORD_HASH</span> en un
+                <span class="code">.env.production</span> leído por dotenv: los caracteres <span class="code">$</span> del hash bcrypt
+                se expanden y el login falla. Cárgalo siempre vía systemd <span class="code">EnvironmentFile</span>.</p>
+              </div>
+            </div>
+
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">/admin/resumen</span>
+                  <span class="wf-pill ok" style="margin-left:auto;">ADMIN</span>
+                </div>
+                <div class="wf-frame">
+                  <div class="wf-side">
+                    <div class="wf-item is-active">Overview</div>
+                    <div class="wf-item">Tenants</div>
+                    <div class="wf-item">Audit log</div>
+                    <div class="wf-item">Impersonation</div>
+                    <div class="wf-item">Courtesy</div>
+                    <div class="wf-item">Feedback</div>
+                  </div>
+                  <div class="wf-main">
+                    <div class="wf-h" style="width:45%;"></div>
+                    <div class="wf-cards">
+                      <div class="wf-card"><div class="wf-line accent"></div><div class="wf-line"></div><div class="wf-line short"></div></div>
+                      <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                      <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                      <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · estructura del panel admin (sidebar fija + contenido).</figcaption>
+            </figure>
+          </section>
+
+          <!-- 2 -->
+          <section id="overview" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 2</p>
+                <h2>Overview · el resumen</h2>
+              </div>
+              <span class="status status-ok">Solo lectura</span>
+            </div>
+            <p>
+              <span class="code">/admin/resumen</span> llama a <span class="code">GET /api/admin/overview</span> y muestra
+              cuatro métricas de cabecera, un gráfico de finanzas y un tarta de distribución de planes. Es la pantalla
+              para abrir cada mañana: <strong>no tiene acciones</strong>, solo lectura.
+            </p>
+            <div class="grid">
+              <article class="card"><strong>Total tenants</strong><p>Tenants totales + cuántos están activos.</p></article>
+              <article class="card"><strong>Active clones</strong><p>Clones activos en producción.</p></article>
+              <article class="card"><strong>MRR</strong><p>Ingresos recurrentes mensuales (céntimos).</p></article>
+              <article class="card"><strong>Costs 30d</strong><p>Costes de los últimos 30 días.</p></article>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-body">
+                <span class="callout-title">Gráficos</span>
+                <p>Barra de MRR vs Costes vs Margen (si el margen es negativo, se pone rojo) y tarta con Trial / Basic /
+                Pro / Scale / Enterprise según el número de tenants en cada plan.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3 -->
+          <section id="tenants" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 3</p>
+                <h2>Crear un tenant</h2>
+              </div>
+            </div>
+            <p>
+              En <span class="code">/admin/tenants</span> pulsa <strong>+ New tenant</strong>. El slug se genera
+              automáticamente a partir del nombre, pero puedes editarlo. Al guardar se ejecuta
+              <span class="code">POST /api/admin/tenants</span>.
+            </p>
+
+            <div class="doc-inline-head"><h3>Formulario de creación</h3></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Campo</th><th>Qué es</th><th>Valores</th></tr></thead>
+                <tbody>
+                  <tr><td>Tenant name</td><td>Nombre visible del cliente.</td><td>Texto libre (ej. "Acme Corp").</td></tr>
+                  <tr><td>Slug</td><td>Identificador URL, auto del nombre.</td><td>Editable, minúsculas y guiones.</td></tr>
+                  <tr><td>Plan</td><td>Plan inicial.</td><td><span class="code">trial</span> · <span class="code">basic</span> · <span class="code">pro</span> · <span class="code">scale</span> · <span class="code">enterprise</span></td></tr>
+                  <tr><td>Status</td><td>Estado inicial.</td><td><span class="code">trial</span> · <span class="code">active</span> · <span class="code">suspended</span> · <span class="code">cancelled</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout callout-info">
+              <div class="callout-body">
+                <span class="callout-title">Filtros del listado</span>
+                <p>La tabla admite <strong>Search</strong> (nombre o slug), filtro por <strong>Plan</strong> y por
+                <strong>Status</strong>, y paginación. Cada fila enlaza al detalle del tenant.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4 -->
+          <section id="editar-tenant" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 4</p>
+                <h2>Editar plan o estado</h2>
+              </div>
+              <span class="status status-warn">Queda en audit log</span>
+            </div>
+            <p>
+              Abre un tenant en <span class="code">/admin/tenants/[id]</span>. Veras su uso de 30 días (clones, coste,
+              tokens de entrada/salida, preguntas, gaps abiertos), los datos de billing de Stripe, la lista de clones
+              y, arriba a la derecha, el botón <strong>Change plan / status</strong> → <span class="code">PATCH /api/admin/tenants/[id]</span>.
+            </p>
+
+            <div class="doc-inline-head"><h3>Modal "Change plan / status"</h3></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Campo</th><th>Opciones</th><th>Notas</th></tr></thead>
+                <tbody>
+                  <tr><td>Plan</td><td>(sin cambios) · <span class="code">trial</span> · <span class="code">basic</span> · <span class="code">pro</span> · <span class="code">scale</span> · <span class="code">enterprise</span></td><td>Puedes dejar "(no changes)" para tocar solo el estado.</td></tr>
+                  <tr><td>Status</td><td>(sin cambios) · <span class="code">active</span> · <span class="code">trial</span> · <span class="code">suspended</span> · <span class="code">cancelled</span></td><td><span class="code">suspended</span> corta el acceso del tenant.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">/admin/tenants/[id]</span>
+                </div>
+                <div class="wf-main">
+                  <div class="wf-h" style="width:35%;"></div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <span class="wf-pill ok">active</span>
+                    <span class="wf-pill">Plan: pro</span>
+                    <span class="wf-pill warn">Change plan / status</span>
+                    <span class="wf-pill warn" style="background:#111;color:#fff;border-color:#111;">Impersonate</span>
+                  </div>
+                  <div class="wf-cards" style="grid-template-columns:1fr 1fr 1fr;">
+                    <div class="wf-card"><div class="wf-line accent"></div><div class="wf-line short"></div></div>
+                    <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                    <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                  </div>
+                  <div class="wf-rows">
+                    <div class="wf-row"><span></span><span></span><span></span></div>
+                    <div class="wf-row"><span></span><span></span><span></span></div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · detalle de tenant (métricas + clones + acciones).</figcaption>
+            </figure>
+          </section>
+
+          <!-- 5 -->
+          <section id="courtesy" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 5</p>
+                <h2>Courtesy signup</h2>
+              </div>
+              <span class="status status-warn">Queda en audit log</span>
+            </div>
+            <p>
+              Desde <span class="code">/admin/tenants</span> pulsa <strong>+ Courtesy signup</strong>. Crea un tenant
+              nuevo con un <strong>trial extendido</strong> (útil para partners). Ejecuta
+              <span class="code">POST /api/admin/courtesy</span>.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Campo</th><th>Qué es</th></tr></thead>
+                <tbody>
+                  <tr><td>Partner email</td><td>Email del cliente (valida formato).</td></tr>
+                  <tr><td>Name</td><td>Nombre del partner/empresa.</td></tr>
+                  <tr><td>Plan</td><td>Plan del periodo de cortesía (por defecto <span class="code">pro</span>).</td></tr>
+                  <tr><td>Trial days</td><td>Duración del trial, 1–365 (por defecto 30).</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Al crearlo, la pantalla devuelve el <span class="code">tenant_id</span> y la fecha de fin del trial (<span class="code">trial_ends_at</span>). El historial de cortesías se consulta en <span class="code">/admin/courtesy</span>, que muestra tenant, importe (€), quién lo otorgó, motivo y fecha.</p>
+          </section>
+
+          <!-- 6 -->
+          <section id="impersonation" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 6</p>
+                <h2>Impersonation</h2>
+              </div>
+              <span class="status status-danger" style="color:#991b1b;background:#fee2e2;">Sensible</span>
+            </div>
+            <p>
+              Para entrar "como" un tenant sin pedirle credenciales, abre su detalle y pulsa
+              <strong>Impersonate</strong> → <span class="code">POST /api/admin/impersonate</span>. Es la acción más
+              sensible del panel: exige una razón y caduca rápido.
+            </p>
+
+            <div class="doc-inline-head"><h3>Cómo se usa</h3></div>
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Razón obligatoria</strong><p>Describe el motivo de soporte. Mínimo 10, máximo 1000 caracteres.</p></div></li>
+              <li><span class="step-number">2</span><div><strong>Generar token</strong><p>El backend devuelve un token de un solo uso que <strong>expira en 30 minutos</strong>.</p></div></li>
+              <li><span class="step-number">3</span><div><strong>Copiar y usar</strong><p>Cópialo (botón Copy) y envíalo como cabecera <span class="code">X-Impersonate-Token</span> en tus siguientes peticiones.</p></div></li>
+            </ol>
+
+            <div class="callout callout-danger">
+              <div class="callout-body">
+                <span class="callout-title">Reglas</span>
+                <p>El token se muestra <strong>una sola vez</strong>. Toda sesión de impersonation queda registrada
+                (admin, tenant, inicio, fin y razón) en <span class="code">/admin/impersonation</span> y en el audit log.</p>
+              </div>
+            </div>
+
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">Modal · Impersonate "Acme Corp"</span>
+                </div>
+                <div class="wf-main" style="max-width:440px;">
+                  <div class="wf-h sm" style="width:60%;"></div>
+                  <div class="wf-card" style="min-height:auto;"><div class="wf-line"></div><div class="wf-line"></div><div class="wf-line short"></div></div>
+                  <div class="wf-pill" style="background:#111;color:#fff;border-color:#111;width:fit-content;">START IMPERSONATION</div>
+                  <div class="wf-card" style="min-height:auto;"><div class="wf-line accent"></div><div class="wf-line short"></div></div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · modal de impersonation (razón → token de un solo uso).</figcaption>
+            </figure>
+          </section>
+
+          <!-- 7 -->
+          <section id="audit" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 7</p>
+                <h2>Audit log</h2>
+              </div>
+              <span class="status status-ok">Solo lectura</span>
+            </div>
+            <p>
+              <span class="code">/admin/audit</span> muestra el historial de acciones sensibles del panel: cambios de
+              plan/estado, cortesías otorgadas e impersonations. Úsalo para revisar "qué tocó quién y cuándo".
+              No se puede editar ni borrar desde la UI; es la fuente de verdad de cumplimiento.
+            </p>
+          </section>
+
+          <!-- 8 -->
+          <section id="feedback" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 8</p>
+                <h2>Feedback</h2>
+              </div>
+              <span class="status status-ok">Solo lectura</span>
+            </div>
+            <p>
+              <span class="code">/admin/feedback</span> reúne el feedback que envían los usuarios desde el producto.
+              Es la entrada para priorizar mejoras y detectar fricciones sin esperar a que abran ticket.
+            </p>
+          </section>
+
+          <!-- 9 -->
+          <section id="resumen-operativo" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 9</p>
+                <h2>Resumen operativo</h2>
+              </div>
+            </div>
+            <p>La "cheat sheet" de qué hacer en cada caso de soporte:</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Necesita…</th><th>Ve a…</th><th>Acción / API</th></tr></thead>
+                <tbody>
+                  <tr><td>Ver la salud del negocio</td><td><span class="code">/admin/resumen</span></td><td>— (lectura)</td></tr>
+                  <tr><td>Dar de alta un cliente</td><td><span class="code">/admin/tenants</span></td><td>+ New tenant → <span class="code">POST /api/admin/tenants</span></td></tr>
+                  <tr><td>Subir/bajar de plan</td><td>Detalle del tenant</td><td>Change plan → <span class="code">PATCH /api/admin/tenants/[id]</span></td></tr>
+                  <tr><td>Suspender acceso</td><td>Detalle del tenant</td><td>Status → suspended (mismo PATCH)</td></tr>
+                  <tr><td>Trial extendido a un partner</td><td><span class="code">/admin/tenants</span></td><td>+ Courtesy signup → <span class="code">POST /api/admin/courtesy</span></td></tr>
+                  <tr><td>Reproducir un bug del cliente</td><td>Detalle del tenant</td><td>Impersonate → <span class="code">POST /api/admin/impersonate</span></td></tr>
+                  <tr><td>Investigar un cambio</td><td><span class="code">/admin/audit</span></td><td>— (lectura)</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout callout-warn">
+              <div class="callout-body">
+                <span class="callout-title">Reglas de oro</span>
+                <p>1) Todo lo sensible queda en audit log. 2) El token de impersonation caduca en 30 min y se muestra
+                una vez. 3) Nunca pongas el hash del admin en <span class="code">.env.production</span> leído por dotenv.
+                4) <span class="code">suspended</span> corta el acceso del tenant — úsalo con criterio.</p>
+              </div>
+            </div>
+          </section>
+
+          <footer class="footer">
+            <span>MyOwnClone · Guía de configuración Platform Admin</span>
+            <span>Última actualización: 2026-06-16</span>
+          </footer>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

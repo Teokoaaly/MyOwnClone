@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manual de usuario | MyOwnClone Docs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/myownclone-docs.css">
+  </head>
+  <body>
+    <main class="site-shell">
+      <nav class="topbar" aria-label="Documentación">
+        <a class="brand" href="../index.html" aria-label="MyOwnClone Docs">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <span>Manual de usuario</span>
+        </a>
+        <div class="nav-links">
+          <a href="../index.html">Inicio</a>
+          <a href="../manual-tecnico/index.html">Manual técnico</a>
+          <a href="../screenshots/README.md">Capturas</a>
+          <a href="README.md">Versión Markdown</a>
+        </div>
+      </nav>
+
+      <header class="doc-hero">
+        <p class="kicker">Manual de usuario</p>
+        <h1>Crea y gestiona tu clon de IA.</h1>
+        <p>
+          Guía paso a paso para usar MyOwnClone: acceso, configuración del clon, conocimiento,
+          memoria, inbox, productos, analíticas, planes y facturación. Cada pantalla se acompaña
+          de un <strong>wireframe</strong> orientativo mientras no haya capturas reales.
+        </p>
+        <div class="cta-row">
+          <a class="button button-primary" href="#primeros-pasos">Empezar a leer</a>
+          <a class="button button-secondary" href="../manual-tecnico/index.html">Ir al manual técnico</a>
+        </div>
+      </header>
+
+      <div class="doc-layout">
+        <aside class="doc-nav" aria-label="Índice del manual">
+          <p>Índice</p>
+          <ul>
+            <li><a href="#introduccion">1. Introducción</a></li>
+            <li><a href="#primeros-pasos">2. Primeros pasos</a></li>
+            <li><a href="#interfaz">3. Interfaz principal</a></li>
+            <li><a href="#onboarding">4. Configurar el clon</a></li>
+            <li><a href="#conocimiento">5. Subir conocimiento</a></li>
+            <li><a href="#inbox">6. Inbox</a></li>
+            <li><a href="#productos">7. Productos</a></li>
+            <li><a href="#analiticas">8. Analíticas y uso</a></li>
+            <li><a href="#planes">9. Planes</a></li>
+            <li><a href="#facturacion">10. Facturación</a></li>
+            <li><a href="#chat-publico">11. Chat público</a></li>
+            <li><a href="#perfil">12. Perfil y ajustes</a></li>
+            <li><a href="#roles">13. Roles y permisos</a></li>
+            <li><a href="#buenas-practicas">14. Buenas prácticas</a></li>
+            <li><a href="#faq">15. FAQ</a></li>
+            <li><a href="#problemas">16. Problemas comunes</a></li>
+            <li><a href="#soporte">17. Soporte</a></li>
+            <li><a href="#glosario">18. Glosario</a></li>
+          </ul>
+        </aside>
+
+        <div class="doc-content">
+          <!-- 1 -->
+          <section id="introduccion" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 1</p>
+                <h2>Introducción</h2>
+              </div>
+            </div>
+            <p>
+              MyOwnClone permite crear un clon de IA entrenado con tu contenido para responder
+              preguntas, organizar conocimiento, gestionar mensajes, analizar el uso y conectar
+              flujos de negocio. Este manual describe cada pantalla y cada acción desde la
+              perspectiva del usuario del workspace.
+            </p>
+            <div class="callout callout-info">
+              <div class="callout-body">
+                <span class="callout-title">Nota sobre el idioma</span>
+                <p>Las URL usan palabras en español (<span class="code">/resumen</span>, <span class="code">/biblioteca</span>…),
+                pero las etiquetas visibles del menú están hoy en inglés (Overview, Search, Crawl…). En este manual
+                se indica siempre la etiqueta que verás seguida de su ruta.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2 -->
+          <section id="primeros-pasos" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 2</p>
+                <h2>Primeros pasos</h2>
+              </div>
+            </div>
+
+            <div class="doc-inline-head"><h3>Acceso y login</h3></div>
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Entrar</strong><p>Abre <span class="code">/login</span>, escribe email y contraseña y pulsa <strong>Sign in</strong>.</p></div></li>
+              <li><span class="step-number">2</span><div><strong>¿Admin o usuario?</strong><p>Si eres admin de plataforma entrarás al panel admin; si eres usuario de workspace, al dashboard.</p></div></li>
+              <li><span class="step-number">3</span><div><strong>¿Sin cuenta?</strong><p>Usa <span class="code">/registro</span> para crearla o pide invitación a tu administrador.</p></div></li>
+            </ol>
+
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">myownclone.com/login</span>
+                </div>
+                <div class="wf-main" style="grid-template-columns: 1fr; max-width: 360px; margin: 12px auto;">
+                  <div class="wf-h" style="width: 40%; margin: 0 auto;"></div>
+                  <div class="wf-row"><span></span><span></span><span></span></div>
+                  <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                  <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                  <div class="wf-pill" style="background:#111;color:#fff;border-color:#111;width:100%;text-align:center;padding:10px;">SIGN IN</div>
+                  <div class="wf-h sm" style="margin:0 auto;"></div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · pantalla de login. La UI real puede variar.</figcaption>
+            </figure>
+
+            <div class="doc-inline-head" style="margin-top:24px;"><h3>Recuperación de contraseña</h3></div>
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Solicitar reset</strong><p>Pulsa <em>Forgot your password?</em> en <span class="code">/forgot-password</span>.</p></div></li>
+              <li><span class="step-number">2</span><div><strong>Revisar email</strong><p>Abre el enlace recibido; te lleva a <span class="code">/reset-password</span>.</p></div></li>
+              <li><span class="step-number">3</span><div><strong>Nueva contraseña</strong><p>Define una de al menos 8 caracteres y vuelve a entrar.</p></div></li>
+            </ol>
+          </section>
+
+          <!-- 3 -->
+          <section id="interfaz" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 3</p>
+                <h2>Interfaz principal</h2>
+              </div>
+            </div>
+            <p>
+              El dashboard (<span class="code">/resumen</span>) es la pantalla de inicio del workspace. A la izquierda
+              está la barra lateral con los módulos agrupados en secciones. La etiqueta que ves en el menú
+              aparece entre paréntesis.
+            </p>
+
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">myownclone.com/resumen</span>
+                </div>
+                <div class="wf-frame">
+                  <div class="wf-side">
+                    <div class="wf-item is-active">Overview</div>
+                    <div class="wf-section">API Playground</div>
+                    <div class="wf-item">Search</div>
+                    <div class="wf-item">Crawl</div>
+                    <div class="wf-item">Extract</div>
+                    <div class="wf-item">Research</div>
+                    <div class="wf-section">Management</div>
+                    <div class="wf-item">Usage</div>
+                    <div class="wf-item">Plans</div>
+                    <div class="wf-item">Billing</div>
+                    <div class="wf-item">Settings</div>
+                    <div class="wf-item">API Keys</div>
+                    <div class="wf-item">Team Settings</div>
+                  </div>
+                  <div class="wf-main">
+                    <div class="wf-h"></div>
+                    <div class="wf-cards">
+                      <div class="wf-card"><div class="wf-line accent"></div><div class="wf-line"></div><div class="wf-line short"></div></div>
+                      <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                      <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                    </div>
+                    <div class="wf-rows">
+                      <div class="wf-row"><span></span><span></span><span></span></div>
+                      <div class="wf-row"><span></span><span></span><span></span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · dashboard y barra lateral. La UI real puede variar.</figcaption>
+            </figure>
+
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Etiqueta en menú</th><th>Ruta</th><th>Para qué sirve</th></tr></thead>
+                <tbody>
+                  <tr><td>Overview</td><td><span class="code">/resumen</span></td><td>Resumen del clon y actividad reciente.</td></tr>
+                  <tr><td>Search</td><td><span class="code">/biblioteca</span></td><td>Biblioteca de contenido y búsqueda.</td></tr>
+                  <tr><td>Crawl</td><td><span class="code">/cerebro</span></td><td>Memoria del creador e ingesta.</td></tr>
+                  <tr><td>Extract</td><td><span class="code">/inbox</span></td><td>Triage de emails.</td></tr>
+                  <tr><td>Research</td><td><span class="code">/productos</span></td><td>Productos / catálogo comercial.</td></tr>
+                  <tr><td>Usage</td><td><span class="code">/analiticas</span></td><td>Analíticas de uso y costes.</td></tr>
+                  <tr><td>Plans</td><td><span class="code">/planes</span></td><td>Selección y upgrade de plan.</td></tr>
+                  <tr><td>Billing</td><td><span class="code">/facturacion</span></td><td>Saldo, portal Stripe e historial.</td></tr>
+                  <tr><td>Settings</td><td><span class="code">/settings</span></td><td>Ajustes del workspace y perfil.</td></tr>
+                  <tr><td>API Keys</td><td><span class="code">/configuracion</span></td><td>Claves de API.</td></tr>
+                  <tr><td>Team Settings</td><td><span class="code">/reuniones</span></td><td>Reuniones y equipo.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 4 -->
+          <section id="onboarding" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 4</p>
+                <h2>Configurar tu clon</h2>
+              </div>
+            </div>
+            <p>
+              La primera vez, el onboarding (<span class="code">/onboarding</span>) te guía con un asistente de
+              cuatro pasos para dejar el clon listo. Puedes revisitar estos ajustes más adelante desde Overview.
+            </p>
+
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">myownclone.com/onboarding</span>
+                </div>
+                <div class="wf-main">
+                  <div class="wf-h" style="width:40%;"></div>
+                  <div class="wf-steps">
+                    <div class="wf-step"><div class="wf-num"></div><div class="wf-line"></div></div>
+                    <div class="wf-step"><div class="wf-num"></div><div class="wf-line"></div></div>
+                    <div class="wf-step"><div class="wf-num"></div><div class="wf-line"></div></div>
+                    <div class="wf-step"><div class="wf-num"></div><div class="wf-line"></div></div>
+                  </div>
+                  <div class="wf-cards" style="grid-template-columns:1fr 1fr;">
+                    <div class="wf-card"><div class="wf-line accent"></div><div class="wf-line"></div><div class="wf-line short"></div></div>
+                    <div class="wf-card"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · asistente de onboarding. La UI real puede variar.</figcaption>
+            </figure>
+
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Nombre</strong><p>Dale un nombre al clon y define su slug público.</p></div></li>
+              <li><span class="step-number">2</span><div><strong>Personalidad y tono</strong><p>Elige cómo debe responder (formal, cercano, comercial…).</p></div></li>
+              <li><span class="step-number">3</span><div><strong>Idioma</strong><p>Selecciona el idioma principal del clon.</p></div></li>
+              <li><span class="step-number">4</span><div><strong>Confirmar</strong><p>Revisa y guarda. El clon queda activo en Overview.</p></div></li>
+            </ol>
+          </section>
+
+          <!-- 5 -->
+          <section id="conocimiento" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 5</p>
+                <h2>Subir conocimiento</h2>
+              </div>
+            </div>
+            <p>
+              El clon responde mejor cuanto más contexto tiene. Usa <strong>Search/Library</strong>
+              (<span class="code">/biblioteca</span>) para subir fuentes y <strong>Crawl/Memory</strong>
+              (<span class="code">/cerebro</span>) para añadir memorias del creador.
+            </p>
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Añadir fuente</strong><p>Desde Library, sube documentos o crea contenido nuevo (<span class="code">/biblioteca/nuevo</span>).</p></div></li>
+              <li><span class="step-number">2</span><div><strong>Añadir memoria</strong><p>Desde Crawl/Memory, registra hechos y preferencias del creador.</p></div></li>
+              <li><span class="step-number">3</span><div><strong>Esperar procesado</strong><p>El sistema indexa el contenido antes de poder usarlo.</p></div></li>
+              <li><span class="step-number">4</span><div><strong>Probar</strong><p>Lanza una pregunta de prueba en el chat de Overview.</p></div></li>
+            </ol>
+            <div class="callout callout-warn">
+              <div class="callout-body">
+                <span class="callout-title">Importante</span>
+                <p>No subas contenido sensible que no deba ser usado por el clon en respuestas públicas.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6 -->
+          <section id="inbox" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 6</p>
+                <h2>Inbox (Extract)</h2>
+              </div>
+            </div>
+            <p>
+              <strong>Inbox</strong> (<span class="code">/inbox</span>) hace triage de emails con IA: clasifica,
+              sugiere respuestas y permite usar plantillas para ahorrar tiempo operativo.
+            </p>
+            <div class="grid two">
+              <article class="card"><strong>Triage automático</strong><p>Clasifica los mensajes entrantes por intención y urgencia.</p></article>
+              <article class="card"><strong>Plantillas</strong><p>Reutiliza respuestas habituales y edítalas antes de enviar.</p></article>
+            </div>
+          </section>
+
+          <!-- 7 -->
+          <section id="productos" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 7</p>
+                <h2>Productos (Research)</h2>
+              </div>
+            </div>
+            <p>
+              <strong>Products</strong> (<span class="code">/productos</span>) mantiene el catálogo y el contexto
+              comercial que el clon usa en modo ventas para hacer recomendaciones.
+            </p>
+            <div class="grid">
+              <article class="card"><strong>Catálogo</strong><p>Define productos con nombre, descripción y precio.</p></article>
+              <article class="card"><strong>Contexto comercial</strong><p>Información que el clon usa al recomendar.</p></article>
+              <article class="card"><strong>Modo ventas</strong><p>Activa un tono orientado a recomendar productos.</p></article>
+            </div>
+          </section>
+
+          <!-- 8 -->
+          <section id="analiticas" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 8</p>
+                <h2>Analíticas y uso</h2>
+              </div>
+            </div>
+            <p>
+              <strong>Usage</strong> (<span class="code">/analiticas</span>) muestra analíticas de consumo, costes,
+              preguntas frecuentes y gaps de conocimiento para saber dónde mejorar el clon.
+            </p>
+            <div class="grid">
+              <article class="card"><strong>Consumo y costes</strong><p>Tokens usados, llamadas y gasto por periodo.</p></article>
+              <article class="card"><strong>Preguntas frecuentes</strong><p>Lo que más preguntan los usuarios del chat.</p></article>
+              <article class="card"><strong>Gaps</strong><p>Preguntas sin respuesta clara: candidatos a nueva memoria.</p></article>
+            </div>
+          </section>
+
+          <!-- 9 -->
+          <section id="planes" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 9</p>
+                <h2>Planes</h2>
+              </div>
+              <span class="status status-warn">No confundir con Billing</span>
+            </div>
+            <p>
+              <strong>Plans</strong> (<span class="code">/planes</span>) es la pantalla para elegir plan, comparar
+              características y lanzar el checkout en Stripe. No es la zona de pagos ni de historial.
+            </p>
+
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">myownclone.com/planes</span>
+                </div>
+                <div class="wf-main">
+                  <div class="wf-h" style="width:35%;"></div>
+                  <div class="wf-plans">
+                    <div class="wf-plan"><div class="wf-line short" style="margin:0 auto;"></div><div class="wf-price"></div><div class="wf-line"></div><div class="wf-pill">FREE</div></div>
+                    <div class="wf-plan feat"><div class="wf-line short" style="margin:0 auto;"></div><div class="wf-price"></div><div class="wf-line"></div><div class="wf-pill warn">PRO</div></div>
+                    <div class="wf-plan"><div class="wf-line short" style="margin:0 auto;"></div><div class="wf-price"></div><div class="wf-line"></div><div class="wf-pill">ENTERPRISE</div></div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · selector de planes. La UI real puede variar.</figcaption>
+            </figure>
+
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Comparar</strong><p>Revisa las tarjetas Free, Pro y Enterprise.</p></div></li>
+              <li><span class="step-number">2</span><div><strong>Elegir</strong><p>Pulsa <em>Select plan</em> en el plan deseado.</p></div></li>
+              <li><span class="step-number">3</span><div><strong>Checkout</strong><p>Completa el pago en Stripe; el plan se activa al confirmar.</p></div></li>
+            </ol>
+            <div class="callout callout-info">
+              <div class="callout-body">
+                <span class="callout-title">¿No ves los planes?</span>
+                <p>Puede que Stripe o los planes no estén configurados para tu tenant. Contacta con soporte.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 10 -->
+          <section id="facturacion" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 10</p>
+                <h2>Facturación</h2>
+              </div>
+              <span class="status status-ok">Pagos e historial</span>
+            </div>
+            <p>
+              <strong>Billing</strong> (<span class="code">/facturacion</span>) es la zona de saldo, portal de Stripe,
+              vouchers, crédito, outstanding e historial. <strong>No es la pantalla para elegir plan.</strong>
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Concepto</th><th>Qué significa</th></tr></thead>
+                <tbody>
+                  <tr><td>Balance</td><td>Saldo efectivo disponible.</td></tr>
+                  <tr><td>Cash / Voucher</td><td>Crédito promocional para consumo.</td></tr>
+                  <tr><td>Crédito</td><td>Saldo acumulado aplicable.</td></tr>
+                  <tr><td>Outstanding</td><td>Importe pendiente de liquidar.</td></tr>
+                  <tr><td>Portal Stripe</td><td>Acceso directo a tu cuenta de cliente Stripe.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 11 -->
+          <section id="chat-publico" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 11</p>
+                <h2>Chat público</h2>
+              </div>
+            </div>
+            <p>
+              Cuando tu clon está publicado, cualquiera con el enlace <span class="code">myownclone.com/&lt;slug&gt;</span>
+              puede chatear con él. Valida las respuestas antes de compartirlo.
+            </p>
+            <figure>
+              <div class="wireframe">
+                <div class="wf-bar">
+                  <span class="wf-dots"><span></span><span></span><span></span></span>
+                  <span class="wf-url">myownclone.com/&lt;tu-slug&gt;</span>
+                </div>
+                <div class="wf-main">
+                  <div class="wf-chat">
+                    <div class="wf-bubble user"><div class="wf-line"></div></div>
+                    <div class="wf-bubble"><div class="wf-line"></div><div class="wf-line short"></div></div>
+                    <div class="wf-bubble user"><div class="wf-line short"></div></div>
+                    <div class="wf-bubble"><div class="wf-line"></div></div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Wireframe</strong> · chat público del clon. La UI real puede variar.</figcaption>
+            </figure>
+          </section>
+
+          <!-- 12 -->
+          <section id="perfil" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 12</p>
+                <h2>Perfil y ajustes</h2>
+              </div>
+            </div>
+            <p>
+              Desde <strong>Settings</strong> (<span class="code">/settings</span>) revisas las preferencias del
+              workspace. Los cambios de email, roles o acceso los gestiona el administrador. En
+              <strong>API Keys</strong> (<span class="code">/configuracion</span>) creas y rotas claves de API.
+            </p>
+          </section>
+
+          <!-- 13 -->
+          <section id="roles" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 13</p>
+                <h2>Roles y permisos</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Rol</th><th>Qué puede hacer</th></tr></thead>
+                <tbody>
+                  <tr><td>Usuario workspace</td><td>Gestiona su clon, conocimiento y datos propios.</td></tr>
+                  <tr><td>Admin workspace</td><td>Gestiona configuración y equipo del workspace.</td></tr>
+                  <tr><td>Platform admin</td><td>Accede al panel global: tenants, feedback, auditoría e impersonation.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 14 -->
+          <section id="buenas-practicas" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 14</p>
+                <h2>Buenas prácticas</h2>
+              </div>
+            </div>
+            <ul class="steps">
+              <li style="grid-template-columns:0 1fr;padding:12px 16px;"><div></div><div><p>No subas contenido sensible que no deba usarse en respuestas públicas.</p></div></li>
+              <li style="grid-template-columns:0 1fr;padding:12px 16px;"><div></div><div><p>Mantén las fuentes actualizadas.</p></div></li>
+              <li style="grid-template-columns:0 1fr;padding:12px 16px;"><div></div><div><p>Prueba respuestas después de cambios importantes.</p></div></li>
+              <li style="grid-template-columns:0 1fr;padding:12px 16px;"><div></div><div><p>Usa <strong>Plans</strong> para upgrades y <strong>Billing</strong> para pagos e historial.</p></div></li>
+            </ul>
+          </section>
+
+          <!-- 15 -->
+          <section id="faq" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 15</p>
+                <h2>FAQ</h2>
+              </div>
+            </div>
+            <div class="grid">
+              <article class="card"><strong>No puedo entrar</strong><p>Borra cookies de <span class="code">myownclone.com</span> o usa incógnito. Si sigue, pide reset de contraseña.</p></article>
+              <article class="card"><strong>Veo 401 en consola</strong><p>Suele ser sesión caducada. Cierra sesión y entra otra vez.</p></article>
+              <article class="card"><strong>No veo planes</strong><p>Puede que Stripe o los planes no estén configurados para tu tenant.</p></article>
+              <article class="card"><strong>El chat no responde</strong><p>Revisa si el clon está publicado y si hay contenido entrenado.</p></article>
+            </div>
+          </section>
+
+          <!-- 16 -->
+          <section id="problemas" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 16</p>
+                <h2>Problemas comunes</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Problema</th><th>Qué hacer</th></tr></thead>
+                <tbody>
+                  <tr><td>Login no avanza</td><td>Recarga, borra cookies y vuelve a entrar.</td></tr>
+                  <tr><td>Upgrade abre Billing</td><td>Usa el menú <strong>Plans</strong>; si sigue pasando, reporta el bug.</td></tr>
+                  <tr><td>Pago no aparece</td><td>Abre el portal Stripe o contacta soporte con fecha e importe.</td></tr>
+                  <tr><td>Respuesta incorrecta del clon</td><td>Añade memoria/fuente más precisa y vuelve a probar.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 17 -->
+          <section id="soporte" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 17</p>
+                <h2>Soporte y contacto</h2>
+              </div>
+            </div>
+            <p>Contacto operativo: <span class="code">hello@myownclone.com</span>.</p>
+            <div class="callout callout-info">
+              <div class="callout-body">
+                <span class="callout-title">Incluye siempre</span>
+                <p>Email de cuenta · ruta donde ocurre el problema · captura o texto del error · hora aproximada.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 18 -->
+          <section id="glosario" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 18</p>
+                <h2>Glosario</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Término</th><th>Definición</th></tr></thead>
+                <tbody>
+                  <tr><td>Clone</td><td>Asistente IA entrenado con tu contenido.</td></tr>
+                  <tr><td>Plan</td><td>Nivel de suscripción (Free / Pro / Enterprise).</td></tr>
+                  <tr><td>Billing</td><td>Facturación, saldo e historial.</td></tr>
+                  <tr><td>Tenant / Workspace</td><td>Espacio de trabajo de una empresa o creador.</td></tr>
+                  <tr><td>Voucher</td><td>Crédito promocional para consumo.</td></tr>
+                  <tr><td>Slug</td><td>Identificador público del clon en la URL.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <footer class="footer">
+            <span>MyOwnClone · Manual de usuario</span>
+            <span>Última actualización: 2026-06-16</span>
+          </footer>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

@@ -406,6 +406,464 @@ th {
   font-size: 14px;
 }
 
+/* ============================================================
+   Layout de manual (doc-layout: sidebar TOC + contenido)
+   Añadido para manual-usuario y manual-tecnico.
+   ============================================================ */
+
+.doc-layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+
+.doc-nav {
+  position: sticky;
+  top: 92px;
+  max-height: calc(100vh - 112px);
+  overflow-y: auto;
+  padding: 22px 18px;
+  border: 1px solid var(--line-soft);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.045);
+}
+
+.doc-nav p {
+  margin: 0 0 10px;
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.doc-nav ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-nav li + li {
+  margin-top: 6px;
+}
+
+.doc-nav a {
+  display: block;
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.doc-nav a:hover {
+  color: var(--accent-dark);
+  background: var(--surface-warm);
+}
+
+/* Marca el enlace activo cuando su sección tiene :target */
+.doc-content section:target ~ .doc-nav a, /* no-op, sólo documenta intención */
+.doc-nav a.is-active {
+  color: var(--ink);
+  background: var(--surface-warm);
+}
+
+/* Resaltado del ítem activo via scroll-target con :target en el h3 de la sección */
+.doc-content section[id] {
+  scroll-margin-top: 92px;
+}
+
+.doc-content {
+  display: grid;
+  gap: 24px;
+}
+
+.doc-content .section {
+  margin-top: 0;
+}
+
+/* Cabecera de manual (hero compacto para páginas de manual) */
+.doc-hero {
+  margin-top: 24px;
+  padding: 46px 42px;
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.doc-hero h1 {
+  font-size: clamp(40px, 6vw, 78px);
+}
+
+.doc-hero p {
+  max-width: 720px;
+  margin: 22px 0 0;
+  font-size: 18px;
+}
+
+.doc-hero .cta-row {
+  margin-top: 28px;
+}
+
+/* ============================================================
+   Callouts / admonitions
+   ============================================================ */
+
+.callout {
+  display: grid;
+  grid-template-columns: 4px 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 18px 20px;
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.callout::before {
+  content: "";
+  align-self: stretch;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.callout > .callout-body {
+  min-width: 0;
+}
+
+.callout-title {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.callout p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.callout-info::before { background: var(--blue); }
+.callout-warn::before { background: var(--amber); }
+.callout-danger::before { background: #dc2626; }
+.callout-ok::before { background: var(--green); }
+
+/* ============================================================
+   Chips de tecnología / tags
+   ============================================================ */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #fff;
+  color: var(--muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   Wireframes CSS — representación honesta de pantallas.
+   NO son capturas reales; van siempre con .wireframe-caption.
+   ============================================================ */
+
+.wireframe {
+  position: relative;
+  margin: 8px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.wf-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface-soft);
+}
+
+.wf-bar .wf-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.wf-bar .wf-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.wf-bar .wf-url {
+  margin-left: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line-soft);
+  color: var(--faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+
+.wf-frame {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  min-height: 180px;
+}
+
+.wf-side {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 14px 12px;
+  border-right: 1px solid var(--line-soft);
+  background: var(--surface-warm);
+}
+
+.wf-side .wf-item {
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.wf-side .wf-item.is-active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.wf-side .wf-section {
+  margin-top: 8px;
+  padding: 4px 8px;
+  color: var(--accent-dark);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wf-main {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+}
+
+.wf-h {
+  height: 14px;
+  width: 55%;
+  border-radius: 6px;
+  background: var(--ink);
+}
+
+.wf-h.sm { width: 32%; height: 10px; background: var(--faint); }
+
+.wf-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.wf-cards .wf-card,
+.wf-card {
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: #fff;
+  padding: 12px;
+}
+
+.wf-card .wf-line {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--line);
+  margin-bottom: 8px;
+}
+
+.wf-card .wf-line.short { width: 60%; }
+.wf-card .wf-line.accent { background: var(--accent); width: 40%; height: 9px; }
+
+.wf-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.wf-rows .wf-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+
+.wf-rows .wf-row > span {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.wf-pill {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line-soft);
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wf-pill.ok { color: #065f46; background: #d1fae5; border-color: transparent; }
+.wf-pill.warn { color: #92400e; background: #fef3c7; border-color: transparent; }
+
+.wf-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.wf-steps .wf-step {
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+}
+
+.wf-steps .wf-step .wf-num {
+  width: 22px;
+  height: 22px;
+  margin: 0 auto 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.wf-steps .wf-step .wf-line {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  margin: 4px auto 0;
+  width: 70%;
+}
+
+.wf-chat {
+  display: grid;
+  gap: 8px;
+}
+
+.wf-chat .wf-bubble {
+  width: fit-content;
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line-soft);
+}
+
+.wf-chat .wf-bubble.user {
+  justify-self: end;
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.wf-chat .wf-bubble .wf-line {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.wf-chat .wf-bubble.user .wf-line { background: rgba(255,255,255,0.4); }
+
+.wf-plans {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.wf-plans .wf-plan {
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: #fff;
+  text-align: center;
+}
+
+.wf-plans .wf-plan.feat {
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(234, 88, 12, 0.12);
+}
+
+.wf-plans .wf-plan .wf-price {
+  height: 18px;
+  width: 50%;
+  margin: 8px auto;
+  border-radius: 6px;
+  background: var(--ink);
+}
+
+.wf-caption {
+  margin: 10px 2px 0;
+  color: var(--faint);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.wf-caption strong {
+  color: var(--accent-dark);
+  font-style: normal;
+}
+
+/* ============================================================
+   Tablas de docs (reaprovecha .table-wrap) — números mono
+   ============================================================ */
+
+.doc-content td .code {
+  white-space: nowrap;
+}
+
+/* Bloques "subsección" sin padding de section */
+.doc-inline-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 4px 0 16px;
+}
+
+.doc-inline-head h3 {
+  font-size: 22px;
+}
+
+.doc-inline-head .status {
+  transform: translateY(-4px);
+}
+
+/* Responsive de manuales */
 @media (max-width: 980px) {
   .site-shell {
     padding: 18px;
@@ -434,6 +892,25 @@ th {
 
   .grid,
   .grid.two {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-nav {
+    position: static;
+    max-height: none;
+  }
+
+  .doc-hero {
+    padding: 32px 24px;
+  }
+
+  .wf-cards,
+  .wf-steps,
+  .wf-plans {
     grid-template-columns: 1fr;
   }
 }

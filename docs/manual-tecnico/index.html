@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manual técnico | MyOwnClone Docs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/myownclone-docs.css">
+  </head>
+  <body>
+    <main class="site-shell">
+      <nav class="topbar" aria-label="Documentación">
+        <a class="brand" href="../index.html" aria-label="MyOwnClone Docs">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <span>Manual técnico</span>
+        </a>
+        <div class="nav-links">
+          <a href="../index.html">Inicio</a>
+          <a href="../manual-usuario/index.html">Manual usuario</a>
+          <a href="../admin/index.html">Wiki técnica</a>
+          <a href="README.md">Versión Markdown</a>
+        </div>
+      </nav>
+
+      <header class="doc-hero">
+        <p class="kicker">Manual técnico y de administración</p>
+        <h1>Operar, desplegar y mantener MyOwnClone.</h1>
+        <p>
+          Referencia técnica interna: arquitectura, rutas y proxy, modelo de datos, scripts de
+          despliegue, variables de entorno, seguridad operativa, troubleshooting y restauración
+          desde GitHub. Todos los datos provienen del repositorio.
+        </p>
+        <div class="cta-row">
+          <a class="button button-primary" href="#arquitectura">Empezar a leer</a>
+          <a class="button button-secondary" href="#restore">Restaurar VPS</a>
+        </div>
+      </header>
+
+      <div class="doc-layout">
+        <aside class="doc-nav" aria-label="Índice del manual">
+          <p>Índice</p>
+          <ul>
+            <li><a href="#vision">1. Visión general</a></li>
+            <li><a href="#arquitectura">2. Arquitectura</a></li>
+            <li><a href="#stack">3. Stack</a></li>
+            <li><a href="#repo">4. Estructura del repo</a></li>
+            <li><a href="#componentes">5. Componentes clave</a></li>
+            <li><a href="#rutas">6. Rutas y proxy</a></li>
+            <li><a href="#datos">7. Modelo de datos</a></li>
+            <li><a href="#ops">8. Scripts de ops</a></li>
+            <li><a href="#env">9. Variables de entorno</a></li>
+            <li><a href="#deploy">10. Despliegue</a></li>
+            <li><a href="#admin">11. Administración</a></li>
+            <li><a href="#seguridad">12. Seguridad operativa</a></li>
+            <li><a href="#troubleshooting">13. Troubleshooting</a></li>
+            <li><a href="#backups">14. Backups y rollback</a></li>
+            <li><a href="#monitoreo">15. Monitoreo y logs</a></li>
+            <li><a href="#checklist">16. Checklist post-deploy</a></li>
+            <li><a href="#restore">17. Restaurar desde GitHub</a></li>
+            <li><a href="#roadmap">18. Roadmap técnico</a></li>
+            <li><a href="#glosario">19. Glosario</a></li>
+          </ul>
+        </aside>
+
+        <div class="doc-content">
+          <!-- 1 -->
+          <section id="vision" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 1</p>
+                <h2>Visión general</h2>
+              </div>
+            </div>
+            <p>
+              MyOwnClone es una plataforma SaaS multi-tenant para crear clones IA con chat público,
+              modos de respuesta, memoria del creador, email triage, booking, productos, analíticas,
+              billing e impersonation de administración. Next.js actúa como consola web y proxy
+              autenticado; Flask mantiene la lógica de negocio y los servicios internos.
+            </p>
+            <div class="tags">
+              <span class="tag">Next.js 16</span>
+              <span class="tag">Flask 3</span>
+              <span class="tag">PostgreSQL + pgvector</span>
+              <span class="tag">Redis</span>
+              <span class="tag">Weaviate</span>
+              <span class="tag">Stripe</span>
+              <span class="tag">Resend</span>
+            </div>
+          </section>
+
+          <!-- 2 -->
+          <section id="arquitectura" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 2</p>
+                <h2>Arquitectura</h2>
+              </div>
+            </div>
+            <p>
+              El navegador llega a Nginx (HTTPS). Next.js sirve la consola y hace de proxy autenticado
+              hacia Flask. Nginx también enruta directamente a Flask las APIs nativas del backend.
+              Flask habla con PostgreSQL, Redis, Weaviate y los proveedores externos.
+            </p>
+            <figure>
+              <div class="wireframe">
+                <div class="wf-main" style="grid-template-columns:1fr;">
+                  <div class="wf-cards" style="grid-template-columns: repeat(7, 1fr); align-items:center;">
+                    <div class="wf-card" style="text-align:center;"><div class="wf-line accent" style="margin:0 auto;"></div><div class="wf-line short" style="margin:6px auto 0;"></div></div>
+                    <div class="wf-card" style="text-align:center;opacity:.5;"><div class="wf-line short" style="margin:0 auto;"></div></div>
+                    <div class="wf-card" style="text-align:center;"><div class="wf-line accent" style="margin:0 auto;"></div><div class="wf-line short" style="margin:6px auto 0;"></div></div>
+                    <div class="wf-card" style="text-align:center;"><div class="wf-line" style="margin:0 auto;"></div></div>
+                    <div class="wf-card" style="text-align:center;"><div class="wf-line" style="margin:0 auto;"></div></div>
+                    <div class="wf-card" style="text-align:center;"><div class="wf-line" style="margin:0 auto;"></div></div>
+                    <div class="wf-card" style="text-align:center;"><div class="wf-line" style="margin:0 auto;"></div></div>
+                  </div>
+                  <div class="wf-cards" style="grid-template-columns: repeat(7, 1fr); margin-top:-6px;">
+                    <div class="wf-card" style="border:none;text-align:center;color:var(--faint);font-size:10px;font-weight:700;background:transparent;">Navegador</div>
+                    <div class="wf-card" style="border:none;text-align:center;color:var(--faint);font-size:10px;font-weight:700;background:transparent;">→</div>
+                    <div class="wf-card" style="border:none;text-align:center;color:var(--faint);font-size:10px;font-weight:700;background:transparent;">Nginx</div>
+                    <div class="wf-card" style="border:none;text-align:center;color:var(--faint);font-size:10px;font-weight:700;background:transparent;">Next.js + proxy</div>
+                    <div class="wf-card" style="border:none;text-align:center;color:var(--faint);font-size:10px;font-weight:700;background:transparent;">Flask API</div>
+                    <div class="wf-card" style="border:none;text-align:center;color:var(--faint);font-size:10px;font-weight:700;background:transparent;">DB · Redis · Weaviate</div>
+                    <div class="wf-card" style="border:none;text-align:center;color:var(--faint);font-size:10px;font-weight:700;background:transparent;">Stripe · Resend · LLM</div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="wf-caption"><strong>Diagrama</strong> · flujo de producción (simplificado).</figcaption>
+            </figure>
+          </section>
+
+          <!-- 3 -->
+          <section id="stack" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 3</p>
+                <h2>Stack tecnológico</h2>
+              </div>
+            </div>
+            <div class="grid">
+              <article class="card"><strong>Frontend</strong><p>Next.js 16, React 19, TypeScript, Tailwind v4, NextAuth 5 (App Router).</p></article>
+              <article class="card"><strong>Backend</strong><p>Flask 3, Flask-RESTX, SQLAlchemy 2, Flask-Migrate/Alembic.</p></article>
+              <article class="card"><strong>Datos</strong><p>PostgreSQL 15 + pgvector, Redis 7, Weaviate 1.24.</p></article>
+              <article class="card"><strong>Infra</strong><p>Docker Compose, Nginx, systemd, Let's Encrypt.</p></article>
+              <article class="card"><strong>Integraciones</strong><p>Stripe, Resend, proveedor LLM compatible OpenAI.</p></article>
+              <article class="card"><strong>Calidad</strong><p>pytest, typecheck y smoke tests en <span class="code">ops/smoke-prod.sh</span>.</p></article>
+            </div>
+          </section>
+
+          <!-- 4 -->
+          <section id="repo" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 4</p>
+                <h2>Estructura del repositorio</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Carpeta</th><th>Contenido</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="code">MyOwnClone/</span></td><td>Frontend Next.js (App Router).</td></tr>
+                  <tr><td><span class="code">api/</span></td><td>Backend Flask.</td></tr>
+                  <tr><td><span class="code">ops/</span></td><td>Deploy, env examples, plantilla Nginx, smoke tests, systemd, compose.</td></tr>
+                  <tr><td><span class="code">docs/</span></td><td>Documentación operativa y manuales (este site).</td></tr>
+                  <tr><td><span class="code">tests/</span> · <span class="code">api/tests/</span></td><td>Tests del backend.</td></tr>
+                  <tr><td><span class="code">.docs_md/</span></td><td>Fuente interna: auditorías, design system, contratos.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 5 -->
+          <section id="componentes" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 5</p>
+                <h2>Componentes clave</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Ruta</th><th>Responsabilidad</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="code">MyOwnClone/src/lib/auth.ts</span></td><td>NextAuth: credentials, Google, Resend.</td></tr>
+                  <tr><td><span class="code">MyOwnClone/src/proxy.ts</span></td><td>Proxy frontend → backend: auth de sesión y service key.</td></tr>
+                  <tr><td><span class="code">MyOwnClone/src/lib/nav-admin.ts</span></td><td>Definición del menú del panel admin.</td></tr>
+                  <tr><td><span class="code">api/controllers/console/myownclone/*</span></td><td>APIs console protegidas.</td></tr>
+                  <tr><td><span class="code">api/controllers/console/auth.py</span></td><td>Login JWT del backend.</td></tr>
+                  <tr><td><span class="code">api/libs/login.py</span></td><td>Decorador <span class="code">login_required</span> y cabeceras service-to-service.</td></tr>
+                  <tr><td><span class="code">api/models/myownclone/*</span></td><td>Modelo de dominio SaaS.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 6 -->
+          <section id="rutas" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 6</p>
+                <h2>Rutas y proxy</h2>
+              </div>
+              <span class="status status-warn">Crítico · fuente del 401</span>
+            </div>
+            <p>
+              La separación de rutas es lo más delicado del despliegue. Las rutas que deben leer la
+              cookie de NextAuth <strong>tienen que pasar por Next.js</strong> para que
+              <span class="code">proxy.ts</span> adjunte las cabeceras <span class="code">X-API-Key</span> e identidad.
+              Si Nginx las manda directo a Flask, devuelven 401.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Ruta</th><th>Destino</th><th>Motivo</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="code">/api/clone/*</span></td><td>Next.js → proxy</td><td>Lee cookie NextAuth y añade cabeceras service-to-service a Flask.</td></tr>
+                  <tr><td><span class="code">/api/admin/*</span></td><td>Next.js → proxy</td><td>Evita bucles de admin y conserva la sesión del navegador.</td></tr>
+                  <tr><td><span class="code">/api/auth/*</span></td><td>Next.js</td><td>NextAuth catch-all.</td></tr>
+                  <tr><td><span class="code">/api/myownclone/*</span></td><td>Flask</td><td>API de negocio canónica y rutas públicas de chat.</td></tr>
+                  <tr><td><span class="code">/console/*</span></td><td>Flask</td><td>Console API histórica del backend.</td></tr>
+                  <tr><td><span class="code">/planes</span> · <span class="code">/facturacion</span></td><td>Next.js</td><td>Selección de plan y billing (páginas, no API).</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="callout callout-danger">
+              <div class="callout-body">
+                <span class="callout-title">Incidente 401</span>
+                <p>Si <span class="code">/api/admin/*</span> o <span class="code">/api/clone/*</span> devuelven 401, revisa que Nginx las enrute vía Next.js
+                (plantilla <span class="code">ops/nginx.myownclone.conf.example</span>) y no directo a Flask.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7 -->
+          <section id="datos" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 7</p>
+                <h2>Modelo de datos</h2>
+              </div>
+            </div>
+            <p>
+              PostgreSQL con pgvector. Entidades principales y sus relaciones (cardinalidad simplificada
+              a partir del ER de <span class="code">docs/auditoria/03-auditoria-tecnica-completa.md</span>):
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Entidad</th><th>Relación</th><th>Entidad</th></tr></thead>
+                <tbody>
+                  <tr><td>TENANTS</td><td>1 ── ∞</td><td>ACCOUNTS</td></tr>
+                  <tr><td>TENANTS</td><td>1 ── ∞</td><td>CLONE_CONFIGS</td></tr>
+                  <tr><td>CLONE_CONFIGS</td><td>1 ── ∞</td><td>CLONE_MODE_PROMPTS</td></tr>
+                  <tr><td>CLONE_CONFIGS</td><td>1 ── ∞</td><td>CREATOR_MEMORY</td></tr>
+                  <tr><td>TENANTS</td><td>1 ── ∞</td><td>EMAIL_INBOUND</td></tr>
+                  <tr><td>TENANTS</td><td>1 ── ∞</td><td>MEETING_TYPES ── BOOKINGS</td></tr>
+                  <tr><td>TENANTS</td><td>1 ── ∞</td><td>PRODUCTS</td></tr>
+                  <tr><td>TENANTS</td><td>1 ── ∞</td><td>COST_TRACKING</td></tr>
+                  <tr><td>TENANTS</td><td>1 ── ∞</td><td>IMPERSONATION_TOKENS</td></tr>
+                  <tr><td>MYOWNCLONE_PLANS</td><td>1 ── ∞</td><td>TENANTS</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Tabla analítica adicional: <span class="code">analytics_questions</span>, <span class="code">analytics_gaps</span> y registro de auditoría <span class="code">impersonation_log</span>.</p>
+          </section>
+
+          <!-- 8 -->
+          <section id="ops" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 8</p>
+                <h2>Scripts de ops</h2>
+              </div>
+            </div>
+            <p>Todo el ciclo de vida del despliegue vive en <span class="code">ops/</span>:</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Archivo</th><th>Para qué sirve</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="code">deploy-frontend.sh</span></td><td>Despliegue del frontend por releases vía SSH (releases → symlink current).</td></tr>
+                  <tr><td><span class="code">deploy-backend.sh</span></td><td>Despliegue del backend vía Docker Compose por SSH.</td></tr>
+                  <tr><td><span class="code">restore-from-github-on-vps.sh</span></td><td>Restaurar/desplegar desde GitHub ejecutando <em>en el propio VPS</em>.</td></tr>
+                  <tr><td><span class="code">smoke-prod.sh</span></td><td>Smoke HTTP: sesión, <span class="code">/api/clone/plans</span> y ruta protegida de backend.</td></tr>
+                  <tr><td><span class="code">backend.env.production.example</span></td><td>Plantilla de env del backend con reglas de validación.</td></tr>
+                  <tr><td><span class="code">frontend.env.production.example</span></td><td>Plantilla mínima de env del frontend (next start + NextAuth).</td></tr>
+                  <tr><td><span class="code">nginx.myownclone.conf.example</span></td><td>Vhost Nginx con el reparto de rutas crítico.</td></tr>
+                  <tr><td><span class="code">myownclone-frontend.service</span></td><td>Unidad systemd del frontend (usuario <span class="code">myownclone</span>).</td></tr>
+                  <tr><td><span class="code">docker-compose.backend.prod.yml</span></td><td>Compose de producción: postgres (pgvector), redis, weaviate, api.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 9 -->
+          <section id="env" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 9</p>
+                <h2>Variables de entorno</h2>
+              </div>
+              <span class="status status-blocked">Nunca en el repo</span>
+            </div>
+            <p>Los archivos reales viven en el VPS bajo <span class="code">/opt/myownclone/shared/</span> y nunca se versionan.</p>
+            <div class="doc-inline-head"><h3>Frontend</h3></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Variable</th><th>Uso</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="code">DATABASE_URL</span></td><td>Conexión Postgres para NextAuth.</td></tr>
+                  <tr><td><span class="code">AUTH_URL</span> · <span class="code">NEXTAUTH_URL</span></td><td>URL canónica de autenticación.</td></tr>
+                  <tr><td><span class="code">AUTH_SECRET</span></td><td>Secreto de firma JWT de NextAuth.</td></tr>
+                  <tr><td><span class="code">SERVICE_API_KEY</span></td><td>Clave service-to-service Next → Flask.</td></tr>
+                  <tr><td><span class="code">MYOWNCLONE_API_URL</span></td><td>Base URL del backend Flask.</td></tr>
+                  <tr><td><span class="code">PLATFORM_ADMIN_EMAIL</span></td><td>Email del admin de plataforma.</td></tr>
+                  <tr><td><span class="code">PLATFORM_ADMIN_PASSWORD_HASH</span></td><td>Hash bcrypt del admin (ver seguridad).</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="doc-inline-head" style="margin-top:24px;"><h3>Backend</h3></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Variable</th><th>Uso</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="code">DB_HOST</span> · <span class="code">DB_PASSWORD</span></td><td>Conexión Postgres.</td></tr>
+                  <tr><td><span class="code">REDIS_PASSWORD</span></td><td>Auth Redis.</td></tr>
+                  <tr><td><span class="code">JWT_SECRET_KEY</span></td><td>Firma JWT del backend (≥ 32 chars).</td></tr>
+                  <tr><td><span class="code">SERVICE_API_KEY</span></td><td>Misma clave que el frontend.</td></tr>
+                  <tr><td><span class="code">WEAVIATE_API_KEY</span></td><td>Vector search.</td></tr>
+                  <tr><td><span class="code">STRIPE_SECRET_KEY</span> · <span class="code">STRIPE_WEBHOOK_SECRET</span></td><td>Billing y webhooks.</td></tr>
+                  <tr><td><span class="code">RESEND_API_KEY</span></td><td>Email transaccional.</td></tr>
+                  <tr><td><span class="code">OPENAI_API_BASE</span> · <span class="code">OPENAI_API_KEY</span></td><td>Proveedor LLM compatible OpenAI.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 10 -->
+          <section id="deploy" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 10</p>
+                <h2>Despliegue</h2>
+              </div>
+            </div>
+            <p>Layout en el VPS bajo <span class="code">/opt/myownclone</span>:</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Ruta VPS</th><th>Qué contiene</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="code">/opt/myownclone</span></td><td>Raíz de la app.</td></tr>
+                  <tr><td><span class="code">/opt/myownclone/current</span></td><td>Symlink a la release activa.</td></tr>
+                  <tr><td><span class="code">/opt/myownclone/releases/&lt;id&gt;</span></td><td>Snapshots desplegables.</td></tr>
+                  <tr><td><span class="code">/opt/myownclone/shared/*.env.production</span></td><td>Env real (frontend y backend), no versionado.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="doc-inline-head"><h3>Frontend</h3></div>
+            <pre><code>bash ops/deploy-frontend.sh</code></pre>
+            <div class="doc-inline-head" style="margin-top:16px;"><h3>Backend</h3></div>
+            <pre><code>bash ops/deploy-backend.sh</code></pre>
+            <div class="doc-inline-head" style="margin-top:16px;"><h3>Nginx</h3></div>
+            <pre><code>sudo cp ops/nginx.myownclone.conf.example /etc/nginx/sites-available/myownclone
+sudo ln -sfn /etc/nginx/sites-available/myownclone /etc/nginx/sites-enabled/myownclone
+sudo nginx -t
+sudo systemctl reload nginx</code></pre>
+          </section>
+
+          <!-- 11 -->
+          <section id="admin" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 11</p>
+                <h2>Administración del sistema</h2>
+              </div>
+            </div>
+            <pre><code>systemctl status myownclone-frontend --no-pager
+journalctl -u myownclone-frontend -n 200 --no-pager
+docker ps
+docker logs myownclone_api --tail 200
+docker exec -it myownclone_postgres psql -U postgres -d myownclone</code></pre>
+            <div class="callout callout-warn">
+              <div class="callout-body">
+                <span class="callout-title">Procesos automáticos</span>
+                <p>No se confirmaron cronjobs activos el 2026-06-15 (sin SSH). Revalidar con
+                <span class="code">systemctl list-timers --all</span> y revisión de <span class="code">/etc/cron*</span>.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 12 -->
+          <section id="seguridad" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 12</p>
+                <h2>Seguridad operativa</h2>
+              </div>
+              <span class="status status-warn">Hallazgos reales</span>
+            </div>
+            <div class="grid">
+              <article class="card"><strong>Auth dual</strong><p>Dos capenas: NextAuth JWT (frontend) y Flask JWT/service headers (backend). <span class="code">login_required</span> acepta Bearer JWT <em>o</em> cabeceras service-to-service.</p></article>
+              <article class="card"><strong>Bug bcrypt/systemd</strong><p><span class="code">PLATFORM_ADMIN_PASSWORD_HASH</span> no puede ir en <span class="code">.env.production</span> (dotenv expande <span class="code">$</span> del hash). Cargarlo vía systemd <span class="code">EnvironmentFile</span>.</p></article>
+              <article class="card"><strong>Nginx crítico</strong><p><span class="code">/api/admin/*</span> y <span class="code">/api/clone/*</span> deben pasar por Next; si van directo a Flask, 401.</p></article>
+              <article class="card"><strong>Headers TLS</strong><p>HSTS, X-Frame-Options, nosniff y Referrer-Policy presentes. Falta CSP versionado.</p></article>
+              <article class="card"><strong>Service key</strong><p>Validar <span class="code">ALLOW_DEV_SERVICE_KEY=false</span> en producción.</p></article>
+              <article class="card"><strong>Higiene</strong><p>Nunca commitear <span class="code">.env</span>; permisos <span class="code">0600</span>; rotar tokens de accesos temporales.</p></article>
+            </div>
+          </section>
+
+          <!-- 13 -->
+          <section id="troubleshooting" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 13</p>
+                <h2>Troubleshooting</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Síntoma</th><th>Diagnóstico</th><th>Solución</th></tr></thead>
+                <tbody>
+                  <tr><td>Login vuelve a <span class="code">/login</span></td><td>Revisar <span class="code">/api/auth/session</span>, cookies y <span class="code">AUTH_SECRET</span>.</td><td>Borrar cookies; verificar env de systemd.</td></tr>
+                  <tr><td><span class="code">/api/admin/overview</span> 401</td><td>Nginx salta Next o <span class="code">getToken</span> no lee cookie.</td><td>Revisar plantilla Nginx y <span class="code">src/proxy.ts</span>.</td></tr>
+                  <tr><td>Bcrypt admin inválido</td><td>Dotenv expande <span class="code">$</span> en <span class="code">.env.production</span>.</td><td>No poner <span class="code">PLATFORM_ADMIN_*</span> ahí; usar systemd env file.</td></tr>
+                  <tr><td>Deploy falla con <span class="code">npm ci</span></td><td>Lockfile desincronizado.</td><td>Regenerar <span class="code">package-lock.json</span>; en seco, <span class="code">npm install --legacy-peer-deps</span>.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 14 -->
+          <section id="backups" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 14</p>
+                <h2>Backups y rollback</h2>
+              </div>
+              <span class="status status-blocked">Automatización pendiente (P1)</span>
+            </div>
+            <p>Backup manual Postgres:</p>
+            <pre><code>docker exec myownclone_postgres pg_dump -U postgres myownclone | gzip > myownclone-$(date +%F).sql.gz</code></pre>
+            <p>Rollback frontend (release anterior):</p>
+            <pre><code>ln -sfn /opt/myownclone/releases/&lt;release-anterior&gt; /opt/myownclone/current
+systemctl restart myownclone-frontend</code></pre>
+          </section>
+
+          <!-- 15 -->
+          <section id="monitoreo" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 15</p>
+                <h2>Monitoreo y logs</h2>
+              </div>
+            </div>
+            <div class="grid">
+              <article class="card"><strong>Frontend</strong><p><span class="code">journalctl -u myownclone-frontend</span>.</p></article>
+              <article class="card"><strong>Backend</strong><p><span class="code">docker logs myownclone_api</span>.</p></article>
+              <article class="card"><strong>Nginx</strong><p><span class="code">/var/log/nginx/access.log</span> y <span class="code">error.log</span>.</p></article>
+              <article class="card"><strong>Health</strong><p><span class="code">/healthz</span>, <span class="code">/readyz</span>, <span class="code">/api/auth/session</span>.</p></article>
+            </div>
+          </section>
+
+          <!-- 16 -->
+          <section id="checklist" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 16</p>
+                <h2>Checklist post-deploy</h2>
+              </div>
+            </div>
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Servicios</strong><p>Docker, systemd frontend, Nginx y certificados TLS.</p></div></li>
+              <li><span class="step-number">2</span><div><strong>Auth</strong><p>Login usuario y admin sin bucles a login ni 401 en APIs frontend.</p></div></li>
+              <li><span class="step-number">3</span><div><strong>Planes</strong><p>Upgrade abre <span class="code">/planes</span> y checkout, no <span class="code">/facturacion</span>.</p></div></li>
+              <li><span class="step-number">4</span><div><strong>Billing</strong><p>Portal, balance e historial sin mezclar selección de plan.</p></div></li>
+              <li><span class="step-number">5</span><div><strong>Smoke</strong><p>Ejecutar <span class="code">ops/smoke-prod.sh https://myownclone.com</span>.</p></div></li>
+            </ol>
+          </section>
+
+          <!-- 17 -->
+          <section id="restore" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 17</p>
+                <h2>Restaurar desde GitHub</h2>
+              </div>
+              <span class="status status-blocked">Esperando VPS nuevo</span>
+            </div>
+            <p>El VPS anterior fue eliminado, así que la recuperación se hace sobre una máquina o IP nueva:</p>
+            <pre><code>git clone https://github.com/Teokoaaly/MyOwnClone.git /opt/myownclone/source
+cd /opt/myownclone/source
+git checkout audit/vps-sync-and-docs
+sudo bash ops/restore-from-github-on-vps.sh</code></pre>
+            <div class="callout callout-danger">
+              <div class="callout-body">
+                <span class="callout-title">Antes de ejecutar</span>
+                <p>Crear los archivos reales de entorno en <span class="code">/opt/myownclone/shared/</span>.
+                No copiar secretos al repositorio.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 18 -->
+          <section id="roadmap" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 18</p>
+                <h2>Roadmap técnico</h2>
+              </div>
+            </div>
+            <ol class="steps">
+              <li><span class="step-number">1</span><div><strong>Lockfile reproducible</strong><p>Rebuild limpio de <span class="code">package-lock.json</span> y pipeline.</p></div></li>
+              <li><span class="step-number">2</span><div><strong>Backups automatizados</strong><p>pg_dump cifrado y restore test periódico.</p></div></li>
+              <li><span class="step-number">3</span><div><strong>Observabilidad</strong><p>Alertas 5xx/latencia, centralización de logs, Sentry/OTel.</p></div></li>
+              <li><span class="step-number">4</span><div><strong>Consolidación</strong><p>Unificar <span class="code">accounts</span> (canónico) y <span class="code">users</span> (legacy NextAuth).</p></div></li>
+              <li><span class="step-number">5</span><div><strong>CI</strong><p>Gates con smoke/Nginx/shellcheck y validación de lockfile.</p></div></li>
+            </ol>
+          </section>
+
+          <!-- 19 -->
+          <section id="glosario" class="section">
+            <div class="section-head">
+              <div>
+                <p class="kicker">Capítulo 19</p>
+                <h2>Glosario técnico</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Término</th><th>Definición</th></tr></thead>
+                <tbody>
+                  <tr><td>Tenant</td><td>Cliente/espacio lógico aislado.</td></tr>
+                  <tr><td>Clone</td><td>Asistente IA configurado para un creador.</td></tr>
+                  <tr><td>Service key</td><td>Clave interna Next → Flask.</td></tr>
+                  <tr><td>Release</td><td>Snapshot desplegable bajo <span class="code">/opt/myownclone/releases</span>.</td></tr>
+                  <tr><td>Shared env</td><td>Configuración persistente no versionada del VPS.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <footer class="footer">
+            <span>MyOwnClone · Manual técnico interno</span>
+            <span>Última actualización: 2026-06-16</span>
+          </footer>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
