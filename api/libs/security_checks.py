@@ -6,11 +6,13 @@ import sys
 from typing import Iterable
 
 _INSECURE_DEFAULTS: dict[str, set[str]] = {
+    "SECRET_KEY": {"", "change-me", "changeme", "secret", "dev-secret"},
     "JWT_SECRET_KEY": {"dev-secret-change-me", "", "changeme"},
     "IMPERSONATION_TOKEN_PEPPER": {"dev-pepper-rotate-in-prod", "", "changeme"},
 }
 
 _REQUIRED_IN_PROD: Iterable[str] = (
+    "SECRET_KEY",
     "JWT_SECRET_KEY",
     "IMPERSONATION_TOKEN_PEPPER",
     "ALLOWED_ORIGINS",

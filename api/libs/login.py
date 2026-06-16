@@ -39,13 +39,6 @@ def _is_uuid_like(value: str | None) -> bool:
     return all(ch in "0123456789abcdefABCDEF" for ch in normalized)
 
 
-def _allow_dev_service_key() -> bool:
-    return (
-        os.environ.get("FLASK_ENV", "production") != "production"
-        and os.environ.get("ALLOW_DEV_SERVICE_KEY", "true").lower() == "true"
-    )
-
-
 def login_required(f: Callable) -> Callable:
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -67,8 +60,6 @@ def login_required(f: Callable) -> Callable:
         configured_service_key = os.environ.get('SERVICE_API_KEY', '').strip()
         if configured_service_key:
             valid_keys.append(configured_service_key)
-        if _allow_dev_service_key():
-            valid_keys.append('dev-api-key-for-proxy')
 
         if api_key and any(_check_service_token(api_key, key) for key in valid_keys):
             forwarded_user_id = request.headers.get('X-User-Id', '').strip()
