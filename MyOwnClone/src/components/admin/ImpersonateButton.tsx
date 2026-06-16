@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui/Modal";
 
 interface ImpersonateButtonProps {
@@ -17,6 +18,9 @@ export function ImpersonateButton({
   tenantName,
   onImpersonated,
 }: ImpersonateButtonProps) {
+  const t = useTranslations("admin.impersonation");
+  const tCommon = useTranslations("admin.common");
+
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -60,7 +64,7 @@ export function ImpersonateButton({
       setResult({ token: data.token, expires_at: data.expires_at });
       onImpersonated?.(data.token, data.expires_at);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      setError(e instanceof Error ? e.message : tCommon("error"));
     } finally {
       setSubmitting(false);
     }
@@ -82,13 +86,13 @@ export function ImpersonateButton({
         onClick={() => setOpen(true)}
         className="btn-primary text-xs"
       >
-        Impersonate
+        {t("button")}
       </button>
 
       <Modal
         open={open}
         onClose={close}
-        title={`Impersonate ${tenantName}`}
+        title={t("modalTitle", { name: tenantName })}
         size="md"
         footer={
           result ? (
@@ -97,7 +101,7 @@ export function ImpersonateButton({
               onClick={close}
               className="btn-secondary text-xs"
             >
-              Close
+              {tCommon("close")}
             </button>
           ) : (
             <>
@@ -107,7 +111,7 @@ export function ImpersonateButton({
                 className="btn-secondary text-xs"
                 disabled={submitting}
               >
-                Cancel
+                {tCommon("cancel")}
               </button>
               <button
                 type="button"
@@ -115,7 +119,7 @@ export function ImpersonateButton({
                 className="btn-primary text-xs disabled:opacity-40"
                 disabled={!reasonValid || submitting}
               >
-                {submitting ? "Generating..." : "Start impersonation"}
+                {submitting ? t("submitting") : t("submit")}
               </button>
             </>
           )
@@ -124,21 +128,23 @@ export function ImpersonateButton({
         {!result ? (
           <div className="space-y-3">
             <p className="text-xs text-[var(--text-muted)]">
-              Impersonation expires in 30 minutes. The token is shown only once
-              and is recorded in the audit log.
+              {t("modalHelp")}
             </p>
             <label className="block">
-              <span className="stat-label">Reason (required)</span>
+              <span className="stat-label">{t("reasonLabel")}</span>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
-                placeholder="Describe the support reason..."
+                placeholder={t("reasonPlaceholder")}
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
               />
               <span className="mt-1 block text-[10px] text-[var(--text-muted)]">
-                {reasonTrimmed.length} / {REASON_MAX} characters (minimum{" "}
-                {REASON_MIN})
+                {t("charCount", {
+                  current: reasonTrimmed.length,
+                  max: REASON_MAX,
+                  min: REASON_MIN,
+                })}
               </span>
             </label>
             {error && (
@@ -150,11 +156,9 @@ export function ImpersonateButton({
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-[var(--text-muted)]">
-              Copy this token. It expires on{" "}
-              <span className="font-mono text-[var(--text-primary)]">
-                {new Date(result.expires_at).toLocaleString("en-US")}
-              </span>
-              .
+              {t("resultHelp", {
+                date: new Date(result.expires_at).toLocaleString("en-US"),
+              })}
             </p>
             <div className="flex items-center gap-2">
               <code className="flex-1 break-all rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 font-mono text-[11px] text-[var(--text-primary)]">
@@ -165,12 +169,11 @@ export function ImpersonateButton({
                 onClick={copyToken}
                 className="btn-secondary text-xs shrink-0"
               >
-                Copy
+                {t("copy")}
               </button>
             </div>
             <p className="text-[10px] text-[var(--text-muted)]">
-              Send it as the <code>X-Impersonate-Token</code> header in your
-              next requests.
+              {t("tokenHelp")}
             </p>
           </div>
         )}

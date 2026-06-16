@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ADMIN_NAV } from "@/lib/nav-admin";
@@ -11,6 +12,7 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
+  const t = await getTranslations("admin.shell");
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -48,7 +50,7 @@ export default async function AdminLayout({
             email,
           }}
           homeHref="/admin/resumen"
-          homeLabel="MyOwnClone Admin"
+          homeLabel={t("homeLabel")}
           showSearch={false}
           showFreemiumCard={false}
           footer={
@@ -56,7 +58,7 @@ export default async function AdminLayout({
               href="/resumen"
               className="hover:text-[var(--text-primary)] transition-colors"
             >
-              Back to dashboard
+              {t("backToDashboard")}
             </Link>
           }
         />
@@ -70,14 +72,14 @@ export default async function AdminLayout({
             }}
           >
             <div className="text-sm text-[var(--text-muted)]">
-              MyOwnClone /{" "}
-              <span className="font-medium text-[var(--text-primary)]">Admin</span>
+              {t("breadcrumbBrand")} /{" "}
+              <span className="font-medium text-[var(--text-primary)]">{t("breadcrumbAdmin")}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="hidden text-xs text-[var(--text-muted)] sm:inline">
                 {email}
               </span>
-              <span className="badge-active">Admin</span>
+              <span className="badge-active">{t("adminBadge")}</span>
             </div>
           </header>
           <main className="min-w-0 flex-1 overflow-y-auto p-4 md:p-6">

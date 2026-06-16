@@ -1,21 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui/Modal";
 
 interface CourtesyButtonProps {
   onCreated?: (email: string) => void;
 }
 
-const PLAN_OPTIONS = [
-  { value: "free", label: "Free Plan" },
-  { value: "pro", label: "Pro Plan" },
-  { value: "enterprise", label: "Enterprise" },
-];
-
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
+  const t = useTranslations("admin.courtesy");
+  const tCommon = useTranslations("admin.common");
+  const tValidation = useTranslations("validation");
+
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -67,7 +66,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
       setResult({ tenant_id: data.tenant_id, trial_ends_at: data.trial_ends_at });
       onCreated?.(email.trim());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      setError(e instanceof Error ? e.message : tCommon("error"));
     } finally {
       setSubmitting(false);
     }
@@ -80,13 +79,13 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
         onClick={() => setOpen(true)}
         className="btn-primary text-xs"
       >
-        + Courtesy signup
+        {t("trigger")}
       </button>
 
       <Modal
         open={open}
         onClose={close}
-        title="Create courtesy tenant"
+        title={t("modalTitle")}
         size="md"
         footer={
           result ? (
@@ -95,7 +94,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
               onClick={close}
               className="btn-secondary text-xs"
             >
-              Close
+              {tCommon("close")}
             </button>
           ) : (
             <>
@@ -105,7 +104,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
                 className="btn-secondary text-xs"
                 disabled={submitting}
               >
-                Cancel
+                {tCommon("cancel")}
               </button>
               <button
                 type="button"
@@ -113,7 +112,7 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
                 className="btn-primary text-xs disabled:opacity-40"
                 disabled={!formValid}
               >
-                {submitting ? "Creating..." : "Create tenant"}
+                {submitting ? t("submitting") : t("submit")}
               </button>
             </>
           )
@@ -122,45 +121,43 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
         {!result ? (
           <div className="space-y-3">
             <p className="text-xs text-[var(--text-muted)]">
-              Create a tenant with an extended trial period. This is recorded in the audit log.
+              {t("modalHelp")}
             </p>
             <label className="block">
-              <span className="stat-label">Partner email</span>
+              <span className="stat-label">{t("emailLabel")}</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="partner@company.com"
+                placeholder={t("emailPlaceholder")}
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
               />
             </label>
             <label className="block">
-              <span className="stat-label">Name</span>
+              <span className="stat-label">{t("nameLabel")}</span>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Partner name"
+                placeholder={t("namePlaceholder")}
                 className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
               />
             </label>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="stat-label">Plan</span>
+                <span className="stat-label">{t("planLabel")}</span>
                 <select
                   value={plan}
                   onChange={(e) => setPlan(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-warm)]"
                 >
-                  {PLAN_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
+                  <option value="free">{t("planOptions.free")}</option>
+                  <option value="pro">{t("planOptions.pro")}</option>
+                  <option value="enterprise">{t("planOptions.enterprise")}</option>
                 </select>
               </label>
               <label className="block">
-                <span className="stat-label">Trial days</span>
+                <span className="stat-label">{t("durationLabel")}</span>
                 <input
                   type="number"
                   min={1}
@@ -180,14 +177,15 @@ export function CourtesyButton({ onCreated }: CourtesyButtonProps) {
         ) : (
           <div className="space-y-2 text-sm">
             <p className="text-[var(--text-primary)]">
-              Tenant created successfully.
+              {t("successMessage")}
             </p>
             <p className="font-mono text-[11px] text-[var(--text-muted)]">
-              ID: {result.tenant_id}
+              {t("successId", { id: result.tenant_id })}
             </p>
             <p className="font-mono text-[11px] text-[var(--text-muted)]">
-              Trial ends:{" "}
-              {new Date(result.trial_ends_at).toLocaleString("en-US")}
+              {t("successTrial", {
+                date: new Date(result.trial_ends_at).toLocaleString("en-US"),
+              })}
             </p>
           </div>
         )}

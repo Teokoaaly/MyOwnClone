@@ -1,6 +1,7 @@
 "use client";
 
 import type { FC } from "react";
+import { useTranslations } from "next-intl";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 
 interface AdminTopbarProps {
@@ -15,6 +16,7 @@ interface AdminTopbarProps {
  * drop-in.
  */
 export const AdminTopbar: FC<AdminTopbarProps> = ({ email }) => {
+  const t = useTranslations("admin.shell");
   return (
     <header
       className="flex h-[64px] shrink-0 items-center justify-between border-b px-4 md:h-[72px] md:px-6"
@@ -24,14 +26,14 @@ export const AdminTopbar: FC<AdminTopbarProps> = ({ email }) => {
       }}
     >
       <div className="text-sm text-[var(--text-muted)]">
-        MyOwnClone /{" "}
-        <span className="font-medium text-[var(--text-primary)]">Admin</span>
+        {t("breadcrumbBrand")} /{" "}
+        <span className="font-medium text-[var(--text-primary)]">{t("breadcrumbAdmin")}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="hidden text-xs text-[var(--text-muted)] sm:inline">
           {email}
         </span>
-        <span className="badge-active">Admin</span>
+        <span className="badge-active">{t("adminBadge")}</span>
         <SignOutButton
           callbackUrl="/login"
           showLabel

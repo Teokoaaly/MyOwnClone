@@ -1,46 +1,46 @@
 "use client";
 
 import { type FC, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { Link } from "@/i18n/navigation";
 
-const adminNavItems: SidebarNavItem[] = [
-  {
-    href: "/admin/resumen",
-    label: "Overview",
-    iconKey: "resumen",
-    tooltip: "Platform metrics",
-    section: "platform",
-  },
-  {
-    href: "/admin/tenants",
-    label: "Tenants",
-    iconKey: "productos",
-    tooltip: "Manage tenant accounts",
-    section: "platform",
-  },
-  {
-    href: "/admin/feedback",
-    label: "Feedback",
-    iconKey: "inbox",
-    tooltip: "User feedback across the platform",
-    section: "platform",
-  },
-  {
-    href: "/admin/audit",
-    label: "Audit log",
-    iconKey: "configuracion",
-    tooltip: "Sensitive admin actions",
-    section: "platform",
-  },
-];
+export const AdminShell: FC<{ user?: { name?: string | null; email?: string | null }; children: ReactNode }> = ({ user, children }) => {
+  const t = useTranslations("admin");
+  const tShell = useTranslations("admin.shell");
+  const tCommon = useTranslations("admin.common");
 
-interface AdminShellProps {
-  user?: { name?: string | null; email?: string | null };
-  children: ReactNode;
-}
+  const adminNavItems: SidebarNavItem[] = [
+    {
+      href: "/admin/resumen",
+      label: tShell("nav.overview"),
+      iconKey: "resumen",
+      tooltip: tShell("nav.tooltipOverview"),
+      section: "platform",
+    },
+    {
+      href: "/admin/tenants",
+      label: tShell("nav.tenants"),
+      iconKey: "productos",
+      tooltip: tShell("nav.tooltipTenants"),
+      section: "platform",
+    },
+    {
+      href: "/admin/feedback",
+      label: tShell("nav.feedback"),
+      iconKey: "inbox",
+      tooltip: tShell("nav.tooltipFeedback"),
+      section: "platform",
+    },
+    {
+      href: "/admin/audit",
+      label: tShell("nav.auditLog"),
+      iconKey: "configuracion",
+      tooltip: tShell("nav.tooltipAuditLog"),
+      section: "platform",
+    },
+  ];
 
-export const AdminShell: FC<AdminShellProps> = ({ user, children }) => {
   return (
     <div
       className="min-h-screen p-3 md:p-6"
@@ -64,7 +64,7 @@ export const AdminShell: FC<AdminShellProps> = ({ user, children }) => {
         <Sidebar
           navItems={adminNavItems}
           homeHref="/admin/resumen"
-          homeLabel="MyOwnClone Admin"
+          homeLabel={tShell("homeLabel")}
           showSearch={false}
           showFreemiumCard={false}
           showUserBlock={!!user}
@@ -74,7 +74,7 @@ export const AdminShell: FC<AdminShellProps> = ({ user, children }) => {
               href="/resumen"
               className="hover:text-[var(--text-primary)] transition-colors"
             >
-              Back to dashboard
+              {tShell("backToDashboard")}
             </Link>
           }
         />

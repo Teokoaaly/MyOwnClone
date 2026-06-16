@@ -1,6 +1,7 @@
 "use client";
 
 import type { FC } from "react";
+import { useTranslations } from "next-intl";
 
 interface PaginationProps {
   /** Current page (1-indexed). */
@@ -30,6 +31,7 @@ export const Pagination: FC<PaginationProps> = ({
   onNext,
   layout = "compact",
 }) => {
+  const t = useTranslations("admin.common");
   if (pages <= 1) return null;
 
   const buttons = (
@@ -40,10 +42,10 @@ export const Pagination: FC<PaginationProps> = ({
         onClick={onPrev}
         className={buttonClass}
       >
-        Previous
+        {t("previous")}
       </button>
       <span>
-        {page} / {pages}
+        {t("pageXofY", { page, pages })}
       </span>
       <button
         type="button"
@@ -51,7 +53,7 @@ export const Pagination: FC<PaginationProps> = ({
         onClick={onNext}
         className={buttonClass}
       >
-        Next
+        {t("next")}
       </button>
     </div>
   );
@@ -60,7 +62,7 @@ export const Pagination: FC<PaginationProps> = ({
     return (
       <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
         <span>
-          Page {page} of {pages}
+          {t("pageOf", { page, pages })}
         </span>
         {buttons}
       </div>
