@@ -49,10 +49,29 @@ interface AdminOverview {
   generated_at: string;
 }
 
+const PLAN_LABEL: Record<string, string> = {
+  free: "Free Plan",
+  pro: "Pro Plan",
+  enterprise: "Enterprise",
+};
+
+const PLAN_COLOR: Record<string, string> = {
+  free: "#06B6D4",
+  pro: "#EA580C",
+  enterprise: "#059669",
+};
+
+const FINANCE_COLORS = {
+  mrr: "#10B981",
+  costs: "#F97316",
+  margin: "#2563EB",
+  marginNeg: "#DC2626",
+};
 export default function AdminResumenPage() {
   const { data, loading, error, reload } = useAdminFetch<AdminOverview>(
     "/api/admin/overview",
   );
+
 
   if (loading) {
     return <LoadingState label="Loading overview..." rows={4} />;
@@ -125,7 +144,7 @@ export default function AdminResumenPage() {
         ))}
       </div>
 
-      <AdminCharts data={data} />
+<AdminCharts data={data} />
     </div>
   );
 }
