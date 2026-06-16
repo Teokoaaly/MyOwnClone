@@ -104,7 +104,7 @@ async function handleCheckoutCompleted(
     .set({
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscriptionId,
-      plan: planName as any,
+      plan: planName as (typeof schema.tenants.$inferInsert)["plan"],
       subscriptionStatus: "active",
       status: "active",
     })
@@ -132,7 +132,7 @@ async function handleSubscriptionUpdated(
   await db
     .update(schema.tenants)
     .set({
-      plan: planName as any,
+      plan: planName as (typeof schema.tenants.$inferInsert)["plan"],
       subscriptionStatus: status,
     })
     .where(eq(schema.tenants.id, tenant.id));
@@ -152,7 +152,7 @@ async function handleSubscriptionDeleted(
   await db
     .update(schema.tenants)
     .set({
-      plan: "trial" as any,
+      plan: "trial" as (typeof schema.tenants.$inferInsert)["plan"],
       subscriptionStatus: "cancelled",
       stripeSubscriptionId: null,
     })

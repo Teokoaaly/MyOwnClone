@@ -5,8 +5,10 @@ export const dynamic = "force-dynamic"
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export function RegisterForm() {
+  const t = useTranslations("auth")
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,12 +30,12 @@ export function RegisterForm() {
       });
 
       if (result?.error) {
-        setError("Error sending the link. Try again.");
+        setError(t("errorSending"));
       } else {
         setSent(true);
       }
     } catch {
-      setError("Connection error. Try again.");
+      setError(t("connectionError"));
     } finally {
       setLoading(false);
     }
@@ -70,11 +72,10 @@ export function RegisterForm() {
           </svg>
         </div>
         <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-          Check your email
+          {t("checkEmail")}
         </h2>
         <p className="mt-2 text-[var(--text-secondary)]">
-          We sent a sign-in link to{" "}
-          <strong className="text-[var(--text-primary)]">{email}</strong>
+          {t("checkEmailDesc", { email })}
         </p>
         <p className="mt-4 text-sm text-[var(--text-muted)]">
           Click the link in the email to activate your account automatically.
@@ -111,14 +112,14 @@ export function RegisterForm() {
             htmlFor="register-name"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Full name
+            {t("nameLabel")}
           </label>
           <input
             id="register-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("namePlaceholder")}
             required
             autoComplete="name"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -134,14 +135,14 @@ export function RegisterForm() {
             htmlFor="register-email"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Email address
+            {t("emailLabel")}
           </label>
           <input
             id="register-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@email.com"
+            placeholder={t("emailPlaceholder")}
             required
             autoComplete="email"
             className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2"
@@ -158,7 +159,7 @@ export function RegisterForm() {
           className="w-full rounded-xl px-4 py-3 font-semibold text-white transition disabled:opacity-50"
           style={{ background: "var(--color-accent-violet)" }}
         >
-          {loading ? "Sending..." : "Create account"}
+          {loading ? t("creating") : t("createAccount")}
         </button>
       </form>
 
@@ -175,14 +176,14 @@ export function RegisterForm() {
               className="px-2 text-[var(--text-muted)]"
               style={{ background: "var(--bg-shell)" }}
             >
-              or continue with
+              {t("orContinue")}
             </span>
           </div>
         </div>
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/resumen" })}
-          aria-label="Continue with Google"
+          aria-label={t("googleButton")}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 font-semibold transition"
           style={{
             borderColor: "var(--border-medium)",
@@ -214,19 +215,19 @@ export function RegisterForm() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Continue with Google
+          {t("googleButton")}
         </button>
       </div>
 
       <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
-        Already have an account?{" "}
+        {t("alreadyHaveAccount")}{" "}
         <button
           type="button"
           onClick={() => router.push("/login")}
           className="font-medium underline decoration-[var(--color-accent-violet)] underline-offset-4 hover:opacity-80"
           style={{ color: "var(--text-primary)" }}
         >
-          Sign in
+          {t("signin")}
         </button>
       </p>
     </div>

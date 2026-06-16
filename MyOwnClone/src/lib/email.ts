@@ -25,6 +25,23 @@ function sanitizeMeetingUrl(value: string | undefined): string | null {
   return null;
 }
 
+function sanitizeUrl(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    const protocol = parsed.protocol.toLowerCase();
+    // Block dangerous protocols
+    if (protocol === "javascript:" || protocol === "data:" || protocol === "vbscript:") {
+      return null;
+    }
+    if (protocol === "http:" || protocol === "https:") {
+      return parsed.toString();
+    }
+  } catch {
+  }
+  return null;
+}
+
 export async function sendEmail(params: {
   to: string | string[];
   subject: string;
@@ -72,6 +89,10 @@ export async function sendLoginVerificationCode(params: {
   to: string;
   url: string;
 }) {
+  const sanitizedUrl = sanitizeUrl(params.url);
+  if (!sanitizedUrl) {
+    throw new Error("Invalid URL: javascript: and data: URLs are not allowed");
+  }
   return sendEmail({
     to: params.to,
     subject: "Accede a tu cuenta de MyOwnClone",
@@ -79,7 +100,7 @@ export async function sendLoginVerificationCode(params: {
       <div style="text-align:center;padding:40px 20px">
         <h1 style="color:#7c3aed">MyOwnClone</h1>
         <p>Haz clic en el botón de abajo para acceder a tu cuenta:</p>
-        <a href="${params.url}" style="display:inline-block;padding:12px 24px;background:#7c3aed;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:20px 0">
+        <a href="${sanitizedUrl}" style="display:inline-block;padding:12px 24px;background:#7c3aed;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin:20px 0">
           Acceder a mi cuenta
         </a>
         <p style="color:#888;font-size:12px">Si no solicitaste este enlace, ignora este email.</p>

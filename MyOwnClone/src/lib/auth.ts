@@ -1,3 +1,30 @@
+/**
+ * Validate that required secrets are strong enough.
+ * Fails fast if weak/secrets are detected in production.
+ */
+function validateProductionSecrets(): void {
+  if (process.env.NODE_ENV !== 'production') return;
+
+  const weakSecrets = ['change-me', 'changeme', 'secret', 'your-secret-here', 'example'];
+  const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || '';
+  const secretLower = authSecret.toLowerCase();
+
+  if (!authSecret) {
+    throw new Error('AUTH_SECRET environment variable is required in production');
+  }
+
+  if (weakSecrets.some(s => secretLower.includes(s))) {
+    throw new Error(`AUTH_SECRET appears weak (contains "${authSecret}"). Please use a strong random value.`);
+  }
+
+  if (authSecret.length < 32) {
+    throw new Error('AUTH_SECRET must be at least 32 characters long in production');
+  }
+}
+
+// Validate on module load
+validateProductionSecrets();
+
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";

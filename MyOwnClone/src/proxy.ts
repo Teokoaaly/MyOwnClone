@@ -273,13 +273,19 @@ export async function proxy(request: NextRequest) {
       }
 
       try {
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30s timeout
+
         const response = await fetch(backendUrl, {
           method: request.method,
           headers: forwardedHeaders,
           body: request.method !== "GET" && request.method !== "HEAD"
             ? await request.text()
             : undefined,
+          signal: abortController.signal,
         });
+
+        clearTimeout(timeoutId);
 
         const contentType = response.headers.get("content-type") || "";
         if (contentType.includes("text/event-stream")) {
@@ -302,6 +308,25 @@ export async function proxy(request: NextRequest) {
 
         if (contentType.includes("application/json")) {
           const data = await response.json();
+
+          // Set HttpOnly cookie for clone ID when returning clones list
+          if (pathname === "/api/clone/clones" && Array.isArray(data) && data.length > 0) {
+            const activeCloneId = data[0].id;
+            const cookieExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
+            const response2 = NextResponse.json(
+              { activeCloneId, clones: data },
+              { status: response.status }
+            );
+            response2.cookies.set("moc_active_clone_id", activeCloneId, {
+              httpOnly: true,
+              expires: new Date(cookieExpires),
+              path: "/",
+              sameSite: "Lax",
+              secure: request.nextUrl.protocol === "https:",
+            });
+            return response2;
+          }
+
           return NextResponse.json(data, { status: response.status });
         }
 

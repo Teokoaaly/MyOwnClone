@@ -3,8 +3,10 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 function ResetPasswordForm() {
+  const t = useTranslations("resetPassword")
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token") ?? "";
@@ -20,17 +22,16 @@ function ResetPasswordForm() {
     return (
       <div className="w-full max-w-md card text-center">
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Enlace no válido
+          {t("invalidLink")}
         </h1>
         <p className="mt-2 text-sm text-[var(--text-muted)]">
-          Falta el token o el email. Solicita un nuevo enlace desde la página
-          de recuperación.
+          {t("missingTokenEmail")}
         </p>
         <Link
           href="/forgot-password"
           className="btn-primary mt-6 inline-block text-sm"
         >
-          Solicitar nuevo enlace
+          {t("requestNewLink")}
         </Link>
       </div>
     );
@@ -40,12 +41,16 @@ function ResetPasswordForm() {
     e.preventDefault();
     setError("");
 
-    if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres.");
+    if (password.length < 12) {
+      setError(t("passwordMinLength"));
+      return;
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setError(t("passwordRequirements"));
       return;
     }
     if (password !== confirm) {
-      setError("Las contraseñas no coinciden.");
+      setError(t("passwordsMismatch"));
       return;
     }
 
@@ -59,14 +64,14 @@ function ResetPasswordForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "No se pudo restablecer la contraseña.");
+        setError(data.error ?? t("errorResetting"));
         return;
       }
 
       setSuccess(true);
       setTimeout(() => router.push("/login"), 1500);
     } catch {
-      setError("Error de conexión. Intenta de nuevo.");
+      setError(t("connectionError"));
     } finally {
       setLoading(false);
     }
@@ -76,16 +81,16 @@ function ResetPasswordForm() {
     return (
       <div className="w-full max-w-md card text-center">
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Contraseña actualizada
+          {t("passwordUpdated")}
         </h1>
         <p className="mt-2 text-sm text-[var(--text-muted)]">
-          Te estamos redirigiendo al inicio de sesión…
+          {t("redirecting")}
         </p>
         <Link
           href="/login"
           className="btn-primary mt-6 inline-block text-sm"
         >
-          Iniciar sesión
+          {t("goToLogin")}
         </Link>
       </div>
     );
@@ -94,11 +99,10 @@ function ResetPasswordForm() {
   return (
     <div className="w-full max-w-md card">
       <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-        Restablecer contraseña
+        {t("title")}
       </h1>
       <p className="mt-2 text-sm text-[var(--text-muted)]">
-        Para <strong className="text-[var(--text-primary)]">{email}</strong>,
-        elige una nueva contraseña.
+        {t("description", { email })}
       </p>
 
       {error && (
@@ -121,17 +125,17 @@ function ResetPasswordForm() {
             htmlFor="reset-password"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Nueva contraseña
+            {t("passwordLabel")}
           </label>
           <input
             id="reset-password"
             type="password"
             required
             autoComplete="new-password"
-            minLength={8}
+            minLength={12}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo 8 caracteres"
+            placeholder={t("passwordPlaceholder")}
             className="w-full rounded-xl border border-[var(--border-medium)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition focus:ring-2"
           />
         </div>
@@ -140,17 +144,17 @@ function ResetPasswordForm() {
             htmlFor="reset-confirm"
             className="mb-1 block text-sm font-medium text-[var(--text-primary)]"
           >
-            Confirmar contraseña
+            {t("confirmLabel")}
           </label>
           <input
             id="reset-confirm"
             type="password"
             required
             autoComplete="new-password"
-            minLength={8}
+            minLength={12}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder="Repite la contraseña"
+            placeholder={t("confirmPlaceholder")}
             className="w-full rounded-xl border border-[var(--border-medium)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition focus:ring-2"
           />
         </div>
@@ -159,7 +163,7 @@ function ResetPasswordForm() {
           disabled={loading}
           className="btn-primary w-full py-3 text-sm font-semibold disabled:opacity-50"
         >
-          {loading ? "Guardando…" : "Restablecer contraseña"}
+          {loading ? t("saving") : t("reset")}
         </button>
       </form>
     </div>
@@ -167,6 +171,7 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("resetPassword")
   return (
     <main
       className="flex min-h-screen items-center justify-center px-4 py-12"
@@ -174,7 +179,7 @@ export default function ResetPasswordPage() {
     >
       <Suspense
         fallback={
-          <div className="text-sm text-[var(--text-muted)]">Cargando…</div>
+          <div className="text-sm text-[var(--text-muted)]">{t("loading")}</div>
         }
       >
         <ResetPasswordForm />
