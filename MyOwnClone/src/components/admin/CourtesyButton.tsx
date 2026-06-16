@@ -8,10 +8,8 @@ interface CourtesyButtonProps {
 }
 
 const PLAN_OPTIONS = [
-  { value: "trial", label: "Trial" },
-  { value: "basic", label: "Basic" },
-  { value: "pro", label: "Pro" },
-  { value: "scale", label: "Scale" },
+  { value: "free", label: "Free Plan" },
+  { value: "pro", label: "Pro Plan" },
   { value: "enterprise", label: "Enterprise" },
 ];
 

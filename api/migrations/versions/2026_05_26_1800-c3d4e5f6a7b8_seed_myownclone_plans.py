@@ -17,11 +17,11 @@ depends_on = None
 
 PLANS = [
     {
-        "name": "Básico",
-        "price_cents": 4900,
-        "stripe_price_id": None,  # Fill after creating in Stripe dashboard
-        "words_training_limit": 500000,
-        "responses_month_limit": 2000,
+        "name": "Free",
+        "price_cents": 0,
+        "stripe_price_id": None,
+        "words_training_limit": 100000,
+        "responses_month_limit": 500,
         "modes_active": 1,
         "email_triage": False,
         "booking": False,
@@ -31,8 +31,8 @@ PLANS = [
     },
     {
         "name": "Pro",
-        "price_cents": 9900,
-        "stripe_price_id": None,
+        "price_cents": 6490,
+        "stripe_price_id": None,  # Fill after creating in Stripe dashboard
         "words_training_limit": 1000000,
         "responses_month_limit": 4000,
         "modes_active": 3,
@@ -43,21 +43,8 @@ PLANS = [
         "whitelabel": False,
     },
     {
-        "name": "Escala",
-        "price_cents": 19900,
-        "stripe_price_id": None,
-        "words_training_limit": 5000000,
-        "responses_month_limit": 20000,
-        "modes_active": 3,
-        "email_triage": True,
-        "booking": True,
-        "api_access": True,
-        "multi_clone": False,
-        "whitelabel": False,
-    },
-    {
         "name": "Enterprise",
-        "price_cents": 49900,
+        "price_cents": 10000,
         "stripe_price_id": None,
         "words_training_limit": 999999999,
         "responses_month_limit": 999999,
