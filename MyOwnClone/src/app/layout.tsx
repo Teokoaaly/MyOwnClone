@@ -23,11 +23,12 @@ export const metadata: Metadata = {
     "Create an AI clone trained on your knowledge. Support, teach, and sell around the clock from one workspace.",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
       { url: "/icon.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    shortcut: "/favicon-32.png",
+    apple: "/icon-192.png",
   },
 };
 
