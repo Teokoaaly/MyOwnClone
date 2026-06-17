@@ -1,287 +1,139 @@
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
+import LandingPricing from "@/components/ui/LandingPricing";
 import ShaderBackground from "@/components/ui/ShaderBackground";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getSessionAwareNav } from "@/lib/session-routing";
-import { headers } from "next/headers";
 
-export const dynamic = "force-dynamic";
-
-interface LandingPlan {
-  id: string;
-  name: string;
-  price_cents: number;
-  price_display?: string;
-  stripe_price_id?: string | null;
-  priceCents?: number;
-  priceDisplay?: string;
-  stripePriceId?: string | null;
-}
-
-interface LandingCard {
-  title: string;
-  description: string;
-  features: string[];
-  cta: string;
-  badge?: string;
-}
-
-const FALLBACK_PLANS: LandingPlan[] = [
-  { id: "basic", name: "Basic", price_cents: 0 },
-  { id: "pro", name: "Pro", price_cents: 6490 },
-  { id: "scale", name: "Scale", price_cents: 9900 },
-  { id: "enterprise", name: "Enterprise", price_cents: 14900 },
+const services = [
+  ["Overview", "Real-time dashboard with clone activity, recent interactions and key metrics at a glance.", "◉"],
+  ["Library & Memory", "Upload documents, build structured knowledge and store creator memories for richer responses.", "✦"],
+  ["Inbox", "AI triage for incoming emails: classify intent, suggest replies and apply templates automatically.", "✉"],
+  ["Booking", "Configure meeting types, availability and let the clone manage your calendar and reservations.", "📅"],
+  ["Products", "Product catalog and commercial context so the clone recommends the right offer in sales mode.", "◆"],
+  ["Usage", "Analytics on consumption, top questions, knowledge gaps and cost tracking per period.", "▦"],
 ];
 
-const CARD_COPY: Record<string, LandingCard> = {
-  basic: {
-    title: "Basic access for a clean launch",
-    description: "Get your first clone live with the essentials: a polished public page, core knowledge, and simple actions.",
-    features: ["1 active clone", "Knowledge upload", "Public landing", "Starter analytics"],
-    cta: "Choose Basic",
-  },
-  pro: {
-    title: "The most balanced setup for growth",
-    description: "Unlock the everyday workflows teams use most, with more control, better automation, and stronger support.",
-    features: ["Everything in Basic", "Multi-mode prompts", "Email triage", "Priority support"],
-    cta: "Start Pro",
-    badge: "Most popular",
-  },
-  scale: {
-    title: "More capacity for serious operations",
-    description: "Expand into a larger setup with higher usage limits, more collaborators, and room to scale safely.",
-    features: ["Higher usage limits", "Multi-clone workflows", "Advanced analytics", "API access"],
-    cta: "Choose Scale",
-  },
-  enterprise: {
-    title: "Custom architecture for bigger teams",
-    description: "For organizations that need governance, custom onboarding, and a plan tailored to their deployment.",
-    features: ["Unlimited collaborators", "Whitelabel options", "SSO / governance", "Dedicated success"],
-    cta: "Talk to sales",
-  },
-};
+const steps = [
+  ["1", "Sign up", "Create your account and pick a plan. Free to start."],
+  ["2", "Configure", "Name your clone, set personality, tone and language."],
+  ["3", "Train", "Upload documents and add creator memories."],
+  ["4", "Deploy", "Publish and share the public chat link. It runs 24/7."],
+];
 
 export default async function LandingPage() {
   const session = await auth();
   const nav = getSessionAwareNav(session);
-  const plans = await loadLandingPlans();
 
   return (
-    <main className="landing-stage">
+    <main className="moc-local-landing">
+      <div className="site-backdrop" aria-hidden="true" />
       <ShaderBackground />
-      <section className="landing-card">
-        <nav className="landing-nav" aria-label="Main">
-          <Link href="/" className="landing-brand" aria-label="MyOwnClone home">
-            <AnimatedLogoMark size={26} />
-            <span>MyOwnClone</span>
+
+      <nav className="nav">
+        <Link href="/" className="nav-logo" aria-label="MyOwnClone home">
+          <AnimatedLogoMark size={26} />
+          <span>MyOwnClone</span>
+        </Link>
+        <div className="nav-links">
+          <a href="#services">Services</a>
+          <a href="#process">Process</a>
+          <a href="#plans">Plans</a>
+          <Link className="nav-cta" href={nav.primaryHref}>
+            {session?.user ? nav.primaryLabel : "Get started"}
           </Link>
+        </div>
+      </nav>
 
-          <div className="landing-menu">
-            <Link href="/">Product</Link>
-            <Link href="/">
-              Solutions
-              <span className="landing-chevron" aria-hidden="true">v</span>
-            </Link>
-            <Link href="/">About</Link>
-            <Link href={nav.signInHref}>{nav.signInLabel}</Link>
-          </div>
-
-          <div className="landing-actions">
-            <Link href={nav.signInHref} className="landing-signin">
-              {nav.signInLabel}
-            </Link>
-            <Link href={nav.primaryHref} className="landing-contact">
-              {nav.primaryLabel}
-            </Link>
-          </div>
-        </nav>
-
-        <div className="landing-hero">
-          <div className="landing-logo-animated">
-            <AnimatedLogoMark size={72} cycle />
-          </div>
-
-          <span className="landing-kicker">Current brand. Current pricing. Softer presentation.</span>
-
-          <h1>
+      <section className="hero" id="hero">
+        <div className="hero-content">
+          <span className="hero-kicker reveal">AI-Powered Digital Clone</span>
+          <h1 className="reveal">
             Create an AI clone
             <br />
-            that works like you
+            that <span className="accent">works for you.</span>
           </h1>
-
-          <p>
-            Train a clone with your content. Answer questions, reply to emails,
-            and book meetings 24/7 in your own tone, with the same plan prices you see in the dashboard.
+          <p className="hero-sub reveal">
+            Train an AI assistant with your knowledge, personality and business data.
+            Handle emails, recommend products and answer customers 24/7.
           </p>
-
-          <div className="landing-cta-row">
-            <Link href={nav.primaryHref} className="landing-primary">
-              {session?.user ? nav.primaryLabel : "Start free"}
+          <div className="hero-ctas reveal">
+            <Link className="btn btn-primary" href={nav.primaryHref}>
+              {session?.user ? nav.primaryLabel : "Get started free"}
             </Link>
-            <Link href={nav.signInHref} className="landing-secondary">
-              {session?.user ? "Open dashboard" : "Watch demo"}
-            </Link>
+            <a className="btn btn-secondary" href="#plans">See plans</a>
           </div>
         </div>
-
-        <section id="pricing" className="landing-pricing-section">
-          <div className="landing-pricing-shell">
-            <div className="landing-pricing-head">
-              <p className="landing-pricing-kicker">Pricing</p>
-              <h2>Plans aligned with the dashboard</h2>
-              <p>
-                These prices are pulled from the same plan catalog used in the dashboard, so the public landing stays in sync.
-              </p>
-            </div>
-
-            <div className="landing-pricing-grid">
-              {plans.map((plan) => {
-                const copy = CARD_COPY[plan.id] ?? {
-                  title: plan.name,
-                  description: "A flexible plan for your clone setup.",
-                  features: ["Live billing sync", "Dashboard parity", "Scalable usage", "Support options"],
-                  cta: `Choose ${plan.name}`,
-                };
-                const featured = plan.id === "pro" || Boolean(plan.stripe_price_id);
-
-                return (
-                  <article
-                    key={plan.id}
-                    className={`landing-plan-card${featured ? " landing-plan-card-featured" : ""}`}
-                  >
-                    <div className="landing-plan-top">
-                      <span className="landing-plan-glyph" aria-hidden="true" />
-                      {copy.badge ? <span className="landing-plan-badge">{copy.badge}</span> : null}
-                    </div>
-
-                    <div className="landing-plan-price">
-                      <span>{formatPlanPrice(plan)}</span>
-                      <small>/mo</small>
-                    </div>
-
-                    <h3>{plan.name}</h3>
-                    <p>{copy.description}</p>
-
-                    <div className="landing-plan-divider" />
-
-                    <div className="landing-plan-features">
-                      <strong>{copy.title}</strong>
-                      <ul>
-                        {copy.features.map((feature) => (
-                          <li key={feature}>{feature}</li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <Link href={nav.primaryHref} className={featured ? "landing-plan-cta-inverse" : "landing-plan-cta"}>
-                      {copy.cta}
-                    </Link>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
       </section>
 
-      <footer className="landing-footer">
-        <div className="landing-footer-inner">
-          <div className="landing-footer-brand">
-            <AnimatedLogoMark size={20} />
-            <span>MyOwnClone</span>
-          </div>
-          <div className="landing-footer-links">
-            <Link href="/">Product</Link>
-            <Link href="/">Pricing</Link>
-            <a href="mailto:hello@myownclone.com">Contact</a>
-            <Link href="/legal">Legal</Link>
-          </div>
-          <div className="landing-footer-copy">
-            © 2026 MyOwnClone.com — All rights reserved
-          </div>
+      <section className="section mesh-bg" id="services">
+        <div className="sec-head">
+          <span className="sec-kicker reveal">What it does</span>
+          <h2 className="sec-title reveal">Everything your clone can handle.</h2>
+          <p className="sec-desc reveal">
+            Six modules working together so your AI clone manages knowledge, communications, sales and analytics in one workspace.
+          </p>
+        </div>
+        <div className="services-grid">
+          {services.map(([title, description, icon]) => (
+            <article className="service-card reveal" key={title}>
+              <div className="service-icon">{icon}</div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section" id="process">
+        <div className="sec-head">
+          <span className="sec-kicker reveal">How it works</span>
+          <h2 className="sec-title reveal">Four steps to your clone.</h2>
+          <p className="sec-desc reveal">From sign-up to a live assistant, the whole process takes minutes, not weeks.</p>
+        </div>
+        <div className="process-grid">
+          {steps.map(([number, title, description]) => (
+            <div className="process-step reveal" key={number}>
+              <div className="step-num">{number}</div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="section mesh-bg" id="plans">
+        <div className="sec-head">
+          <span className="sec-kicker reveal">Pricing</span>
+          <h2 className="sec-title reveal">Pick your plan.</h2>
+          <p className="sec-desc reveal">Start free, scale as your clone grows. All plans include the core AI assistant.</p>
+        </div>
+        <LandingPricing />
+      </section>
+
+      <section className="cta-final" id="cta">
+        <h2 className="reveal">
+          Ready to clone
+          <br />
+          yourself?
+        </h2>
+        <p className="reveal">Join creators and businesses already using AI clones to scale their knowledge and automate conversations.</p>
+        <Link className="btn btn-glow" href={nav.primaryHref}>
+          Start building your clone →
+        </Link>
+      </section>
+
+      <footer className="footer">
+        <span className="footer-brand">
+          <AnimatedLogoMark size={20} />
+          © 2026 MyOwnClone
+        </span>
+        <div className="footer-links">
+          <Link href="/legal">Legal</Link>
+          <a href="/docs">Docs</a>
+          <a href="mailto:hello@myownclone.com">Contact</a>
         </div>
       </footer>
     </main>
   );
-}
-
-async function loadLandingPlans(): Promise<LandingPlan[]> {
-  const fallback = FALLBACK_PLANS;
-
-  try {
-    const requestHeaders = await headers();
-    const host = requestHeaders.get("host");
-    if (!host) return fallback;
-
-    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
-    const res = await fetch(`${protocol}://${host}/api/clone/plans`, {
-      cache: "no-store",
-      headers: {
-        cookie: requestHeaders.get("cookie") ?? "",
-      },
-    });
-
-    if (!res.ok) return fallback;
-
-    const data = await res.json();
-    const plans = Array.isArray(data) ? data : data?.items;
-    if (!Array.isArray(plans) || plans.length === 0) return fallback;
-
-    const preferredOrder = new Map(["basic", "pro", "scale", "enterprise"].map((id, index) => [id, index]));
-
-    return [...plans]
-      .map(normalizePlan)
-      .filter((plan): plan is LandingPlan => Boolean(plan))
-      .sort((a, b) => {
-        const aRank = preferredOrder.get(a.id) ?? 99;
-        const bRank = preferredOrder.get(b.id) ?? 99;
-        if (aRank !== bRank) return aRank - bRank;
-        return Number(getPlanPriceCents(a)) - Number(getPlanPriceCents(b));
-      });
-  } catch {
-    return fallback;
-  }
-}
-
-function formatPlanPrice(plan: LandingPlan) {
-  const cents = getPlanPriceCents(plan);
-  const display = plan.price_display ?? plan.priceDisplay;
-  if (display) return display;
-  if (cents === 0) return "Free";
-
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(cents / 100);
-}
-
-function normalizePlan(plan: unknown): LandingPlan | null {
-  if (!plan || typeof plan !== "object") return null;
-
-  const item = plan as Record<string, unknown>;
-  const id = typeof item.id === "string" ? item.id : "";
-  const name = typeof item.name === "string" ? item.name : id;
-  if (!id || !name) return null;
-
-  const priceCents = typeof item.price_cents === "number"
-    ? item.price_cents
-    : typeof item.priceCents === "number"
-      ? item.priceCents
-      : 0;
-
-  return {
-    id,
-    name,
-    price_cents: priceCents,
-    price_display: typeof item.price_display === "string" ? item.price_display : undefined,
-    stripe_price_id: typeof item.stripe_price_id === "string" ? item.stripe_price_id : undefined,
-    priceCents: typeof item.priceCents === "number" ? item.priceCents : undefined,
-    priceDisplay: typeof item.priceDisplay === "string" ? item.priceDisplay : undefined,
-    stripePriceId: typeof item.stripePriceId === "string" ? item.stripePriceId : undefined,
-  };
-}
-
-function getPlanPriceCents(plan: LandingPlan) {
-  return plan.price_cents ?? plan.priceCents ?? 0;
 }
