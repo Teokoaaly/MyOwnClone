@@ -27,6 +27,31 @@ export default async function LandingPage() {
 
   return (
     <main className="moc-local-landing">
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .moc-local-landing{
+              background:
+                radial-gradient(circle at 18% 12%,rgba(255,255,255,.9),transparent 36%),
+                radial-gradient(circle at 82% 18%,rgba(251,146,60,.16),transparent 30%),
+                radial-gradient(circle at 18% 82%,rgba(255,237,213,.26),transparent 30%),
+                radial-gradient(circle at 88% 88%,rgba(255,210,120,.16),transparent 34%),
+                #f3ece4 !important;
+            }
+            .moc-local-landing canvas{
+              opacity:.42!important;
+              mix-blend-mode:normal!important;
+              filter:saturate(1.45) brightness(1.22) contrast(.82);
+            }
+            .moc-local-landing .site-backdrop:before{
+              background:radial-gradient(circle,rgba(255,255,255,.42),rgba(251,146,60,.1) 42%,transparent 72%)!important;
+            }
+            .moc-local-landing .site-backdrop:after{
+              background:radial-gradient(circle,rgba(255,237,213,.32),rgba(234,88,12,.1) 40%,transparent 74%)!important;
+            }
+          `,
+        }}
+      />
       <div className="site-backdrop" aria-hidden="true" />
       <ShaderBackground />
 
