@@ -118,13 +118,17 @@ def _redis_ready() -> tuple[bool, str | None]:
     try:
         import redis
 
-        client = redis.Redis(
+        redis_kwargs = dict(
             host=host,
             port=int(os.getenv("REDIS_PORT", "6379")),
             password=os.getenv("REDIS_PASSWORD") or None,
             socket_connect_timeout=1.0,
             socket_timeout=1.0,
         )
+        if os.getenv("REDIS_TLS", "").lower() == "true":
+            redis_kwargs["ssl"] = True
+            redis_kwargs["ssl_cert_reqs"] = None  # self-signed cert on internal network
+        client = redis.Redis(**redis_kwargs)
         client.ping()
         return True, None
     except Exception as exc:  # pragma: no cover - exact client failures vary

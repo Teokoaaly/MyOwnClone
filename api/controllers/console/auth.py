@@ -44,13 +44,17 @@ def _get_redis():
         return None
     try:
         import redis
-        client = redis.Redis(
+        redis_kwargs = dict(
             host=host,
             port=port,
             password=password or None,
             socket_connect_timeout=1.0,
             socket_timeout=1.0,
         )
+        if os.environ.get("REDIS_TLS", "").lower() == "true":
+            redis_kwargs["ssl"] = True
+            redis_kwargs["ssl_cert_reqs"] = None  # self-signed cert on internal network
+        client = redis.Redis(**redis_kwargs)
         client.ping()
         _redis_client = client
         logger.info("Rate limiter: connected to Redis at %s:%s", host, port)
