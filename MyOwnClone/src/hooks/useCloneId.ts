@@ -30,7 +30,7 @@ export interface UseCloneIdReturn {
   /** Whether the clone ID is being fetched */
   loading: boolean;
   /** Manually trigger a refresh of the clone ID */
-  refresh: () => Promise<void>;
+  refresh: () => Promise<string | null>;
   /** Clear the cached clone ID from cookie */
   clear: () => void;
 }

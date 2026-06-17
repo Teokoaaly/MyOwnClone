@@ -1,6 +1,6 @@
 export { tenants, tenantStatusEnum, planEnum, subscriptionStatusEnum } from "./tenants";
 export { users, accounts, verificationTokens, sessions, userRoleEnum } from "./users";
-export { cloneConfigs, cloneModePrompts, cloneModeEnum } from "./clones";
+export { cloneConfigs, cloneModePrompts, cloneModeEnum, clones, cloneModes } from "./clones";
 export { sources, sourceTypeEnum, sourceStatusEnum } from "./sources";
 export { chunks, vector } from "./chunks";
 export { conversations, messages, conversationModeEnum } from "./conversations";

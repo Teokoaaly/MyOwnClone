@@ -11,9 +11,6 @@ const nextConfig: NextConfig = {
     "@auth/core",
   ],
   allowedDevOrigins: ["127.0.0.1", "localhost"],
-  experimental: {
-    useNonce: true,
-  },
   turbopack: {
     root: process.cwd(),
   },

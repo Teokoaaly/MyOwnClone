@@ -321,7 +321,7 @@ export async function proxy(request: NextRequest) {
               httpOnly: true,
               expires: new Date(cookieExpires),
               path: "/",
-              sameSite: "Lax",
+              sameSite: "lax",
               secure: request.nextUrl.protocol === "https:",
             });
             return response2;
