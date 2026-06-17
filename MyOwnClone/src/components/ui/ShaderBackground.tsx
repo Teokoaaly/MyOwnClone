@@ -20,8 +20,8 @@ const ShaderBackground = () => {
     const float overallSpeed = 0.16;
     const float gridSmoothWidth = 0.015;
     const float scale = 5.0;
-    const float minLineWidth = 0.006;
-    const float maxLineWidth = 0.095;
+    const float minLineWidth = 0.008;
+    const float maxLineWidth = 0.118;
     const float lineSpeed = 1.0 * overallSpeed;
     const float lineAmplitude = 1.0;
     const float lineFrequency = 0.2;
@@ -58,12 +58,12 @@ const ShaderBackground = () => {
       space.x += random(space.y * warpFrequency + iTime * warpSpeed + 2.0) * warpAmplitude * horizontalFade;
 
       vec3 lines = vec3(0.0);
-      vec3 bgColor1 = vec3(0.98, 0.95, 0.92);
-      vec3 bgColor2 = vec3(0.94, 0.97, 0.96);
-      vec3 mint = vec3(0.55, 1.0, 0.86);
-      vec3 purple = vec3(0.75, 0.51, 1.0);
-      vec3 amber = vec3(1.0, 0.82, 0.47);
-      vec3 orange = vec3(0.92, 0.35, 0.05);
+      vec3 bgColor1 = vec3(0.985, 0.955, 0.925);
+      vec3 bgColor2 = vec3(0.945, 0.97, 0.965);
+      vec3 mint = vec3(0.5, 0.98, 0.83);
+      vec3 purple = vec3(0.77, 0.56, 1.0);
+      vec3 amber = vec3(1.0, 0.76, 0.36);
+      vec3 orange = vec3(0.93, 0.39, 0.06);
 
       for(int l = 0; l < linesPerGroup; l++) {
         float normalizedLineIndex = float(l) / float(linesPerGroup);
@@ -76,12 +76,12 @@ const ShaderBackground = () => {
         float line = drawSmoothLine(linePosition, halfWidth, space.y);
         vec3 brand = mix(mint, purple, normalizedLineIndex);
         brand = mix(brand, amber, smoothstep(0.55, 1.0, rand));
-        lines += line * brand * rand * 0.42;
+        lines += line * brand * rand * 0.56;
       }
 
       vec3 color = mix(bgColor1, bgColor2, uv.x);
-      color += lines * verticalFade * 1.18;
-      color += orange * smoothstep(0.58, 0.0, distance(uv, vec2(0.72, 0.56))) * 0.075;
+      color += lines * verticalFade * 1.38;
+      color += orange * smoothstep(0.64, 0.0, distance(uv, vec2(0.72, 0.56))) * 0.12;
       gl_FragColor = vec4(color, 1.0);
     }
   `;

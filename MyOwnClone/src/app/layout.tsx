@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: "MyOwnClone - Multiply Yourself",
   description:
     "Create an AI clone trained on your knowledge. Support, teach, and sell around the clock from one workspace.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default async function RootLayout({

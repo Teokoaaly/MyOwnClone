@@ -2,8 +2,13 @@ import type { Metadata } from 'next'
 import '../globals.css'
 
 export const metadata: Metadata = {
-  title: 'YouOwnClone',
+  title: 'MyOwnClone',
   description: 'Your AI clone platform',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 }
 
 export default function YouOwnCloneLayout({ children }: { children: React.ReactNode }) {
