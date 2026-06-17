@@ -1839,89 +1839,34 @@ body {
   }
 }
 
-.moc-local-landing .process-rain {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 1;
-}
 
-.moc-local-landing .process-rain-dot {
-  position: absolute;
-  top: -14%;
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  opacity: 0;
-  filter: blur(0.1px);
-  transform: translate3d(0, -10px, 0);
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
-}
 
-.moc-local-landing .process-rain-dot.dot-1 {
-  left: 10%;
-  background: rgba(255, 210, 120, 0.82);
-  animation-delay: 0.1s;
-}
 
-.moc-local-landing .process-rain-dot.dot-2 {
-  left: 24%;
-  width: 10px;
-  height: 10px;
-  background: rgba(140, 255, 220, 0.72);
-  animation-delay: 1.2s;
-}
 
-.moc-local-landing .process-rain-dot.dot-3 {
-  left: 41%;
-  width: 11px;
-  height: 11px;
-  background: rgba(190, 130, 255, 0.62);
-  animation-delay: 0.8s;
-}
 
-.moc-local-landing .process-rain-dot.dot-4 {
-  left: 58%;
-  width: 16px;
-  height: 16px;
-  background: rgba(234, 88, 12, 0.44);
-  animation-delay: 1.8s;
-}
 
-.moc-local-landing .process-rain-dot.dot-5 {
-  left: 74%;
-  width: 11px;
-  height: 11px;
-  background: rgba(255, 210, 120, 0.72);
-  animation-delay: 0.45s;
-}
 
-.moc-local-landing .process-rain-dot.dot-6 {
-  left: 89%;
-  width: 9px;
-  height: 9px;
-  background: rgba(140, 255, 220, 0.62);
-  animation-delay: 1.4s;
-}
 
-.moc-local-landing .process-rain-dot {
-  animation: moc-process-rain 4.9s linear infinite;
-}
 
-@keyframes moc-process-rain {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, -18px, 0) scale(0.82);
-  }
-  14% {
-    opacity: 0.92;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(0, 420px, 0) scale(1.14);
-  }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .shared-pricing {
   position: relative;

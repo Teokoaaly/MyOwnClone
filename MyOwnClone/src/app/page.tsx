@@ -98,14 +98,6 @@ export default function LandingPage() {
       </section>
 
       <section className="section process-section" id="process">
-        <div className="process-rain" aria-hidden="true">
-          <span className="process-rain-dot dot-1" />
-          <span className="process-rain-dot dot-2" />
-          <span className="process-rain-dot dot-3" />
-          <span className="process-rain-dot dot-4" />
-          <span className="process-rain-dot dot-5" />
-          <span className="process-rain-dot dot-6" />
-        </div>
         <div className="sec-head">
           <span className="sec-kicker reveal">How it works</span>
           <h2 className="sec-title reveal">Four steps to your clone.</h2>
