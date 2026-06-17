@@ -8,7 +8,7 @@ const services = [
   {
     label: "Overview",
     title: "See your whole clone operation at a glance.",
-    description: "Track activity, recent conversations, usage and commercial signals from one dashboard.",
+    description: "Monitor activity, conversations, and usage from a single clean dashboard.",
   },
   {
     label: "Knowledge",
@@ -18,7 +18,7 @@ const services = [
   {
     label: "Automation",
     title: "Handle inbox, products and bookings in one flow.",
-    description: "Turn common support and sales work into repeatable actions without losing your tone.",
+    description: "Automate support and sales workflows while keeping your unique voice.",
   },
 ];
 
@@ -86,7 +86,7 @@ export default function LandingPage() {
           <span className="sec-kicker reveal">What it does</span>
           <h2 className="sec-title reveal">Everything your clone can handle.</h2>
           <p className="sec-desc reveal">
-            A focused product surface with the current brand, clearer background motion and no decorative icons competing with the message.
+            From knowledge management to automated bookings, everything your AI clone needs in one place.
           </p>
         </div>
         <div className="services-grid">
@@ -113,7 +113,7 @@ export default function LandingPage() {
           <span className="sec-kicker reveal">How it works</span>
           <h2 className="sec-title reveal">Four steps to your clone.</h2>
           <p className="sec-desc reveal">
-            The sequence is back, with staggered motion and the same warm background language as the rest of the page.
+            Get your clone running in four simple steps, from sign-up to deployment.
           </p>
         </div>
         <div className="process-grid">
@@ -145,7 +145,7 @@ export default function LandingPage() {
           yourself?
         </h2>
         <p className="reveal">
-          Start publicly, continue in the dashboard and keep one consistent story from the first visit to billing.
+          Start on the landing page, continue in the dashboard. Same pricing, same experience.
         </p>
         <div className="hero-ctas reveal">
           <Link className="btn btn-primary" href="/registro">

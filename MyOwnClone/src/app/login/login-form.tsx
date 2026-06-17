@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getSession, signIn } from "next-auth/react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -12,6 +12,16 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Clean credentials from URL if someone navigated with them exposed
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("email") || params.has("password")) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +61,7 @@ export function LoginForm() {
           "0 1px 2px rgba(15, 23, 42, 0.04), 0 24px 64px rgba(15, 23, 42, 0.10)",
       }}
     >
-      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+      <form method="POST" onSubmit={handleSubmit} className="space-y-6" noValidate>
         {error && (
           <div
             role="alert"
