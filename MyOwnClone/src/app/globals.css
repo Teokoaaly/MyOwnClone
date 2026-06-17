@@ -1356,6 +1356,7 @@ body {
 
 /* Public landing: current brand layout */
 .moc-local-landing {
+  scroll-behavior: smooth;
   --surface: #ffffff;
   --surface-warm: #fff7ed;
   --ink: #1c1917;
