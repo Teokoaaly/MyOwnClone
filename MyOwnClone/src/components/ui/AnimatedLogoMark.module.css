@@ -65,7 +65,7 @@
   --start-x: -33%;
   --start-y: -24%;
   --rotate: -16deg;
-  animation-delay: 0s, 1.2s;
+  animation-delay: 0s, 0.9s;
 }
 
 /* Top-right piece */
@@ -76,7 +76,7 @@
   --start-x: 33%;
   --start-y: -24%;
   --rotate: 16deg;
-  animation-delay: 0.08s, 1.28s;
+  animation-delay: 0.08s, 0.98s;
 }
 
 /* Bottom-left piece */
@@ -87,7 +87,7 @@
   --start-x: -33%;
   --start-y: 24%;
   --rotate: 16deg;
-  animation-delay: 0.16s, 1.36s;
+  animation-delay: 0.16s, 1.06s;
 }
 
 /* Bottom-right piece */
@@ -98,7 +98,7 @@
   --start-x: 33%;
   --start-y: 24%;
   --rotate: -16deg;
-  animation-delay: 0.24s, 1.44s;
+  animation-delay: 0.24s, 1.14s;
 }
 
 /* Single entrance animation */
@@ -138,7 +138,7 @@
 
 /* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .logoMark:not(.forceMotion) .piece {
+  .logoMark .piece {
     animation: none;
     opacity: 1;
     transform: none !important;
