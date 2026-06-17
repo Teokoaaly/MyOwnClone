@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   // when the user actually exists.
   try {
     const user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.email, email),
+      where: (users: any, helpers: any) => helpers.eq(users.email, email),
     });
 
     if (user) {

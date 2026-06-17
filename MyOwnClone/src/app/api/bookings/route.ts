@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     where: eq(schema.meetingTypes.cloneId, cloneId),
     columns: { id: true },
   });
-  const mtIds = meetingTypesForClone.map((mt) => mt.id);
+  const mtIds = meetingTypesForClone.map((mt: any) => mt.id);
 
   if (mtIds.length === 0) {
     return NextResponse.json({ bookings: [] });

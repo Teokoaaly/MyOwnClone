@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "@/i18n/navigation"
+import PublicPricing from "@/components/ui/PublicPricing"
 
 interface BillingInfo {
   has_stripe: boolean
@@ -98,7 +99,7 @@ export default function FacturacionPage() {
   }
 
   const startCheckout = async () => {
-    const plan = plans.find((item) => item.stripe_price_id) ?? plans[0]
+    const plan = plans.find((item) => item.id === "pro" || item.name.toLowerCase() === "pro") ?? plans.find((item) => item.stripe_price_id) ?? plans[0]
     if (!plan) {
       setError("No billing plan is configured yet.")
       return
@@ -125,6 +126,18 @@ export default function FacturacionPage() {
     } finally {
       setCheckoutLoading(false)
     }
+  }
+
+  const handlePlanAction = (planId: string) => {
+    if (planId === "enterprise") {
+      window.location.href = "mailto:hello@myownclone.com"
+      return
+    }
+    if (planId === "free") {
+      router.push("/resumen")
+      return
+    }
+    startCheckout()
   }
 
   if (status === "loading" || loading) {
@@ -238,6 +251,25 @@ export default function FacturacionPage() {
               View Stripe Portal
             </button>
           )}
+        </div>
+      </section>
+
+      <section id="plans" className="border-t border-[var(--border-soft)] pt-10">
+        <div className="flex flex-col gap-2">
+          <p className="section-label">Plans</p>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+            Same pricing as the public landing
+          </h2>
+          <p className="max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
+            The dashboard uses the same commercial tiers shown on the landing page, so upgrades and sales conversations stay consistent.
+          </p>
+        </div>
+        <div className="mt-7">
+          <PublicPricing
+            mode="dashboard"
+            currentPlanId={currentPlan?.id ?? billing?.plan}
+            onSelectPlan={handlePlanAction}
+          />
         </div>
       </section>
 
