@@ -53,7 +53,7 @@
   background: #000;
   animation:
     assemble 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-    breathe 5s ease-in-out 1.2s infinite;
+    breathe 5s ease-in-out 0.9s infinite;
   will-change: transform, opacity;
 }
 
@@ -132,7 +132,7 @@
     transform: translateY(0) scale(1);
   }
   50% {
-    transform: translateY(-1px) scale(1.035);
+    transform: translateY(-0.5px) scale(1.018);
   }
 }
 
