@@ -1,0 +1,502 @@
+/* ═══════════════════════════════════════════
+   MyOwnClone Landing v2 — Clean & Fluid
+   ═══════════════════════════════════════════ */
+
+/* ── Stage ── */
+.landing-stage-v2 {
+  min-height: 100vh;
+  background: #fafaf9;
+  color: #1c1917;
+}
+
+/* ── Nav ── */
+.landing-nav-v2 {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  background: rgba(250, 250, 249, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.landing-nav-v2.scrolled {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.landing-brand-v2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #1c1917;
+  text-decoration: none;
+}
+
+.landing-nav-links-v2 {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.landing-nav-links-v2 a {
+  font-size: 14px;
+  font-weight: 500;
+  color: #57534e;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.landing-nav-links-v2 a:hover {
+  color: #1c1917;
+}
+
+.landing-nav-actions-v2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-nav-signin {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #57534e;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-nav-signin:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #1c1917;
+}
+
+.btn-nav-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #ea580c;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-nav-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);
+}
+
+/* ── Hero ── */
+.landing-hero-v2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 100px 24px 80px;
+}
+
+.landing-hero-v2 h1 {
+  font-size: clamp(44px, 6vw, 72px);
+  font-weight: 750;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  color: #1c1917;
+}
+
+.landing-hero-v2 .text-accent {
+  color: #ea580c;
+}
+
+.landing-hero-v2 p {
+  max-width: 560px;
+  margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #57534e;
+}
+
+.landing-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  background: #ea580c;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-hero-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.35);
+}
+
+.btn-hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+  color: #3f3f46;
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-hero-secondary:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+/* ── Pricing v2 ── */
+.landing-pricing-v2 {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.landing-pricing-shell-v2 {
+  width: 100%;
+  border-radius: 18px;
+  background: #fff;
+  padding: 40px 32px 44px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.landing-pricing-head-v2 {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+
+.landing-pricing-kicker-v2 {
+  margin: 0 0 8px;
+  color: #78716c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.landing-pricing-head-v2 h2 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  color: #1c1917;
+}
+
+.landing-pricing-head-v2 p {
+  margin: 10px 0 0;
+  color: #57534e;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.landing-pricing-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* ── Plan cards ── */
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  background: #fff;
+  padding: 20px 20px 24px;
+  transition: box-shadow 0.2s ease;
+}
+
+.plan-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.plan-card-featured {
+  background: #0b102b;
+  color: #fff;
+  border-color: #0b102b;
+}
+
+.plan-card-featured:hover {
+  box-shadow: 0 12px 36px rgba(11, 16, 43, 0.2);
+}
+
+.plan-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 36px;
+}
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #ff8c7a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.plan-price {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.plan-amount {
+  font-size: 40px;
+  font-weight: 750;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.plan-suffix {
+  opacity: 0.7;
+  font-size: 16px;
+  font-weight: 600;
+  padding-bottom: 4px;
+}
+
+.plan-card h3 {
+  margin: 22px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.plan-card p {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #78716c;
+}
+
+.plan-card-featured p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.plan-cta,
+.plan-cta-inverse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 12px;
+  margin-top: 24px;
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.plan-cta {
+  background: #0b102b;
+  color: #fff;
+}
+
+.plan-cta-inverse {
+  background: #fff;
+  color: #0b102b;
+}
+
+.plan-divider {
+  margin: 22px 0 18px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.plan-card-featured .plan-divider {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+.plan-features {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.plan-features strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.plan-features ul {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-features li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #57534e;
+}
+
+.plan-features li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ea580c;
+}
+
+.plan-card-featured .plan-features li {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* ── Footer v2 ── */
+.landing-footer-v2 {
+  width: 100%;
+  padding: 0 24px 32px;
+}
+
+.landing-footer-inner-v2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.landing-footer-brand-v2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1917;
+}
+
+.landing-footer-links-v2 {
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+}
+
+.landing-footer-links-v2 a {
+  color: #78716c;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.landing-footer-links-v2 a:hover {
+  color: #1c1917;
+}
+
+.landing-footer-copy-v2 {
+  font-size: 12px;
+  color: #a8a29e;
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .landing-pricing-grid-v2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-nav-v2 {
+    padding: 12px 16px;
+  }
+
+  .landing-brand-v2 {
+    font-size: 17px;
+  }
+
+  .landing-nav-links-v2 {
+    display: none;
+  }
+
+  .btn-nav-signin {
+    display: none;
+  }
+
+  .btn-nav-primary {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .landing-hero-v2 {
+    padding: 72px 18px 56px;
+  }
+
+  .landing-hero-v2 h1 {
+    font-size: 38px;
+  }
+
+  .landing-hero-v2 p {
+    font-size: 16px;
+  }
+
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    width: 100%;
+    max-width: 260px;
+    justify-content: center;
+  }
+
+  .landing-pricing-v2 {
+    padding: 0 16px 56px;
+  }
+
+  .landing-pricing-shell-v2 {
+    padding: 24px 18px 28px;
+  }
+
+  .plan-card {
+    min-height: auto;
+  }
+}

@@ -1,42 +1,43 @@
 import { LoginForm } from "./login-form";
-import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
-import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export default function LoginPage() {
-  const t = useTranslations("auth");
-  void t;
   return (
-    <main
-      className="flex min-h-screen items-center justify-center px-4 py-12"
-      style={{
-        background: `
-          radial-gradient(circle at 12% 8%, rgba(249, 115, 22, 0.18), transparent 36%),
-          radial-gradient(circle at 88% 90%, rgba(236, 72, 153, 0.14), transparent 36%),
-          var(--bg-page)
-        `,
-      }}
-    >
+    <main className="flex min-h-[100dvh] items-center justify-center px-4 py-12 bg-stone-50">
       <div className="w-full max-w-md">
-        <div
-          className="mx-auto overflow-hidden rounded-[20px] border border-[var(--border-soft)] bg-[var(--bg-shell)]"
-          style={{
-            boxShadow:
-              "0 1px 2px rgba(15, 23, 42, 0.04), 0 24px 64px rgba(15, 23, 42, 0.10)",
-          }}
-        >
-          <div className="flex flex-col items-center px-8 pt-8 pb-2 text-center">
-            <AnimatedLogoMark size={40} />
-            <h1 className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
-              MyOwnClone
-            </h1>
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
-              Sign in to manage your clone
-            </p>
-          </div>
-          <div className="px-8 pb-8 pt-4">
-            <LoginForm />
-          </div>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-2 mb-6">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="9" height="9" rx="4" fill="#EA580C" />
+              <rect x="13" y="2" width="9" height="9" rx="4" fill="#F97316" />
+              <rect x="2" y="13" width="9" height="9" rx="4" fill="#F97316" />
+              <rect x="13" y="13" width="9" height="9" rx="4" fill="#EA580C" />
+            </svg>
+            <span className="text-lg font-bold tracking-tight text-stone-900">MyOwnClone</span>
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+            Welcome back
+          </h1>
+          <p className="mt-1 text-sm text-stone-500">
+            Sign in to manage your clone
+          </p>
         </div>
+
+        {/* Form card */}
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <LoginForm />
+        </div>
+
+        <p className="mt-6 text-center text-sm text-stone-500">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/registro"
+            className="font-semibold text-orange-600 hover:text-orange-700"
+          >
+            Create one
+          </Link>
+        </p>
       </div>
     </main>
   );
