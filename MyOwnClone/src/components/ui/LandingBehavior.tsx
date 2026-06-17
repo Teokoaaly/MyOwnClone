@@ -13,20 +13,11 @@ export default function LandingBehavior() {
     const root = document.querySelector(".moc-local-landing");
     if (!root) return;
 
-    const handleAnchorClick = (event: Event) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-
-      const anchor = target.closest('a[href^="#"]');
-      if (!(anchor instanceof HTMLAnchorElement)) return;
-
-      const hash = anchor.getAttribute("href");
+    const animateToHash = (hash: string, replaceUrl = false) => {
       if (!hash || hash === "#") return;
 
       const section = document.querySelector(hash);
       if (!(section instanceof HTMLElement)) return;
-
-      event.preventDefault();
 
       const navHeight = 96;
       const startY = window.scrollY;
@@ -41,7 +32,7 @@ export default function LandingBehavior() {
         window.scrollTo(0, startY + distance * eased);
         if (progress < 1) {
           window.requestAnimationFrame(step);
-        } else {
+        } else if (replaceUrl) {
           window.history.replaceState(null, "", hash);
         }
       };
@@ -49,7 +40,40 @@ export default function LandingBehavior() {
       window.requestAnimationFrame(step);
     };
 
+    const handleAnchorClick = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const anchor = target.closest('a[href^="#"]');
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+
+      const hash = anchor.getAttribute("href");
+      if (!hash || hash === "#") return;
+
+      event.preventDefault();
+      animateToHash(hash, true);
+    };
+
     root.addEventListener("click", handleAnchorClick);
+
+    const revealElements = [...root.querySelectorAll<HTMLElement>(".reveal")];
+    const processSection = root.querySelector<HTMLElement>(".process-section");
+
+    const syncVisibleState = () => {
+      revealElements.forEach((element) => {
+        if (element.classList.contains("is-visible")) return;
+        const rect = element.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.88 && rect.bottom > 0) {
+          element.classList.add("is-visible");
+        }
+      });
+
+      if (processSection) {
+        const rect = processSection.getBoundingClientRect();
+        const inView = rect.top < window.innerHeight * 0.9 && rect.bottom > window.innerHeight * 0.18;
+        processSection.classList.toggle("is-active", inView);
+      }
+    };
 
     const revealObserver = new IntersectionObserver(
       (entries) => {
@@ -75,7 +99,6 @@ export default function LandingBehavior() {
       revealObserver.observe(element);
     });
 
-    const processSection = root.querySelector(".process-section");
     const processObserver = processSection
       ? new IntersectionObserver(
           ([entry]) => {
@@ -89,8 +112,21 @@ export default function LandingBehavior() {
       processObserver.observe(processSection);
     }
 
+    syncVisibleState();
+    window.addEventListener("scroll", syncVisibleState, { passive: true });
+    window.addEventListener("resize", syncVisibleState, { passive: true });
+
+    if (window.location.hash) {
+      window.setTimeout(() => {
+        animateToHash(window.location.hash);
+        window.setTimeout(syncVisibleState, 140);
+      }, 80);
+    }
+
     return () => {
       root.removeEventListener("click", handleAnchorClick);
+      window.removeEventListener("scroll", syncVisibleState);
+      window.removeEventListener("resize", syncVisibleState);
       revealObserver.disconnect();
       processObserver?.disconnect();
     };
