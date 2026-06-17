@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useInView, useReducedMotion } from "framer-motion";
-import { Users, Brain, Zap, Globe } from "@phosphor-icons/react";
+import { UsersThree, Brain, Lightning, Globe } from "@phosphor-icons/react";
 
 interface Step {
   number: number;
@@ -20,13 +20,13 @@ const steps: Step[] = [
   },
   {
     number: 2,
-    icon: <Zap weight="duotone" className="h-6 w-6" />,
+    icon: <Lightning weight="duotone" className="h-6 w-6" />,
     title: "Set the mode",
     body: "Choose pedagogy, sales, support, or custom mode. Each mode tunes the clone's behavior — from teaching patiently to closing deals.",
   },
   {
     number: 3,
-    icon: <Users weight="duotone" className="h-6 w-6" />,
+    icon: <UsersThree weight="duotone" className="h-6 w-6" />,
     title: "Share with your audience",
     body: "Embed it on your site, share a link, or connect it to your email and calendar. Your clone works 24/7 in your own voice.",
   },
