@@ -5,8 +5,7 @@ from datetime import date as date_type, time as time_type
 
 from flask import request
 from flask_restx import Resource
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
-from pydantic.errors import ValidationError
+from pydantic import BaseModel, EmailStr, Field, ValidationError, field_validator, model_validator
 from sqlalchemy import select
 from werkzeug.exceptions import NotFound
 
