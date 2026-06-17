@@ -33,6 +33,79 @@ interface PaymentRow {
   result: string
 }
 
+interface PlanInfo {
+  id: string
+  name: string
+  price_cents: number
+  price_display?: string
+  stripe_price_id?: string | null
+}
+
+interface DashboardPlan {
+  id: string
+  name: string
+  badge: string
+  price: string
+  period?: string
+  description: string
+  features: Array<{ label: string; included: boolean }>
+  cta: string
+  featured?: boolean
+}
+
+const LANDING_PLANS: DashboardPlan[] = [
+  {
+    id: "free",
+    name: "Free",
+    badge: "Starter",
+    price: "$0",
+    period: "/month",
+    description: "Perfect to explore and prototype.",
+    cta: "Get started",
+    features: [
+      { label: "1 AI clone", included: true },
+      { label: "Basic knowledge base", included: true },
+      { label: "Public chat", included: true },
+      { label: "Community support", included: true },
+      { label: "Inbox AI triage", included: false },
+      { label: "API access", included: false },
+    ],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    badge: "Most popular",
+    price: "$64.90",
+    period: "/month",
+    description: "For creators and growing businesses.",
+    cta: "Choose Pro",
+    featured: true,
+    features: [
+      { label: "5 AI clones", included: true },
+      { label: "Unlimited knowledge", included: true },
+      { label: "Inbox AI triage", included: true },
+      { label: "Product catalog", included: true },
+      { label: "Full analytics", included: true },
+      { label: "Priority support", included: true },
+    ],
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    badge: "Scale",
+    price: "Custom",
+    description: "For teams with advanced needs.",
+    cta: "Contact sales",
+    features: [
+      { label: "Unlimited clones", included: true },
+      { label: "API access", included: true },
+      { label: "Team management", included: true },
+      { label: "Custom integrations", included: true },
+      { label: "Dedicated support", included: true },
+    ],
+  },
+]
+
 function money(cents = 0, currency = "usd") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -44,7 +117,9 @@ export default function FacturacionPage() {
   const { status } = useSession()
   const router = useRouter()
   const [billing, setBilling] = useState<BillingInfo | null>(null)
+  const [plans, setPlans] = useState<PlanInfo[]>([])
   const [loading, setLoading] = useState(true)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"payments" | "vouchers">("payments")
 
@@ -56,12 +131,17 @@ export default function FacturacionPage() {
     let cancelled = false
 
     async function loadBilling() {
-      if (status !== "authenticated") return
-
       try {
-        const billingRes = await fetch("/api/clone/billing", { cache: "no-store" })
+        const [billingRes, plansRes] = await Promise.all([
+          fetch("/api/clone/billing", { cache: "no-store" }),
+          fetch("/api/clone/plans", { cache: "no-store" }),
+        ])
         if (!cancelled && billingRes.ok) {
           setBilling(await billingRes.json())
+        }
+        if (!cancelled && plansRes.ok) {
+          const data = await plansRes.json()
+          setPlans(Array.isArray(data) ? data : [])
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Unable to load billing")
@@ -84,6 +164,48 @@ export default function FacturacionPage() {
     }
   }
 
+  const startCheckout = async () => {
+    const plan = plans.find((item) => item.id === "pro" || item.name.toLowerCase() === "pro") ?? plans.find((item) => item.stripe_price_id) ?? plans[0]
+    if (!plan) {
+      setError("No billing plan is configured yet.")
+      return
+    }
+
+    setCheckoutLoading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/clone/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan_id: plan.id,
+          success_url: "/facturacion",
+          cancel_url: "/facturacion",
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.url) {
+        setError(data.error === "stripe_not_configured" ? "Stripe is not configured for this environment." : data.error ?? "Unable to start checkout.")
+        return
+      }
+      window.location.assign(data.url)
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
+
+  const handlePlanAction = (planId: string) => {
+    if (planId === "enterprise") {
+      window.location.href = "mailto:hello@myownclone.com"
+      return
+    }
+    if (planId === "free") {
+      router.push("/resumen")
+      return
+    }
+    startCheckout()
+  }
+
   if (status === "loading" || loading) {
     return (
       <div className="space-y-4">
@@ -96,6 +218,7 @@ export default function FacturacionPage() {
   const currency = billing?.currency ?? "usd"
   const paymentHistory = billing?.payment_history ?? []
   const voucherRecords = billing?.voucher_records ?? []
+  const currentPlan = plans.find((plan) => plan.id === billing?.plan || plan.name.toLowerCase() === billing?.plan)
 
   return (
     <div className="space-y-10">
@@ -150,7 +273,7 @@ export default function FacturacionPage() {
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
-          <StatusTile label="Plan" value={billing?.plan ?? "No plan"} />
+          <StatusTile label="Plan" value={currentPlan?.name ?? billing?.plan ?? "No plan"} />
           <StatusTile label="Subscription" value={billing?.subscription_status ?? billing?.status ?? "Not active"} />
           <StatusTile label="Tracked usage cost" value={money(billing?.usage_cost_cents, currency)} />
         </div>
@@ -169,10 +292,11 @@ export default function FacturacionPage() {
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => router.push("/planes")}
+            onClick={startCheckout}
+            disabled={checkoutLoading}
             className="rounded-md bg-slate-950 px-7 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Manage plan
+            {checkoutLoading ? "Opening..." : billing?.has_stripe ? "Manage plan" : "Recharge"}
           </button>
           <button type="button" className="rounded-md border border-[var(--border-medium)] bg-white px-7 py-2.5 text-sm font-medium text-[var(--text-primary)]">
             Support Bank Transfer
@@ -193,6 +317,78 @@ export default function FacturacionPage() {
               View Stripe Portal
             </button>
           )}
+        </div>
+      </section>
+
+      <section id="plans" className="border-t border-[var(--border-soft)] pt-10">
+        <div className="flex flex-col gap-2">
+          <p className="section-label">Plans</p>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+            Same pricing as the public landing
+          </h2>
+          <p className="max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
+            The dashboard uses the same commercial tiers shown on the landing page, so upgrades and sales conversations stay consistent.
+          </p>
+        </div>
+
+        <div className="mt-7 grid gap-4 lg:grid-cols-3">
+          {LANDING_PLANS.map((plan) => {
+            const current = currentPlan?.id === plan.id || currentPlan?.name.toLowerCase() === plan.name.toLowerCase() || billing?.plan === plan.id
+
+            return (
+              <article
+                key={plan.id}
+                className={`flex min-h-[440px] flex-col rounded-lg border p-5 ${
+                  plan.featured
+                    ? "border-orange-300 bg-orange-50/70 shadow-[0_16px_44px_rgba(234,88,12,0.12)]"
+                    : "border-[var(--border-soft)] bg-white"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${
+                    plan.featured ? "bg-[var(--color-accent-warm)] text-white" : "bg-[var(--surface-2)] text-[var(--text-secondary)]"
+                  }`}>
+                    {plan.badge}
+                  </span>
+                  {current && (
+                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+                      Current
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="mt-5 text-lg font-semibold text-[var(--text-primary)]">{plan.name}</h3>
+                <div className="mt-3 flex items-end gap-1">
+                  <span className="font-mono text-3xl font-semibold text-[var(--text-primary)]">{plan.price}</span>
+                  {plan.period && <span className="pb-1 text-sm text-[var(--text-muted)]">{plan.period}</span>}
+                </div>
+                <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{plan.description}</p>
+
+                <ul className="mt-6 flex flex-1 flex-col gap-3 text-sm">
+                  {plan.features.map((feature) => (
+                    <li key={feature.label} className={`flex items-start gap-2 ${feature.included ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] opacity-60"}`}>
+                      <span className={feature.included ? "text-emerald-600" : "text-[var(--text-muted)]"}>
+                        {feature.included ? "✓" : "x"}
+                      </span>
+                      <span>{feature.label}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  type="button"
+                  onClick={() => handlePlanAction(plan.id)}
+                  className={`mt-7 rounded-md px-5 py-2.5 text-sm font-semibold ${
+                    plan.featured
+                      ? "bg-slate-950 text-white"
+                      : "border border-[var(--border-medium)] bg-white text-[var(--text-primary)]"
+                  }`}
+                >
+                  {plan.cta}
+                </button>
+              </article>
+            )
+          })}
         </div>
       </section>
 
