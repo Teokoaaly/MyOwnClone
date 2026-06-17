@@ -1379,9 +1379,9 @@ body {
 }
 
 .moc-local-landing canvas {
-  opacity: 0.58;
+  opacity: 0.82;
   mix-blend-mode: multiply;
-  filter: saturate(1.08) brightness(1.02) contrast(0.96);
+  filter: saturate(1.22) brightness(1.01) contrast(1.04);
 }
 
 .moc-local-landing .site-backdrop {
@@ -1741,17 +1741,6 @@ body {
   align-items: stretch;
 }
 
-.moc-local-landing .process-grid::before {
-  content: "";
-  position: absolute;
-  top: 24px;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.35;
-}
-
 .moc-local-landing .process-step {
   position: relative;
   overflow: hidden;
@@ -1861,75 +1850,76 @@ body {
 .moc-local-landing .process-rain-dot {
   position: absolute;
   top: -14%;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 999px;
   opacity: 0;
-  filter: blur(0.2px);
+  filter: blur(0.1px);
   transform: translate3d(0, -10px, 0);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
 }
 
 .moc-local-landing .process-rain-dot.dot-1 {
   left: 10%;
-  background: rgba(255, 210, 120, 0.62);
+  background: rgba(255, 210, 120, 0.82);
   animation-delay: 0.1s;
 }
 
 .moc-local-landing .process-rain-dot.dot-2 {
   left: 24%;
-  width: 9px;
-  height: 9px;
-  background: rgba(140, 255, 220, 0.58);
+  width: 10px;
+  height: 10px;
+  background: rgba(140, 255, 220, 0.72);
   animation-delay: 1.2s;
 }
 
 .moc-local-landing .process-rain-dot.dot-3 {
   left: 41%;
-  width: 10px;
-  height: 10px;
-  background: rgba(190, 130, 255, 0.44);
+  width: 11px;
+  height: 11px;
+  background: rgba(190, 130, 255, 0.62);
   animation-delay: 0.8s;
 }
 
 .moc-local-landing .process-rain-dot.dot-4 {
   left: 58%;
-  width: 14px;
-  height: 14px;
-  background: rgba(234, 88, 12, 0.28);
+  width: 16px;
+  height: 16px;
+  background: rgba(234, 88, 12, 0.44);
   animation-delay: 1.8s;
 }
 
 .moc-local-landing .process-rain-dot.dot-5 {
   left: 74%;
-  width: 10px;
-  height: 10px;
-  background: rgba(255, 210, 120, 0.5);
+  width: 11px;
+  height: 11px;
+  background: rgba(255, 210, 120, 0.72);
   animation-delay: 0.45s;
 }
 
 .moc-local-landing .process-rain-dot.dot-6 {
   left: 89%;
-  width: 8px;
-  height: 8px;
-  background: rgba(140, 255, 220, 0.44);
+  width: 9px;
+  height: 9px;
+  background: rgba(140, 255, 220, 0.62);
   animation-delay: 1.4s;
 }
 
 .moc-local-landing .process-rain-dot {
-  animation: moc-process-rain 5.8s linear infinite;
+  animation: moc-process-rain 4.9s linear infinite;
 }
 
 @keyframes moc-process-rain {
   0% {
     opacity: 0;
-    transform: translate3d(0, -14px, 0) scale(0.9);
+    transform: translate3d(0, -18px, 0) scale(0.82);
   }
-  16% {
-    opacity: 0.78;
+  14% {
+    opacity: 0.92;
   }
   100% {
     opacity: 0;
-    transform: translate3d(0, 360px, 0) scale(1.08);
+    transform: translate3d(0, 420px, 0) scale(1.14);
   }
 }
 
@@ -2030,6 +2020,7 @@ body {
   background: linear-gradient(180deg, rgba(255, 247, 237, 0.96), rgba(255, 255, 255, 0.82));
   box-shadow: 0 24px 70px rgba(234, 88, 12, 0.12);
   transform: none;
+  margin-top: 0;
 }
 
 .auth-shell {
