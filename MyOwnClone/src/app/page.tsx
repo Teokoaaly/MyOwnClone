@@ -1,7 +1,6 @@
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
-import ShaderBackground from "@/components/ui/ShaderBackground";
 import { Link } from "@/i18n/navigation";
 
 const services = [
@@ -33,8 +32,6 @@ export default function LandingPage() {
   return (
     <main className="moc-local-landing">
       <LandingBehavior />
-      <div className="site-backdrop" aria-hidden="true" />
-      <ShaderBackground />
 
       <nav className="nav">
         <Link href="/" className="nav-logo" aria-label="MyOwnClone home">
@@ -81,7 +78,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="section mesh-bg" id="services">
+      <section className="section" id="services">
         <div className="sec-head">
           <span className="sec-kicker reveal">What it does</span>
           <h2 className="sec-title reveal">Everything your clone can handle.</h2>
@@ -127,12 +124,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="section mesh-bg" id="plans">
+      <section className="section" id="plans">
         <div className="sec-head">
           <span className="sec-kicker reveal">Pricing</span>
-          <h2 className="sec-title reveal">Simple pricing for every stage</h2>
+          <h2 className="sec-title reveal">Plans that scale with you</h2>
           <p className="sec-desc reveal">
-            One pricing model across landing and dashboard. No surprises.
+            Start free. Go pro when you’re ready. Cancel anytime.
           </p>
         </div>
         <PublicPricing mode="landing" />
