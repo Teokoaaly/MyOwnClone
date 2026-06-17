@@ -42,6 +42,10 @@
   flex-basis: 42px;
 }
 
+.forceMotion {
+  animation: none;
+}
+
 .piece {
   position: absolute;
   width: 40%;
@@ -134,7 +138,7 @@
 
 /* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .logoMark:not(.cycle) .piece {
+  .logoMark:not(.cycle):not(.forceMotion) .piece {
     animation: none;
     opacity: 1;
     transform: none !important;

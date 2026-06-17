@@ -1,4 +1,5 @@
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
+import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
 import ShaderBackground from "@/components/ui/ShaderBackground";
 import { Link } from "@/i18n/navigation";
@@ -31,12 +32,13 @@ const steps = [
 export default function LandingPage() {
   return (
     <main className="moc-local-landing">
+      <LandingBehavior />
       <div className="site-backdrop" aria-hidden="true" />
       <ShaderBackground />
 
       <nav className="nav">
         <Link href="/" className="nav-logo" aria-label="MyOwnClone home">
-          <AnimatedLogoMark size={26} cycle />
+          <AnimatedLogoMark size={26} forceMotion />
           <span>MyOwnClone</span>
         </Link>
 
@@ -99,6 +101,14 @@ export default function LandingPage() {
       </section>
 
       <section className="section process-section" id="process">
+        <div className="process-rain" aria-hidden="true">
+          <span className="process-rain-dot dot-1" />
+          <span className="process-rain-dot dot-2" />
+          <span className="process-rain-dot dot-3" />
+          <span className="process-rain-dot dot-4" />
+          <span className="process-rain-dot dot-5" />
+          <span className="process-rain-dot dot-6" />
+        </div>
         <div className="sec-head">
           <span className="sec-kicker reveal">How it works</span>
           <h2 className="sec-title reveal">Four steps to your clone.</h2>
@@ -149,7 +159,7 @@ export default function LandingPage() {
 
       <footer className="footer">
         <span className="footer-brand">
-          <AnimatedLogoMark size={20} />
+          <AnimatedLogoMark size={20} forceMotion />
           © 2026 MyOwnClone
         </span>
         <div className="footer-links">
