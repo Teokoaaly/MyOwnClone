@@ -6,12 +6,14 @@ import styles from "./AnimatedLogoMark.module.css";
 interface AnimatedLogoMarkProps {
   size?: number;
   cycle?: boolean;
+  forceMotion?: boolean;
   pulseEveryMs?: number;
 }
 
 export default function AnimatedLogoMark({
   size = 42,
   cycle = false,
+  forceMotion = false,
   pulseEveryMs,
 }: AnimatedLogoMarkProps) {
   const [pulseActive, setPulseActive] = useState(false);
@@ -43,7 +45,7 @@ export default function AnimatedLogoMark({
 
   return (
     <div
-      className={`${styles.logoMark} ${sizeClass} ${cycle || pulseActive ? styles.cycle : ""}`}
+      className={`${styles.logoMark} ${sizeClass} ${forceMotion ? styles.forceMotion : ""} ${cycle || pulseActive ? styles.cycle : ""}`}
       aria-label="MyOwnClone logo"
     >
       <span className={`${styles.piece} ${styles.topLeft}`} />

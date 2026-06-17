@@ -17,12 +17,11 @@ const ShaderBackground = () => {
     uniform vec2 iResolution;
     uniform float iTime;
 
-    const float overallSpeed = 0.18;
+    const float overallSpeed = 0.16;
     const float gridSmoothWidth = 0.015;
     const float scale = 5.0;
-    const vec4 lineColor = vec4(0.98, 0.36, 0.04, 0.92);
-    const float minLineWidth = 0.01;
-    const float maxLineWidth = 0.17;
+    const float minLineWidth = 0.006;
+    const float maxLineWidth = 0.095;
     const float lineSpeed = 1.0 * overallSpeed;
     const float lineAmplitude = 1.0;
     const float lineFrequency = 0.2;
@@ -58,34 +57,32 @@ const ShaderBackground = () => {
       space.y += random(space.x * warpFrequency + iTime * warpSpeed) * warpAmplitude * (0.5 + horizontalFade);
       space.x += random(space.y * warpFrequency + iTime * warpSpeed + 2.0) * warpAmplitude * horizontalFade;
 
-      vec4 lines = vec4(0.0);
-      vec4 bgColor1 = vec4(0.998, 0.989, 0.972, 1.0);
-      vec4 bgColor2 = vec4(1.000, 0.982, 0.952, 1.0);
+      vec3 lines = vec3(0.0);
+      vec3 bgColor1 = vec3(0.98, 0.95, 0.92);
+      vec3 bgColor2 = vec3(0.94, 0.97, 0.96);
+      vec3 mint = vec3(0.55, 1.0, 0.86);
+      vec3 purple = vec3(0.75, 0.51, 1.0);
+      vec3 amber = vec3(1.0, 0.82, 0.47);
+      vec3 orange = vec3(0.92, 0.35, 0.05);
 
       for(int l = 0; l < linesPerGroup; l++) {
         float normalizedLineIndex = float(l) / float(linesPerGroup);
         float offsetTime = iTime * offsetSpeed;
         float offsetPosition = float(l) + space.x * offsetFrequency;
         float rand = random(offsetPosition + offsetTime) * 0.5 + 0.5;
-        float halfWidth = mix(minLineWidth, maxLineWidth, rand * horizontalFade) / 2.0;
+        float halfWidth = mix(minLineWidth, maxLineWidth, rand * horizontalFade);
         float offset = random(offsetPosition + offsetTime * (1.0 + normalizedLineIndex)) * mix(minOffsetSpread, maxOffsetSpread, horizontalFade);
         float linePosition = getPlasmaY(space.x, horizontalFade, offset);
-        float line = drawSmoothLine(linePosition, halfWidth, space.y) / 2.0 + drawCrispLine(linePosition, halfWidth * 0.15, space.y);
-
-        float circleX = mod(float(l) + iTime * lineSpeed, 25.0) - 12.0;
-        vec2 circlePosition = vec2(circleX, getPlasmaY(circleX, horizontalFade, offset));
-        float circle = drawCircle(circlePosition, 0.01, space) * 4.0;
-
-        line = line + circle;
-        lines += line * lineColor * rand;
+        float line = drawSmoothLine(linePosition, halfWidth, space.y);
+        vec3 brand = mix(mint, purple, normalizedLineIndex);
+        brand = mix(brand, amber, smoothstep(0.55, 1.0, rand));
+        lines += line * brand * rand * 0.42;
       }
 
-      fragColor = mix(bgColor1, bgColor2, uv.x);
-      fragColor *= 0.96 + verticalFade * 0.04;
-      fragColor.a = 1.0;
-      fragColor += lines * 0.78;
-
-      gl_FragColor = fragColor;
+      vec3 color = mix(bgColor1, bgColor2, uv.x);
+      color += lines * verticalFade * 1.18;
+      color += orange * smoothstep(0.58, 0.0, distance(uv, vec2(0.72, 0.56))) * 0.075;
+      gl_FragColor = vec4(color, 1.0);
     }
   `;
 
