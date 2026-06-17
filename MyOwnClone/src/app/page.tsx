@@ -1,58 +1,74 @@
-import type { CSSProperties } from "react";
-import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
+import ShaderBackground from "@/components/ui/ShaderBackground";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getSessionAwareNav } from "@/lib/session-routing";
+import { headers } from "next/headers";
 
-const orbitApps = [
-  { emoji: "🧠", label: "AI",      style: "left: 22%; top: 14%;" },
-  { emoji: "💬", label: "Chat",    style: "right: 22%; top: 14%;" },
-  { emoji: "📚", label: "Library", style: "right: 10%; top: 38%;" },
-  { emoji: "📅", label: "Booking", style: "right: 10%; bottom: 38%;" },
-  { emoji: "🎓", label: "Teach",   style: "right: 22%; bottom: 16%;" },
-  { emoji: "📧", label: "Inbox",   style: "left: 22%; bottom: 16%;" },
-  { emoji: "🛒", label: "Sell",    style: "left: 10%; bottom: 38%;" },
-  { emoji: "📊", label: "Stats",   style: "left: 10%; top: 38%;" },
+export const dynamic = "force-dynamic";
+
+interface LandingPlan {
+  id: string;
+  name: string;
+  price_cents: number;
+  price_display?: string;
+  stripe_price_id?: string | null;
+  priceCents?: number;
+  priceDisplay?: string;
+  stripePriceId?: string | null;
+}
+
+interface LandingCard {
+  title: string;
+  description: string;
+  features: string[];
+  cta: string;
+  badge?: string;
+}
+
+const FALLBACK_PLANS: LandingPlan[] = [
+  { id: "basic", name: "Basic", price_cents: 0 },
+  { id: "pro", name: "Pro", price_cents: 6490 },
+  { id: "scale", name: "Scale", price_cents: 9900 },
+  { id: "enterprise", name: "Enterprise", price_cents: 14900 },
 ];
 
-const landingPlans = [
-  {
-    name: "Free Plan",
-    price: "$0",
-    suffix: "/mo",
-    description: "Start with the basics and publish your first AI clone at no cost.",
-    cta: "Choose Free Plan",
-    accent: "light" as const,
-    features: ["1 active clone", "Basic knowledge upload", "Community support", "Simple analytics"],
+const CARD_COPY: Record<string, LandingCard> = {
+  basic: {
+    title: "Basic access for a clean launch",
+    description: "Get your first clone live with the essentials: a polished public page, core knowledge, and simple actions.",
+    features: ["1 active clone", "Knowledge upload", "Public landing", "Starter analytics"],
+    cta: "Choose Basic",
   },
-  {
-    name: "Pro Plan",
-    price: "$64.90",
-    suffix: "/mo",
-    description: "Unlock advanced tools and premium support for a production-ready clone.",
+  pro: {
+    title: "The most balanced setup for growth",
+    description: "Unlock the everyday workflows teams use most, with more control, better automation, and stronger support.",
+    features: ["Everything in Basic", "Multi-mode prompts", "Email triage", "Priority support"],
     cta: "Start Pro",
-    accent: "dark" as const,
-    badge: "Popular",
-    features: ["Everything in Free", "Multi-mode prompts", "Priority support", "Advanced analytics"],
+    badge: "Most popular",
   },
-  {
-    name: "Enterprise",
-    price: "$100",
-    suffix: "/mo",
-    description: "For teams that need custom workflows, governance, and dedicated support.",
-    cta: "Contact Sales",
-    accent: "light" as const,
-    features: ["Unlimited collaborators", "SSO and governance", "Custom onboarding", "Dedicated success manager"],
+  scale: {
+    title: "More capacity for serious operations",
+    description: "Expand into a larger setup with higher usage limits, more collaborators, and room to scale safely.",
+    features: ["Higher usage limits", "Multi-clone workflows", "Advanced analytics", "API access"],
+    cta: "Choose Scale",
   },
-];
+  enterprise: {
+    title: "Custom architecture for bigger teams",
+    description: "For organizations that need governance, custom onboarding, and a plan tailored to their deployment.",
+    features: ["Unlimited collaborators", "Whitelabel options", "SSO / governance", "Dedicated success"],
+    cta: "Talk to sales",
+  },
+};
 
 export default async function LandingPage() {
   const session = await auth();
   const nav = getSessionAwareNav(session);
+  const plans = await loadLandingPlans();
 
   return (
     <main className="landing-stage">
+      <ShaderBackground />
       <section className="landing-card">
         <nav className="landing-nav" aria-label="Main">
           <Link href="/" className="landing-brand" aria-label="MyOwnClone home">
@@ -61,12 +77,12 @@ export default async function LandingPage() {
           </Link>
 
           <div className="landing-menu">
-            <Link href="/#pricing">Product</Link>
-            <Link href="/#pricing">
+            <Link href="/">Product</Link>
+            <Link href="/">
               Solutions
               <span className="landing-chevron" aria-hidden="true">v</span>
             </Link>
-            <Link href="/#pricing">Pricing</Link>
+            <Link href="/">About</Link>
             <Link href={nav.signInHref}>{nav.signInLabel}</Link>
           </div>
 
@@ -80,29 +96,12 @@ export default async function LandingPage() {
           </div>
         </nav>
 
-        <div className="landing-orbits" aria-hidden="true">
-          <span className="orbit orbit-one" />
-          <span className="orbit orbit-two" />
-          <span className="orbit orbit-three" />
-          <span className="orbit orbit-four" />
-          <span className="orbit-accent orbit-accent-left" />
-          <span className="orbit-accent orbit-accent-right" />
-          {orbitApps.map((app) => (
-            <span
-              key={app.label}
-              className="landing-app"
-              style={styleFromString(app.style)}
-              aria-label={app.label}
-            >
-              {app.emoji}
-            </span>
-          ))}
-        </div>
-
         <div className="landing-hero">
           <div className="landing-logo-animated">
-            <ReflectiveOrb size={72} />
+            <AnimatedLogoMark size={72} cycle />
           </div>
+
+          <span className="landing-kicker">Current brand. Current pricing. Softer presentation.</span>
 
           <h1>
             Create an AI clone
@@ -112,7 +111,7 @@ export default async function LandingPage() {
 
           <p>
             Train a clone with your content. Answer questions, reply to emails,
-            and book meetings 24/7 in your own tone — in pedagogy, sales, or support mode.
+            and book meetings 24/7 in your own tone, with the same plan prices you see in the dashboard.
           </p>
 
           <div className="landing-cta-row">
@@ -124,50 +123,65 @@ export default async function LandingPage() {
             </Link>
           </div>
         </div>
-      </section>
 
-      <section id="pricing" className="landing-pricing-section">
-        <div className="landing-pricing-shell">
-          <div className="landing-pricing-head">
-            <p className="landing-pricing-kicker">Pricing</p>
-            <h2>Select a plan</h2>
-            <p>
-              Start free, upgrade when your clone grows, and keep the same polished workspace all the way up.
-            </p>
-          </div>
+        <section id="pricing" className="landing-pricing-section">
+          <div className="landing-pricing-shell">
+            <div className="landing-pricing-head">
+              <p className="landing-pricing-kicker">Pricing</p>
+              <h2>Plans aligned with the dashboard</h2>
+              <p>
+                These prices are pulled from the same plan catalog used in the dashboard, so the public landing stays in sync.
+              </p>
+            </div>
 
-          <div className="landing-pricing-grid">
-            {landingPlans.map((plan) => (
-              <article
-                key={plan.name}
-                className={plan.accent === "dark" ? "landing-plan-card landing-plan-card-featured" : "landing-plan-card"}
-              >
-                <div className="landing-plan-top">
-                  <span className="landing-plan-glyph" aria-hidden="true" />
-                  {plan.badge ? <span className="landing-plan-badge">{plan.badge}</span> : null}
-                </div>
-                <div className="landing-plan-price">
-                  <span>{plan.price}</span>
-                  <small>{plan.suffix}</small>
-                </div>
-                <h3>{plan.name}</h3>
-                <p>{plan.description}</p>
-                <Link href={nav.primaryHref} className={plan.accent === "dark" ? "landing-plan-cta landing-plan-cta-inverse" : "landing-plan-cta"}>
-                  {plan.cta}
-                </Link>
-                <div className="landing-plan-divider" />
-                <div className="landing-plan-features">
-                  <strong>Features</strong>
-                  <ul>
-                    {plan.features.map((feature) => (
-                      <li key={feature}>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
+            <div className="landing-pricing-grid">
+              {plans.map((plan) => {
+                const copy = CARD_COPY[plan.id] ?? {
+                  title: plan.name,
+                  description: "A flexible plan for your clone setup.",
+                  features: ["Live billing sync", "Dashboard parity", "Scalable usage", "Support options"],
+                  cta: `Choose ${plan.name}`,
+                };
+                const featured = plan.id === "pro" || Boolean(plan.stripe_price_id);
+
+                return (
+                  <article
+                    key={plan.id}
+                    className={`landing-plan-card${featured ? " landing-plan-card-featured" : ""}`}
+                  >
+                    <div className="landing-plan-top">
+                      <span className="landing-plan-glyph" aria-hidden="true" />
+                      {copy.badge ? <span className="landing-plan-badge">{copy.badge}</span> : null}
+                    </div>
+
+                    <div className="landing-plan-price">
+                      <span>{formatPlanPrice(plan)}</span>
+                      <small>/mo</small>
+                    </div>
+
+                    <h3>{plan.name}</h3>
+                    <p>{copy.description}</p>
+
+                    <div className="landing-plan-divider" />
+
+                    <div className="landing-plan-features">
+                      <strong>{copy.title}</strong>
+                      <ul>
+                        {copy.features.map((feature) => (
+                          <li key={feature}>{feature}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <Link href={nav.primaryHref} className={featured ? "landing-plan-cta-inverse" : "landing-plan-cta"}>
+                      {copy.cta}
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </section>
       </section>
 
       <footer className="landing-footer">
@@ -177,8 +191,8 @@ export default async function LandingPage() {
             <span>MyOwnClone</span>
           </div>
           <div className="landing-footer-links">
-            <Link href="/#pricing">Product</Link>
-            <Link href="/#pricing">Pricing</Link>
+            <Link href="/">Product</Link>
+            <Link href="/">Pricing</Link>
             <a href="mailto:hello@myownclone.com">Contact</a>
             <Link href="/legal">Legal</Link>
           </div>
@@ -191,15 +205,83 @@ export default async function LandingPage() {
   );
 }
 
-function styleFromString(style: string) {
-  return Object.fromEntries(
-    style
-      .split(";")
-      .map((rule) => rule.trim())
-      .filter(Boolean)
-      .map((rule) => {
-        const [property, value] = rule.split(":").map((part) => part.trim());
-        return [property.replace(/-([a-z])/g, (_, char) => char.toUpperCase()), value];
-      }),
-  ) as CSSProperties;
+async function loadLandingPlans(): Promise<LandingPlan[]> {
+  const fallback = FALLBACK_PLANS;
+
+  try {
+    const requestHeaders = await headers();
+    const host = requestHeaders.get("host");
+    if (!host) return fallback;
+
+    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+    const res = await fetch(`${protocol}://${host}/api/clone/plans`, {
+      cache: "no-store",
+      headers: {
+        cookie: requestHeaders.get("cookie") ?? "",
+      },
+    });
+
+    if (!res.ok) return fallback;
+
+    const data = await res.json();
+    const plans = Array.isArray(data) ? data : data?.items;
+    if (!Array.isArray(plans) || plans.length === 0) return fallback;
+
+    const preferredOrder = new Map(["basic", "pro", "scale", "enterprise"].map((id, index) => [id, index]));
+
+    return [...plans]
+      .map(normalizePlan)
+      .filter((plan): plan is LandingPlan => Boolean(plan))
+      .sort((a, b) => {
+        const aRank = preferredOrder.get(a.id) ?? 99;
+        const bRank = preferredOrder.get(b.id) ?? 99;
+        if (aRank !== bRank) return aRank - bRank;
+        return Number(getPlanPriceCents(a)) - Number(getPlanPriceCents(b));
+      });
+  } catch {
+    return fallback;
+  }
+}
+
+function formatPlanPrice(plan: LandingPlan) {
+  const cents = getPlanPriceCents(plan);
+  const display = plan.price_display ?? plan.priceDisplay;
+  if (display) return display;
+  if (cents === 0) return "Free";
+
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+function normalizePlan(plan: unknown): LandingPlan | null {
+  if (!plan || typeof plan !== "object") return null;
+
+  const item = plan as Record<string, unknown>;
+  const id = typeof item.id === "string" ? item.id : "";
+  const name = typeof item.name === "string" ? item.name : id;
+  if (!id || !name) return null;
+
+  const priceCents = typeof item.price_cents === "number"
+    ? item.price_cents
+    : typeof item.priceCents === "number"
+      ? item.priceCents
+      : 0;
+
+  return {
+    id,
+    name,
+    price_cents: priceCents,
+    price_display: typeof item.price_display === "string" ? item.price_display : undefined,
+    stripe_price_id: typeof item.stripe_price_id === "string" ? item.stripe_price_id : undefined,
+    priceCents: typeof item.priceCents === "number" ? item.priceCents : undefined,
+    priceDisplay: typeof item.priceDisplay === "string" ? item.priceDisplay : undefined,
+    stripePriceId: typeof item.stripePriceId === "string" ? item.stripePriceId : undefined,
+  };
+}
+
+function getPlanPriceCents(plan: LandingPlan) {
+  return plan.price_cents ?? plan.priceCents ?? 0;
 }
