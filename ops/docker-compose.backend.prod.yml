@@ -31,14 +31,7 @@ services:
       - redis_network
     command: >
       sh -c '
-        exec redis-server
-        --requirepass "$$REDIS_PASSWORD"
-        --appendonly yes
-        --tls-port 6380
-        --tls-cert-file /etc/redis/tls/redis.crt
-        --tls-key-file /etc/redis/tls/redis.key
-        --tls-ca-cert-file /etc/redis/tls/ca.crt
-        --port 0
+        exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --tls-port 6380 --tls-cert-file /etc/redis/tls/redis.crt --tls-key-file /etc/redis/tls/redis.key --tls-ca-cert-file /etc/redis/tls/ca.crt --port 0
       '
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -54,7 +47,7 @@ services:
         reservations:
           memory: 64M
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli --tls --cert /etc/redis/tls/redis.crt --key /etc/redis/tls/redis.key --cacert /etc/redis/tls/ca.crt -h localhost -p 6380 ping | grep PONG"]
+      test: ["CMD-SHELL", "redis-cli --tls --cert /etc/redis/tls/redis.crt --key /etc/redis/tls/redis.key --cacert /etc/redis/tls/ca.crt -h localhost -p 6380 -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
