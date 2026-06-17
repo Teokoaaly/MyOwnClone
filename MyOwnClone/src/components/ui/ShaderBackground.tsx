@@ -32,7 +32,7 @@ const ShaderBackground = () => {
     const float minOffsetSpread = 0.6;
     const float maxOffsetSpread = 1.6;
     const float scale = 5.0;
-    const vec4 lineColor = vec4(0.92, 0.35, 0.10, 0.72);
+    const vec4 lineColor = vec4(0.96, 0.36, 0.08, 0.62);
     const int linesPerGroup = 16;
 
     #define drawCircle(pos, radius, coord) smoothstep(radius + gridSmoothWidth, radius, length(coord - (pos)))
@@ -59,8 +59,8 @@ const ShaderBackground = () => {
       space.x += random(space.y * warpFrequency + iTime * warpSpeed + 2.0) * warpAmplitude * horizontalFade;
 
       vec4 lines = vec4(0.0);
-      vec4 bgColor1 = vec4(0.985, 0.965, 0.94, 1.0);
-      vec4 bgColor2 = vec4(0.98, 0.99, 0.97, 1.0);
+      vec4 bgColor1 = vec4(0.998, 0.988, 0.970, 1.0);
+      vec4 bgColor2 = vec4(1.000, 0.982, 0.952, 1.0);
 
       for(int l = 0; l < linesPerGroup; l++) {
         float normalizedLineIndex = float(l) / float(linesPerGroup);
@@ -80,9 +80,9 @@ const ShaderBackground = () => {
       }
 
       vec4 fragColor = mix(bgColor1, bgColor2, uv.x);
-      fragColor *= verticalFade;
+      fragColor *= 0.94 + verticalFade * 0.06;
       fragColor.a = 1.0;
-      fragColor += lines * 0.58;
+      fragColor += lines * 0.42;
 
       gl_FragColor = fragColor;
     }
@@ -190,7 +190,7 @@ const ShaderBackground = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-60" aria-hidden="true" />;
+  return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-50" aria-hidden="true" />;
 };
 
 export default ShaderBackground;
