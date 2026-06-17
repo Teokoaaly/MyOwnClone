@@ -1,0 +1,1207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyOwnClone — Create an AI clone that works for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   IDENTITY — MyOwnClone brand tokens (preserved 100%)
+   The orb's iridescent glass colors (mint/purple/amber/white)
+   ARE the brand identity of ReflectiveOrb.
+   ============================================================ */
+:root {
+  --bg-page: #e8e2dd;
+  --surface: #ffffff;
+  --surface-soft: #fafaf9;
+  --surface-warm: #fff7ed;
+  --ink: #1c1917;
+  --muted: #57534e;
+  --faint: #78716c;
+  --line: rgba(15,23,42,.10);
+  --line-soft: rgba(15,23,42,.06);
+  --accent: #ea580c;
+  --accent-dark: #9a3412;
+  --amber: #d97706;
+  --green: #059669;
+  --blue: #2563eb;
+
+  /* Orb brand anchors (from ReflectiveOrb) */
+  --orb-mint: rgba(140,255,220,1);
+  --orb-purple: rgba(190,130,255,1);
+  --orb-amber: rgba(255,210,120,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+body {
+  position: relative;
+  isolation: isolate;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255,255,255,.74), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(190,130,255,.18), transparent 30%),
+    radial-gradient(circle at 18% 82%, rgba(140,255,220,.20), transparent 28%),
+    radial-gradient(circle at 88% 88%, rgba(255,210,120,.14), transparent 34%),
+    var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+.site-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.site-backdrop::before,
+.site-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  border-radius: 999px;
+  filter: blur(16px);
+  opacity: 0.9;
+}
+
+.site-backdrop::before {
+  width: 46vw;
+  height: 46vw;
+  left: -10vw;
+  top: -6vw;
+  background: radial-gradient(circle, rgba(140,255,220,.26), rgba(190,130,255,.14) 42%, transparent 72%);
+}
+
+.site-backdrop::after {
+  width: 40vw;
+  height: 40vw;
+  right: -10vw;
+  bottom: -8vw;
+  background: radial-gradient(circle, rgba(255,210,120,.24), rgba(234,88,12,.10) 40%, transparent 74%);
+}
+
+.shader-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: .58;
+  mix-blend-mode: multiply;
+}
+
+.nav,
+.hero,
+.section,
+.footer {
+  position: relative;
+  z-index: 1;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(18px) saturate(1.8);
+  -webkit-backdrop-filter: blur(18px) saturate(1.8);
+  border-bottom: 1px solid var(--line-soft);
+}
+.nav-logo {
+  font-size: 18px; font-weight: 900; letter-spacing: -.02em;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-mark {
+  position: relative;
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+}
+.logo-mark .piece {
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  background: var(--ink);
+  animation:
+    assembleMark .85s cubic-bezier(.22,1,.36,1) forwards,
+    breatheMark 5s ease-in-out 1.2s infinite;
+  will-change: transform, opacity;
+}
+.logo-mark .top-left {
+  left: 4%; top: 4%;
+  border-radius: 40% 70% 40% 70%;
+  --start-x: -33%; --start-y: -24%; --rotate: -16deg;
+  animation-delay: 0s, 1.2s;
+}
+.logo-mark .top-right {
+  right: 4%; top: 4%;
+  border-radius: 70% 40% 70% 40%;
+  --start-x: 33%; --start-y: -24%; --rotate: 16deg;
+  animation-delay: .08s, 1.28s;
+}
+.logo-mark .bottom-left {
+  left: 4%; bottom: 4%;
+  border-radius: 70% 40% 70% 40%;
+  --start-x: -33%; --start-y: 24%; --rotate: 16deg;
+  animation-delay: .16s, 1.36s;
+}
+.logo-mark .bottom-right {
+  right: 4%; bottom: 4%;
+  border-radius: 40% 70% 40% 70%;
+  --start-x: 33%; --start-y: 24%; --rotate: -16deg;
+  animation-delay: .24s, 1.44s;
+}
+@keyframes assembleMark {
+  0% {
+    opacity: 0;
+    transform: translate(var(--start-x), var(--start-y)) rotate(var(--rotate)) scale(.75);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}
+@keyframes breatheMark {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(1.035); }
+}
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a {
+  font-size: 14px; font-weight: 700; color: var(--muted);
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px; border-radius: 999px;
+  background: var(--ink); color: #fff;
+  font-size: 14px; font-weight: 800;
+  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s;
+}
+.nav-links .nav-cta,
+.nav-links .nav-cta:visited {
+  color: #fff;
+}
+.nav-cta:hover { transform: scale(1.04); box-shadow: 0 8px 32px rgba(234,88,12,.35); }
+
+/* ============================================================
+   HERO — centered, orb dominant
+   ============================================================ */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 120px 40px 80px;
+  overflow: hidden;
+  text-align: center;
+}
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 35%, rgba(234,88,12,.06), transparent),
+    radial-gradient(ellipse 70% 50% at 80% 30%, rgba(190,130,255,.05), transparent),
+    radial-gradient(ellipse 60% 80% at 50% 85%, rgba(255,255,255,.6), transparent);
+  animation: mesh-shift 14s ease-in-out infinite alternate;
+}
+@keyframes mesh-shift {
+  0%   { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.08) translate(-2%, 3%); }
+}
+.hero-content {
+  position: relative; z-index: 3;
+  max-width: 720px;
+  margin-top: 20px;
+}
+.hero-kicker {
+  display: inline-block;
+  padding: 6px 16px; border-radius: 999px;
+  background: var(--surface-warm);
+  border: 1px solid rgba(234,88,12,.15);
+  color: var(--accent-dark);
+  font-size: 12px; font-weight: 900;
+  letter-spacing: .1em; text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.hero h1 {
+  font-size: clamp(38px, 5.5vw, 64px);
+  font-weight: 900; line-height: 1.06;
+  letter-spacing: -.03em;
+  margin-bottom: 18px;
+}
+.hero h1 .accent { color: var(--accent); }
+.hero-sub {
+  font-size: 18px; color: var(--muted);
+  line-height: 1.6; max-width: 540px; margin: 0 auto 34px;
+}
+.hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* ============================================================
+   THE ORBE — detailed iridescent glass (brand ReflectiveOrb)
+   ============================================================ */
+.orb-stage {
+  position: relative; z-index: 2;
+  width: clamp(150px, 19vw, 230px);
+  height: clamp(150px, 19vw, 230px);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px;
+  will-change: transform;
+}
+
+/* Orbit rings behind the orb (like the real landing) */
+.orb-rings { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.orb-rings span {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(120,100,180,.10);
+}
+.orb-rings span:nth-child(1) { width: 115%; height: 115%; border-color: rgba(140,255,220,.16); }
+.orb-rings span:nth-child(2) { width: 135%; height: 135%; border-color: rgba(190,130,255,.13); border-style: dashed; }
+.orb-rings span:nth-child(3) { width: 158%; height: 158%; border-color: rgba(255,210,120,.12); }
+.orb-rings span:nth-child(4) { width: 182%; height: 182%; border-color: rgba(120,100,180,.07); }
+.orb-rings span:nth-child(5) {
+  width: 135%; height: 135%; border: none;
+  background: conic-gradient(from 0deg, transparent, rgba(140,255,220,.35), transparent 40%);
+  -webkit-mask: radial-gradient(circle, transparent 47%, #000 48%);
+          mask: radial-gradient(circle, transparent 47%, #000 48%);
+  animation: spin 14s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* The glass orb — WebGL canvas (real iridescent physical material) */
+.orb-stage canvas {
+  position: relative; z-index: 2;
+  width: 100% !important; height: 100% !important;
+  display: block;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 30px; border-radius: 999px;
+  font-size: 15px; font-weight: 800;
+  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s;
+  cursor: pointer; border: none;
+}
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { transform: scale(1.04); box-shadow: 0 8px 40px rgba(234,88,12,.35); }
+.btn-secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn-secondary:hover { transform: scale(1.04); box-shadow: 0 8px 32px rgba(15,23,42,.1); }
+.btn-glow {
+  background: var(--accent); color: #fff;
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+.btn-glow:hover { transform: scale(1.06); box-shadow: 0 12px 48px rgba(234,88,12,.5); }
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(234,88,12,.25); }
+  50% { box-shadow: 0 8px 40px rgba(234,88,12,.5); }
+}
+
+/* ============================================================
+   SECTIONS — consistent rhythm
+   ============================================================ */
+.section {
+  position: relative;
+  padding: 110px 40px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.sec-head { text-align: center; max-width: 620px; margin: 0 auto 56px; }
+.sec-kicker {
+  display: inline-block;
+  color: var(--accent-dark);
+  font-size: 12px; font-weight: 900;
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.sec-title {
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 900; letter-spacing: -.02em;
+  line-height: 1.12; margin-bottom: 14px;
+}
+.sec-desc { font-size: 17px; color: var(--muted); line-height: 1.6; }
+
+.mesh-bg::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 50% 40% at 12% 50%, rgba(234,88,12,.04), transparent),
+    radial-gradient(ellipse 40% 50% at 88% 60%, rgba(190,130,255,.035), transparent);
+  animation: mesh-shift 18s ease-in-out infinite alternate-reverse;
+}
+.mesh-bg > * { position: relative; z-index: 1; }
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   SERVICES
+   ============================================================ */
+.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.service-card {
+  padding: 30px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--line-soft);
+  box-shadow: 0 8px 32px rgba(15,23,42,.04);
+  transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;
+}
+.service-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 16px 48px rgba(234,88,12,.10); }
+.service-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: var(--surface-warm); border: 1px solid rgba(234,88,12,.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 18px; color: var(--accent);
+}
+.service-card h3 { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
+.service-card p { font-size: 14.5px; color: var(--muted); line-height: 1.6; }
+
+/* ============================================================
+   PROCESS — horizontal balanced
+   ============================================================ */
+.process-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 20px; position: relative;
+}
+.process-grid::before {
+  content: ""; position: absolute; top: 22px; left: 12%; right: 12%;
+  height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: .35;
+}
+.process-step { text-align: center; position: relative; }
+.step-num {
+  width: 44px; height: 44px; margin: 0 auto 18px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "JetBrains Mono", monospace; font-size: 16px; font-weight: 700;
+  box-shadow: 0 4px 20px rgba(234,88,12,.3);
+  animation: glow-num 3s ease-in-out infinite;
+  position: relative; z-index: 1;
+}
+@keyframes glow-num {
+  0%, 100% { box-shadow: 0 4px 20px rgba(234,88,12,.3); }
+  50% { box-shadow: 0 4px 32px rgba(234,88,12,.6); }
+}
+.process-step h3 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+.process-step p { font-size: 14px; color: var(--muted); line-height: 1.5; max-width: 220px; margin: 0 auto; }
+
+/* ============================================================
+   PLANS
+   ============================================================ */
+.pricing-controls {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin: -28px auto 34px; flex-wrap: wrap;
+}
+.pricing-tabs {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px; border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  border: 1px solid var(--line-soft);
+  box-shadow: 0 10px 30px rgba(15,23,42,.05);
+}
+.pricing-tab {
+  border: 0; border-radius: 999px; background: transparent;
+  padding: 9px 16px; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 900; color: var(--muted);
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.pricing-tab.is-active {
+  background: var(--ink); color: #fff;
+  box-shadow: 0 8px 22px rgba(15,23,42,.14);
+}
+.billing-toggle {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 6px 12px; border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  border: 1px solid var(--line-soft);
+  color: var(--muted); font-size: 13px; font-weight: 900;
+}
+.switch {
+  position: relative; width: 46px; height: 26px; border: 0; border-radius: 999px;
+  background: rgba(15,23,42,.16); cursor: pointer; padding: 0;
+  transition: background .2s;
+}
+.switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  box-shadow: 0 3px 10px rgba(15,23,42,.16);
+  transition: transform .2s;
+}
+.switch[aria-checked="true"] {
+  background: linear-gradient(135deg, var(--accent), var(--orb-amber));
+}
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+.billing-note {
+  color: var(--accent-dark); font-size: 12px; font-weight: 900;
+  background: var(--surface-warm); border: 1px solid rgba(234,88,12,.12);
+  padding: 7px 10px; border-radius: 999px;
+}
+.plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+.plans-grid.is-hidden { display: none; }
+.plan-card {
+  padding: 34px; border-radius: 22px;
+  background: rgba(255,255,255,.86); border: 1px solid var(--line);
+  box-shadow: 0 8px 32px rgba(15,23,42,.04);
+  text-align: center;
+  transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;
+  display: flex; flex-direction: column;
+}
+.plan-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(15,23,42,.08); }
+.plan-card.feat {
+  border-color: rgba(234,88,12,.42);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,247,237,.92)),
+    radial-gradient(circle at 30% 0%, rgba(140,255,220,.22), transparent 38%);
+  box-shadow: 0 12px 48px rgba(234,88,12,.12);
+  transform: scale(1.04);
+}
+.plan-card.feat:hover { transform: scale(1.06) translateY(-4px); box-shadow: 0 20px 56px rgba(234,88,12,.2); }
+.plan-badge {
+  display: inline-block; padding: 4px 14px; border-radius: 999px;
+  background: var(--surface-warm); font-size: 11px; font-weight: 900;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--accent-dark);
+  margin-bottom: 16px;
+}
+.plan-card.feat .plan-badge { background: var(--accent); color: #fff; }
+.plan-name { font-size: 21px; font-weight: 900; margin-bottom: 4px; }
+.plan-price { font-family: "JetBrains Mono", monospace; font-size: 34px; font-weight: 700; margin-bottom: 4px; }
+.plan-price span { font-size: 13px; color: var(--muted); font-weight: 400; }
+.plan-billing { min-height: 18px; color: var(--faint); font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+.plan-desc { font-size: 13.5px; color: var(--faint); margin-bottom: 22px; }
+.plan-features { list-style: none; text-align: left; margin-bottom: 26px; display: flex; flex: 1; flex-direction: column; gap: 9px; }
+.plan-features li { font-size: 14px; color: var(--muted); display: flex; align-items: flex-start; gap: 8px; }
+.plan-features li::before { content: "✓"; color: var(--green); font-weight: 900; flex-shrink: 0; }
+.plan-features li.not-included { color: rgba(87,83,78,.46); }
+.plan-features li.not-included::before { content: "x"; color: rgba(120,113,108,.52); }
+.pricing-comparison { display: none; overflow-x: auto; margin-top: 10px; }
+.pricing-comparison.is-active { display: block; }
+.pricing-comparison table {
+  width: 100%; border-collapse: collapse; overflow: hidden;
+  border-radius: 18px; background: rgba(255,255,255,.86);
+  border: 1px solid var(--line-soft); box-shadow: 0 10px 34px rgba(15,23,42,.04);
+}
+.pricing-comparison th,
+.pricing-comparison td {
+  padding: 16px; border-bottom: 1px solid var(--line-soft);
+  text-align: center; font-size: 14px; color: var(--muted);
+}
+.pricing-comparison th:first-child,
+.pricing-comparison td:first-child {
+  text-align: left; color: var(--ink); font-weight: 800;
+}
+.pricing-comparison th { color: var(--ink); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+.feature-yes { color: var(--green); font-weight: 900; }
+.feature-no { color: rgba(120,113,108,.55); font-weight: 900; }
+
+/* ============================================================
+   CTA FINAL
+   ============================================================ */
+.cta-final { text-align: center; padding: 130px 40px; position: relative; overflow: hidden; }
+.cta-final::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(234,88,12,.10), transparent),
+    radial-gradient(ellipse 40% 40% at 30% 70%, rgba(190,130,255,.06), transparent),
+    radial-gradient(ellipse 40% 40% at 70% 30%, rgba(140,255,220,.06), transparent);
+  animation: mesh-shift 10s ease-in-out infinite alternate;
+}
+.cta-final > * { position: relative; z-index: 1; }
+.cta-final h2 { font-size: clamp(34px, 5vw, 56px); font-weight: 900; letter-spacing: -.03em; margin-bottom: 18px; }
+.cta-final p { font-size: 17px; color: var(--muted); max-width: 460px; margin: 0 auto 36px; line-height: 1.6; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  padding: 32px 40px; max-width: 1180px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--line-soft); color: var(--faint); font-size: 13px;
+}
+.footer-brand {
+  display: inline-flex; align-items: center; gap: 9px;
+  color: var(--ink); font-weight: 900;
+}
+.footer-brand .logo-mark {
+  width: 20px;
+  height: 20px;
+}
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { transition: color .2s; }
+.footer-links a:hover { color: var(--ink); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 980px) {
+  .nav { padding: 14px 20px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+  .hero { padding: 110px 20px 70px; }
+  .orb-stage { width: clamp(140px, 42vw, 200px); height: clamp(140px, 42vw, 200px); }
+  .section { padding: 80px 20px; }
+  .services-grid, .plans-grid { grid-template-columns: 1fr; }
+  .plan-card.feat { transform: none; }
+  .process-grid { grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+  .process-grid::before { display: none; }
+  .cta-final { padding: 90px 20px; }
+  .footer { flex-direction: column; gap: 16px; text-align: center; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 34px; }
+  .process-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="site-backdrop" aria-hidden="true"></div>
+<canvas class="shader-bg" id="shaderBg" aria-hidden="true"></canvas>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#" class="nav-logo">
+    <span class="logo-mark" aria-hidden="true">
+      <span class="piece top-left"></span>
+      <span class="piece top-right"></span>
+      <span class="piece bottom-left"></span>
+      <span class="piece bottom-right"></span>
+    </span>
+    MyOwnClone
+  </a>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#process">Process</a>
+    <a href="#plans">Plans</a>
+    <a class="nav-cta" href="/registro">Get started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <span class="hero-kicker reveal">AI-Powered Digital Clone</span>
+    <h1 class="reveal">Create an AI clone<br>that <span class="accent">works for you.</span></h1>
+    <p class="hero-sub reveal">
+      Train an AI assistant with your knowledge, personality and business data.
+      Handle emails, recommend products and answer customers 24/7.
+    </p>
+    <div class="hero-ctas reveal">
+      <a class="btn btn-primary" href="/registro">Get started free</a>
+      <a class="btn btn-secondary" href="#plans">See plans</a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section mesh-bg" id="services">
+  <div class="sec-head">
+    <span class="sec-kicker reveal">What it does</span>
+    <h2 class="sec-title reveal">Everything your clone can handle.</h2>
+    <p class="sec-desc reveal">Six modules working together so your AI clone manages knowledge, communications, sales and analytics in one workspace.</p>
+  </div>
+  <div class="services-grid">
+    <article class="service-card reveal"><div class="service-icon">◉</div><h3>Overview</h3><p>Real-time dashboard with clone activity, recent interactions and key metrics at a glance.</p></article>
+    <article class="service-card reveal"><div class="service-icon">✦</div><h3>Library &amp; Memory</h3><p>Upload documents, build structured knowledge and store creator memories for richer responses.</p></article>
+    <article class="service-card reveal"><div class="service-icon">✉</div><h3>Inbox</h3><p>AI triage for incoming emails: classify intent, suggest replies and apply templates automatically.</p></article>
+    <article class="service-card reveal"><div class="service-icon">📅</div><h3>Booking</h3><p>Configure meeting types, availability and let the clone manage your calendar and reservations.</p></article>
+    <article class="service-card reveal"><div class="service-icon">◆</div><h3>Products</h3><p>Product catalog and commercial context so the clone recommends the right offer in sales mode.</p></article>
+    <article class="service-card reveal"><div class="service-icon">▦</div><h3>Usage</h3><p>Analytics on consumption, top questions, knowledge gaps and cost tracking per period.</p></article>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="section" id="process">
+  <div class="sec-head">
+    <span class="sec-kicker reveal">How it works</span>
+    <h2 class="sec-title reveal">Four steps to your clone.</h2>
+    <p class="sec-desc reveal">From sign-up to a live assistant — the whole process takes minutes, not weeks.</p>
+  </div>
+  <div class="process-grid">
+    <div class="process-step reveal"><div class="step-num">1</div><h3>Sign up</h3><p>Create your account and pick a plan. Free to start.</p></div>
+    <div class="process-step reveal"><div class="step-num">2</div><h3>Configure</h3><p>Name your clone, set personality, tone and language.</p></div>
+    <div class="process-step reveal"><div class="step-num">3</div><h3>Train</h3><p>Upload documents and add creator memories.</p></div>
+    <div class="process-step reveal"><div class="step-num">4</div><h3>Deploy</h3><p>Publish and share the public chat link. It runs 24/7.</p></div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="section mesh-bg" id="plans">
+  <div class="sec-head">
+    <span class="sec-kicker reveal">Pricing</span>
+    <h2 class="sec-title reveal">Pick your plan.</h2>
+    <p class="sec-desc reveal">Start free, scale as your clone grows. All plans include the core AI assistant.</p>
+  </div>
+
+  <div class="pricing-controls reveal" aria-label="Pricing controls">
+    <div class="pricing-tabs" role="tablist" aria-label="Pricing view">
+      <button class="pricing-tab is-active" type="button" data-pricing-view="cards" role="tab" aria-selected="true">Pricing</button>
+      <button class="pricing-tab" type="button" data-pricing-view="comparison" role="tab" aria-selected="false">Compare features</button>
+    </div>
+    <div class="billing-toggle" aria-label="Billing cycle">
+      <span>Monthly</span>
+      <button class="switch" id="billingSwitch" type="button" aria-label="Toggle annual billing" aria-checked="false"></button>
+      <span>Annual</span>
+    </div>
+    <span class="billing-note" id="billingNote">Dashboard prices</span>
+  </div>
+
+  <div class="plans-grid" id="pricingCards">
+    <article class="plan-card reveal" data-monthly="0" data-annual="0" data-custom="false">
+      <span class="plan-badge">Starter</span>
+      <h3 class="plan-name">Free</h3>
+      <p class="plan-price"><strong data-plan-price>$0</strong><span data-plan-period> /month</span></p>
+      <p class="plan-billing" data-plan-billing>No card required</p>
+      <p class="plan-desc">Perfect to explore and prototype.</p>
+      <ul class="plan-features"><li>1 AI clone</li><li>Basic knowledge base</li><li>Public chat</li><li>Community support</li><li class="not-included">Inbox AI triage</li><li class="not-included">API access</li></ul>
+      <a class="btn btn-secondary" href="/registro" style="width:100%;justify-content:center;">Get started</a>
+    </article>
+    <article class="plan-card feat reveal" data-monthly="64.90" data-annual="778.80" data-custom="false">
+      <span class="plan-badge">Most popular</span>
+      <h3 class="plan-name">Pro</h3>
+      <p class="plan-price"><strong data-plan-price>$64.90</strong><span data-plan-period> /month</span></p>
+      <p class="plan-billing" data-plan-billing>Monthly billing</p>
+      <p class="plan-desc">For creators and growing businesses.</p>
+      <ul class="plan-features"><li>5 AI clones</li><li>Unlimited knowledge</li><li>Inbox AI triage</li><li>Product catalog</li><li>Full analytics</li><li>Priority support</li></ul>
+      <a class="btn btn-primary" href="/planes" style="width:100%;justify-content:center;">Choose Pro</a>
+    </article>
+    <article class="plan-card reveal" data-monthly="0" data-annual="0" data-custom="true">
+      <span class="plan-badge">Scale</span>
+      <h3 class="plan-name">Enterprise</h3>
+      <p class="plan-price"><strong data-plan-price>Custom</strong></p>
+      <p class="plan-billing" data-plan-billing>Tailored contract</p>
+      <p class="plan-desc">For teams with advanced needs.</p>
+      <ul class="plan-features"><li>Unlimited clones</li><li>API access</li><li>Team management</li><li>Custom integrations</li><li>Dedicated support</li></ul>
+      <a class="btn btn-secondary" href="/registro" style="width:100%;justify-content:center;">Contact sales</a>
+    </article>
+  </div>
+
+  <div class="pricing-comparison" id="pricingComparison" aria-label="Plan comparison">
+    <table>
+      <thead>
+        <tr><th>Features</th><th>Free</th><th>Pro</th><th>Enterprise</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AI clones</td><td>1</td><td>5</td><td>Unlimited</td></tr>
+        <tr><td>Knowledge base</td><td>Basic</td><td>Unlimited</td><td>Unlimited</td></tr>
+        <tr><td>Public chat</td><td class="feature-yes">✓</td><td class="feature-yes">✓</td><td class="feature-yes">✓</td></tr>
+        <tr><td>Inbox AI triage</td><td class="feature-no">x</td><td class="feature-yes">✓</td><td class="feature-yes">✓</td></tr>
+        <tr><td>Product catalog</td><td class="feature-no">x</td><td class="feature-yes">✓</td><td class="feature-yes">✓</td></tr>
+        <tr><td>Analytics</td><td class="feature-no">x</td><td>Full</td><td>Advanced</td></tr>
+        <tr><td>API access</td><td class="feature-no">x</td><td class="feature-no">x</td><td class="feature-yes">✓</td></tr>
+        <tr><td>Support</td><td>Community</td><td>Priority</td><td>Dedicated</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final" id="cta">
+  <h2 class="reveal">Ready to clone<br>yourself?</h2>
+  <p class="reveal">Join creators and businesses already using AI clones to scale their knowledge and automate conversations.</p>
+  <a class="btn btn-glow" href="/registro">Start building your clone →</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-brand">
+    <span class="logo-mark" aria-hidden="true">
+      <span class="piece top-left"></span>
+      <span class="piece top-right"></span>
+      <span class="piece bottom-left"></span>
+      <span class="piece bottom-right"></span>
+    </span>
+    © 2026 MyOwnClone
+  </span>
+  <div class="footer-links">
+    <a href="/legal">Legal</a>
+    <a href="./index.html">Docs</a>
+    <a href="mailto:hello@myownclone.com">Contact</a>
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.170.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+/* LENIS smooth scroll */
+const lenis = new Lenis({ lerp: 0.08, smoothWheel: true, wheelMultiplier: 0.9 });
+function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
+requestAnimationFrame(raf);
+gsap.registerPlugin(ScrollTrigger);
+lenis.on("scroll", ScrollTrigger.update);
+gsap.ticker.add((t) => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+/* SCROLL REVEAL with stagger */
+const reveals = document.querySelectorAll(".reveal");
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    if (e.isIntersecting) {
+      const parent = e.target.parentElement;
+      const siblings = [...parent.querySelectorAll(":scope > .reveal")];
+      const idx = siblings.indexOf(e.target);
+      const delay = idx >= 0 ? idx * 90 : 0;
+      setTimeout(() => e.target.classList.add("is-visible"), delay);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+reveals.forEach(el => obs.observe(el));
+
+/* Soft shader background, adapted to MyOwnClone brand colors. */
+const shaderCanvas = document.getElementById("shaderBg");
+if (shaderCanvas) {
+  const gl = shaderCanvas.getContext("webgl", { antialias: false, alpha: true });
+  if (gl) {
+    const vertexSource = `
+      attribute vec4 aVertexPosition;
+      void main() { gl_Position = aVertexPosition; }
+    `;
+    const fragmentSource = `
+      precision highp float;
+      uniform vec2 iResolution;
+      uniform float iTime;
+
+      const float overallSpeed = 0.16;
+      const float scale = 5.0;
+      const float lineFrequency = 0.2;
+      const float warpFrequency = 0.5;
+      const int linesPerGroup = 16;
+
+      #define smoothLine(pos, halfWidth, t) smoothstep(halfWidth, 0.0, abs(pos - t))
+
+      float random(float t) {
+        return (cos(t) + cos(t * 1.3 + 1.3) + cos(t * 1.4 + 1.4)) / 3.0;
+      }
+
+      float plasmaY(float x, float fade, float offset) {
+        return random(x * lineFrequency + iTime * overallSpeed) * fade + offset;
+      }
+
+      void main() {
+        vec2 uv = gl_FragCoord.xy / iResolution.xy;
+        vec2 space = (gl_FragCoord.xy - iResolution.xy / 2.0) / iResolution.x * 2.0 * scale;
+
+        float horizontalFade = 1.0 - (cos(uv.x * 6.283185) * 0.5 + 0.5);
+        float verticalFade = 1.0 - (cos(uv.y * 6.283185) * 0.5 + 0.5);
+        space.y += random(space.x * warpFrequency + iTime * overallSpeed * 0.2) * 0.8 * (0.5 + horizontalFade);
+        space.x += random(space.y * warpFrequency + iTime * overallSpeed * 0.2 + 2.0) * 0.8 * horizontalFade;
+
+        vec3 bgA = vec3(0.98, 0.95, 0.92);
+        vec3 bgB = vec3(0.94, 0.97, 0.96);
+        vec3 mint = vec3(0.55, 1.0, 0.86);
+        vec3 purple = vec3(0.75, 0.51, 1.0);
+        vec3 amber = vec3(1.0, 0.82, 0.47);
+        vec3 orange = vec3(0.92, 0.35, 0.05);
+        vec3 lines = vec3(0.0);
+
+        for (int l = 0; l < linesPerGroup; l++) {
+          float idx = float(l) / float(linesPerGroup);
+          float offsetTime = iTime * 0.22;
+          float offsetPosition = float(l) + space.x * 0.5;
+          float rand = random(offsetPosition + offsetTime) * 0.5 + 0.5;
+          float halfWidth = mix(0.006, 0.095, rand * horizontalFade);
+          float offset = random(offsetPosition + offsetTime * (1.0 + idx)) * mix(0.4, 1.6, horizontalFade);
+          float line = smoothLine(plasmaY(space.x, horizontalFade, offset), halfWidth, space.y);
+          vec3 brand = mix(mint, purple, idx);
+          brand = mix(brand, amber, smoothstep(0.55, 1.0, rand));
+          lines += line * brand * rand * 0.42;
+        }
+
+        vec3 color = mix(bgA, bgB, uv.x);
+        color += lines * verticalFade * 1.18;
+        color += orange * smoothstep(0.58, 0.0, distance(uv, vec2(0.72, 0.56))) * 0.075;
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
+
+    const makeShader = (type, source) => {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
+    };
+    const vertexShader = makeShader(gl.VERTEX_SHADER, vertexSource);
+    const fragmentShader = makeShader(gl.FRAGMENT_SHADER, fragmentSource);
+    if (vertexShader && fragmentShader) {
+      const program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+      const position = gl.getAttribLocation(program, "aVertexPosition");
+      const resolution = gl.getUniformLocation(program, "iResolution");
+      const time = gl.getUniformLocation(program, "iTime");
+      const started = Date.now();
+      const resizeShader = () => {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        shaderCanvas.width = Math.floor(window.innerWidth * ratio);
+        shaderCanvas.height = Math.floor(window.innerHeight * ratio);
+        gl.viewport(0, 0, shaderCanvas.width, shaderCanvas.height);
+      };
+      const renderShader = () => {
+        gl.useProgram(program);
+        gl.uniform2f(resolution, shaderCanvas.width, shaderCanvas.height);
+        gl.uniform1f(time, (Date.now() - started) / 1000);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(position);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(renderShader);
+      };
+      window.addEventListener("resize", resizeShader, { passive: true });
+      resizeShader();
+      renderShader();
+    }
+  }
+}
+
+const billingSwitch = document.getElementById("billingSwitch");
+const billingToggle = document.querySelector(".billing-toggle");
+const billingNote = document.getElementById("billingNote");
+const planCards = [...document.querySelectorAll(".plan-card")];
+const pricingCards = document.getElementById("pricingCards");
+const pricingComparison = document.getElementById("pricingComparison");
+const pricingTabs = [...document.querySelectorAll("[data-pricing-view]")];
+let annualBilling = false;
+
+function money(value) {
+  return `$${Number(value).toLocaleString("en-US", { minimumFractionDigits: Number(value) % 1 ? 2 : 0, maximumFractionDigits: 2 })}`;
+}
+
+function syncPrices() {
+  planCards.forEach((card) => {
+    const isCustom = card.dataset.custom === "true";
+    const price = card.querySelector("[data-plan-price]");
+    const period = card.querySelector("[data-plan-period]");
+    const billing = card.querySelector("[data-plan-billing]");
+    if (isCustom) {
+      if (price) price.textContent = "Custom";
+      if (billing) billing.textContent = "Tailored contract";
+      return;
+    }
+    const amount = annualBilling ? card.dataset.annual : card.dataset.monthly;
+    if (price) price.textContent = money(amount);
+    if (period) period.textContent = annualBilling ? " /year" : " /month";
+    if (billing) billing.textContent = annualBilling ? "Annual equivalent from dashboard price" : (Number(amount) === 0 ? "No card required" : "Monthly billing");
+  });
+  if (billingNote) billingNote.textContent = annualBilling ? "Annual view" : "Dashboard prices";
+}
+
+function toggleBilling() {
+  annualBilling = !annualBilling;
+  billingSwitch?.setAttribute("aria-checked", String(annualBilling));
+  syncPrices();
+}
+
+if (billingSwitch) {
+  billingSwitch.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleBilling();
+  });
+}
+
+if (billingToggle) {
+  billingToggle.addEventListener("click", () => {
+    toggleBilling();
+  });
+}
+
+pricingTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const view = tab.dataset.pricingView;
+    pricingTabs.forEach((item) => {
+      const active = item === tab;
+      item.classList.toggle("is-active", active);
+      item.setAttribute("aria-selected", String(active));
+    });
+    pricingCards.classList.toggle("is-hidden", view === "comparison");
+    pricingComparison.classList.toggle("is-active", view === "comparison");
+  });
+});
+syncPrices();
+
+/* ============================================================
+   THE ORBE — optimized WebGL iridescent glass sphere.
+   Custom GLSL shader (fresnel + thin-film iridescence), no
+   MeshPhysicalMaterial.transmission (that caused the white box
+   and is GPU-heavy). Brand colors preserved:
+   mint rgb(140,255,220) · purple rgb(190,130,255) ·
+   amber rgb(255,210,120) · white core.
+   ============================================================ */
+const canvas = document.getElementById("orbCanvas");
+const stage = document.getElementById("orbStage");
+const THREE = canvas && stage ? await import("three") : null;
+if (canvas && stage && THREE) {
+  const isMobile = window.innerWidth < 768;
+
+  // ---- Renderer (capped pixel ratio for performance) ----
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+
+  function sizeRenderer() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / Math.max(1, h);
+    camera.updateProjectionMatrix();
+  }
+
+  // ---- Scene & camera ----
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  camera.position.set(0, 0, 4.2);
+
+  // ---- The sphere: custom iridescent glass shader ----
+  // 64 segments is plenty for a smooth silhouette at this size.
+  const RADIUS = Math.max(0.001, 1.0);
+  const orbGeo = new THREE.SphereGeometry(RADIUS, 64, 64);
+
+  const orbMat = new THREE.ShaderMaterial({
+    transparent: true,
+    uniforms: {
+      uTime:   { value: 0 },
+      uCam:    { value: new THREE.Vector3(0, 0, 4.2) },
+      uMint:   { value: new THREE.Color(0x8cffdc) },  // rgb(140,255,220)
+      uPurple: { value: new THREE.Color(0xbe82ff) },  // rgb(190,130,255)
+      uAmber:  { value: new THREE.Color(0xffd278) },  // rgb(255,210,120)
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vWorld;
+      varying vec3 vViewDir;
+      varying vec3 vPos;
+      void main() {
+        vPos = position;
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorld = wp.xyz;
+        vNormal = normalize(mat3(modelMatrix) * normal);
+        vViewDir = normalize(cameraPosition - wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: `
+      precision highp float;
+      varying vec3 vNormal;
+      varying vec3 vWorld;
+      varying vec3 vViewDir;
+      varying vec3 vPos;
+      uniform float uTime;
+      uniform vec3 uMint;
+      uniform vec3 uPurple;
+      uniform vec3 uAmber;
+
+      // Soft glowing color pool at point p (clean, no noise).
+      float pool(vec3 p, vec3 c, float r){
+        return smoothstep(r, 0.0, distance(p, c));
+      }
+
+      void main() {
+        vec3 N = normalize(vNormal);
+        vec3 V = normalize(vViewDir);
+        float ndv  = max(dot(N, V), 0.0);
+        float fres = pow(1.0 - ndv, 3.0);          // sharp rim
+        float fresSoft = pow(1.0 - ndv, 1.8);       // soft rim
+
+        // Slow drift of the internal color pools (clean spots, not muddy noise)
+        vec3 sp = normalize(vPos);
+        float d = uTime * 0.25;
+        float m = pool(sp, normalize(vec3( 0.35, 0.6, 0.7)), 0.9);            // mint pool
+        float p = pool(sp, normalize(vec3(-0.5, 0.2, 0.4) + vec3(sin(d),0,cos(d))*0.15), 0.85); // purple pool
+        float a = pool(sp, normalize(vec3( 0.6,-0.4, 0.3) + vec3(cos(d*0.8),sin(d*0.8),0)*0.15), 0.8);  // amber pool
+
+        // Glass body: dark core, luminous pools
+        vec3 base = vec3(0.10, 0.12, 0.16);        // dark glass
+        base += uMint   * m * 0.9;
+        base += uPurple * p * 0.8;
+        base += uAmber  * a * 0.7;
+        // brighten facing surface (depth)
+        base *= 0.35 + ndv * 1.1;
+
+        // Iridescence on the rim only (clean thin-film)
+        float iridPhase = 6.0 + ndv * 8.0;
+        vec3 irid = 0.5 + 0.5*cos(vec3(0.0,2.094,4.188) + iridPhase);
+        vec3 col = base + irid * fres * 0.7;
+
+        // Tight glossy specular (top-left)
+        vec3 L = normalize(vec3(-0.5, 0.9, 0.6));
+        vec3 H = normalize(L + V);
+        float spec = pow(max(dot(N, H), 0.0), 120.0);
+        col += vec3(1.0) * spec;
+
+        // Breathing rim light (white → mint)
+        float pulse = 0.5 + 0.5*sin(uTime*1.1);
+        col += fres * (0.5 + pulse*0.5) * mix(vec3(1.0), uMint, 0.4);
+
+        // Soft white inner glow at center (glass depth)
+        col += vec3(1.0) * pow(ndv, 4.0) * 0.12;
+
+        float alpha = 0.95 + fres*0.05;
+        gl_FragColor = vec4(col, alpha);
+      }`,
+  });
+  const orb = new THREE.Mesh(orbGeo, orbMat);
+  scene.add(orb);
+
+  // ---- Inner glowing core (subtle mint/white light) ----
+  const coreGeo = new THREE.SphereGeometry(Math.max(0.001, 0.32), 24, 24);
+  const coreMat = new THREE.MeshBasicMaterial({
+    color: 0xc8ffec, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending,
+  });
+  const core = new THREE.Mesh(coreGeo, coreMat);
+  scene.add(core);
+
+  // ---- Orbiting particles (real 3D, lighter count) ----
+  const PCOUNT = isMobile ? 80 : 200;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(PCOUNT * 3);
+  const pSize = new Float32Array(PCOUNT);
+  const orbit = [];
+  for (let i = 0; i < PCOUNT; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = 1.15 + Math.random() * 0.6;
+    const y = (Math.random() - 0.5) * 2.0;
+    const speed = 0.1 + Math.random() * 0.3;
+    const tilt = (Math.random() - 0.5) * 1.2;
+    orbit.push({ angle, r, y, speed, tilt });
+    pPos[i*3] = Math.cos(angle) * r;
+    pPos[i*3+1] = y;
+    pPos[i*3+2] = Math.sin(angle) * r;
+    pSize[i] = 1.2 + Math.random() * 3.5;
+  }
+  pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+  pGeo.setAttribute("aSize", new THREE.BufferAttribute(pSize, 1));
+
+  const pMat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { uPixel: { value: renderer.getPixelRatio() } },
+    vertexShader: `
+      attribute float aSize;
+      uniform float uPixel;
+      varying float vA;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = aSize * uPixel * (120.0 / -mv.z);
+        gl_Position = projectionMatrix * mv;
+        vA = aSize / 4.7;
+      }`,
+    fragmentShader: `
+      varying float vA;
+      void main() {
+        float d = length(gl_PointCoord - vec2(0.5));
+        if (d > 0.5) discard;
+        float a = smoothstep(0.5, 0.0, d) * vA * 0.75;
+        vec3 c = mix(vec3(0.55,1.0,0.86), vec3(0.75,0.51,1.0), vA);
+        gl_FragColor = vec4(c, a);
+      }`,
+  });
+  const particles = new THREE.Points(pGeo, pMat);
+  scene.add(particles);
+
+  // ---- Interaction: mouse parallax ----
+  const mTarget = { x: 0, y: 0 }, mCurrent = { x: 0, y: 0 };
+  document.addEventListener("mousemove", (e) => {
+    mTarget.x = (e.clientX / window.innerWidth - 0.5) * 2;
+    mTarget.y = (e.clientY / window.innerHeight - 0.5) * 2;
+  }, { passive: true });
+
+  // ---- Visibility: pause render when off-screen (saves battery/GPU) ----
+  let isVisible = true;
+  const heroObs = new IntersectionObserver(([entry]) => {
+    isVisible = entry.isIntersecting;
+  }, { threshold: 0 });
+  heroObs.observe(stage);
+
+  // Respect reduced motion
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---- Animate ----
+  sizeRenderer();
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    if (!isVisible) return;
+    const t = reduceMotion ? 0 : clock.getElapsedTime();
+
+    mCurrent.x += (mTarget.x - mCurrent.x) * 0.04;
+    mCurrent.y += (mTarget.y - mCurrent.y) * 0.04;
+
+    // Orb slow rotation + mouse tilt (inverse parallax)
+    orb.rotation.y = t * 0.18 + mCurrent.x * 0.4;
+    orb.rotation.x = Math.sin(t * 0.3) * 0.1 + mCurrent.y * 0.3;
+    orbMat.uniforms.uTime.value = t;
+
+    // Levitation
+    const float = Math.sin(t * 0.6) * 0.06;
+    orb.position.y = float;
+    core.position.y = float;
+    core.scale.setScalar(1 + Math.sin(t * 1.3) * 0.06);
+
+    // Particles orbit
+    if (!reduceMotion) {
+      const arr = pGeo.attributes.position.array;
+      for (let i = 0; i < PCOUNT; i++) {
+        const o = orbit[i];
+        o.angle += o.speed * 0.004;
+        const x = Math.cos(o.angle) * o.r;
+        const z = Math.sin(o.angle) * o.r;
+        arr[i*3]     = x;
+        arr[i*3 + 1] = o.y + Math.sin(t * o.speed + i) * 0.05 + z * o.tilt * 0.15;
+        arr[i*3 + 2] = z;
+      }
+      pGeo.attributes.position.needsUpdate = true;
+    }
+    particles.rotation.y = t * 0.04;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ---- Resize (throttled) ----
+  let rT;
+  window.addEventListener("resize", () => {
+    clearTimeout(rT);
+    rT = setTimeout(sizeRenderer, 150);
+  });
+
+  // ---- Scroll parallax via GSAP ----
+  gsap.to(stage, {
+    y: -70, ease: "none",
+    scrollTrigger: { trigger: "#hero", start: "top top", end: "bottom top", scrub: 1 }
+  });
+}
+</script>
+</body>
+</html>
