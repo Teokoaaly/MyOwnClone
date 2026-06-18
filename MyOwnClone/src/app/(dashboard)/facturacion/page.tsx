@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "@/i18n/navigation"
-import { useTranslations } from "next-intl";
 
 interface BillingInfo {
   has_stripe: boolean
@@ -50,8 +49,6 @@ function money(cents = 0, currency = "usd") {
 }
 
 export default function FacturacionPage() {
-  const t = useTranslations("billing");
-  void t;
   const { status } = useSession()
   const router = useRouter()
   const [billing, setBilling] = useState<BillingInfo | null>(null)
@@ -101,7 +98,7 @@ export default function FacturacionPage() {
   }
 
   const startCheckout = async () => {
-    const plan = plans.find((item) => item.stripe_price_id) ?? plans[0]
+    const plan = plans.find((item) => item.id === "pro" || item.name.toLowerCase() === "pro") ?? plans.find((item) => item.stripe_price_id) ?? plans[0]
     if (!plan) {
       setError("No billing plan is configured yet.")
       return
@@ -128,6 +125,18 @@ export default function FacturacionPage() {
     } finally {
       setCheckoutLoading(false)
     }
+  }
+
+  const handlePlanAction = (planId: string) => {
+    if (planId === "enterprise") {
+      window.location.href = "mailto:hello@myownclone.com"
+      return
+    }
+    if (planId === "free") {
+      router.push("/resumen")
+      return
+    }
+    startCheckout()
   }
 
   if (status === "loading" || loading) {

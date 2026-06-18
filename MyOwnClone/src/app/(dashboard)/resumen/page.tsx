@@ -240,7 +240,7 @@ export default function DashboardResumenPage() {
         <p className="section-label mb-3">Plan</p>
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr]">
           <Link
-            href="/facturacion"
+            href="/planes"
             className="console-strip min-h-[88px]"
             aria-label="Manage plan"
           >
