@@ -107,6 +107,24 @@ set -a
 . ./backend.env.production
 set +a
 
+log "Preparing Redis TLS certificates"
+REDIS_TLS_SHARED="${SHARED_DIR}/redis-tls"
+REDIS_TLS_RELEASE="${CURRENT_LINK}/ops/tls/redis"
+mkdir -p "${REDIS_TLS_SHARED}" "${REDIS_TLS_RELEASE}"
+if [[ ! -s "${REDIS_TLS_SHARED}/ca.crt" || ! -s "${REDIS_TLS_SHARED}/redis.crt" || ! -s "${REDIS_TLS_SHARED}/redis.key" ]]; then
+  openssl genrsa -out "${REDIS_TLS_SHARED}/ca.key" 4096 >/dev/null 2>&1
+  openssl req -x509 -new -nodes -key "${REDIS_TLS_SHARED}/ca.key" -sha256 -days 3650 -subj '/CN=myownclone-redis-ca' -out "${REDIS_TLS_SHARED}/ca.crt" >/dev/null 2>&1
+  openssl genrsa -out "${REDIS_TLS_SHARED}/redis.key" 2048 >/dev/null 2>&1
+  openssl req -new -key "${REDIS_TLS_SHARED}/redis.key" -subj '/CN=localhost' -out "${REDIS_TLS_SHARED}/redis.csr" >/dev/null 2>&1
+  printf 'subjectAltName=DNS:localhost,IP:127.0.0.1\n' > "${REDIS_TLS_SHARED}/redis.ext"
+  openssl x509 -req -in "${REDIS_TLS_SHARED}/redis.csr" -CA "${REDIS_TLS_SHARED}/ca.crt" -CAkey "${REDIS_TLS_SHARED}/ca.key" -CAcreateserial -out "${REDIS_TLS_SHARED}/redis.crt" -days 3650 -sha256 -extfile "${REDIS_TLS_SHARED}/redis.ext" >/dev/null 2>&1
+  chmod 0600 "${REDIS_TLS_SHARED}"/*.key
+  chmod 0644 "${REDIS_TLS_SHARED}"/*.crt
+fi
+cp "${REDIS_TLS_SHARED}/ca.crt" "${REDIS_TLS_SHARED}/redis.crt" "${REDIS_TLS_SHARED}/redis.key" "${REDIS_TLS_RELEASE}/"
+chmod 0600 "${REDIS_TLS_RELEASE}/redis.key"
+chmod 0644 "${REDIS_TLS_RELEASE}/ca.crt" "${REDIS_TLS_RELEASE}/redis.crt"
+
 if docker compose version >/dev/null 2>&1; then
   COMPOSE_CMD=(docker compose)
 elif command -v docker-compose >/dev/null 2>&1; then
