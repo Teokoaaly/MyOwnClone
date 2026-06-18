@@ -336,7 +336,6 @@ class AdminTenantDetailApi(Resource):
         clone_count = db.session.execute(
             select(func.count(CloneConfig.id)).where(
                 CloneConfig.tenant_id == tenant_id,
-                CloneConfig.deleted_at.is_(None),
             )
         ).scalar() or 0
 
