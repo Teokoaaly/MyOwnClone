@@ -236,7 +236,7 @@ export default function DashboardResumenPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-5 shadow-sm md:px-8 md:py-6">
+      <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-8 shadow-sm md:px-8 md:py-10">
         <div className="mx-auto flex max-w-[980px] flex-col overflow-visible pb-3">
           <div className="flex flex-col items-center text-center">
             <AnimatedLogoMark size={40} forceMotion />
