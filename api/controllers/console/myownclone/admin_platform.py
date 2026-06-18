@@ -513,6 +513,7 @@ class AdminStopImpersonateApi(Resource):
         return {"status": "stopped"}, 200
 
 
+@console_ns.route("/myownclone/admin/courtesy")
 @console_ns.route("/myownclone/admin/courtesy-account")
 class AdminCourtesyAccountApi(Resource):
     @login_required
