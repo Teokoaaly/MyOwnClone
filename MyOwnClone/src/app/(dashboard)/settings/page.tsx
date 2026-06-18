@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl";
 
 interface CloneConfig {
   id: string
@@ -44,6 +45,9 @@ const TONE_OPTIONS = [
   { value: "técnico", label: "Technical" },
 ]
 
+export default function SettingsPage() {
+  const t = useTranslations("settings");
+  const { status } = useSession()
   const router = useRouter()
   const [clone, setClone] = useState<CloneConfig | null>(null)
   const [loading, setLoading] = useState(true)
@@ -218,7 +222,7 @@ const TONE_OPTIONS = [
           />
           <div className="mt-6 space-y-4">
             <div>
-              <label className="stat-label" htmlFor="new-clone-name">{"Name"}</label>
+              <label className="stat-label" htmlFor="new-clone-name">{t("name")}</label>
               <input
                 id="new-clone-name"
                 type="text"
@@ -232,7 +236,7 @@ const TONE_OPTIONS = [
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-slug">{"Public slug"}</label>
+              <label className="stat-label" htmlFor="new-clone-slug">{t("publicSlug")}</label>
               <input
                 id="new-clone-slug"
                 type="text"
@@ -243,7 +247,7 @@ const TONE_OPTIONS = [
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-description">{"Description"}</label>
+              <label className="stat-label" htmlFor="new-clone-description">{t("description")}</label>
               <textarea
                 id="new-clone-description"
                 rows={3}
@@ -349,7 +353,7 @@ const TONE_OPTIONS = [
           </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--text-primary)]">{"Theme"}</p>
+              <p className="text-sm text-[var(--text-primary)]">{t("theme")}</p>
               <p className="text-xs text-[var(--text-muted)]">
                 Light or dark. Saved in this browser.
               </p>
@@ -364,7 +368,7 @@ const TONE_OPTIONS = [
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="stat-label" htmlFor="cfg-name">{"Name"}</label>
+              <label className="stat-label" htmlFor="cfg-name">{t("name")}</label>
               <input
                 id="cfg-name"
                 type="text"
@@ -374,7 +378,7 @@ const TONE_OPTIONS = [
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-slug">{"Public slug"}</label>
+              <label className="stat-label" htmlFor="cfg-slug">{t("publicSlug")}</label>
               <input
                 id="cfg-slug"
                 type="text"
@@ -387,7 +391,7 @@ const TONE_OPTIONS = [
               </p>
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-desc">{"Description"}</label>
+              <label className="stat-label" htmlFor="cfg-desc">{t("description")}</label>
               <textarea
                 id="cfg-desc"
                 rows={3}
@@ -397,7 +401,7 @@ const TONE_OPTIONS = [
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-tone">{"Tone"}</label>
+              <label className="stat-label" htmlFor="cfg-tone">{t("tone")}</label>
               <select
                 id="cfg-tone"
                 value={tone}
