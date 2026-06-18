@@ -1,6 +1,6 @@
 "use client";
 
-import { type FC, type ReactNode, useState, useCallback } from "react";
+import { type FC, type ReactNode, useState, useEffect, useCallback } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { NavIcons } from "@/components/ui/dashboard-icons";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
@@ -60,6 +60,25 @@ export const Sidebar: FC<SidebarProps> = ({
 }) => {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [trialDays, setTrialDays] = useState(null);
+  const [trialPct, setTrialPct] = useState(50);
+
+  useEffect(function() {
+    if (!showFreemiumCard) return;
+    fetch("/api/clone/billing", { credentials: "include" })
+      .then(function(r) { return r.json(); })
+      .then(function(b) {
+        if (b.trial_ends_at) {
+          var end = new Date(b.trial_ends_at);
+          var now = new Date();
+          var diff = Math.ceil((end - now) / 86400000);
+          var d = Math.max(0, diff);
+          setTrialDays(d);
+          setTrialPct(Math.min(100, Math.max(0, Math.round((d / 14) * 100))));
+        }
+      })
+      .catch(function() {});
+  }, [showFreemiumCard]);
 
   const initials = user?.name
     ? user.name.charAt(0).toUpperCase()
