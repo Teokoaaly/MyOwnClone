@@ -320,13 +320,14 @@ class AdminTenantDetailApi(Resource):
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
+        # Validate format (DB column is VARCHAR, not native UUID type)
         try:
-            tid = uuid.UUID(tenant_id)
+            uuid.UUID(tenant_id)
         except ValueError:
             return {"error": "invalid tenant_id"}, 400
 
         tenant = db.session.execute(
-            select(Tenant).where(Tenant.id == tid)
+            select(Tenant).where(Tenant.id == tenant_id)
         ).scalar_one_or_none()
 
         if not tenant:
@@ -334,7 +335,7 @@ class AdminTenantDetailApi(Resource):
 
         clone_count = db.session.execute(
             select(func.count(CloneConfig.id)).where(
-                CloneConfig.tenant_id == tid,
+                CloneConfig.tenant_id == tenant_id,
                 CloneConfig.deleted_at.is_(None),
             )
         ).scalar() or 0
