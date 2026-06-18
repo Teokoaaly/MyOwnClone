@@ -70,6 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email,
             name: "Platform Admin",
             role: "platform_admin",
+            tenantId: process.env.PLATFORM_ADMIN_TENANT_ID || "00000000-0000-4000-8000-000000000001",
           };
         }
 
