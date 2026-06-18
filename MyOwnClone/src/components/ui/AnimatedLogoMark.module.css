@@ -54,6 +54,12 @@
   flex-basis: 96px;
 }
 
+.size120 {
+  width: 120px;
+  height: 120px;
+  flex-basis: 120px;
+}
+
 .forceMotion {
   /* forceMotion enables the pulse cycle on static logos */
 }

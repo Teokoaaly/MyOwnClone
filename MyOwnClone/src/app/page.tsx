@@ -58,7 +58,7 @@ export default function LandingPage() {
       <section className="hero" id="hero">
         <div className="hero-content">
           <div className="flex justify-center mb-6 reveal">
-            <AnimatedLogoMark size={96} hero />
+            <AnimatedLogoMark size={120} hero />
           </div>
           <span className="hero-kicker reveal">AI-Powered Digital Clone</span>
           <h1 className="reveal">
