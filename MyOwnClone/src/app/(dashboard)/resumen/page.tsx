@@ -236,51 +236,6 @@ export default function DashboardResumenPage() {
         </div>
       </section>
 
-      <section className="mb-5 shrink-0">
-        <p className="section-label mb-3">Plan</p>
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr]">
-          <Link
-            href="/planes"
-            className="console-strip min-h-[88px]"
-            aria-label="Manage plan"
-          >
-            <div className="console-icon text-[#EA580C]">
-              <ChartBar weight="duotone" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--text-primary)]">
-                {activePlan ? `${activePlan.charAt(0).toUpperCase()}${activePlan.slice(1)} plan` : "Select a plan"}
-              </p>
-              <p className="text-xs text-[var(--text-muted)]">
-                Manage your plan and billing
-              </p>
-            </div>
-            <span className="ml-auto rounded-full bg-[#111111] px-3 py-1.5 text-xs font-semibold text-white">
-              Manage
-            </span>
-          </Link>
-
-          <Link
-            href="/facturacion"
-            className="console-strip min-h-[88px]"
-            aria-label="Open billing"
-          >
-            <div className="console-icon text-[#2563EB]">
-              <CreditCard weight="duotone" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--text-primary)]">Billing</p>
-              <p className="text-xs text-[var(--text-muted)]">
-                {subscriptionStatus} — balance {formattedBalance}
-              </p>
-            </div>
-            <span className="ml-auto text-xs font-semibold text-[var(--text-muted)]">
-              Details
-            </span>
-          </Link>
-        </div>
-      </section>
-
       <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-5 shadow-sm md:px-8 md:py-6">
         <div className="mx-auto flex max-w-[980px] flex-col overflow-visible pb-3">
           <div className="flex flex-col items-center text-center">

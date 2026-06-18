@@ -1,11 +1,9 @@
 "use client";
 
 import { type FC, type ReactNode, useState, useCallback } from "react";
-import { useTranslations } from "next-intl";
 import { Sheet } from "@/components/ui/Sheet";
 import { NavIcons } from "@/components/ui/dashboard-icons";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Link, usePathname } from "@/i18n/navigation";
 
 export type SidebarIconKey = keyof typeof NavIcons;
@@ -43,7 +41,11 @@ interface SidebarProps {
   footer?: ReactNode;
 }
 
-// Section titles are translated inline via t() in render.
+const SECTION_TITLES: Record<NonNullable<SidebarNavItem["section"]>, string> = {
+  playground: "API PLAYGROUND",
+  management: "MANAGEMENT",
+  platform: "PLATFORM ADMIN",
+};
 
 export const Sidebar: FC<SidebarProps> = ({
   navItems,
@@ -56,7 +58,6 @@ export const Sidebar: FC<SidebarProps> = ({
   showUserBlock = true,
   footer,
 }) => {
-  const t = useTranslations("sidebar");
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -111,7 +112,7 @@ export const Sidebar: FC<SidebarProps> = ({
       {/* ── Hamburger button (mobile only) ── */}
       <button
         type="button"
-        aria-label={t("openMenu")}
+        aria-label="Open navigation menu"
         onClick={() => setMobileOpen(true)}
         className="md:hidden fixed top-3 left-3 z-30 h-9 w-9 rounded-lg flex items-center justify-center bg-[var(--bg-shell)] border border-[var(--border-soft)] text-[var(--text-primary)] hover:bg-[var(--surface-2)] transition-colors shadow-sm"
       >
@@ -134,7 +135,7 @@ export const Sidebar: FC<SidebarProps> = ({
       <Sheet
         open={mobileOpen}
         onClose={closeMobile}
-        title={t("mainNavigation")}
+        title="Main navigation"
         side="left"
         width="280px"
       >
@@ -149,13 +150,13 @@ export const Sidebar: FC<SidebarProps> = ({
               {homeLabel}
             </span>
           </Link>
-          <DialogCloseButton onClick={closeMobile} closeLabel={t("closeMenu")} />
+          <DialogCloseButton onClick={closeMobile} />
         </div>
 
         {/* Search (mobile) */}
         {showSearch && (
           <div className="mx-4 px-3 py-1.5 rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)]">
-            <span className="text-xs text-[var(--text-muted)]">{t("searchPlaceholder")}</span>
+            <span className="text-xs text-[var(--text-muted)]">Search…</span>
           </div>
         )}
 
@@ -176,7 +177,7 @@ export const Sidebar: FC<SidebarProps> = ({
               }
             >
               <p className="section-label px-3 mb-2">
-                {t(s.section === "playground" ? "sectionPlayground" : s.section === "management" ? "sectionManagement" : "sectionPlatform")}
+                {SECTION_TITLES[s.section]}
               </p>
               {s.items.map((item) => renderItem(item, true))}
             </div>
@@ -192,16 +193,13 @@ export const Sidebar: FC<SidebarProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-[var(--text-primary)] truncate">
-                  {user.name ?? t("userFallback")}
+                  {user.name ?? "User"}
                 </p>
                 <p className="text-[10px] text-[var(--text-muted)] truncate">
                   {user.email ?? ""}
                 </p>
               </div>
               {signOutAction}
-            </div>
-            <div className="mt-2 flex justify-end">
-              <LanguageSwitcher />
             </div>
           </div>
         )}
@@ -231,7 +229,7 @@ export const Sidebar: FC<SidebarProps> = ({
         {/* Search */}
         {showSearch && (
           <div className="mx-4 px-3 py-1.5 rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)]">
-            <span className="text-xs text-[var(--text-muted)]">{t("searchPlaceholder")}</span>
+            <span className="text-xs text-[var(--text-muted)]">Search…</span>
           </div>
         )}
 
@@ -253,7 +251,7 @@ export const Sidebar: FC<SidebarProps> = ({
               }
             >
               <p className="section-label px-3 mb-2">
-                {t(s.section === "playground" ? "sectionPlayground" : s.section === "management" ? "sectionManagement" : "sectionPlatform")}
+                {SECTION_TITLES[s.section]}
               </p>
               {s.items.map((item) => renderItem(item))}
             </div>
@@ -268,15 +266,15 @@ export const Sidebar: FC<SidebarProps> = ({
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <AnimatedLogoMark size={24} pulseEveryMs={60000} />
                   <span className="rounded bg-white/70 px-1.5 py-0.5 text-[9px] font-medium uppercase text-[var(--text-muted)]">
-                    {t("freeTrial")}
+                    Free Trial
                   </span>
                 </div>
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <p className="text-[13px] font-semibold text-[var(--text-primary)]">MyOwnClone</p>
-                    <p className="text-[11px] text-[var(--text-secondary)]">{t("sevenDaysLeft")}</p>
+                    <p className="text-[11px] text-[var(--text-secondary)]">7 days left</p>
                   </div>
-                  <Link href="/facturacion#plans" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
+                  <Link href="/planes" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
                     Upgrade
                   </Link>
                 </div>
@@ -296,16 +294,13 @@ export const Sidebar: FC<SidebarProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-[var(--text-primary)] truncate">
-                    {user.name ?? t("userFallback")}
+                    {user.name ?? "User"}
                   </p>
                   <p className="text-[10px] text-[var(--text-muted)] truncate">
                     {user.email ?? ""}
                   </p>
                 </div>
                 {signOutAction}
-              </div>
-              <div className="mt-2 flex justify-end">
-                <LanguageSwitcher />
               </div>
             </div>
           )}
@@ -323,12 +318,12 @@ export const Sidebar: FC<SidebarProps> = ({
 };
 
 /** Small inline close button used inside the Radix Sheet. */
-function DialogCloseButton({ onClick, closeLabel }: { onClick: () => void; closeLabel: string }) {
+function DialogCloseButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={closeLabel}
+      aria-label="Close menu"
       className="h-8 w-8 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-warm)] transition-colors"
     >
       <span aria-hidden="true" className="text-lg leading-none">
