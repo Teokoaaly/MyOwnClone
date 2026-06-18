@@ -9,14 +9,14 @@ import { useTranslations } from "next-intl";
 
 export const dynamic = "force-dynamic"
 
-// ── Plan token limits ──────────────────────────────────────────
+// Plan token limits
 const PLAN_TOKEN_LIMITS: Record<string, number> = {
   free: 2_000,
   pro: 20_000,
   enterprise: 100_000,
   custom: 100_000,
 };
-const DEFAULT_TOKEN_LIMIT = 2_000;
+const DEFAULT_TOKEN_LIMIT = 2000;
 const AVG_TOKENS_PER_MESSAGE = 200;
 
 interface BillingSummary {
@@ -116,14 +116,18 @@ export default function AnaliticasPage() {
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           Understand how users interact with your clone.
         </p>
-
-      {/* ── Token usage bar ── */}
+      </header>
+      {/* Token usage progress bar */}
       {(() => {
         const plan = billing?.plan || "free";
         const limit = PLAN_TOKEN_LIMITS[plan] || DEFAULT_TOKEN_LIMIT;
         const estTokens = (overview?.total_messages ?? 0) * AVG_TOKENS_PER_MESSAGE;
         const pct = Math.min(100, Math.round((estTokens / limit) * 100));
-        const barColor = pct > 90 ? "var(--color-accent-red,#DC2626)" : pct > 70 ? "var(--color-accent-amber,#F59E0B)" : "var(--color-accent-green,#10B981)";
+        const barColor = pct > 90
+          ? "var(--color-accent-red,#DC2626)"
+          : pct > 70
+            ? "var(--color-accent-amber,#F59E0B)"
+            : "var(--color-accent-green,#10B981)";
 
         return (
           <div className="card mb-6">
@@ -138,15 +142,12 @@ export default function AnaliticasPage() {
             <div className="w-full h-3 bg-[var(--surface-2)] rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700 ease-out"
-                style={{
-                  width: `${pct}%`,
-                  backgroundColor: barColor,
-                }}
+                style={{ width: `${pct}%`, backgroundColor: barColor }}
               />
             </div>
             <div className="flex items-center justify-between mt-2">
               <span className="text-[11px] text-[var(--text-muted)]">
-                {plan.charAt(0).toUpperCase() + plan.slice(1)} plan · ~{AVG_TOKENS_PER_MESSAGE} tok/msg
+                {plan.charAt(0).toUpperCase() + plan.slice(1)} plan &middot; ~{AVG_TOKENS_PER_MESSAGE} tok/msg
               </span>
               <span className="text-[11px] font-mono font-medium" style={{ color: barColor }}>
                 {pct}%
@@ -155,9 +156,6 @@ export default function AnaliticasPage() {
           </div>
         );
       })()}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Conversations" value={overview?.total_conversations ?? 0} />
