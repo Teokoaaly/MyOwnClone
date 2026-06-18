@@ -277,9 +277,9 @@ export const Sidebar: FC<SidebarProps> = ({
                         ? trialDaysLeft === 0
                           ? 'Trial ended'
                           : trialDaysLeft === 1
-                            ? '1 day left'
-                            : 
-                        : 'Free plan'}
+                            ? "1 day left"
+                            : trialDaysLeft + " days left"
+                        : "Free plan"}
                     </p>
                   </div>
                   <Link href="/planes" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
@@ -287,7 +287,7 @@ export const Sidebar: FC<SidebarProps> = ({
                   </Link>
                 </div>
                 <div className="mt-2.5 h-1.5 rounded-full bg-[#E7E5E4]">
-                  <div className="h-full rounded-full bg-[#1C1917]" style={{ width:  }} />
+                  <div className="h-full rounded-full bg-[#1C1917]" style={{ width: trialDaysLeft != null ? Math.min(100, Math.max(0, Math.round((trialDaysLeft / 14) * 100))) + "%" : "50%" }} />
                 </div>
               </div>
             </div>
