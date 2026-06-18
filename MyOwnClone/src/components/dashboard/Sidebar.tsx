@@ -60,7 +60,7 @@ export const Sidebar: FC<SidebarProps> = ({
 }) => {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [trialDays, setTrialDays] = useState(null);
+  const [trialDays, setTrialDays] = useState(null as number | null);
   const [trialPct, setTrialPct] = useState(50);
 
   useEffect(function() {
