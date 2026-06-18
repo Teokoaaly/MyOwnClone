@@ -221,7 +221,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-slug">{t("settings.public_slug")}</label>
+              <label className="stat-label" htmlFor="new-clone-slug">{t("settings.publicSlug")}</label>
               <input
                 id="new-clone-slug"
                 type="text"
@@ -310,7 +310,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-slug">{t("settings.public_slug")}</label>
+              <label className="stat-label" htmlFor="cfg-slug">{t("settings.publicSlug")}</label>
               <input
                 id="cfg-slug"
                 type="text"
