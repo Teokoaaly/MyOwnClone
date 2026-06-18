@@ -48,10 +48,13 @@ export default function ProductosPage() {
     setLoading(true)
     try {
       const clonesRes = await fetch("/api/clone/clones")
-      if (!clonesRes.ok) return
+      if (!clonesRes.ok) {
+        throw new Error("Error loading clone data")
+      }
       const clones = await clonesRes.json()
-      if (clones.length === 0) return
-      const cid = clones[0].id
+      if (!Array.isArray(clones) || clones.length === 0) return
+      const cid = clones[0]?.id
+      if (!cid) return
       setCloneId(cid)
 
       const res = await fetch(`/api/clone/clones/${cid}/products`)
