@@ -339,16 +339,50 @@ class AdminTenantDetailApi(Resource):
             )
         ).scalar() or 0
 
+        clones = db.session.execute(
+            select(CloneConfig).where(
+                CloneConfig.tenant_id == tenant_id,
+            )
+        ).scalars().all()
+
+        cost_30d = db.session.execute(
+            select(func.coalesce(func.sum(CostTracking.cost_cents), 0)).where(
+                CostTracking.tenant_id == tenant_id,
+            )
+        ).scalar_one() or 0
+
         return {
-            "id": str(tenant.id),
-            "slug": tenant.slug,
-            "name": tenant.name,
-            "plan": normalize_plan(tenant.plan),
-            "status": normalize_tenant_status(tenant.status),
-            "subscription_status": tenant.subscription_status,
-            "clone_count": clone_count,
-            "created_at": _iso(tenant.created_at),
-            "updated_at": _iso(tenant.updated_at),
+            "tenant": {
+                "id": str(tenant.id),
+                "slug": tenant.slug,
+                "name": tenant.name,
+                "plan": normalize_plan(tenant.plan),
+                "status": normalize_tenant_status(tenant.status),
+                "subscription_status": tenant.subscription_status,
+                "stripe_customer_id": tenant.stripe_customer_id,
+                "stripe_subscription_id": tenant.stripe_subscription_id,
+                "created_at": _iso(tenant.created_at),
+                "updated_at": _iso(tenant.updated_at),
+            },
+            "usage": {
+                "clone_count": clone_count,
+                "cost_cents_30d": int(cost_30d),
+                "tokens_in_30d": 0,
+                "tokens_out_30d": 0,
+                "questions_30d": 0,
+                "gaps_open": 0,
+            },
+            "clones": [
+                {
+                    "id": str(c.id),
+                    "name": c.name,
+                    "slug": c.slug,
+                    "is_active": c.is_active,
+                    "language": c.language,
+                    "created_at": _iso(c.created_at),
+                }
+                for c in clones
+            ],
         }, 200
 
 @console_ns.route("/myownclone/admin/impersonation")
