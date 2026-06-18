@@ -273,7 +273,7 @@ export const Sidebar: FC<SidebarProps> = ({
                   <div>
                     <p className="text-[13px] font-semibold text-[var(--text-primary)]">MyOwnClone</p>
                     <p className="text-[11px] text-[var(--text-secondary)]">
-                      {(() => { if (trialDaysLeft == null) return "Free plan"; if (trialDaysLeft === 0) return "Trial ended"; if (trialDaysLeft === 1) return "1 day left"; return trialDaysLeft + " days left"; })()}
+                      {trialDaysLeft == null ? "Free plan" : trialDaysLeft <= 0 ? "Trial ended" : trialDaysLeft + " days left"}
                     </p>
                   </div>
                   <Link href="/planes" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
