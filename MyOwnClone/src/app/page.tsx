@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
-import BetaForm from "@/components/ui/BetaForm";
 import { Link } from "@/i18n/navigation";
-import type { PublicPlanId } from "@/lib/public-pricing";
 
 const services = [
   {
@@ -34,8 +31,6 @@ const steps = [
 ] as const;
 
 export default function LandingPage() {
-  const [selectedPlan, setSelectedPlan] = useState<PublicPlanId | null>(null);
-
   return (
     <main className="moc-local-landing" style={{ background: "var(--bg-page, #fafaf9)" }}>
       <LandingBehavior />
@@ -56,7 +51,7 @@ export default function LandingPage() {
           <Link className="nav-signin" href="/login">
             Sign in
           </Link>
-          <Link className="nav-cta" href="#plans">
+          <Link className="nav-cta" href="/beta">
             Get started
           </Link>
         </div>
@@ -78,8 +73,8 @@ export default function LandingPage() {
             Answer customers, guide leads and automate daily work without losing your voice.
           </p>
           <div className="hero-ctas reveal">
-            <Link className="btn btn-primary" href="#plans">
-              Get started free
+            <Link className="btn btn-primary" href="/beta">
+              Request early access
             </Link>
             <Link className="btn btn-secondary" href="/login">
               Sign in
@@ -134,18 +129,7 @@ export default function LandingPage() {
             Start free. Go pro when you&apos;re ready. Cancel anytime.
           </p>
         </div>
-        <PublicPricing mode="landing" onSelectPlan={setSelectedPlan} />
-      </section>
-
-      <section className="section" id="beta-form" style={{ borderBottom: "none", paddingTop: "0" }}>
-        <div className="sec-head">
-          <span className="sec-kicker reveal">Beta</span>
-          <h2 className="sec-title reveal">Request early access</h2>
-          <p className="sec-desc reveal">
-            Fill in the form below. We review every request and activate accounts under personal supervision.
-          </p>
-        </div>
-        <BetaForm selectedPlan={selectedPlan ?? undefined} />
+        <PublicPricing mode="landing" />
       </section>
 
       <section className="cta-final" id="cta" style={{ borderBottom: "none" }}>
@@ -158,8 +142,8 @@ export default function LandingPage() {
           Start on the landing page, continue in the dashboard. Same pricing, same experience.
         </p>
         <div className="hero-ctas reveal">
-          <Link className="btn btn-primary" href="#plans">
-            Start building your clone
+          <Link className="btn btn-primary" href="/beta">
+            Request early access
           </Link>
           <Link className="btn btn-secondary" href="/login">
             Sign in

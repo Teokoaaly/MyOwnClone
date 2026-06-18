@@ -29,7 +29,7 @@ export const PUBLIC_PRICING_PLANS: PublicPlan[] = [
     annual: null as number | null,
     billing: "Apply for access",
     cta: "Request access",
-    href: "#plans",
+    href: "/beta?plan=Free",
     features: [
       { label: "1 AI clone", included: true },
       { label: "Basic knowledge base", included: true },
@@ -48,7 +48,7 @@ export const PUBLIC_PRICING_PLANS: PublicPlan[] = [
     annual: null as number | null,
     billing: "Apply for access",
     cta: "Request access",
-    href: "#plans",
+    href: "/beta?plan=Pro",
     featured: true,
     features: [
       { label: "5 AI clones", included: true },
