@@ -9,6 +9,21 @@ import { useTranslations } from "next-intl";
 
 export const dynamic = "force-dynamic"
 
+// ── Plan token limits ──────────────────────────────────────────
+const PLAN_TOKEN_LIMITS: Record<string, number> = {
+  free: 2_000,
+  pro: 20_000,
+  enterprise: 100_000,
+  custom: 100_000,
+};
+const DEFAULT_TOKEN_LIMIT = 2_000;
+const AVG_TOKENS_PER_MESSAGE = 200;
+
+interface BillingSummary {
+  plan: string | null;
+  subscription_status?: string | null;
+}
+
 interface AnalyticsOverview {
   total_conversations: number
   total_messages: number
@@ -49,6 +64,7 @@ export default function AnaliticasPage() {
   const [topQuestions, setTopQuestions] = useState<TopQuestion[]>([])
   const [gaps, setGaps] = useState<Gap[]>([])
   const [costs, setCosts] = useState<CostBreakdown | null>(null)
+  const [billing, setBilling] = useState<BillingSummary | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -58,16 +74,18 @@ export default function AnaliticasPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const [ov, tq, g, co] = await Promise.all([
+      const [ov, tq, g, co, bi] = await Promise.all([
         fetch("/api/clone/analytics/overview").then((r) => r.ok ? r.json() : null),
         fetch("/api/clone/analytics/top-questions").then((r) => r.ok ? r.json() : []),
         fetch("/api/clone/analytics/gaps").then((r) => r.ok ? r.json() : []),
         fetch("/api/clone/analytics/costs").then((r) => r.ok ? r.json() : null),
+        fetch("/api/clone/billing").then((r) => r.ok ? r.json() : null),
       ])
       setOverview(ov)
       setTopQuestions(tq)
       setGaps(g)
       setCosts(co)
+      setBilling(bi)
     } catch {
       // Empty states
     } finally {
@@ -98,6 +116,47 @@ export default function AnaliticasPage() {
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           Understand how users interact with your clone.
         </p>
+
+      {/* ── Token usage bar ── */}
+      {(() => {
+        const plan = billing?.plan || "free";
+        const limit = PLAN_TOKEN_LIMITS[plan] || DEFAULT_TOKEN_LIMIT;
+        const estTokens = (overview?.total_messages ?? 0) * AVG_TOKENS_PER_MESSAGE;
+        const pct = Math.min(100, Math.round((estTokens / limit) * 100));
+        const barColor = pct > 90 ? "var(--color-accent-red,#DC2626)" : pct > 70 ? "var(--color-accent-amber,#F59E0B)" : "var(--color-accent-green,#10B981)";
+
+        return (
+          <div className="card mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-[var(--text-primary)] text-sm">
+                Token usage
+              </h3>
+              <span className="text-xs text-[var(--text-muted)] font-mono">
+                {estTokens.toLocaleString("es-ES")} / {limit.toLocaleString("es-ES")}
+              </span>
+            </div>
+            <div className="w-full h-3 bg-[var(--surface-2)] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: barColor,
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[11px] text-[var(--text-muted)]">
+                {plan.charAt(0).toUpperCase() + plan.slice(1)} plan · ~{AVG_TOKENS_PER_MESSAGE} tok/msg
+              </span>
+              <span className="text-[11px] font-mono font-medium" style={{ color: barColor }}>
+                {pct}%
+              </span>
+            </div>
+          </div>
+        );
+      })()}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
