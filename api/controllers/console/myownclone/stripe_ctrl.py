@@ -200,6 +200,7 @@ class StripeBillingApi(Resource):
             "credit_cents": 0,
             "outstanding_cents": 0,
             "usage_cost_cents": int(usage_cost_cents or 0),
+            "trial_ends_at": getattr(tenant, "trial_ends_at", None).isoformat() if tenant and getattr(tenant, "trial_ends_at", None) else None,
             "balance_alert_enabled": False,
             "auto_billing_enabled": False,
             "payment_history": [],

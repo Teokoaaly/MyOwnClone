@@ -272,14 +272,22 @@ export const Sidebar: FC<SidebarProps> = ({
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <p className="text-[13px] font-semibold text-[var(--text-primary)]">MyOwnClone</p>
-                    <p className="text-[11px] text-[var(--text-secondary)]">7 days left</p>
+                    <p className="text-[11px] text-[var(--text-secondary)]">
+                      {trialDaysLeft != null
+                        ? trialDaysLeft === 0
+                          ? 'Trial ended'
+                          : trialDaysLeft === 1
+                            ? '1 day left'
+                            : 
+                        : 'Free plan'}
+                    </p>
                   </div>
                   <Link href="/planes" className="rounded-lg bg-[#4B5563] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-sm">
                     Upgrade
                   </Link>
                 </div>
                 <div className="mt-2.5 h-1.5 rounded-full bg-[#E7E5E4]">
-                  <div className="h-full w-1/2 rounded-full bg-[#1C1917]" />
+                  <div className="h-full rounded-full bg-[#1C1917]" style={{ width:  }} />
                 </div>
               </div>
             </div>
