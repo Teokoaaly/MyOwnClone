@@ -29,7 +29,10 @@ services:
     restart: unless-stopped
     networks:
       - redis_network
-    command: ["sh", "-c", 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes']
+    command: >
+      sh -c '
+        exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --port 6379
+      '
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
@@ -72,7 +75,7 @@ services:
         reservations:
           memory: 256M
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:8080/v1/.well-known/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/v1/.well-known/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
