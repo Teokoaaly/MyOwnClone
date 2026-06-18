@@ -9,7 +9,6 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { ErrorState } from "@/components/ui/ErrorState"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { useRouter } from "@/i18n/navigation"
-import { useTranslations } from "next-intl";
 
 interface CloneConfig {
   id: string
@@ -45,9 +44,6 @@ const TONE_OPTIONS = [
   { value: "técnico", label: "Technical" },
 ]
 
-export default function SettingsPage() {
-  const t = useTranslations("settings");
-  const { status } = useSession()
   const router = useRouter()
   const [clone, setClone] = useState<CloneConfig | null>(null)
   const [loading, setLoading] = useState(true)
@@ -222,7 +218,7 @@ export default function SettingsPage() {
           />
           <div className="mt-6 space-y-4">
             <div>
-              <label className="stat-label" htmlFor="new-clone-name">{t("name")}</label>
+              <label className="stat-label" htmlFor="new-clone-name">{"Name"}</label>
               <input
                 id="new-clone-name"
                 type="text"
@@ -236,7 +232,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-slug">{t("publicSlug")}</label>
+              <label className="stat-label" htmlFor="new-clone-slug">{"Public slug"}</label>
               <input
                 id="new-clone-slug"
                 type="text"
@@ -247,7 +243,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-description">{t("description")}</label>
+              <label className="stat-label" htmlFor="new-clone-description">{"Description"}</label>
               <textarea
                 id="new-clone-description"
                 rows={3}
@@ -353,7 +349,7 @@ export default function SettingsPage() {
           </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--text-primary)]">{t("theme")}</p>
+              <p className="text-sm text-[var(--text-primary)]">{"Theme"}</p>
               <p className="text-xs text-[var(--text-muted)]">
                 Light or dark. Saved in this browser.
               </p>
@@ -368,7 +364,7 @@ export default function SettingsPage() {
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="stat-label" htmlFor="cfg-name">{t("name")}</label>
+              <label className="stat-label" htmlFor="cfg-name">{"Name"}</label>
               <input
                 id="cfg-name"
                 type="text"
@@ -378,7 +374,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-slug">{t("publicSlug")}</label>
+              <label className="stat-label" htmlFor="cfg-slug">{"Public slug"}</label>
               <input
                 id="cfg-slug"
                 type="text"
@@ -391,7 +387,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-desc">{t("description")}</label>
+              <label className="stat-label" htmlFor="cfg-desc">{"Description"}</label>
               <textarea
                 id="cfg-desc"
                 rows={3}
@@ -401,7 +397,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-tone">{t("tone")}</label>
+              <label className="stat-label" htmlFor="cfg-tone">{"Tone"}</label>
               <select
                 id="cfg-tone"
                 value={tone}
