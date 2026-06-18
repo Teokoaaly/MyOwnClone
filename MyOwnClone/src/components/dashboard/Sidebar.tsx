@@ -69,10 +69,10 @@ export const Sidebar: FC<SidebarProps> = ({
       .then(function(r) { return r.json(); })
       .then(function(b) {
         if (b.trial_ends_at) {
-          var end = new Date(b.trial_ends_at);
-          var now = new Date();
-          var diff = Math.ceil((end - now) / 86400000);
-          var d = Math.max(0, diff);
+          const end = new Date(b.trial_ends_at);
+          const now = new Date();
+          const diff = Math.ceil((end - now) / 86400000);
+          const d = Math.max(0, diff);
           setTrialDays(d);
           setTrialPct(Math.min(100, Math.max(0, Math.round((d / 14) * 100))));
         }
