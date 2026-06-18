@@ -323,12 +323,18 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Locale is handled client-side via cookies (LanguageSwitcher in Sidebar).
-  // Forward x-locale header for any cookie-based preference.
+  // Locale via cookies. Strip locale prefix from URL for page routes.
   const requestHeaders = new Headers(request.headers);
   const cookieLocale = request.cookies.get("myownclone_locale")?.value;
   const resolvedLocale = forwardedLocale ?? cookieLocale ?? routing.defaultLocale;
   requestHeaders.set(LOCALE_HEADER, resolvedLocale);
+
+  // Rewrite /es/... to /... for Next.js page routing
+  if (localeMatch && normalizedPathname) {
+    const url = request.nextUrl.clone();
+    url.pathname = normalizedPathname;
+    return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+  }
 
   return NextResponse.next({
     request: { headers: requestHeaders },
