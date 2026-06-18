@@ -60,6 +60,9 @@ export default function SettingsPage() {
   const [description, setDescription] = useState("")
   const [tone, setTone] = useState("")
   const [prompts, setPrompts] = useState<Record<string, string>>({})
+  const [userName, setUserName] = useState("")
+  const [userEmail, setUserEmail] = useState("")
+  const [language, setLanguage] = useState("en")
 
   const slugify = (value: string) =>
     value
@@ -72,6 +75,18 @@ export default function SettingsPage() {
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
   }, [status, router])
+
+  useEffect(() => {
+    // Populate user info from session
+    const stored = localStorage.getItem("myownclone_locale")
+    if (stored) setLanguage(stored)
+    fetch("/api/auth/session").then(r => r.json()).then(s => {
+      if (s?.user) {
+        setUserName(s.user.name || "")
+        setUserEmail(s.user.email || "")
+      }
+    }).catch(() => {})
+  }, [])
 
   const fetchClone = useCallback(async () => {
     setLoading(true)
@@ -207,7 +222,7 @@ export default function SettingsPage() {
           />
           <div className="mt-6 space-y-4">
             <div>
-              <label className="stat-label" htmlFor="new-clone-name">{t("settings.name")}</label>
+              <label className="stat-label" htmlFor="new-clone-name">{t("name")}</label>
               <input
                 id="new-clone-name"
                 type="text"
@@ -221,7 +236,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-slug">{t("settings.publicSlug")}</label>
+              <label className="stat-label" htmlFor="new-clone-slug">{t("publicSlug")}</label>
               <input
                 id="new-clone-slug"
                 type="text"
@@ -232,7 +247,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="new-clone-description">{t("settings.description")}</label>
+              <label className="stat-label" htmlFor="new-clone-description">{t("description")}</label>
               <textarea
                 id="new-clone-description"
                 rows={3}
@@ -279,13 +294,66 @@ export default function SettingsPage() {
       {error && <ErrorState message={error} />}
 
       <div className="space-y-4">
+        {/* User profile */}
+        <div className="card">
+          <h3 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
+            Profile
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="stat-label">Email</label>
+              <input
+                type="email"
+                value={userEmail}
+                disabled
+                className="mt-1 w-full cursor-not-allowed rounded-lg border border-[var(--border-soft)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--text-muted)]"
+              />
+            </div>
+            <div>
+              <label className="stat-label">Name</label>
+              <input
+                type="text"
+                value={userName}
+                disabled
+                className="mt-1 w-full cursor-not-allowed rounded-lg border border-[var(--border-soft)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--text-muted)]"
+              />
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-[var(--text-muted)]">
+            Profile data is managed by your authentication provider.
+          </p>
+        </div>
+
+        {/* Language */}
+        <div className="card">
+          <h3 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
+            Language
+          </h3>
+          <select
+            value={language}
+            onChange={(e) => {
+              const val = e.target.value
+              setLanguage(val)
+              localStorage.setItem("myownclone_locale", val)
+              window.location.reload()
+            }}
+            className="w-full max-w-xs rounded-lg border border-[var(--border-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--color-accent-warm)] focus:outline-none"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+          <p className="mt-2 text-xs text-[var(--text-muted)]">
+            Changes apply immediately after reload.
+          </p>
+        </div>
+
         <div className="card">
           <h3 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
             Appearance
           </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--text-primary)]">{t("settings.theme")}</p>
+              <p className="text-sm text-[var(--text-primary)]">{t("theme")}</p>
               <p className="text-xs text-[var(--text-muted)]">
                 Light or dark. Saved in this browser.
               </p>
@@ -300,7 +368,7 @@ export default function SettingsPage() {
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="stat-label" htmlFor="cfg-name">{t("settings.name")}</label>
+              <label className="stat-label" htmlFor="cfg-name">{t("name")}</label>
               <input
                 id="cfg-name"
                 type="text"
@@ -310,7 +378,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-slug">{t("settings.publicSlug")}</label>
+              <label className="stat-label" htmlFor="cfg-slug">{t("publicSlug")}</label>
               <input
                 id="cfg-slug"
                 type="text"
@@ -323,7 +391,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-desc">{t("settings.description")}</label>
+              <label className="stat-label" htmlFor="cfg-desc">{t("description")}</label>
               <textarea
                 id="cfg-desc"
                 rows={3}
@@ -333,7 +401,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="stat-label" htmlFor="cfg-tone">{t("settings.tone")}</label>
+              <label className="stat-label" htmlFor="cfg-tone">{t("tone")}</label>
               <select
                 id="cfg-tone"
                 value={tone}
@@ -391,6 +459,23 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Danger zone */}
+        <div className="card border-[var(--color-accent-red)]/30">
+          <h3 className="mb-2 text-sm font-semibold text-[var(--color-accent-red)]">
+            Danger zone
+          </h3>
+          <p className="mb-3 text-xs text-[var(--text-muted)]">
+            Irreversible actions. Proceed with caution.
+          </p>
+          <button
+            type="button"
+            disabled
+            className="rounded-lg border border-[var(--color-accent-red)]/30 px-4 py-2 text-xs font-medium text-[var(--color-accent-red)] opacity-50 cursor-not-allowed"
+          >
+            Delete account (coming soon)
+          </button>
         </div>
       </div>
     </div>
