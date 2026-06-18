@@ -48,6 +48,12 @@
   flex-basis: 72px;
 }
 
+.size96 {
+  width: 96px;
+  height: 96px;
+  flex-basis: 96px;
+}
+
 .forceMotion {
   /* forceMotion enables the pulse cycle on static logos */
 }
@@ -263,6 +269,42 @@
 
 @media (prefers-reduced-motion: reduce) {
   .playful .piece {
+    animation: none;
+    opacity: 1;
+    transform: none !important;
+  }
+}
+
+
+/* ── Hero variant — pieces fall, jump, spin, reassemble ── */
+.hero .piece {
+  animation: heroSequence 8s ease-in-out infinite;
+}
+.hero .topLeft    { animation-delay: 0s; }
+.hero .topRight   { animation-delay: 0.15s; }
+.hero .bottomLeft { animation-delay: 0.30s; }
+.hero .bottomRight{ animation-delay: 0.45s; }
+
+@keyframes heroSequence {
+  0%   { transform: translate(var(--start-x), var(--start-y)) rotate(var(--rotate)) scale(0.5); opacity: 0; }
+  8%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  20%  { transform: translate(0, 0) rotate(0deg) scale(1); }
+  28%  { transform: translate(-12px, -8px) rotate(-35deg) scale(0.85); }
+  36%  { transform: translate(14px, 10px) rotate(40deg) scale(1.1); }
+  44%  { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50%  { transform: translate(0, 0) rotate(0deg) scale(1); }
+  55%  { transform: translateY(-18px) scale(0.8); }
+  60%  { transform: translateY(0) scale(1.15); }
+  65%  { transform: translateY(-8px) scale(0.9); }
+  70%  { transform: translateY(0) scale(1); }
+  78%  { transform: rotate(360deg) scale(0.7); }
+  85%  { transform: rotate(0deg) scale(1); }
+  92%  { transform: translate(0, 0) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .piece {
     animation: none;
     opacity: 1;
     transform: none !important;
