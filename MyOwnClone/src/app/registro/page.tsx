@@ -6,6 +6,9 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 export default async function RegisterPage() {
+  if (process.env.BETA_MODE === "true") {
+    redirect("/#plans");
+  }
   const t = await getTranslations("auth");
   void t;
   const session = await auth();
