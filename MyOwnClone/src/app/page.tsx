@@ -32,7 +32,7 @@ const steps = [
 
 export default function LandingPage() {
   return (
-    <main className="moc-local-landing" style={{ background: "var(--bg-page, #fafaf9)" }}>
+    <main className="moc-local-landing">
       <LandingBehavior />
 
       <nav className="nav" style={{ borderBottom: "none" }}>
