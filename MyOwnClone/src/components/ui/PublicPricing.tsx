@@ -22,6 +22,15 @@ export default function PublicPricing({ mode, currentPlanId, onSelectPlan }: Pub
   const [view, setView] = useState<"cards" | "comparison">("cards");
   const normalizedCurrentPlan = normalizePublicPlanId(currentPlanId);
 
+  function handlePlanAction(plan: typeof PUBLIC_PRICING_PLANS[0]) {
+    if (onSelectPlan) {
+      onSelectPlan(plan.id);
+      // Scroll to beta form
+      const el = document.getElementById("plans");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+
   return (
     <div className={`shared-pricing shared-pricing-${mode}`}>
       <div className="shared-pricing-controls reveal" aria-label="Pricing controls">
@@ -99,10 +108,17 @@ export default function PublicPricing({ mode, currentPlanId, onSelectPlan }: Pub
                   ))}
                 </ul>
 
-                {onSelectPlan ? (
+                {plan.href.startsWith("mailto:") ? (
+                  <a
+                    href={plan.href}
+                    className={`shared-plan-action ${plan.featured ? "is-featured" : ""}`}
+                  >
+                    {plan.cta}
+                  </a>
+                ) : onSelectPlan ? (
                   <button
                     type="button"
-                    onClick={() => onSelectPlan(plan.id)}
+                    onClick={() => handlePlanAction(plan)}
                     className={`shared-plan-action ${plan.featured ? "is-featured" : ""}`}
                   >
                     {plan.cta}

@@ -1,7 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
+import BetaForm from "@/components/ui/BetaForm";
 import { Link } from "@/i18n/navigation";
+import type { PublicPlanId } from "@/lib/public-pricing";
 
 const services = [
   {
@@ -29,11 +34,13 @@ const steps = [
 ] as const;
 
 export default function LandingPage() {
+  const [selectedPlan, setSelectedPlan] = useState<PublicPlanId | null>(null);
+
   return (
-    <main className="moc-local-landing">
+    <main className="moc-local-landing" style={{ background: "var(--bg-page, #fafaf9)" }}>
       <LandingBehavior />
 
-      <nav className="nav">
+      <nav className="nav" style={{ borderBottom: "none" }}>
         <Link href="/" className="nav-logo" aria-label="MyOwnClone home">
           <AnimatedLogoMark size={26} forceMotion />
           <span>MyOwnClone</span>
@@ -49,13 +56,13 @@ export default function LandingPage() {
           <Link className="nav-signin" href="/login">
             Sign in
           </Link>
-          <Link className="nav-cta" href="/registro">
+          <Link className="nav-cta" href="#plans">
             Get started
           </Link>
         </div>
       </nav>
 
-      <section className="hero" id="hero">
+      <section className="hero" id="hero" style={{ borderBottom: "none" }}>
         <div className="hero-content">
           <div className="flex justify-center mb-6 reveal">
             <AnimatedLogoMark size={120} forceMotion />
@@ -71,7 +78,7 @@ export default function LandingPage() {
             Answer customers, guide leads and automate daily work without losing your voice.
           </p>
           <div className="hero-ctas reveal">
-            <Link className="btn btn-primary" href="/registro">
+            <Link className="btn btn-primary" href="#plans">
               Get started free
             </Link>
             <Link className="btn btn-secondary" href="/login">
@@ -81,7 +88,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="section" id="services">
+      <section className="section" id="services" style={{ borderBottom: "none" }}>
         <div className="sec-head">
           <span className="sec-kicker reveal">What it does</span>
           <h2 className="sec-title reveal">Everything your clone can handle.</h2>
@@ -100,7 +107,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="section process-section" id="process">
+      <section className="section process-section" id="process" style={{ borderBottom: "none" }}>
         <div className="sec-head">
           <span className="sec-kicker reveal">How it works</span>
           <h2 className="sec-title reveal">Four steps to your clone.</h2>
@@ -119,18 +126,29 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="section" id="plans">
+      <section className="section" id="plans" style={{ borderBottom: "none" }}>
         <div className="sec-head">
           <span className="sec-kicker reveal">Pricing</span>
           <h2 className="sec-title reveal">Plans that scale with you</h2>
           <p className="sec-desc reveal">
-            Start free. Go pro when you’re ready. Cancel anytime.
+            Start free. Go pro when you&apos;re ready. Cancel anytime.
           </p>
         </div>
-        <PublicPricing mode="landing" />
+        <PublicPricing mode="landing" onSelectPlan={setSelectedPlan} />
       </section>
 
-      <section className="cta-final" id="cta">
+      <section className="section" id="beta-form" style={{ borderBottom: "none", paddingTop: "0" }}>
+        <div className="sec-head">
+          <span className="sec-kicker reveal">Beta</span>
+          <h2 className="sec-title reveal">Request early access</h2>
+          <p className="sec-desc reveal">
+            Fill in the form below. We review every request and activate accounts under personal supervision.
+          </p>
+        </div>
+        <BetaForm selectedPlan={selectedPlan ?? undefined} />
+      </section>
+
+      <section className="cta-final" id="cta" style={{ borderBottom: "none" }}>
         <h2 className="reveal">
           Ready to clone
           <br />
@@ -140,7 +158,7 @@ export default function LandingPage() {
           Start on the landing page, continue in the dashboard. Same pricing, same experience.
         </p>
         <div className="hero-ctas reveal">
-          <Link className="btn btn-primary" href="/registro">
+          <Link className="btn btn-primary" href="#plans">
             Start building your clone
           </Link>
           <Link className="btn btn-secondary" href="/login">
