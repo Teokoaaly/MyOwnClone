@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from flask import g, request
@@ -309,6 +310,46 @@ class AdminTenantsApi(Resource):
             },
         }, 201
 
+
+@console_ns.route("/myownclone/admin/tenants/<string:tenant_id>")
+class AdminTenantDetailApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self, tenant_id):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        try:
+            tid = uuid.UUID(tenant_id)
+        except ValueError:
+            return {"error": "invalid tenant_id"}, 400
+
+        tenant = db.session.execute(
+            select(Tenant).where(Tenant.id == tid)
+        ).scalar_one_or_none()
+
+        if not tenant:
+            return {"error": "tenant not found"}, 404
+
+        clone_count = db.session.execute(
+            select(func.count(CloneConfig.id)).where(
+                CloneConfig.tenant_id == tid,
+                CloneConfig.deleted_at.is_(None),
+            )
+        ).scalar() or 0
+
+        return {
+            "id": str(tenant.id),
+            "slug": tenant.slug,
+            "name": tenant.name,
+            "plan": normalize_plan(tenant.plan),
+            "status": normalize_tenant_status(tenant.status),
+            "subscription_status": tenant.subscription_status,
+            "clone_count": clone_count,
+            "created_at": _iso(tenant.created_at),
+            "updated_at": _iso(tenant.updated_at),
+        }, 200
 
 @console_ns.route("/myownclone/admin/impersonation")
 class AdminImpersonationLogApi(Resource):
