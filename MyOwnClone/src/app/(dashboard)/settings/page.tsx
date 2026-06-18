@@ -77,9 +77,11 @@ export default function SettingsPage() {
     setLoading(true)
     try {
       const res = await fetch("/api/clone/clones")
-      if (!res.ok) return
+      if (!res.ok) {
+        throw new Error("Error loading clone data")
+      }
       const clones = await res.json()
-      if (clones.length === 0) return
+      if (!Array.isArray(clones) || clones.length === 0) return
       const c = clones[0]
       setClone(c)
       setName(c.name || "")
