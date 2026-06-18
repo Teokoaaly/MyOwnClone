@@ -3,6 +3,8 @@ services:
     image: pgvector/pgvector:pg15
     container_name: myownclone_postgres
     restart: unless-stopped
+    ports:
+      - 127.0.0.1:5432:5432
     networks:
       - backend_internal
     environment:
