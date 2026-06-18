@@ -270,6 +270,8 @@ export async function proxy(request: NextRequest) {
       }
       if ((token as any)?.tenantId) {
         forwardedHeaders["X-Tenant-Id"] = String((token as any).tenantId);
+      } else if ((token as any)?.role === "platform_admin") {
+        forwardedHeaders["X-Tenant-Id"] = process.env.PLATFORM_ADMIN_TENANT_ID || "00000000-0000-4000-8000-000000000001";
       }
 
       try {
