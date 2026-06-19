@@ -19,6 +19,7 @@ export function TubesBackground({
 }: TubesBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tubesRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -33,20 +34,31 @@ export function TubesBackground({
         if (cancelled) return;
 
         const TubesCursor = module.default;
-        if (typeof TubesCursor !== "function") return;
+        if (typeof TubesCursor !== "function") {
+          console.warn("TubesCursor not found, got:", typeof module.default, Object.keys(module));
+          return;
+        }
+
+        // Ensure canvas has proper size before init
+        const container = containerRef.current;
+        if (container) {
+          canvas.width = container.clientWidth;
+          canvas.height = container.clientHeight;
+        }
 
         const app = TubesCursor(canvas, {
           tubes: {
             colors: ["#ea580c", "#f97316", "#c2410c"],
             lights: {
-              intensity: 80,
+              intensity: 200,
               colors: ["#fbbf24", "#f59e0b", "#ea580c", "#fdba74"],
             },
           },
         });
         tubesRef.current = app;
+        console.log("TubesBackground: loaded successfully");
       } catch (err) {
-        console.warn("TubesBackground: failed to load", err);
+        console.error("TubesBackground load error:", err);
       }
     };
 
@@ -57,7 +69,6 @@ export function TubesBackground({
   }, []);
 
   const randomColors = useCallback((count: number) => {
-    // Warm palette that matches #e8e2dd
     const warm = ["#ea580c", "#f97316", "#c2410c", "#fbbf24", "#f59e0b", "#d97706", "#fb923c", "#fdba74"];
     return new Array(count)
       .fill(0)
@@ -72,16 +83,25 @@ export function TubesBackground({
 
   return (
     <div
-      className={cn("relative w-full min-h-screen overflow-hidden z-0", className)}
+      ref={containerRef}
+      className={cn("relative w-full min-h-screen overflow-hidden", className)}
       onClick={handleClick}
-      style={{ background: "transparent" }}
     >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full block pointer-events-none"
-        style={{ touchAction: "none", opacity: 0.35, mixBlendMode: "multiply" as any }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          display: "block",
+          touchAction: "none",
+          zIndex: 1,
+        }}
       />
-      <div className="relative z-10 w-full">{children}</div>
+      <div style={{ position: "relative", zIndex: 10, width: "100%" }}>
+        {children}
+      </div>
     </div>
   );
 }
