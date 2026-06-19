@@ -2,7 +2,6 @@
 
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import LandingBehavior from "@/components/ui/LandingBehavior";
-import TubesBackground from "@/components/ui/neon-flow";
 import PublicPricing from "@/components/ui/PublicPricing";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -24,8 +23,7 @@ export default function LandingPage() {
   const t = useTranslations("landing");
 
   return (
-    <TubesBackground className="moc-local-landing">
-      <main className="moc-local-landing" style={{ background: "transparent" }}>
+    <main className="moc-local-landing">
       <LandingBehavior />
 
       <nav className="nav" style={{ borderBottom: "none" }}>
@@ -145,6 +143,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
-    </TubesBackground>
   );
 }
