@@ -1371,7 +1371,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   color: var(--ink);
-  background: #fafaf9;
+  background: #e8e2dd;
 }
 
 .moc-local-landing canvas {
@@ -1635,7 +1635,7 @@ body {
   position: relative;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 110px 40px;
+  padding: 80px 40px;
   scroll-margin-top: 110px;
 }
 
