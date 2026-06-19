@@ -11,9 +11,24 @@ from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
 from api.extensions.ext_database import db
 from api.libs.login import current_account_with_tenant, login_required
-from api.models.myownclone import Feedback
+from api.models.myownclone import CloneConfig, Feedback
 
 logger = logging.getLogger(__name__)
+
+
+def _clone_owned_by_tenant(clone_id: str, tenant_id: str | None) -> bool:
+    """SECURITY (H2): ensure the clone belongs to the caller's tenant before any
+    feedback read/write. Returns True only when a CloneConfig row exists for the
+    given clone_id scoped to tenant_id."""
+    if not clone_id or not tenant_id:
+        return False
+    found = db.session.execute(
+        select(CloneConfig.id).where(
+            CloneConfig.id == clone_id,
+            CloneConfig.tenant_id == tenant_id,
+        )
+    ).scalar_one_or_none()
+    return found is not None
 
 
 class FeedbackPayload(BaseModel):
@@ -32,8 +47,12 @@ class FeedbackApi(Resource):
     @account_initialization_required
     @setup_required
     def post(self):
-        account, _ = current_account_with_tenant()
+        account, tenant_id = current_account_with_tenant()
         data = FeedbackPayload.model_validate(request.json)
+
+        # SECURITY (H2): reject feedback against clones the caller doesn't own.
+        if not _clone_owned_by_tenant(data.clone_id, tenant_id):
+            return {"error": "clone not found"}, 404
 
         fb = Feedback(
             clone_id=data.clone_id,
@@ -61,8 +80,13 @@ class FeedbackStatsApi(Resource):
     @account_initialization_required
     @setup_required
     def get(self):
+        account, tenant_id = current_account_with_tenant()
         clone_id = request.args.get("clone_id")
         if not clone_id:
+            return {"up": 0, "down": 0, "total": 0}, 200
+
+        # SECURITY (H2): only return stats for clones the caller owns.
+        if not _clone_owned_by_tenant(clone_id, tenant_id):
             return {"up": 0, "down": 0, "total": 0}, 200
 
         total = db.session.execute(

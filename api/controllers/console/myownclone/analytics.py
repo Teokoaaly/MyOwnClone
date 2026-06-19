@@ -19,10 +19,13 @@ logger = logging.getLogger(__name__)
 
 def _verify_clone_access(clone_id: str, tenant_id: str) -> None:
     from werkzeug.exceptions import NotFound
+    # SECURITY (H5): scope the clone by tenant unconditionally. The previous
+    # `tenant_id.startswith("proxy-")` carve-out disabled tenant scoping for any
+    # caller able to inject such a prefix, which is a latent cross-tenant read
+    # vector. Legitimate proxy/service accounts must use a real tenant_id (or a
+    # dedicated platform-admin path), not a magic prefix that skips the check.
     stmt = select(CloneConfig).where(CloneConfig.id == clone_id)
-    # Proxy auth (from middleware) sends 'proxy-service' as tenant_id,
-    # which is not a valid UUID. Skip tenant verification in that case.
-    if tenant_id and not tenant_id.startswith("proxy-"):
+    if tenant_id:
         stmt = stmt.where(CloneConfig.tenant_id == tenant_id)
     clone = db.session.execute(stmt).scalar_one_or_none()
     if not clone:

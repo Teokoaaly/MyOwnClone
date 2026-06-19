@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db, schema } from "@/lib/db";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { normalizeEmail } from "@/lib/platform-admin";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -63,10 +63,22 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    await db
-      .update(schema.users)
-      .set({ passwordHash, updatedAt: now } as any)
-      .where(eq(schema.users.id, user.id));
+    await db.transaction(async (tx) => {
+      // SECURITY (C1): update BOTH credential tables so the reset takes effect
+      // regardless of which one the login path validates first.
+      //   - users (Drizzle/Next.js): password_hash
+      //   - accounts (SQLAlchemy/Flask backend): password
+      // Previously only `users` was updated, so the old password kept working
+      // when login validated `accounts` first.
+      await tx
+        .update(schema.users)
+        .set({ passwordHash, updatedAt: now } as any)
+        .where(eq(schema.users.id, user.id));
+
+      await tx.execute(
+        sql`UPDATE accounts SET password = ${passwordHash}, updated_at = ${now} WHERE email = ${email}`,
+      );
+    });
 
     // One-shot: delete the token so it cannot be reused.
     await db

@@ -695,9 +695,11 @@ class AdminFeedbackApi(Resource):
 
 
 def _is_platform_admin(account_id: str) -> bool:
-    if getattr(g, "account_role", None) == "platform_admin":
-        return True
-
+    # SECURITY (H4): previously short-circuited on the client-supplied
+    # X-User-Role header (g.account_role == "platform_admin"), which let any
+    # caller with a leaked SERVICE_API_KEY self-grant platform admin. Now we
+    # always confirm against the DB Account row; the header is treated as a
+    # hint only, never as proof.
     from api.models.account import Account
 
     try:

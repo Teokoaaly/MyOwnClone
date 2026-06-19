@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import DOMPurify from 'dompurify'
 
 interface ChatMessage {
   id: string
@@ -45,6 +46,11 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
 
   const formattedContent = useMemo(() => {
     if (isUser) return message.content
+    // SECURITY (C2): assistant messages (LLM output, persisted + replayed) used to
+    // be rendered via dangerouslySetInnerHTML with a hand-rolled regex sanitizer
+    // that was trivially bypassable (<img src=x onerror=...>, <svg/onload>, etc.).
+    // Now we sanitize with DOMPurify after the markdown-ish transforms, so only a
+    // safe allowlist of tags/attributes survives.
     const html = message.content
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -53,14 +59,14 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
         '<code class="rounded px-1 py-0.5 text-sm" style="background: var(--surface-2); color: var(--text-primary);">$1</code>',
       )
       .replace(/\n/g, '<br />')
-    // Basic HTML sanitization: strip script/iframe/object/embed tags and event handlers
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
-      .replace(/<embed\b[^>]*\/?>/gi, '')
-      .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
-      .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
+    return DOMPurify.sanitize(html, {
+      USE_PROFILES: { html: true },
+      ALLOWED_ATTR: ['class', 'style', 'href', 'src', 'alt', 'title'],
+      ALLOWED_TAGS: [
+        'strong', 'em', 'code', 'br', 'p', 'a', 'ul', 'ol', 'li',
+        'span', 'div', 'b', 'i', 'u', 'blockquote', 'pre',
+      ],
+    })
   }, [message.content, isUser])
 
   return (

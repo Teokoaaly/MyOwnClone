@@ -25,6 +25,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "cloneId is required" }, { status: 400 });
   }
 
+  // SECURITY (H3): ensure the clone belongs to the caller's tenant before
+  // returning its bookings (cloneId comes from a query param, not the session).
+  const ownedClone = await db
+    .select({ id: schema.cloneConfigs.id })
+    .from(schema.cloneConfigs)
+    .where(and(eq(schema.cloneConfigs.id, cloneId), eq(schema.cloneConfigs.tenantId, session.user.tenantId ?? "")))
+    .limit(1);
+  if (ownedClone.length === 0) {
+    return NextResponse.json({ bookings: [] });
+  }
+
   const meetingTypesForClone = await db.query.meetingTypes.findMany({
     where: eq(schema.meetingTypes.cloneId, cloneId),
     columns: { id: true },
