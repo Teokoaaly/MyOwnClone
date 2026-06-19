@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
-
-const CDN_URL = "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js";
+import React, { useEffect, useRef, useCallback } from "react";
 
 interface TubesBackgroundProps {
   children?: React.ReactNode;
   className?: string;
   enableClickInteraction?: boolean;
+}
+
+// Helper for classname merging without tailwind dependency
+function cn(...classes: (string | undefined | null | false)[]): string {
+  return classes.filter(Boolean).join(" ");
 }
 
 export function TubesBackground({
@@ -20,21 +22,21 @@ export function TubesBackground({
   const tubesRef = useRef<any>(null);
 
   useEffect(() => {
-    let mounted = true;
     const canvas = canvasRef.current;
     if (!canvas) return;
+    let cancelled = false;
 
-    // Use Function constructor to avoid Next.js static analysis
-    const dynamicImport = new Function("url", "return import(url)");
+    const init = async () => {
+      try {
+        // Dynamic import — only runs client-side in useEffect
+        const module = await import(
+          "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
+        );
+        if (cancelled) return;
 
-    dynamicImport(CDN_URL)
-      .then((module: any) => {
-        if (!mounted) return;
-        const TubesCursor = module.default || module;
-        if (typeof TubesCursor !== "function") {
-          console.warn("TubesCursor not a function:", typeof TubesCursor);
-          return;
-        }
+        const TubesCursor = module.default;
+        if (typeof TubesCursor !== "function") return;
+
         const app = TubesCursor(canvas, {
           tubes: {
             colors: ["#f967fb", "#53bc28", "#6958d5"],
@@ -45,13 +47,14 @@ export function TubesBackground({
           },
         });
         tubesRef.current = app;
-      })
-      .catch((error: any) => {
-        console.error("Failed to load TubesCursor:", error);
-      });
+      } catch (err) {
+        console.warn("TubesBackground: failed to load", err);
+      }
+    };
 
+    init();
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, []);
 
@@ -69,15 +72,13 @@ export function TubesBackground({
 
   const handleClick = () => {
     if (!enableClickInteraction || !tubesRef.current) return;
-    const colors = randomColors(3);
-    const lightsColors = randomColors(4);
-    tubesRef.current.tubes.setColors(colors);
-    tubesRef.current.tubes.setLightsColors(lightsColors);
+    tubesRef.current.tubes.setColors(randomColors(3));
+    tubesRef.current.tubes.setLightsColors(randomColors(4));
   };
 
   return (
     <div
-      className={cn("relative w-full min-h-screen overflow-hidden", className)}
+      className={cn("relative w-full min-h-screen overflow-hidden z-0", className)}
       onClick={handleClick}
       style={{ background: "#0a0a0a" }}
     >
