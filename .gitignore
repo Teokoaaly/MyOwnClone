@@ -29,6 +29,10 @@ out/
 empresas_baleares_dashboard_sin_menu_responsive.html
 *.html.bak
 
+# --- VPS audit scratch scripts (procedural, not product code) ---
+ops/_audit/
+ops/_fix/
+
 # --- Editor / OS ---
 .vscode/
 .idea/
