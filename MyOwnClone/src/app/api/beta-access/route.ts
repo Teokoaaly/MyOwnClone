@@ -15,7 +15,6 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey || !apiKey.startsWith("re_")) {
-      console.warn("RESEND_API_KEY not configured");
       return NextResponse.json({
         ok: true,
         message: "Request received. We will review it and get back to you soon.",
@@ -26,9 +25,9 @@ export async function POST(request: Request) {
     const resend = new Resend(apiKey);
 
     const result = await resend.emails.send({
-      from: "MyOwnClone <onboarding@resend.dev>",
+      from: "MyOwnClone <beta@myownclone.com>",
       to: TO_EMAIL,
-      subject: "Beta access: " + reason + " - " + name,
+      subject: reason + " — " + name,
       replyTo: email,
       html:
         "<h2>New beta access request</h2>" +
@@ -38,16 +37,12 @@ export async function POST(request: Request) {
         "<p><strong>Comment:</strong> " + (comment || "(none)") + "</p>",
     });
 
-    console.log("Resend email sent:", result.data?.id || result);
-
-    return NextResponse.json({
-      ok: true,
-      message: "Request received. We will review it and get back to you soon.",
-    });
+    console.log("Resend OK:", result.data?.id);
+    return NextResponse.json({ ok: true, message: "Request received. We'll get back to you soon." });
   } catch (e: any) {
-    console.error("Beta access email error:", e.message || e);
+    console.error("Resend error:", e.message);
     return NextResponse.json(
-      { ok: true, message: "Request received (email delivery pending). We will review it soon." },
+      { ok: true, message: "Request received. We'll review it soon." },
       { status: 200 }
     );
   }
