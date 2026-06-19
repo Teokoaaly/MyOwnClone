@@ -4,33 +4,24 @@ import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
 import { Link } from "@/i18n/navigation";
-
-const services = [
-  {
-    label: "Overview",
-    title: "See your whole clone operation at a glance.",
-    description: "Monitor activity, conversations, and usage from a single clean dashboard.",
-  },
-  {
-    label: "Knowledge",
-    title: "Upload your content and teach the clone your way.",
-    description: "Documents, creator memories and business context stay organized for richer answers.",
-  },
-  {
-    label: "Automation",
-    title: "Handle inbox, products and bookings in one flow.",
-    description: "Automate support and sales workflows while keeping your unique voice.",
-  },
-];
+import { useTranslations } from "next-intl";
 
 const steps = [
-  ["01", "Sign up", "Create your account and start with the same public pricing shown in the dashboard."],
-  ["02", "Configure", "Set name, language, tone and the core behavior of your digital clone."],
-  ["03", "Train", "Upload knowledge and memories so responses stay accurate and aligned with you."],
-  ["04", "Deploy", "Publish the clone and keep it available around the clock for support, sales or education."],
+  ["01", "stepSignUp", "stepSignUpDesc"],
+  ["02", "stepConfigure", "stepConfigureDesc"],
+  ["03", "stepTrain", "stepTrainDesc"],
+  ["04", "stepDeploy", "stepDeployDesc"],
+] as const;
+
+const serviceKeys = [
+  { label: "overviewLabel", title: "overviewTitle", desc: "overviewDesc" },
+  { label: "knowledgeLabel", title: "knowledgeTitle", desc: "knowledgeDesc" },
+  { label: "automationLabel", title: "automationTitle", desc: "automationDesc" },
 ] as const;
 
 export default function LandingPage() {
+  const t = useTranslations("landing");
+
   return (
     <main className="moc-local-landing">
       <LandingBehavior />
@@ -42,17 +33,17 @@ export default function LandingPage() {
         </Link>
 
         <div className="nav-links">
-          <a href="#services">Services</a>
-          <a href="#process">Process</a>
-          <a href="#plans">Plans</a>
+          <a href="#services">{t("navServices")}</a>
+          <a href="#process">{t("navProcess")}</a>
+          <a href="#plans">{t("navPlans")}</a>
         </div>
 
         <div className="nav-actions">
           <Link className="nav-signin" href="/login">
-            Sign in
+            {t("navSignIn")}
           </Link>
           <Link className="nav-cta" href="/beta">
-            Get started
+            {t("navCta")}
           </Link>
         </div>
       </nav>
@@ -62,22 +53,19 @@ export default function LandingPage() {
           <div className="flex justify-center mb-6 reveal">
             <AnimatedLogoMark size={120} forceMotion />
           </div>
-          <span className="hero-kicker reveal">AI-Powered Digital Clone</span>
+          <span className="hero-kicker reveal">{t("heroKicker")}</span>
           <h1 className="reveal">
-            Create an AI clone
+            {t("heroTitleLine1")}
             <br />
-            that <span className="accent">works for you.</span>
+            <span className="accent">{t("heroTitleLine2")}</span>
           </h1>
-          <p className="hero-sub reveal">
-            Train an AI assistant with your knowledge, personality and business data.
-            Answer customers, guide leads and automate daily work without losing your voice.
-          </p>
+          <p className="hero-sub reveal">{t("heroSub")}</p>
           <div className="hero-ctas reveal">
             <Link className="btn btn-primary" href="/beta">
-              Request early access
+              {t("heroCta")}
             </Link>
             <Link className="btn btn-secondary" href="/login">
-              Sign in
+              {t("heroSignIn")}
             </Link>
           </div>
         </div>
@@ -85,18 +73,16 @@ export default function LandingPage() {
 
       <section className="section" id="services" style={{ borderBottom: "none" }}>
         <div className="sec-head">
-          <span className="sec-kicker reveal">What it does</span>
-          <h2 className="sec-title reveal">Everything your clone can handle.</h2>
-          <p className="sec-desc reveal">
-            From knowledge management to automated bookings, everything your AI clone needs in one place.
-          </p>
+          <span className="sec-kicker reveal">{t("servicesKicker")}</span>
+          <h2 className="sec-title reveal">{t("servicesTitle")}</h2>
+          <p className="sec-desc reveal">{t("servicesDesc")}</p>
         </div>
         <div className="services-grid">
-          {services.map((service) => (
-            <article className="service-card reveal" key={service.label}>
-              <span className="service-label">{service.label}</span>
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
+          {serviceKeys.map((svc) => (
+            <article className="service-card reveal" key={svc.label}>
+              <span className="service-label">{t(svc.label)}</span>
+              <h3>{t(svc.title)}</h3>
+              <p>{t(svc.desc)}</p>
             </article>
           ))}
         </div>
@@ -104,18 +90,16 @@ export default function LandingPage() {
 
       <section className="section process-section" id="process" style={{ borderBottom: "none" }}>
         <div className="sec-head">
-          <span className="sec-kicker reveal">How it works</span>
-          <h2 className="sec-title reveal">Four steps to your clone.</h2>
-          <p className="sec-desc reveal">
-            Get your clone running in four simple steps, from sign-up to deployment.
-          </p>
+          <span className="sec-kicker reveal">{t("processKicker")}</span>
+          <h2 className="sec-title reveal">{t("processTitle")}</h2>
+          <p className="sec-desc reveal">{t("processDesc")}</p>
         </div>
         <div className="process-grid">
-          {steps.map(([number, title, description]) => (
+          {steps.map(([number, titleKey, descKey]) => (
             <article className="process-step reveal" key={number}>
               <div className="step-num">{number}</div>
-              <h3>{title}</h3>
-              <p>{description}</p>
+              <h3>{t(titleKey)}</h3>
+              <p>{t(descKey)}</p>
             </article>
           ))}
         </div>
@@ -123,30 +107,26 @@ export default function LandingPage() {
 
       <section className="section" id="plans" style={{ borderBottom: "none" }}>
         <div className="sec-head">
-          <span className="sec-kicker reveal">Pricing</span>
-          <h2 className="sec-title reveal">Plans that scale with you</h2>
-          <p className="sec-desc reveal">
-            Start free. Go pro when you&apos;re ready. Cancel anytime.
-          </p>
+          <span className="sec-kicker reveal">{t("plansKicker")}</span>
+          <h2 className="sec-title reveal">{t("plansTitle")}</h2>
+          <p className="sec-desc reveal">{t("plansDesc")}</p>
         </div>
         <PublicPricing mode="landing" />
       </section>
 
       <section className="cta-final" id="cta" style={{ borderBottom: "none" }}>
         <h2 className="reveal">
-          Ready to clone
+          {t("ctaTitleLine1")}
           <br />
-          yourself?
+          {t("ctaTitleLine2")}
         </h2>
-        <p className="reveal">
-          Start on the landing page, continue in the dashboard. Same pricing, same experience.
-        </p>
+        <p className="reveal">{t("ctaDesc")}</p>
         <div className="hero-ctas reveal">
           <Link className="btn btn-primary" href="/beta">
-            Request early access
+            {t("ctaCta")}
           </Link>
           <Link className="btn btn-secondary" href="/login">
-            Sign in
+            {t("ctaSignIn")}
           </Link>
         </div>
       </section>
@@ -154,12 +134,12 @@ export default function LandingPage() {
       <footer className="footer">
         <span className="footer-brand">
           <AnimatedLogoMark size={20} forceMotion />
-          © 2026 MyOwnClone
+          &copy; 2026 MyOwnClone
         </span>
         <div className="footer-links">
-          <Link href="/legal">Legal</Link>
-          <a href="/docs">Docs</a>
-          <a href="mailto:hello@myownclone.com">Contact</a>
+          <Link href="/legal">{t("footerLegal")}</Link>
+          <a href="/docs">{t("footerDocs")}</a>
+          <a href="mailto:hello@myownclone.com">{t("footerContact")}</a>
         </div>
       </footer>
     </main>

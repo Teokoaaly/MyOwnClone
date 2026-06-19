@@ -3,10 +3,12 @@
 import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { Link } from "@/i18n/navigation";
 
 function BetaContent() {
+  const t = useTranslations("landing");
   const searchParams = useSearchParams();
   const planFromUrl = searchParams.get("plan") ?? "";
 
@@ -55,9 +57,9 @@ function BetaContent() {
   if (status === "sent") {
     return (
       <div className="card reveal" style={{ maxWidth: 560, margin: "0 auto", textAlign: "center", padding: "2rem" }}>
-        <p style={{ fontSize: "1.2rem", fontWeight: 600 }}>Request sent</p>
+        <p style={{ fontSize: "1.2rem", fontWeight: 600 }}>{t("betaSentTitle")}</p>
         <p style={{ color: "var(--text-muted)", marginTop: "0.5rem" }}>
-          We will review your request and get back to you at <strong>{email}</strong> within a few hours.
+          {t("betaSentDesc", { email: `<strong>${email}</strong>` })}
         </p>
       </div>
     );
@@ -67,22 +69,22 @@ function BetaContent() {
     <div className="reveal" style={{ maxWidth: 520, margin: "0 auto" }}>
       <div className="card" style={{ padding: "2rem" }}>
         <p style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.3rem" }}>
-          Beta mode
+          {t("betaTitle")}
         </p>
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-          During beta, all features are free. Accounts are activated under personal supervision.
+          {t("betaDesc")}
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
           <div>
             <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.3rem" }}>
-              Name
+              {t("betaNameLabel")}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your full name"
+              placeholder={t("betaNamePlaceholder")}
               style={inputStyle}
               required
             />
@@ -90,13 +92,13 @@ function BetaContent() {
 
           <div>
             <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.3rem" }}>
-              Email
+              {t("betaEmailLabel")}
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@email.com"
+              placeholder={t("betaEmailPlaceholder")}
               style={inputStyle}
               required
             />
@@ -104,7 +106,7 @@ function BetaContent() {
 
           <div>
             <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.3rem" }}>
-              Plan
+              {t("betaPlanLabel")}
             </label>
             <select
               value={plan}
@@ -112,16 +114,16 @@ function BetaContent() {
               style={inputStyle}
               required
             >
-              <option value="">Select a plan...</option>
-              <option value="Free">Free — Starter</option>
-              <option value="Pro">Pro — Most popular</option>
-              <option value="Enterprise">Enterprise — Scale</option>
+              <option value="">{t("betaPlanPlaceholder")}</option>
+              <option value="Free">{t("betaPlanFree")}</option>
+              <option value="Pro">{t("betaPlanPro")}</option>
+              <option value="Enterprise">{t("betaPlanEnterprise")}</option>
             </select>
           </div>
 
           <div>
             <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.3rem" }}>
-              Reason for beta access
+              {t("betaReasonLabel")}
             </label>
             <select
               value={reason}
@@ -129,24 +131,25 @@ function BetaContent() {
               style={inputStyle}
               required
             >
-              <option value="">Select a reason...</option>
-              <option value="Customer support automation">Customer support automation</option>
-              <option value="Sales & lead qualification">Sales & lead qualification</option>
-              <option value="Teaching & onboarding">Teaching & onboarding</option>
-              <option value="Personal AI assistant">Personal AI assistant</option>
-              <option value="Curiosity / exploration">Curiosity / exploration</option>
-              <option value="Other">Other</option>
+              <option value="">{t("betaReasonPlaceholder")}</option>
+              <option value="Customer support automation">{t("betaReasonSupport")}</option>
+              <option value="Sales & lead qualification">{t("betaReasonSales")}</option>
+              <option value="Teaching & onboarding">{t("betaReasonTeaching")}</option>
+              <option value="Personal AI assistant">{t("betaReasonPersonal")}</option>
+              <option value="Curiosity / exploration">{t("betaReasonCuriosity")}</option>
+              <option value="Other">{t("betaReasonOther")}</option>
             </select>
           </div>
 
           <div>
             <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.3rem" }}>
-              Leave us a comment <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(optional)</span>
+              {t("betaCommentLabel")}{" "}
+              <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>{t("betaCommentOptional")}</span>
             </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Tell us about your use case, team size, or what you want to build..."
+              placeholder={t("betaCommentPlaceholder")}
               rows={3}
               style={{ ...inputStyle, resize: "vertical" }}
             />
@@ -167,12 +170,12 @@ function BetaContent() {
               opacity: (!name || !email || !plan || !reason) ? 0.5 : 1,
             }}
           >
-            {status === "sending" ? "Sending..." : "Request access"}
+            {status === "sending" ? t("betaSending") : t("betaSubmit")}
           </button>
 
           {status === "error" && (
             <p style={{ color: "#dc2626", fontSize: "0.8rem", textAlign: "center" }}>
-              Something went wrong. Please try again or email us directly at info.myownclone@gmail.com
+              {t("betaError")}
             </p>
           )}
         </form>
@@ -181,7 +184,7 @@ function BetaContent() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
             <div style={{ flex: 1, height: "1px", background: "var(--border-soft, #e5e0dc)" }} />
             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
-              or continue with
+              {t("betaOrContinue")}
             </span>
             <div style={{ flex: 1, height: "1px", background: "var(--border-soft, #e5e0dc)" }} />
           </div>
@@ -210,7 +213,7 @@ function BetaContent() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            Continue with Google
+            {t("betaGoogle")}
           </button>
         </div>
       </div>
@@ -219,6 +222,8 @@ function BetaContent() {
 }
 
 export default function BetaPage() {
+  const t = useTranslations("landing");
+
   return (
     <main
       className="flex min-h-screen flex-col items-center justify-center px-4 py-12"
@@ -229,7 +234,7 @@ export default function BetaPage() {
         <span style={{ fontSize: "1.1rem", fontWeight: 700 }}>MyOwnClone</span>
       </Link>
 
-      <Suspense fallback={<p style={{ color: "var(--text-muted)" }}>Loading...</p>}>
+      <Suspense fallback={<p style={{ color: "var(--text-muted)" }}>{t("betaLoading")}</p>}>
         <BetaContent />
       </Suspense>
     </main>
