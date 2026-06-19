@@ -12,6 +12,8 @@ function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
+const CDN = "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js";
+
 export function TubesBackground({
   children,
   className,
@@ -20,49 +22,31 @@ export function TubesBackground({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tubesRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const scriptId = useRef("tubes-script-" + Math.random().toString(36).slice(2));
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     let cancelled = false;
 
-    // Load the script as a classic script tag (not module)  
-    const existingScript = document.getElementById(scriptId.current);
-    if (existingScript) {
-      initTubesIfReady();
-      return;
-    }
-
     const script = document.createElement("script");
-    script.id = scriptId.current;
-    script.src = "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js";
-    script.async = true;
+    script.type = "module";
+    script.textContent = `
+      import TubesCursor from "${CDN}";
+      window.__TubesCursor = TubesCursor;
+      window.dispatchEvent(new CustomEvent("__tubes_ready"));
+    `;
+    script.id = "__tubes_module";
 
-    script.onload = () => {
-      if (!cancelled) initTubesIfReady();
-    };
-    script.onerror = (e) => {
-      console.error("TubesBackground: script load failed", e);
-    };
-
-    document.head.appendChild(script);
-
-    function initTubesIfReady() {
-      // Check various places the library might expose itself
-      const TubesCursor =
-        (window as any).TubesCursor ||
-        (window as any).default?.TubesCursor ||
-        (window as any).default;
-
+    const onReady = () => {
+      if (cancelled) return;
+      const TubesCursor = (window as any).__TubesCursor;
       if (typeof TubesCursor !== "function") {
-        console.warn("TubesCursor not found. Window keys with 'ube':",
-          Object.keys(window).filter(k => k.toLowerCase().includes("ube")));
+        console.warn("TubesCursor not ready");
         return;
       }
 
       const container = containerRef.current;
-      if (container && canvas) {
+      if (container) {
         canvas.width = container.clientWidth || window.innerWidth;
         canvas.height = container.clientHeight || window.innerHeight;
       }
@@ -78,14 +62,21 @@ export function TubesBackground({
           },
         });
         tubesRef.current = app;
-        console.log("TubesBackground: loaded");
+        window.removeEventListener("__tubes_ready", onReady);
       } catch (err) {
-        console.error("TubesBackground init error:", err);
+        console.error("Init error:", err);
       }
-    }
+    };
+
+    window.addEventListener("__tubes_ready", onReady);
+    script.onerror = () => console.error("Module script failed");
+    document.head.appendChild(script);
 
     return () => {
       cancelled = true;
+      window.removeEventListener("__tubes_ready", onReady);
+      const el = document.getElementById("__tubes_module");
+      if (el) el.remove();
     };
   }, []);
 
