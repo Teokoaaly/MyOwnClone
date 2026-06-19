@@ -21,6 +21,10 @@ function setCookie(name: string, value: string, maxAge: number): void {
   if (typeof document === "undefined") return;
   document.cookie = name + "=" + encodeURIComponent(value) + "; Max-Age=" + maxAge + "; Path=/; SameSite=Lax";
 }
+function setLocaleCookies(locale: string) {
+  setCookie(COOKIE_NAME, locale, COOKIE_MAX_AGE);
+  setCookie("NEXT_LOCALE", locale, COOKIE_MAX_AGE);
+}
 
 export interface LanguageSwitcherProps {
   className?: string;
@@ -67,7 +71,7 @@ export const LanguageSwitcher: FC<LanguageSwitcherProps> = ({ className }) => {
       close();
       return;
     }
-    setCookie(COOKIE_NAME, next, COOKIE_MAX_AGE);
+    setLocaleCookies(next);
     setCurrent(next);
     close();
     router.refresh();
@@ -119,7 +123,7 @@ export const LanguageSwitcher: FC<LanguageSwitcherProps> = ({ className }) => {
         <ul
           role="listbox"
           aria-label={t("languageSwitcher.label")}
-          className="absolute right-0 bottom-full mb-1 min-w-[140px] rounded-md border border-[var(--border-soft)] bg-[var(--bg-shell)] py-1 shadow-lg z-50"
+          className="absolute right-0 top-full mt-1 min-w-[140px] rounded-md border border-[var(--border-soft)] bg-[var(--bg-shell)] py-1 shadow-lg z-50"
         >
           <li>
             <button
