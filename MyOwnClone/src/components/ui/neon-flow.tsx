@@ -8,7 +8,6 @@ interface TubesBackgroundProps {
   enableClickInteraction?: boolean;
 }
 
-// Helper for classname merging without tailwind dependency
 function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");
 }
@@ -28,10 +27,10 @@ export function TubesBackground({
 
     const init = async () => {
       try {
-        // Dynamic import — only runs client-side in useEffect
-        const module = await import(
-          "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
-        );
+        // Build URL at runtime to avoid Turbopack static analysis
+        const url = ["https://cdn.jsdelivr.net/npm/threejs-components",
+                     "@0.0.19/build/cursors/tubes1.min.js"].join("/");
+        const module = await import(/* @vite-ignore */ url);
         if (cancelled) return;
 
         const TubesCursor = module.default;
