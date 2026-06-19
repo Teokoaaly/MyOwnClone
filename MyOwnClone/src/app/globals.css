@@ -1354,6 +1354,11 @@ body {
   letter-spacing: 0.02em;
 }
 
+html,
+body {
+  background: #e8e2dd;
+}
+
 /* Public landing: current brand layout */
 .moc-local-landing {
   scroll-behavior: smooth;
@@ -1437,9 +1442,7 @@ body {
   gap: 24px;
   padding: 16px 40px;
   border-bottom: none;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(18px) saturate(1.8);
-  -webkit-backdrop-filter: blur(18px) saturate(1.8);
+  background: #e8e2dd;
 }
 
 .moc-local-landing .nav-logo,
