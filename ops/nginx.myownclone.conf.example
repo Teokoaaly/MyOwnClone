@@ -1,35 +1,58 @@
-# MyOwnClone Nginx vhost example.
+# MyOwnClone Nginx vhost example (hardened).
 #
-# Purpose:
-# - Public/backend-native APIs stay on Flask (`/console/`, `/api/myownclone/`).
-# - Frontend API aliases go through Next.js first (`/api/admin/`, `/api/clone/`,
-#   `/api/auth/`, `/api/`) so `src/proxy.ts` can attach service auth headers and
-#   enforce NextAuth role checks.
+# Security model (audit 2026-06-19):
+# - ALL browser traffic goes to Next.js (port 3000), whose `src/proxy.ts`:
+#     * validates the NextAuth JWT
+#     * enforces role checks (e.g. `/api/admin/*` requires `platform_admin`)
+#     * injects `X-API-Key` + real user identity to the Flask backend (5001)
+# - nginx NEVER injects `X-User-Role` or a hardcoded API key. The previous
+#   `location /api/admin/` block that did so was an auth bypass and was removed.
+# - Two server-to-server webhooks stay direct-to-backend because they are NOT
+#   mapped in `proxy.ts` (and SendGrid inbound is multipart, which proxy.ts
+#   would corrupt by forcing `Content-Type: application/json`):
+#     * `/api/myownclone/public/inbound-email` (SendGrid Inbound Parse, auth via `X-Webhook-Secret`)
+#     * `/api/deploy` (CI/CD, auth via `X-Deploy-Secret`)
 #
-# Replace `myownclone.com`, certificate paths, listen addresses, and upstream IPs
-# for the target host.
+# Replace `myownclone.com`, certificate paths, and the upstream IP (127.0.0.1
+# when Next.js runs on the same host) for the target.
+
+map $scheme $hsts_header {
+    https   "max-age=31536000; includeSubDomains; preload";
+    default "";
+}
 
 server {
-    listen 80;
+    listen 80 default_server;
+    listen [::]:80 default_server;
     server_name myownclone.com www.myownclone.com;
     return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
     server_name myownclone.com www.myownclone.com;
 
-    ssl_certificate /etc/letsencrypt/live/myownclone.com/fullchain.pem;
+    ssl_certificate     /etc/letsencrypt/live/myownclone.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/myownclone.com/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    client_max_body_size 25m;
+
+    # Security headers
+    add_header Strict-Transport-Security $hsts_header always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
-    add_header X-Frame-Options "DENY" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
 
-    location /console/ {
+    # ---- Webhooks server-to-server (direct to backend; auth by their own header) ----
+    # SendGrid Inbound Parse: multipart/form-data; cannot go through proxy.ts (forces JSON).
+    location = /api/myownclone/public/inbound-email {
         proxy_pass http://127.0.0.1:5001;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
@@ -38,7 +61,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    location /api/myownclone/ {
+    # CI/CD deploy trigger (GitHub webhook): auth via X-Deploy-Secret on the backend.
+    location = /api/deploy {
         proxy_pass http://127.0.0.1:5001;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
@@ -47,52 +71,9 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    location /api/auth/ {
-        proxy_pass http://100.99.222.101:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /api/admin/ {
-        proxy_pass http://100.99.222.101:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /api/clone/ {
-        proxy_pass http://100.99.222.101:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /api/ {
-        proxy_pass http://100.99.222.101:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
+    # ---- All other traffic to Next.js (its proxy routes /api/* to the backend) ----
     location / {
-        proxy_pass http://100.99.222.101:3000;
+        proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -100,5 +81,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
     }
 }

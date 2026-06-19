@@ -3,6 +3,8 @@ services:
     image: pgvector/pgvector:pg15
     container_name: myownclone_postgres
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
     networks:
       - backend_internal
     environment:
@@ -65,17 +67,19 @@ services:
       ENABLE_MODULES: text2vec-openai,text2vec-huggingface
     volumes:
       - weaviate_data:/var/lib/weaviate
+    # NOTE: the weaviate image ships wget but NOT curl. Use wget for the healthcheck.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/v1/.well-known/ready >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
           memory: 1G
         reservations:
           memory: 256M
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:8080/v1/.well-known/ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   api:
     build:
