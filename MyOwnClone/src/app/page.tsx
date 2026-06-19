@@ -1,6 +1,6 @@
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import LandingPricing from "@/components/ui/LandingPricing";
-import ShaderBackground from "@/components/ui/ShaderBackground";
+import NeonTubesBackground from "@/components/ui/NeonTubesBackground";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getSessionAwareNav } from "@/lib/session-routing";
@@ -53,7 +53,7 @@ export default async function LandingPage() {
         }}
       />
       <div className="site-backdrop" aria-hidden="true" />
-      <ShaderBackground />
+      <NeonTubesBackground />
 
       <nav className="nav">
         <Link href="/" className="nav-logo" aria-label="MyOwnClone home">
