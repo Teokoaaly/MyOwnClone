@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
+const CDN_URL = "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js";
+
 interface TubesBackgroundProps {
   children?: React.ReactNode;
   className?: string;
@@ -15,25 +17,25 @@ export function TubesBackground({
   enableClickInteraction = true,
 }: TubesBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const tubesRef = useRef<any>(null);
 
   useEffect(() => {
     let mounted = true;
-    let cleanup: (() => void) | undefined;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const initTubes = async () => {
-      if (!canvasRef.current) return;
+    // Use Function constructor to avoid Next.js static analysis
+    const dynamicImport = new Function("url", "return import(url)");
 
-      try {
-        const module = await import(
-          "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
-        );
-        const TubesCursor = module.default;
-
+    dynamicImport(CDN_URL)
+      .then((module: any) => {
         if (!mounted) return;
-
-        const app = TubesCursor(canvasRef.current, {
+        const TubesCursor = module.default || module;
+        if (typeof TubesCursor !== "function") {
+          console.warn("TubesCursor not a function:", typeof TubesCursor);
+          return;
+        }
+        const app = TubesCursor(canvas, {
           tubes: {
             colors: ["#f967fb", "#53bc28", "#6958d5"],
             lights: {
@@ -42,29 +44,14 @@ export function TubesBackground({
             },
           },
         });
-
         tubesRef.current = app;
-        setIsLoaded(true);
-
-        const handleResize = () => {
-          // threejs-components handles resize internally
-        };
-
-        window.addEventListener("resize", handleResize);
-
-        cleanup = () => {
-          window.removeEventListener("resize", handleResize);
-        };
-      } catch (error) {
+      })
+      .catch((error: any) => {
         console.error("Failed to load TubesCursor:", error);
-      }
-    };
-
-    initTubes();
+      });
 
     return () => {
       mounted = false;
-      if (cleanup) cleanup();
     };
   }, []);
 
@@ -82,20 +69,15 @@ export function TubesBackground({
 
   const handleClick = () => {
     if (!enableClickInteraction || !tubesRef.current) return;
-
     const colors = randomColors(3);
     const lightsColors = randomColors(4);
-
     tubesRef.current.tubes.setColors(colors);
     tubesRef.current.tubes.setLightsColors(lightsColors);
   };
 
   return (
     <div
-      className={cn(
-        "relative w-full min-h-screen overflow-hidden",
-        className
-      )}
+      className={cn("relative w-full min-h-screen overflow-hidden", className)}
       onClick={handleClick}
       style={{ background: "#0a0a0a" }}
     >
@@ -104,7 +86,6 @@ export function TubesBackground({
         className="absolute inset-0 w-full h-full block"
         style={{ touchAction: "none" }}
       />
-
       <div className="relative z-10 w-full">{children}</div>
     </div>
   );
