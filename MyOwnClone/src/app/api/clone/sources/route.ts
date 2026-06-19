@@ -1,5 +1,5 @@
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 
@@ -19,6 +19,25 @@ function getCloneIdFromRequest(request: NextRequest): string | null {
   const cookieCloneId = request.cookies.get("moc_active_clone_id")?.value;
   if (cookieCloneId) return cookieCloneId;
   return process.env.DEFAULT_CLONE_ID || null;
+}
+
+/**
+ * SECURITY (H3): verify that the clone belongs to the authenticated user's
+ * tenant. The `moc_active_clone_id` cookie is client-set, so without this
+ * check an authenticated attacker could swap the cookie to a victim's clone
+ * UUID and read/write its knowledge base.
+ */
+async function verifyCloneOwnership(
+  cloneId: string,
+  tenantId: string | undefined,
+): Promise<boolean> {
+  if (!tenantId) return false;
+  const owned = await db
+    .select({ id: schema.cloneConfigs.id })
+    .from(schema.cloneConfigs)
+    .where(and(eq(schema.cloneConfigs.id, cloneId), eq(schema.cloneConfigs.tenantId, tenantId)))
+    .limit(1);
+  return owned.length > 0;
 }
 
 function countWords(text: string): number {
@@ -95,6 +114,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // SECURITY (H3): ensure the clone belongs to the caller's tenant.
+  if (!(await verifyCloneOwnership(cloneId, session.user.tenantId))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   try {
     const items = await db
       .select()
@@ -130,6 +154,12 @@ export async function POST(request: NextRequest) {
       { error: "No clone configured. Create a clone first." },
       { status: 404 }
     );
+  }
+
+  // SECURITY (H3): ensure the clone belongs to the caller's tenant before
+  // allowing writes to its knowledge base.
+  if (!(await verifyCloneOwnership(cloneId, session.user.tenantId))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   try {

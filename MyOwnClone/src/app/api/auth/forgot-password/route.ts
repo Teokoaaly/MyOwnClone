@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { db, schema } from "@/lib/db";
+import { sql } from "drizzle-orm";
 import { sendLoginVerificationCode } from "@/lib/email";
 import { normalizeEmail } from "@/lib/platform-admin";
 
@@ -22,11 +23,20 @@ export async function POST(request: Request) {
   // Always return success to avoid user enumeration. Only send the email
   // when the user actually exists.
   try {
+    // SECURITY (C1): a user may live only in `accounts` (Flask backend table)
+    // and not in `users` (Drizzle/Next.js). Look up both so a reset link is
+    // generated for either credential table.
     const user = await db.query.users.findFirst({
       where: (users, { eq }) => eq(users.email, email),
     });
+    const accountExists =
+      (
+        await db.execute(
+          sql`SELECT 1 FROM accounts WHERE email = ${email} LIMIT 1`,
+        )
+      ).rows.length > 0;
 
-    if (user) {
+    if (user || accountExists) {
       const token = randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + TOKEN_TTL_MINUTES * 60 * 1000);
 

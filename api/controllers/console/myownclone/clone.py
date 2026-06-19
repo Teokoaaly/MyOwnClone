@@ -210,21 +210,28 @@ class CloneModePromptApi(Resource):
         account, tenant_id = current_account_with_tenant()
         data = CloneModePromptPayload.model_validate(request.json)
         mode = normalize_silo(data.mode)
+        # SECURITY (H1): scope by tenant FIRST so a caller cannot overwrite another
+        # tenant's existing prompt by guessing its clone_id. Previously the tenant
+        # check only ran on the create branch, so an existing prompt for ANY tenant
+        # could be overwritten (cross-tenant system-prompt tampering).
+        clone = db.session.execute(
+            select(CloneConfig).where(
+                CloneConfig.id == clone_id,
+                CloneConfig.tenant_id == tenant_id,
+            )
+        ).scalar_one_or_none()
+        if not clone:
+            return {"error": "clone not found"}, 404
         prompt = db.session.execute(
-            select(CloneModePrompt).where(
+            select(CloneModePrompt)
+            .join(CloneConfig, CloneConfig.id == CloneModePrompt.clone_id)
+            .where(
                 CloneModePrompt.clone_id == clone_id,
                 CloneModePrompt.mode == mode,
+                CloneConfig.tenant_id == tenant_id,
             )
         ).scalar_one_or_none()
         if not prompt:
-            clone = db.session.execute(
-                select(CloneConfig).where(
-                    CloneConfig.id == clone_id,
-                    CloneConfig.tenant_id == tenant_id,
-                )
-            ).scalar_one_or_none()
-            if not clone:
-                return {"error": "clone not found"}, 404
             prompt = CloneModePrompt(clone_id=clone_id, mode=mode)
             db.session.add(prompt)
         prompt.system_prompt = data.system_prompt

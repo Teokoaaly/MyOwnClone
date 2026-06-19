@@ -212,8 +212,11 @@ class InboxGenerateDraftApi(Resource):
 
 
 def _verify_clone_access(clone_id: str, tenant_id: str) -> None:
+    # SECURITY (H5): scope the clone by tenant unconditionally. The previous
+    # `tenant_id.startswith("proxy-")` carve-out disabled tenant scoping for any
+    # caller able to inject such a prefix (cross-tenant inbox read vector).
     stmt = select(CloneConfig).where(CloneConfig.id == clone_id)
-    if tenant_id and not tenant_id.startswith("proxy-"):
+    if tenant_id:
         stmt = stmt.where(CloneConfig.tenant_id == tenant_id)
     clone = db.session.execute(stmt).scalar_one_or_none()
     if not clone:
