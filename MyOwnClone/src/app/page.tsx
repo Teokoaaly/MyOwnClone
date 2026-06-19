@@ -5,6 +5,7 @@ import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const steps = [
   ["01", "stepSignUp", "stepSignUpDesc"],
@@ -39,6 +40,7 @@ export default function LandingPage() {
         </div>
 
         <div className="nav-actions">
+          <LanguageSwitcher />
           <Link className="nav-signin" href="/login">
             {t("navSignIn")}
           </Link>
