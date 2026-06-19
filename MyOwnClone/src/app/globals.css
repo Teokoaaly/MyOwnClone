@@ -1366,8 +1366,6 @@ body {
   --line-soft: rgba(15, 23, 42, 0.06);
   --accent: #ea580c;
   --accent-dark: #9a3412;
-  position: relative;
-  isolation: isolate;
   min-height: 100vh;
   overflow-x: hidden;
   color: var(--ink);
@@ -1632,7 +1630,6 @@ body {
 }
 
 .moc-local-landing .section {
-  position: relative;
   max-width: 1180px;
   margin: 0 auto;
   padding: 80px 40px;
