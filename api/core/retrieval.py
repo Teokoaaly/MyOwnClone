@@ -1,22 +1,31 @@
-"""Silo-aware retrieval wrapper.
+"""Silo-aware retrieval wrapper (standard RAG pipeline).
 
-Retrieval service for MyOwnClone that adds silo selection to the base retrieval service.
+Two retrieval modes, selected by the active EmbeddingService provider:
+
+  - **semantic (default when OPENAI_API_KEY is set)**: uses pgvector cosine
+    distance (`embedding <=> query_vector`) over the ivfflat index, blended
+    with a light lexical boost for exact-keyword matches (hybrid retrieval).
+  - **lexical fallback**: pure FNV-1a hashed vectors compared with cosine
+    of the hashed vectors (the legacy `local_hybrid_v1` behaviour).
 
 Flow:
-    1. Resolve silo → dataset_id
-    2. Delegate retrieval to the underlying retrieval service
-    3. Post-filter results by context_id if specified
-    4. Return SiloRetrievalResult with structured output
+    1. Embed the query via EmbeddingService (OpenAI or lexical).
+    2. Filter chunks by clone + silo + context_id.
+    3. Rank by cosine similarity, optionally boosted by lexical term overlap.
+    4. Apply score_threshold and return top_k.
+
+The local chunks table is the only live knowledge source. The legacy
+Dataset/DocumentSegment path (Weaviate stub) is preserved as a no-op
+fallback and documented as dormant in MANUAL_TECNICO.md.
 """
 
 import logging
-import math
-import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
+from api.core.embeddings import EmbeddingService, EMBEDDING_DIMENSIONS, _lexical_embedding, _lexical_score, _terms
 from api.core.rag.datasource.retrieval_service import RetrievalService
 from api.core.rag.retrieval.retrieval_methods import RetrievalMethod
 from api.core.myownclone.silos import CloneSilo, filter_segments_by_context, get_dataset_id_for_silo
@@ -61,69 +70,97 @@ class LexicalSegment:
     metadata: dict[str, Any]
 
 
-_STOPWORDS = {
-    "a", "al", "algo", "ante", "como", "con", "de", "del", "el", "en", "es",
-    "esta", "este", "esto", "la", "las", "lo", "los", "me", "mi", "para",
-    "por", "que", "se", "si", "sobre", "su", "sus", "the", "to", "and",
-    "or", "of", "in", "is", "it", "for", "from", "about",
-}
+def _is_pgvector_available(session: Any) -> bool:
+    """Detect whether the chunks.embedding column supports the `<=>` operator.
 
-_EMBEDDING_DIMENSIONS = 1536
-
-
-def _terms(text: str) -> set[str]:
-    return {
-        term
-        for term in re.findall(r"[\wáéíóúüñÁÉÍÓÚÜÑ]{3,}", text.lower())
-        if term not in _STOPWORDS
-    }
+    Returns False on SQLite (tests) or if pgvector isn't installed, so the
+    retrieval falls back to the in-Python lexical path instead of crashing.
+    """
+    try:
+        session.execute(text("SELECT 1 WHERE '[1,2]'::vector IS NOT NULL"))
+        return True
+    except Exception:
+        return False
 
 
-def _hash_term(term: str) -> int:
-    value = 2166136261
-    for char in term:
-        value ^= ord(char)
-        value = (value * 16777619) & 0xFFFFFFFF
-    return value
+def _retrieve_semantic(
+    session: Any,
+    clone_id: str,
+    query: str,
+    query_embedding: list[float],
+    silo: CloneSilo,
+    context_id: str | None,
+    top_k: int,
+    score_threshold: float,
+) -> SiloRetrievalResult:
+    """Rank chunks by pgvector cosine distance + lexical boost.
 
+    `score = max(cosine_sim, 0.7*cosine_sim + 0.3*term_score)`
+    The max keeps pure-semantic hits strong while rewarding keyword overlap.
+    """
+    query_terms = _terms(query)
+    # pgvector cosine distance in [0,2]; similarity = 1 - distance.
+    distance_expr = Chunk.embedding.cosine_distance(query_embedding)
+    similarity_expr = 1.0 - distance_expr
 
-def _lexical_embedding(text: str) -> list[float]:
-    vector = [0.0] * _EMBEDDING_DIMENSIONS
-    for term in _terms(text):
-        hashed = _hash_term(term)
-        index = hashed % _EMBEDDING_DIMENSIONS
-        sign = 1.0 if hashed % 2 == 0 else -1.0
-        vector[index] += sign
+    try:
+        rows = session.execute(
+            select(Chunk, Source, similarity_expr.label("similarity"))
+            .join(Source, Source.id == Chunk.source_id)
+            .where(
+                Source.clone_id == clone_id,
+                Source.status == "ready",
+                Chunk.embedding.isnot(None),
+            )
+            .order_by(distance_expr)
+            .limit(top_k * 4)  # over-fetch, then re-rank with lexical boost
+        ).all()
+    except Exception:
+        logger.exception(
+            "Semantic retrieval failed for clone=%s silo=%s; falling back",
+            clone_id, silo.value,
+        )
+        return SiloRetrievalResult(silo=silo, context_id=context_id)
 
-    norm = math.sqrt(sum(value * value for value in vector))
-    if norm == 0:
-        return vector
-    return [value / norm for value in vector]
+    scored: list[LexicalSegment] = []
+    for chunk, source, similarity in rows:
+        source_meta = source.source_metadata or {}
+        chunk_meta = chunk.chunk_metadata or {}
+        if source_meta.get("silo", "teach") != silo.value:
+            continue
+        if context_id and chunk_meta.get("context_id") != context_id:
+            continue
 
+        vector_score = float(similarity) if similarity is not None else 0.0
+        term_score = _lexical_score(query_terms, chunk.content or "")
+        # Hybrid: keep semantic dominant; let keywords break near-ties upward.
+        score = max(vector_score, 0.7 * vector_score + 0.3 * term_score)
+        if score < score_threshold:
+            continue
 
-def _cosine_similarity(left: list[float], right: list[float] | None) -> float:
-    if not left or not right:
-        return 0.0
-    size = min(len(left), len(right))
-    if size == 0:
-        return 0.0
-    return max(0.0, sum(left[i] * float(right[i]) for i in range(size)))
+        scored.append(
+            LexicalSegment(
+                content=chunk.content,
+                metadata={
+                    "score": round(score, 4),
+                    "segment_id": chunk.id,
+                    "source_id": source.id,
+                    "source_title": source.title,
+                    "retrieval": "pgvector_hybrid_v2",
+                    "vector_score": round(vector_score, 4),
+                    "term_score": round(term_score, 4),
+                },
+            )
+        )
 
-
-def _lexical_score(query_terms: set[str], content: str) -> float:
-    if not query_terms:
-        return 0.0
-    content_terms = _terms(content)
-    if not content_terms:
-        return 0.0
-
-    overlap = query_terms.intersection(content_terms)
-    if not overlap:
-        return 0.0
-
-    coverage = len(overlap) / len(query_terms)
-    density = len(overlap) / max(len(content_terms), 1)
-    return min(1.0, 0.25 + coverage * 0.65 + density * 0.1)
+    scored.sort(key=lambda s: s.metadata.get("score", 0.0), reverse=True)
+    segments = scored[:top_k]
+    return SiloRetrievalResult(
+        segments=segments,
+        silo=silo,
+        context_id=context_id,
+        total_found=len(segments),
+    )
 
 
 def _retrieve_from_local_chunks(
@@ -135,6 +172,7 @@ def _retrieve_from_local_chunks(
     top_k: int,
     score_threshold: float,
 ) -> SiloRetrievalResult:
+    """Lexical fallback (legacy local_hybrid_v1) for when pgvector/OpenAI is off."""
     query_terms = _terms(query)
     if not query_terms:
         return SiloRetrievalResult(silo=silo, context_id=context_id)
@@ -154,7 +192,6 @@ def _retrieve_from_local_chunks(
         return SiloRetrievalResult(silo=silo, context_id=context_id)
 
     scored: list[LexicalSegment] = []
-    min_score = score_threshold
     for chunk, source in rows:
         source_meta = source.source_metadata or {}
         chunk_meta = chunk.chunk_metadata or {}
@@ -164,9 +201,11 @@ def _retrieve_from_local_chunks(
             continue
 
         term_score = _lexical_score(query_terms, chunk.content)
-        vector_score = _cosine_similarity(query_embedding, getattr(chunk, "embedding", None))
+        stored = getattr(chunk, "embedding", None)
+        # Cosine against a stored vector of any kind (lexical or real).
+        vector_score = _cosine_similarity_legacy(query_embedding, stored)
         score = max(term_score, vector_score)
-        if score < min_score:
+        if score < score_threshold:
             continue
 
         scored.append(
@@ -194,6 +233,16 @@ def _retrieve_from_local_chunks(
     )
 
 
+def _cosine_similarity_legacy(left: list[float], right: list[float] | None) -> float:
+    """In-Python cosine similarity for the lexical fallback path."""
+    if not left or not right:
+        return 0.0
+    size = min(len(left), len(right))
+    if size == 0:
+        return 0.0
+    return max(0.0, sum(left[i] * float(right[i]) for i in range(size)))
+
+
 def retrieve_from_silo(
     session: Any,
     tenant_id: str,
@@ -205,6 +254,39 @@ def retrieve_from_silo(
     score_threshold: float = 0.7,
     retrieval_method: RetrievalMethod = RetrievalMethod.SEMANTIC_SEARCH,
 ) -> SiloRetrievalResult:
+    """Retrieve the top_k most relevant chunks for a query within a silo.
+
+    Tries semantic retrieval (pgvector + OpenAI embeddings) first, then
+    falls back to lexical retrieval (legacy hashed vectors).
+    """
+    embed_service = EmbeddingService(tenant_id=tenant_id)
+
+    # Semantic path: only when (a) OpenAI/lexical service produced a vector
+    # and (b) the DB supports the pgvector <=> operator.
+    if embed_service.provider == "openai" and _is_pgvector_available(session):
+        query_embedding = embed_service.embed_query(query)
+        # Real embeddings need a lower threshold: cosine similarity ~0.25+
+        # is already a meaningful match, unlike the inflated hash scores.
+        semantic_threshold = min(score_threshold, 0.25)
+        result = _retrieve_semantic(
+            session=session,
+            clone_id=clone_id,
+            query=query,
+            query_embedding=query_embedding,
+            silo=silo,
+            context_id=context_id,
+            top_k=top_k,
+            score_threshold=semantic_threshold,
+        )
+        if result.found:
+            return result
+        # If semantic found nothing, try lexical before giving up — a user
+        # may have an old clone whose chunks were embedded lexically.
+        logger.info(
+            "Semantic retrieval empty for clone=%s silo=%s; trying lexical",
+            clone_id, silo.value,
+        )
+
     local_result = _retrieve_from_local_chunks(
         session=session,
         clone_id=clone_id,
@@ -217,14 +299,12 @@ def retrieve_from_silo(
     if local_result.found:
         return local_result
 
+    # Legacy Dataset/DocumentSegment path (currently stubs, returns nothing).
     dataset_id = get_dataset_id_for_silo(session, tenant_id, clone_id, silo)
-
     if not dataset_id:
         logger.warning(
             "No dataset found for clone=%s silo=%s tenant=%s",
-            clone_id,
-            silo.value,
-            tenant_id,
+            clone_id, silo.value, tenant_id,
         )
         return SiloRetrievalResult(silo=silo, context_id=context_id)
 
@@ -242,19 +322,13 @@ def retrieve_from_silo(
 
     total = len(documents)
     filtered = 0
-
     if context_id and documents:
         segment_ids = [
             doc.metadata.get("segment_id", "")
             for doc in documents
             if hasattr(doc, "metadata")
         ]
-        valid_ids = filter_segments_by_context(
-            session,
-            segment_ids,
-            context_id,
-            tenant_id,
-        )
+        valid_ids = filter_segments_by_context(session, segment_ids, context_id, tenant_id)
         valid_set = set(valid_ids)
         documents = [
             doc for doc in documents

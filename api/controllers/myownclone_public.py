@@ -20,7 +20,7 @@ import time
 from collections import defaultdict
 from hashlib import sha256
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from sqlalchemy import select
 
 from api.core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
@@ -40,6 +40,11 @@ from api.models.myownclone import (
 logger = logging.getLogger(__name__)
 
 myownclone_public_bp = Blueprint("myownclone_public", __name__, url_prefix="/api/myownclone/public")
+
+# Internal endpoints are mounted under /api/myownclone/internal and are only
+# reachable from the Next.js proxy (X-API-Key) or trusted services. They are
+# NOT registered under the public prefix to keep the public surface small.
+myownclone_internal_bp = Blueprint("myownclone_internal", __name__, url_prefix="/api/myownclone/internal")
 
 _WINDOW_SECONDS = 60
 _CHAT_LIMIT = 20
@@ -128,6 +133,33 @@ def _record_question(clone_id: str, question: str) -> None:
             clone_id=clone_id,
             question=question,
             count=1,
+        )
+    )
+
+
+def _record_knowledge_gap(clone_id: str, question: str) -> None:
+    """Track unanswered questions so the creator can fill knowledge holes.
+
+    Increments count if the same question keeps missing context, so the
+    analytics dashboard can surface the most urgent gaps."""
+    from api.models.myownclone import AnalyticsGap
+
+    existing = db.session.execute(
+        select(AnalyticsGap).where(
+            AnalyticsGap.clone_id == clone_id,
+            AnalyticsGap.question == question,
+            AnalyticsGap.status == "open",
+        )
+    ).scalar_one_or_none()
+    if existing:
+        existing.count = (existing.count or 0) + 1
+        return
+    db.session.add(
+        AnalyticsGap(
+            clone_id=clone_id,
+            question=question,
+            count=1,
+            status="open",
         )
     )
 
@@ -351,12 +383,38 @@ def chat_public(slug: str):
 
     context_text = result.to_context_string() if result.found else ""
 
+    if result.found:
+        context_block = f"CONTENIDO DE REFERENCIA:\n{context_text}"
+    else:
+        # Anti-hallucination: when no grounded context exists, force the LLM
+        # to admit it lacks information instead of inventing an answer.
+        # Also log a knowledge gap so the creator can see what's missing.
+        context_block = (
+            "No se encontró contenido relevante en la base de conocimiento.\n"
+            "IMPORTANTE: Si no dispones de información verificable para "
+            "responder, di claramente 'No tengo información sobre eso en "
+            "mi contenido' y NO inventes datos."
+        )
+        _record_knowledge_gap(clone.id, message)
+
     full_prompt = f"""{system_prompt}
 
-{"CONTENIDO DE REFERENCIA:" if context_text else "No se encontró contenido relevante en la base de conocimiento."}
-{context_text}
+{context_block}
 
 Pregunta del usuario: {message}"""
+
+    # Per-mode temperature override (FASE 3.1). Falls back to env defaults.
+    from api.core.model_manager import GenerationParams
+    mode_temperature = float(mode_prompt.temperature) if (
+        mode_prompt and mode_prompt.temperature is not None
+    ) else None
+    gen_params = GenerationParams.from_env()
+    if mode_temperature is not None:
+        gen_params = GenerationParams(
+            temperature=max(0.0, min(2.0, mode_temperature)),
+            max_tokens=gen_params.max_tokens,
+            top_p=gen_params.top_p,
+        )
 
     def generate():
         try:
@@ -364,7 +422,9 @@ Pregunta del usuario: {message}"""
 
             model_manager = ModelManager()
             model_instance = model_manager.get_default_model_instance(
-                tenant_id=clone.tenant_id, model_type=ModelType.LLM
+                tenant_id=clone.tenant_id,
+                model_type=ModelType.LLM,
+                params=gen_params,
             )
 
             accumulated = ""
@@ -642,3 +702,207 @@ def create_booking_public(slug: str):
         "meeting_type": mt.name,
         "visitor_name": visitor_name,
     }), 201
+
+
+# ── Internal endpoints (service-to-service: Next.js proxy → backend) ────────
+# These are mounted under /api/myownclone/internal and protected by X-API-Key
+# (the same SERVICE_API_KEY the proxy already sends). They exist so the
+# frontend does NOT need to duplicate the OpenAI key: the backend owns all
+# LLM/embedding credentials.
+
+
+def _require_service_key() -> tuple[dict, int] | None:
+    """Validate X-API-Key against SERVICE_API_KEY. Returns an error response
+    tuple if invalid, or None if the caller is authorized."""
+    import hmac
+    import os
+    from flask import request
+
+    configured = os.environ.get("SERVICE_API_KEY", "").strip()
+    if not configured:
+        return {"error": "service key not configured"}, 503
+    provided = request.headers.get("X-API-Key", "")
+    if not provided or not hmac.compare_digest(provided, configured):
+        return {"error": "unauthorized"}, 401
+    return None
+
+
+@myownclone_internal_bp.route("/embed", methods=["POST"])
+def embed_texts():
+    """Embed a batch of texts using the active EmbeddingService.
+
+    Called by the Next.js ingestion route (MyOwnClone/src/app/api/clone/sources)
+    so that the OPENAI_API_KEY only lives on the backend.
+
+    Request:
+        Headers: X-API-Key: <SERVICE_API_KEY>
+        Body:    {"texts": ["...", "..."], "tenant_id": "<optional>"}
+
+    Response 200:
+        {"vectors": [[...1536 floats...], ...],
+         "provider": "openai|lexical",
+         "model": "text-embedding-3-small",
+         "tokens_used": 123}
+    """
+    err = _require_service_key()
+    if err:
+        return jsonify(err[0]), err[1]
+
+    data = request.get_json(silent=True) or {}
+    texts = data.get("texts") or []
+    tenant_id = data.get("tenant_id")
+
+    if not isinstance(texts, list) or not texts:
+        return jsonify({"error": "texts must be a non-empty list"}), 400
+
+    if len(texts) > 512:
+        return jsonify({"error": "too many texts in one batch (max 512)"}), 413
+
+    # Cap each text to avoid runaway embeddings cost.
+    MAX_TEXT_CHARS = 16_000
+    truncated = [(t or "")[:MAX_TEXT_CHARS] for t in texts]
+
+    from api.core.embeddings import EmbeddingService
+
+    service = EmbeddingService(tenant_id=tenant_id)
+    result = service.embed_texts(truncated)
+
+    return jsonify({
+        "vectors": result.vectors,
+        "provider": result.provider,
+        "model": result.model,
+        "tokens_used": result.tokens_used,
+    }), 200
+
+
+@myownclone_internal_bp.route("/embed/status", methods=["GET"])
+def embed_status():
+    """Report which embedding provider/model is active. Useful for the
+    frontend to show 'semantic search on/off' in the UI."""
+    err = _require_service_key()
+    if err:
+        return jsonify(err[0]), err[1]
+
+    from api.core.embeddings import EmbeddingService
+
+    svc = EmbeddingService()
+    return jsonify({
+        "provider": svc.provider,
+        "model": svc.model,
+        "dimensions": 1536,
+        "semantic": svc.provider == "openai",
+    }), 200
+
+
+@myownclone_internal_bp.route("/ingest", methods=["POST"])
+def ingest_source():
+    """Run the ingestion pipeline for a source (extract → chunk → embed → persist).
+
+    Called by the Next.js proxy when a source is created/uploaded so that
+    PDF/YouTube/web content actually gets indexed (previously stuck at
+    status='processing' forever).
+
+    Request:
+        Headers: X-API-Key: <SERVICE_API_KEY>
+        Body:    {"source_id": "<uuid>", "async": true}
+
+    Response 202 (async mode, default):
+        {"status": "accepted", "source_id": "..."}
+    Response 200 (sync mode, async=false):
+        {"status": "ready|error", "chunks_created": N, "tokens_used": N,
+         "embedding_provider": "openai|lexical"}
+    """
+    err = _require_service_key()
+    if err:
+        return jsonify(err[0]), err[1]
+
+    data = request.get_json(silent=True) or {}
+    source_id = data.get("source_id")
+    if not source_id:
+        return jsonify({"error": "source_id is required"}), 400
+
+    run_async = data.get("async", True)
+
+    if run_async:
+        # Spawn a background thread so the upload request returns immediately.
+        # On a larger deployment this would be an rq/celery job; for a single
+        # VPS a thread is simpler and good enough.
+        import threading
+
+        def _run():
+            try:
+                with current_app.app_context():
+                    from api.core.ingestion_pipeline import IngestionPipeline
+                    IngestionPipeline().ingest(source_id=source_id)
+            except Exception:
+                logger.exception("Background ingestion failed for %s", source_id)
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
+        return jsonify({"status": "accepted", "source_id": source_id}), 202
+
+    # Sync mode: run inline and return the result.
+    try:
+        from api.core.ingestion_pipeline import IngestionPipeline
+        result = IngestionPipeline().ingest(source_id=source_id)
+        return jsonify({
+            "status": result.status,
+            "source_id": result.source_id,
+            "chunks_created": result.chunks_created,
+            "tokens_used": result.tokens_used,
+            "embedding_provider": result.embedding_provider,
+            "error": result.error,
+        }), 200 if result.status == "ready" else 422
+    except Exception as exc:
+        logger.exception("Sync ingestion failed for %s", source_id)
+        return jsonify({"error": str(exc)}), 500
+
+
+@myownclone_internal_bp.route("/upload", methods=["POST"])
+def upload_file():
+    """Accept a PDF upload and store it in a temporary path, returning a
+    URL the ingestion pipeline can download later.
+
+    The Next.js proxy sends the file as multipart/form-data with field "file".
+    Files are stored under /tmp/myownclone-uploads/ (mapped to a volume in
+    docker-compose) and served back as a file:// URL the backend can read.
+
+    Request:
+        Headers: X-API-Key: <SERVICE_API_KEY>
+        Body:    multipart/form-data with "file" field
+
+    Response 200:
+        {"url": "file:///tmp/myownclone-uploads/<uuid>.pdf",
+         "filename": "doc.pdf", "size": 12345}
+    """
+    err = _require_service_key()
+    if err:
+        return jsonify(err[0]), err[1]
+
+    if "file" not in request.files:
+        return jsonify({"error": "file field is required"}), 400
+
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": "empty filename"}), 400
+
+    # Only PDF for now (the only binary type the pipeline supports).
+    allowed = {".pdf"}
+    import os
+    import uuid as uuidlib
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed:
+        return jsonify({"error": f"unsupported file type: {ext}"}), 415
+
+    upload_dir = os.environ.get("UPLOAD_DIR", "/tmp/myownclone-uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    stored_name = f"{uuidlib.uuid4()}{ext}"
+    stored_path = os.path.join(upload_dir, stored_name)
+    file.save(stored_path)
+
+    return jsonify({
+        "url": f"file://{stored_path}",
+        "filename": file.filename,
+        "size": os.path.getsize(stored_path),
+    }), 200

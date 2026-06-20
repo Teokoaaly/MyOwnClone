@@ -30,7 +30,7 @@ from api.models import (
 from api.models.account import Account, Tenant  # noqa: F401 — needed for metadata
 
 # Import public blueprint
-from api.controllers.myownclone_public import myownclone_public_bp
+from api.controllers.myownclone_public import myownclone_public_bp, myownclone_internal_bp
 
 # Import console blueprint
 from api.controllers.console import bp as console_bp
@@ -38,6 +38,7 @@ from api.controllers.console.auth import auth_bp
 
 # Import CLI commands
 from api.commands.seed import seed_demo_data
+from api.commands.reindex import reindex_command
 
 # Import deploy blueprint
 from api.controllers.deploy import deploy_bp
@@ -173,6 +174,7 @@ def create_app():
 
     # Register CLI commands
     app.cli.add_command(seed_demo_data)
+    app.cli.add_command(reindex_command)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)
@@ -217,6 +219,7 @@ def register_health_routes(app):
 def register_myownclone_blueprints(app):
     """Register all MyOwnClone blueprints with the Flask app."""
     app.register_blueprint(myownclone_public_bp)
+    app.register_blueprint(myownclone_internal_bp)
     app.register_blueprint(console_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(deploy_bp)

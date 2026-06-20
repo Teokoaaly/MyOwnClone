@@ -47,6 +47,7 @@ class CloneModePromptPayload(BaseModel):
     mode: str
     system_prompt: str
     is_active: bool = True
+    temperature: float | None = Field(default=None, ge=0.0, le=2.0)
 
 
 class CloneConfigResponse(ResponseModel):
@@ -132,6 +133,7 @@ class CloneConfigListApi(Resource):
                 clone_id=clone.id,
                 mode=silo.value,
                 system_prompt=DEFAULT_PROMPTS.get(silo, ""),
+                temperature=DEFAULT_TEMPERATURES.get(silo, 0.30),
                 is_active=silo.value in normalize_silo_list(data.active_modes),
             )
             db.session.add(prompt)
@@ -236,11 +238,14 @@ class CloneModePromptApi(Resource):
             db.session.add(prompt)
         prompt.system_prompt = data.system_prompt
         prompt.is_active = data.is_active
+        if data.temperature is not None:
+            prompt.temperature = data.temperature
         db.session.commit()
         return {
             "id": str(prompt.id),
             "mode": normalize_silo(prompt.mode),
             "system_prompt": prompt.system_prompt,
+            "temperature": float(prompt.temperature),
         }, 200
 
 
@@ -267,6 +272,7 @@ def _serialize_clone(clone: CloneConfig) -> dict:
                 "mode": normalize_silo(p.mode),
                 "system_prompt": p.system_prompt,
                 "is_active": p.is_active,
+                "temperature": float(p.temperature) if p.temperature is not None else 0.30,
             }
             for p in prompts
         ],
@@ -277,20 +283,42 @@ DEFAULT_PROMPTS = {
     CloneSilo.TEACH: (
         "Eres un asistente pedagógico amable y paciente. Tu objetivo es ayudar a los "
         "estudiantes a comprender el contenido del curso. Explica los conceptos de forma "
-        "clara, usa ejemplos y anima a hacer preguntas. Basa tus respuestas ÚNICAMENTE "
-        "en el contenido proporcionado. Si no tienes suficiente información, di claramente "
-        "'No tengo suficiente información para responder a eso'."
+        "clara, usa ejemplos y anima a hacer preguntas.\n\n"
+        "REGLAS:\n"
+        "- Basa tus respuestas ÚNICAMENTE en el contenido proporcionado en CONTENIDO DE REFERENCIA.\n"
+        "- Cita la fuente entre paréntesis cuando sea relevante, p. ej. (Fuente 1).\n"
+        "- Si el contenido no contiene la respuesta, di claramente: "
+        "'No tengo suficiente información para responder a eso'.\n"
+        "- NO inventes datos, enlaces, precios ni fechas que no estén en el contenido.\n"
+        "- Mantén las respuestas concisas (máximo 3 párrafos) salvo que pidan detalle."
     ),
     CloneSilo.SUPPORT: (
         "Eres un agente de soporte eficiente y resolutivo. Tu objetivo es resolver dudas "
-        "y problemas de los clientes de forma rápida y profesional. Si la consulta requiere "
-        "atención humana, indícalo claramente y ofrece derivar al equipo de soporte. "
-        "Basas tus respuestas en la documentación proporcionada."
+        "y problemas de los clientes de forma rápida y profesional.\n\n"
+        "REGLAS:\n"
+        "- Basa tus respuestas en la documentación proporcionada en CONTENIDO DE REFERENCIA.\n"
+        "- Cita la fuente entre paréntesis cuando sea relevante, p. ej. (Fuente 2).\n"
+        "- Si la consulta requiere atención humana o no está cubierta por la documentación, "
+        "indícalo claramente y ofrece derivar al equipo de soporte.\n"
+        "- NO inventes procedimientos, URLs ni políticas que no estén documentados.\n"
+        "- Responde en el mismo idioma del usuario."
     ),
     CloneSilo.SALES: (
         "Eres un asesor de ventas entusiasta pero no agresivo. Tu objetivo es ayudar a "
-        "los clientes a encontrar el producto o servicio que mejor se adapte a sus necesidades. "
-        "Destaca los beneficios, responde objeciones con honestidad y recomienda productos "
-        "basándote en la información de catálogo proporcionada."
+        "los clientes a encontrar el producto o servicio que mejor se adapte a sus necesidades.\n\n"
+        "REGLAS:\n"
+        "- Destaca los beneficios y recomienda productos basándote en el catálogo "
+        "proporcionado en CONTENIDO DE REFERENCIA.\n"
+        "- Responde objeciones con honestidad; nunca falsees características ni precios.\n"
+        "- Si el catálogo no contiene lo que buscan, dilo y ofrece alternativas si las hay.\n"
+        "- Cierra con una llamada a la acción suave cuando tenga sentido."
     ),
+}
+
+# Per-mode default temperatures (FASE 3.1). Lower = more factual, higher = more creative.
+# teach/support stay factual; sales gets a bit more variety in phrasing.
+DEFAULT_TEMPERATURES = {
+    CloneSilo.TEACH: 0.20,
+    CloneSilo.SUPPORT: 0.25,
+    CloneSilo.SALES: 0.60,
 }

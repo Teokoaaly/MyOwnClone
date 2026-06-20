@@ -1,8 +1,10 @@
 import enum
+from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 import sqlalchemy as sa
-from sqlalchemy import String, func, text
+from sqlalchemy import Numeric, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.libs.datetime_utils import naive_utc_now
@@ -39,6 +41,14 @@ class CloneModePrompt(DefaultFieldsDCMixin, TypeBase):
     clone_id: Mapped[str] = mapped_column(String(36), nullable=False)
     mode: Mapped[str] = mapped_column(String(20), nullable=False)
     system_prompt: Mapped[str] = mapped_column(LongText, nullable=False)
+    # Per-mode LLM temperature (FASE 3 of standard RAG pipeline).
+    # teach defaults to 0.30 (factual); sales can be raised to ~0.7 (creative).
+    temperature: Mapped[Decimal] = mapped_column(
+        Numeric(3, 2),
+        server_default=text("0.30"),
+        default=Decimal("0.30"),
+        nullable=False,
+    )
     is_active: Mapped[bool] = mapped_column(sa.Boolean, server_default=text("true"), default=True)
 
 

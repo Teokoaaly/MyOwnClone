@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 const MAX_CHUNK_CHARS = 1200;
 const CHUNK_OVERLAP_CHARS = 160;
 const EMBEDDING_DIMENSIONS = 1536;
+const MAX_EMBED_BATCH = 128;
 const STOPWORDS = new Set([
   "the", "and", "for", "from", "about", "with", "that", "this", "you",
   "que", "con", "para", "por", "del", "las", "los", "una", "uno", "como",
@@ -58,6 +59,11 @@ function hashTerm(term: string): number {
   return hash >>> 0;
 }
 
+/**
+ * Local lexical embedding fallback — used only when the backend embedding
+ * service is unreachable. When the backend responds, we use its (semantic)
+ * vectors instead, so the OPENAI_API_KEY only lives on the backend.
+ */
 function lexicalEmbedding(text: string): number[] {
   const vector = Array.from({ length: EMBEDDING_DIMENSIONS }, () => 0);
   const terms = tokenize(text);
@@ -71,6 +77,116 @@ function lexicalEmbedding(text: string): number[] {
   const norm = Math.sqrt(vector.reduce((sum, value) => sum + value * value, 0));
   if (norm === 0) return vector;
   return vector.map((value) => value / norm);
+}
+
+/**
+ * Call the backend embedding service. Returns null on any failure so the
+ * caller falls back to lexical embeddings (never fails ingestion).
+ */
+async function embedViaBackend(
+  texts: string[],
+  tenantId: string | undefined,
+): Promise<{ vectors: number[][]; provider: string } | null> {
+  const backendUrl = process.env.MYOWNCLONE_API_URL?.replace(/\/+$/, "");
+  const serviceKey = process.env.SERVICE_API_KEY?.trim();
+  if (!backendUrl || !serviceKey) return null;
+
+  try {
+    const res = await fetch(`${backendUrl}/api/myownclone/internal/embed`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": serviceKey,
+      },
+      body: JSON.stringify({ texts, tenant_id: tenantId ?? null }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      vectors: number[][];
+      provider: string;
+      model: string;
+      tokens_used: number;
+    };
+    if (!Array.isArray(data.vectors) || data.vectors.length !== texts.length) {
+      return null;
+    }
+    return { vectors: data.vectors, provider: data.provider };
+  } catch {
+    return null;
+  }
+}
+
+async function embedChunks(
+  chunks: string[],
+  tenantId: string | undefined,
+): Promise<{ vectors: number[][]; provider: string }> {
+  if (chunks.length === 0) {
+    return { vectors: [], provider: "lexical" };
+  }
+  // Batch to stay under the backend's 512-text limit and OpenAI's request size.
+  const out: number[][] = [];
+  let provider = "lexical";
+  for (let i = 0; i < chunks.length; i += MAX_EMBED_BATCH) {
+    const batch = chunks.slice(i, i + MAX_EMBED_BATCH);
+    const backend = await embedViaBackend(batch, tenantId);
+    if (backend) {
+      out.push(...backend.vectors);
+      provider = backend.provider;
+    } else {
+      out.push(...batch.map(lexicalEmbedding));
+    }
+  }
+  return { vectors: out, provider };
+}
+
+/**
+ * Upload a PDF binary to the backend /upload endpoint so the ingestion
+ * pipeline can read it from disk. Returns the file:// URL the backend stored.
+ */
+async function uploadFileToBackend(
+  file: File,
+): Promise<{ url: string; filename: string; size: number } | null> {
+  const backendUrl = process.env.MYOWNCLONE_API_URL?.replace(/\/+$/, "");
+  const serviceKey = process.env.SERVICE_API_KEY?.trim();
+  if (!backendUrl || !serviceKey) return null;
+
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${backendUrl}/api/myownclone/internal/upload`, {
+      method: "POST",
+      headers: { "X-API-Key": serviceKey },
+      body: fd,
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Trigger backend ingestion for a source. Fire-and-forget; the source's
+ * status flips to 'ready' or 'error' asynchronously.
+ */
+async function triggerIngest(sourceId: string): Promise<void> {
+  const backendUrl = process.env.MYOWNCLONE_API_URL?.replace(/\/+$/, "");
+  const serviceKey = process.env.SERVICE_API_KEY?.trim();
+  if (!backendUrl || !serviceKey) return;
+
+  try {
+    await fetch(`${backendUrl}/api/myownclone/internal/ingest`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": serviceKey,
+      },
+      body: JSON.stringify({ source_id: sourceId, async: true }),
+    });
+  } catch {
+    // Best-effort: the source stays in 'processing'. Operator can retry
+    // with `flask reindex` later.
+  }
 }
 
 function chunkText(text: string): string[] {
@@ -235,25 +351,59 @@ export async function POST(request: NextRequest) {
         silo,
         wordCount: countWords(ingestableContent),
         chunkCount: chunks.length,
+        // Preserve original text content for text sources so the backend
+        // pipeline can re-embed them later if the provider changes.
+        ...(type === "text" ? { content: ingestableContent } : {}),
         ingestion: type === "text" ? "local_lexical_v1" : "pending_external_ingestion",
       },
     };
 
     await db.insert(schema.sources).values(newSource);
-    if (chunks.length > 0) {
-      await db.insert(schema.chunks).values(
-        chunks.map((chunk, index) => ({
-          id: crypto.randomUUID(),
-          sourceId: newSource.id,
-          content: chunk,
-          embedding: lexicalEmbedding(chunk),
-          tokenCount: countWords(chunk),
-          metadata: {
-            position: index,
-            silo,
-          },
-        }))
-      );
+
+    if (type === "text") {
+      // Text sources are chunked+embedded inline here (fast, synchronous).
+      if (chunks.length > 0) {
+        const { vectors, provider } = await embedChunks(chunks, session.user.tenantId);
+        await db.insert(schema.chunks).values(
+          chunks.map((chunk, index) => ({
+            id: crypto.randomUUID(),
+            sourceId: newSource.id,
+            content: chunk,
+            embedding: vectors[index] ?? lexicalEmbedding(chunk),
+            tokenCount: countWords(chunk),
+            metadata: {
+              position: index,
+              silo,
+              embeddingProvider: provider,
+            },
+          }))
+        );
+      }
+    } else {
+      // PDF / YouTube / web → delegate extraction+chunking+embedding to the
+      // backend ingestion pipeline (needs pypdf/youtube-transcript-api/trafilatura
+      // which only live in the Python service).
+      try {
+        let backendUrl = url || null;
+        // For PDF uploads, first send the binary to the backend /upload endpoint
+        // so it lands on disk where the backend can read it.
+        if (type === "pdf" && file) {
+          const uploadResp = await uploadFileToBackend(file);
+          if (uploadResp?.url) {
+            backendUrl = uploadResp.url;
+            // Update the source row so the pipeline knows where to load from.
+            await db.update(schema.sources)
+              .set({ url: backendUrl } as any)
+              .where(eq(schema.sources.id, newSource.id));
+          }
+        }
+        // Trigger ingestion asynchronously (status flips to ready/error in BG).
+        await triggerIngest(newSource.id);
+      } catch (e) {
+        console.error("Failed to trigger backend ingestion:", e);
+        // Source stays in 'processing' → user will see it never becomes ready.
+        // They can retry via the UI once a manual reingest endpoint exists.
+      }
     }
 
     return NextResponse.json({ success: true, source: newSource });

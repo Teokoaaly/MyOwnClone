@@ -109,6 +109,35 @@ antiguo creado por `root`.
 - Para bases preexistentes sin `alembic_version`, hacer backup antes de cualquier `flask db stamp`.
 - smoke test login/dashboard/chat/billing/webhook
 
+## ⚠️ Regla de migraciones de schema (ver SCHEMA_OWNERSHIP.md)
+
+**Alembic es el único dueño del esquema en producción.**
+
+- ✅ `flask --app app_factory db upgrade` — comando seguro, aplicar siempre.
+- ❌ `npm run db:push` — **PROHIBIDO en producción**. Drizzle Kit `push` aplica
+  ALTER/CREATE automáticos sin archivo SQL revisable; puede recrear tablas y
+  perder datos. Solo usar `db:migrate` con archivos SQL revisados en dev local.
+- Para sincronizar el schema Drizzle tras un cambio Alembic: `npm run db:generate`
+  (regenera el snapshot, no toca la DB).
+
+## Activar embeddings semánticos (pipeline RAG estándar)
+
+Si despliegas la rama `feature/standard-rag-pipeline`, tras el deploy:
+
+1. Asegura `OPENAI_API_KEY` (o `MINIMAX_API_KEY` si te basta con léxico) en
+   `ops/backend.env.production`.
+2. Aplica migración: `docker exec myownclone_api flask --app app_factory db upgrade`
+3. Reinicia: `docker compose -f ops/docker-compose.backend.prod.yml restart api`
+4. **Backup antes de reindexar**: `bash ops/backup_postgres.sh`
+5. Reindexa contenido existente (los chunks viejos tienen hash léxico):
+   ```bash
+   docker exec myownclone_api flask --app app_factory reindex
+   ```
+6. Verifica: `curl http://127.0.0.1:5001/api/myownclone/internal/embed/status -H "X-API-Key: $SERVICE_API_KEY"`
+
+Nuevas deps Python (ya en `requirements.txt`): `openai`, `anthropic`, `pypdf`,
+`youtube-transcript-api`, `trafilatura`. El contenedor las instala en build.
+
 ## Rollback
 
 - Mantener backup de DB antes de migraciones.

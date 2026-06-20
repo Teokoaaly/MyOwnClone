@@ -14,3 +14,10 @@ stripe>=5.0.0
 stripe
 PyJWT>=2.8.0
 bcrypt>=4.0.0
+# OpenAI SDK — used by api.core.embeddings and api.core.model_manager.
+openai>=1.40.0
+anthropic>=0.34.0
+# Ingestion extractors (FASE 2 of standard RAG pipeline).
+pypdf>=4.3.0
+youtube-transcript-api>=0.6.2
+trafilatura>=1.12.0
