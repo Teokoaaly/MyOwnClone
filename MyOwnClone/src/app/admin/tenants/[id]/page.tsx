@@ -149,7 +149,7 @@ export default function AdminTenantDetailPage() {
   if (error || !data) {
     return (
       <ErrorState
-        title={t("admin.tenantDetail.errorTitle")}
+        title={t("tenantDetail.errorTitle")}
         message={error ?? "No data"}
         action={
           <Link href="/admin/tenants" className="btn-secondary text-xs">
@@ -236,25 +236,25 @@ export default function AdminTenantDetailPage() {
           </h2>
           <dl className="space-y-3 text-sm">
             <div>
-              <dt className="stat-label">{t("admin.tenantDetail.subscriptionStatus")}</dt>
+              <dt className="stat-label">{t("tenantDetail.subscriptionStatus")}</dt>
               <dd className="font-mono text-[var(--text-primary)]">
                 {tenant.subscription_status ?? "—"}
               </dd>
             </div>
             <div>
-              <dt className="stat-label">{t("admin.tenantDetail.stripeCustomer")}</dt>
+              <dt className="stat-label">{t("tenantDetail.stripeCustomer")}</dt>
               <dd className="break-all font-mono text-xs text-[var(--text-primary)]">
                 {tenant.stripe_customer_id ?? "—"}
               </dd>
             </div>
             <div>
-              <dt className="stat-label">{t("admin.tenantDetail.stripeSubscription")}</dt>
+              <dt className="stat-label">{t("tenantDetail.stripeSubscription")}</dt>
               <dd className="break-all font-mono text-xs text-[var(--text-primary)]">
                 {tenant.stripe_subscription_id ?? "—"}
               </dd>
             </div>
             <div>
-              <dt className="stat-label">{t("admin.tenantDetail.created")}</dt>
+              <dt className="stat-label">{t("tenantDetail.created")}</dt>
               <dd className="text-xs text-[var(--text-secondary)]">
                 {tenant.created_at
                   ? new Date(tenant.created_at).toLocaleString("en-US")
@@ -279,11 +279,11 @@ export default function AdminTenantDetailPage() {
           <table className="w-full text-sm">
             <thead className="table-header">
               <tr>
-                <th className="px-4 py-2.5 text-left">{t("admin.name")}</th>
-                <th className="px-4 py-2.5 text-left">{t("admin.tenants.slugLabel")}</th>
-                <th className="px-4 py-2.5 text-left">{t("admin.language")}</th>
-                <th className="px-4 py-2.5 text-left">{t("admin.status")}</th>
-                <th className="px-4 py-2.5 text-left">{t("admin.tenantDetail.created")}</th>
+                <th className="px-4 py-2.5 text-left">{t("name")}</th>
+                <th className="px-4 py-2.5 text-left">{t("tenants.slugLabel")}</th>
+                <th className="px-4 py-2.5 text-left">{t("language")}</th>
+                <th className="px-4 py-2.5 text-left">{t("status")}</th>
+                <th className="px-4 py-2.5 text-left">{t("tenantDetail.created")}</th>
               </tr>
             </thead>
             <tbody>
@@ -300,9 +300,9 @@ export default function AdminTenantDetailPage() {
                   </td>
                   <td className="px-4 py-3">
                     {c.is_active ? (
-                      <span className="badge-active">{t("admin.active")}</span>
+                      <span className="badge-active">{t("active")}</span>
                     ) : (
-                      <span className="badge-warning">{t("admin.inactive")}</span>
+                      <span className="badge-warning">{t("inactive")}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-[var(--text-muted)]">
@@ -353,7 +353,7 @@ export default function AdminTenantDetailPage() {
               onChange={(e) => setPatchPlan(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="">{t("admin.tenantDetail.editNoChanges")}</option>
+              <option value="">{t("tenantDetail.editNoChanges")}</option>
               {PLAN_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -367,7 +367,7 @@ export default function AdminTenantDetailPage() {
               onChange={(e) => setPatchStatus(e.target.value)}
               className={fieldControlClass}
             >
-              <option value="">{t("admin.tenantDetail.editNoChanges")}</option>
+              <option value="">{t("tenantDetail.editNoChanges")}</option>
               {STATUS_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}

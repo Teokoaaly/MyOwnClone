@@ -207,7 +207,7 @@ export const Sidebar: FC<SidebarProps> = ({
         {showUserBlock && user && (
           <div className="px-3 py-3 border-t border-[var(--border-soft)]">
             <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#F97316] to-[#FB923C] flex items-center justify-center text-white text-xs font-semibold shrink-0">
+              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#292524] to-[#44403c] flex items-center justify-center text-white text-xs font-semibold shrink-0">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
@@ -308,7 +308,7 @@ export const Sidebar: FC<SidebarProps> = ({
           {showUserBlock && user && (
             <div className="border-t border-[var(--border-soft)] px-3 py-3">
               <div className="flex items-center gap-2.5">
-                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#F97316] to-[#FB923C] flex items-center justify-center text-white text-xs font-semibold shrink-0">
+                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#292524] to-[#44403c] flex items-center justify-center text-white text-xs font-semibold shrink-0">
                   {initials}
                 </div>
                 <div className="flex-1 min-w-0">

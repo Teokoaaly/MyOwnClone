@@ -321,7 +321,29 @@
         "tenant": "Tenant"
       },
       "title": "Tenants"
-    }
+    },
+    "active": "Active",
+    "actor": "Actor",
+    "adminBadge": "Admin",
+    "audit_log": "Audit Log",
+    "backToDashboard": "Back to Dashboard",
+    "basic": "Basic",
+    "breadcrumbAdmin": "Admin",
+    "breadcrumbBrand": "MyOwnClone",
+    "cancelled": "Cancelled",
+    "enterprise": "Enterprise",
+    "homeLabel": "Platform Home",
+    "inactive": "Inactive",
+    "language": "Language",
+    "name": "Name",
+    "no_entries": "No entries",
+    "no_tenants": "No tenants yet",
+    "plan": "Plan",
+    "pro": "Pro",
+    "reason": "Reason",
+    "scale": "Scale",
+    "status": "Status",
+    "target": "Target"
   },
   "analytics": {
     "conversations": "Conversations",

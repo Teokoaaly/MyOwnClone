@@ -83,7 +83,7 @@ export const HeaderBreadcrumb: FC<HeaderBreadcrumbProps> = ({
         {action}
         {user && (
           <div
-            className="h-8 w-8 rounded-full bg-gradient-to-br from-[#F97316] to-[#FB923C] flex items-center justify-center text-white text-xs font-semibold font-sans shadow-sm"
+            className="h-8 w-8 rounded-full bg-gradient-to-br from-[#292524] to-[#44403c] flex items-center justify-center text-white text-xs font-semibold font-sans shadow-sm"
             role="img"
             aria-label={user.name ?? user.email ?? "Usuario"}
           >

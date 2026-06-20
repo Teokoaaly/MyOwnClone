@@ -321,7 +321,29 @@
         "tenant": "Tenant"
       },
       "title": "Tenants"
-    }
+    },
+    "active": "Activo",
+    "actor": "Actor",
+    "adminBadge": "Admin",
+    "audit_log": "Registro de auditoría",
+    "backToDashboard": "Volver al Dashboard",
+    "basic": "Básico",
+    "breadcrumbAdmin": "Admin",
+    "breadcrumbBrand": "MyOwnClone",
+    "cancelled": "Cancelado",
+    "enterprise": "Enterprise",
+    "homeLabel": "Inicio Plataforma",
+    "inactive": "Inactivo",
+    "language": "Idioma",
+    "name": "Nombre",
+    "no_entries": "Sin entradas",
+    "no_tenants": "Sin tenants aún",
+    "plan": "Plan",
+    "pro": "Pro",
+    "reason": "Razón",
+    "scale": "Scale",
+    "status": "Estado",
+    "target": "Objetivo"
   },
   "analytics": {
     "conversations": "Conversaciones",

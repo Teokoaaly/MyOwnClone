@@ -40,7 +40,7 @@ export const OnboardingBanner: FC<OnboardingBannerProps> = ({
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${progressPercent}%`,
-                  background: "linear-gradient(90deg, #F97316, #FB923C)",
+                  background: "linear-gradient(90deg, #292524, #44403c)",
                 }}
               />
             </div>

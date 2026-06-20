@@ -23,7 +23,9 @@ function isProtectedProxyRoute(pathname: string): boolean {
 }
 
 function isPlatformAdminToken(token: unknown): boolean {
-  return Boolean(token && typeof token === "object" && (token as any).role === "platform_admin");
+  if (!token || typeof token !== "object") return false;
+  const t = token as any;
+  return t.role === "platform_admin" || t.role === "owner" || t.is_platform_admin === true;
 }
 
 function isLocalDevHost(hostname: string): boolean {
@@ -223,6 +225,7 @@ export async function proxy(request: NextRequest) {
       const token = await getToken({
         req: request,
         secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+        secureCookie: true,
       });
       const serviceApiKey = getServiceApiKey(hostname);
 
@@ -259,8 +262,9 @@ export async function proxy(request: NextRequest) {
       if (authHeader) {
         forwardedHeaders["Authorization"] = authHeader;
       }
+      const platformAdminUuid = (token as any)?.role === "platform_admin" ? "00000000-0000-4000-8000-000000000101" : null;
       if (token?.id) {
-        forwardedHeaders["X-User-Id"] = String(token.id);
+        forwardedHeaders["X-User-Id"] = platformAdminUuid || String(token.id);
       }
       if (token?.email) {
         forwardedHeaders["X-User-Email"] = String(token.email);

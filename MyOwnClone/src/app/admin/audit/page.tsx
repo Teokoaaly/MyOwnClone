@@ -106,7 +106,7 @@ export default function AdminAuditPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("admin.audit_log")}
+        title={t("audit_log")}
         subtitle={`${total} acciones registradas en la plataforma`}
       />
 
@@ -171,7 +171,7 @@ export default function AdminAuditPage() {
         <LoadingState label="Loading audit log..." rows={6} />
       ) : items.length === 0 ? (
         <EmptyState
-          title={t("admin.no_entries")}
+          title={t("no_entries")}
           description="Las acciones sensibles (impersonaciones, cambios de plan, cambios de estado, signups courtesy) aparecerán aquí."
         />
       ) : (
@@ -182,10 +182,10 @@ export default function AdminAuditPage() {
                 <tr>
                   <th className="px-4 py-2.5 text-left">Fecha</th>
                   <th className="px-4 py-2.5 text-left">Acción</th>
-                  <th className="px-4 py-2.5 text-left">{t("admin.actor")}</th>
-                  <th className="px-4 py-2.5 text-left">{t("admin.target")}</th>
-                  <th className="px-4 py-2.5 text-left">{t("admin.reason")}</th>
-                  <th className="px-4 py-2.5 text-left">{t("admin.metadata")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("actor")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("target")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("reason")}</th>
+                  <th className="px-4 py-2.5 text-left">{t("metadata")}</th>
                 </tr>
               </thead>
               <tbody>

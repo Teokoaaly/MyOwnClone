@@ -42,13 +42,13 @@ const PLAN_LABEL: Record<string, string> = {
 
 const PLAN_COLOR: Record<string, string> = {
   free: "#06B6D4",
-  pro: "#EA580C",
+  pro: "#1c1917",
   enterprise: "#059669",
 };
 
 const FINANCE_COLORS = {
   mrr: "#10B981",
-  costs: "#F97316",
+  costs: "#292524",
   margin: "#2563EB",
   marginNeg: "#DC2626",
 };
@@ -89,7 +89,7 @@ export default function AdminResumenPage() {
   if (error || !data) {
     return (
       <ErrorState
-        title={t("admin.overview.errorTitle")}
+        title={t("overview.errorTitle")}
         message={error ?? "No data"}
         action={
           <button
@@ -136,7 +136,7 @@ export default function AdminResumenPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("admin.overview.title")}
+        title={t("overview.title")}
         subtitle={
           <>
             Aggregated platform metrics · generated{" "}
@@ -166,7 +166,7 @@ export default function AdminResumenPage() {
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">
               MRR · Costs · Margin (30d)
             </h2>
-            <span className="text-xs text-[var(--text-muted)]">{t("admin.overview.mrrCostsMarginLegend")}</span>
+            <span className="text-xs text-[var(--text-muted)]">{t("overview.mrrCostsMarginLegend")}</span>
           </div>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart
