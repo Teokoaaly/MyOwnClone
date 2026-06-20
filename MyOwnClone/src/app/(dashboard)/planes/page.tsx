@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 
 interface BillingInfo {
   plan: string | null
@@ -34,19 +35,19 @@ function money(cents = 0, currency = "usd") {
   }).format(cents / 100)
 }
 
-function planFeatures(plan: PlanInfo) {
+function planFeatures(plan: PlanInfo, t: ReturnType<typeof useTranslations>) {
   const modes = plan.modes_active ?? 1
   const features = [
-    `${plan.words_training_limit?.toLocaleString("en-US") ?? "Flexible"} training words`,
-    `${plan.responses_month_limit?.toLocaleString("en-US") ?? "Flexible"} monthly responses`,
-    `${modes} active mode${modes === 1 ? "" : "s"}`,
+    `${plan.words_training_limit?.toLocaleString("en-US") ?? t("flexible")} ${t("trainingWords").toLowerCase()}`,
+    `${plan.responses_month_limit?.toLocaleString("en-US") ?? t("flexible")} ${t("monthlyResponses").toLowerCase()}`,
+    `${modes} ${t("activeMode", { count: modes })}`,
   ]
 
-  if (plan.email_triage) features.push("AI email triage")
-  if (plan.booking) features.push("Booking workflows")
-  if (plan.api_access) features.push("API access")
-  if (plan.multi_clone) features.push("Multi-clone workspace")
-  if (plan.whitelabel) features.push("White label")
+  if (plan.email_triage) features.push(t("featureEmailTriage"))
+  if (plan.booking) features.push(t("featureBooking"))
+  if (plan.api_access) features.push(t("featureApiAccess"))
+  if (plan.multi_clone) features.push(t("featureMultiClone"))
+  if (plan.whitelabel) features.push(t("featureWhitelabel"))
 
   return features
 }
@@ -54,6 +55,7 @@ function planFeatures(plan: PlanInfo) {
 export default function PlanesPage() {
   const { status } = useSession()
   const router = useRouter()
+  const t = useTranslations("plans")
   const [billing, setBilling] = useState<BillingInfo | null>(null)
   const [plans, setPlans] = useState<PlanInfo[]>([])
   const [loading, setLoading] = useState(true)
@@ -83,7 +85,7 @@ export default function PlanesPage() {
           setPlans(Array.isArray(data) ? data : [])
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Unable to load plans")
+        if (!cancelled) setError(e instanceof Error ? e.message : t("loadError"))
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -100,7 +102,7 @@ export default function PlanesPage() {
 
   const startCheckout = async (plan: PlanInfo) => {
     if (!plan.stripe_price_id) {
-      setError(`${plan.name} is not available for checkout yet.`)
+      setError(t("planNotAvailable", { name: plan.name }))
       return
     }
 
@@ -121,8 +123,8 @@ export default function PlanesPage() {
       if (!res.ok || !data.url) {
         setError(
           data.error === "stripe_not_configured"
-            ? "Stripe is not configured for this environment."
-            : data.error ?? "Unable to start checkout.",
+            ? t("stripeNotConfigured")
+            : data.error ?? t("checkoutError")
         )
         return
       }
@@ -148,11 +150,9 @@ export default function PlanesPage() {
       <section className="landing-pricing-section !m-0 !rounded-[32px] !px-5 !py-10 md:!px-8">
         <div className="landing-pricing-shell !mx-0 !max-w-none">
           <div className="landing-pricing-head">
-            <p className="landing-pricing-kicker">Upgrade</p>
-            <h2>Select a plan</h2>
-            <p>
-              Choose the workspace plan first. Billing details and invoices stay in the Billing page.
-            </p>
+            <p className="landing-pricing-kicker">{t("kicker")}</p>
+            <h2>{t("heading")}</h2>
+            <p>{t("description")}</p>
           </div>
 
           {error && (
@@ -163,7 +163,7 @@ export default function PlanesPage() {
 
           {plans.length === 0 ? (
             <div className="rounded-2xl border border-[var(--border-soft)] bg-white px-5 py-8 text-center text-sm text-[var(--text-muted)]">
-              No plans are configured yet.
+              {t("noPlans")}
             </div>
           ) : (
             <div className="landing-pricing-grid">
@@ -183,22 +183,22 @@ export default function PlanesPage() {
                     <div className="landing-plan-top">
                       <span className="landing-plan-glyph" aria-hidden="true" />
                       {isCurrent ? (
-                        <span className="landing-plan-badge">Current</span>
+                        <span className="landing-plan-badge">{t("currentPlan")}</span>
                       ) : featured ? (
-                        <span className="landing-plan-badge">Popular</span>
+                        <span className="landing-plan-badge">{t("popular")}</span>
                       ) : null}
                     </div>
 
                     <div className="landing-plan-price">
                       <span>{plan.price_display ?? money(plan.price_cents, currency)}</span>
-                      <small>/mo</small>
+                      <small>/{t("month")}</small>
                     </div>
 
                     <h3>{plan.name}</h3>
                     <p>
                       {isCurrent
-                        ? "This is your active plan."
-                        : "Upgrade when your clone needs more capacity and workflows."}
+                        ? t("activePlanDesc")
+                        : t("upgradeDesc")}
                     </p>
 
                     <button
@@ -208,19 +208,19 @@ export default function PlanesPage() {
                       className={featured ? "landing-plan-cta landing-plan-cta-inverse" : "landing-plan-cta"}
                     >
                       {isCurrent
-                        ? "Current plan"
+                        ? t("currentPlanBtn")
                         : checkoutLoading === plan.id
-                          ? "Opening checkout..."
+                          ? t("openingCheckout")
                           : canCheckout
-                            ? "Select plan"
-                            : "Unavailable"}
+                            ? t("selectPlan")
+                            : t("unavailable")}
                     </button>
 
                     <div className="landing-plan-divider" />
                     <div className="landing-plan-features">
-                      <strong>Features</strong>
+                      <strong>{t("features")}</strong>
                       <ul>
-                        {planFeatures(plan).map((feature) => (
+                        {planFeatures(plan, t).map((feature) => (
                           <li key={feature}>{feature}</li>
                         ))}
                       </ul>
