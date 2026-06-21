@@ -39,6 +39,10 @@ from api.controllers.console.auth import auth_bp
 # Import CLI commands
 from api.commands.seed import seed_demo_data
 from api.commands.reindex import reindex_command
+from api.commands.crypto import (
+    generate_master_key_command,
+    rotate_secrets_key_command_stub,
+)
 
 # Import deploy blueprint
 from api.controllers.deploy import deploy_bp
@@ -175,6 +179,8 @@ def create_app():
     # Register CLI commands
     app.cli.add_command(seed_demo_data)
     app.cli.add_command(reindex_command)
+    app.cli.add_command(generate_master_key_command)
+    app.cli.add_command(rotate_secrets_key_command_stub)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)
