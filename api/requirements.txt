@@ -24,3 +24,6 @@ cohere>=1.0.0
 
 # HTTP client for provider adapters
 httpx>=0.25.0
+
+# Tokenization (cross-model approximation for token counting)
+gpt-tokenizer>=2.0.0
