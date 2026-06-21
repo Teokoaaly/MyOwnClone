@@ -39,3 +39,20 @@ Thumbs.db
 coverage/
 *.lcov
 htmlcov/
+
+# Local tool caches
+.kilo/
+.mavis/
+.playwright-mcp/
+
+# Planning artifacts (local-only, not source)
+.sisyphus/
+
+# Local task tracking
+Task.md
+
+# Local build script
+build-temp.ps1
+
+# Old frontend location (deprecated, now in MyOwnClone/)
+replica/
