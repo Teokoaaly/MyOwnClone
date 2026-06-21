@@ -211,6 +211,9 @@ class AdminOverviewApi(Resource):
             select(func.sum(CostTracking.cost_cents))
         ).scalar() or 0
 
+        # Detect plans in PLAN_KEYS without entry in PLAN_PRICES_CENTS
+        unpriced_plans = [p for p in PLAN_KEYS if p not in PLAN_PRICES_CENTS]
+
         return {
             "total_tenants": total_tenants,
             "active_tenants": active_tenants,
@@ -222,6 +225,7 @@ class AdminOverviewApi(Resource):
             "margin_cents": mrr_cents - cost_data,
             "margin_display": f"{((mrr_cents - cost_data) / 100):.2f}€",
             "plan_breakdown": plan_counts,
+            "unpriced_plans": unpriced_plans,
         }, 200
 
 

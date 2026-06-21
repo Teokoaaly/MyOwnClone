@@ -9,6 +9,7 @@ Verifica que:
 NOTA: Solo se incluyen los endpoints que EXISTEN realmente en el codigo.
 """
 
+import os
 import time
 import jwt
 import pytest
@@ -68,3 +69,32 @@ def test_admin_rejects_empty_bearer(client, path):
     """Bearer con token vacio debe rechazarse (no 200)."""
     r = client.get(path, headers={"Authorization": "Bearer "})
     assert r.status_code in (401, 403)
+
+
+@pytest.mark.skipif(
+    os.environ.get("DB_HOST") == "localhost",
+    reason="Requires real PostgreSQL instance for platform_admin lookup",
+)
+def test_admin_overview_includes_unpriced_plans(client):
+    """
+    B7: GET /admin/overview returns unpriced_plans field.
+    Requires PostgreSQL to verify platform_admin lookup succeeds.
+    """
+    from api.libs.jwt_utils import _get_secret_key
+
+    secret = _get_secret_key()
+    admin_token = jwt.encode(
+        {"sub": "platform-admin-test", "role": "platform_admin", "exp": int(time.time()) + 3600},
+        secret,
+        algorithm="HS256",
+    )
+    resp = client.get(
+        "/console/api/myownclone/admin/overview",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.data}"
+    body = resp.get_json()
+    assert "unpriced_plans" in body, f"Missing unpriced_plans in {body.keys()}"
+    assert isinstance(body["unpriced_plans"], list), "unpriced_plans must be a list"
+    # All 5 plans currently priced — expect empty list
+    assert body["unpriced_plans"] == [], f"Expected empty, got {body['unpriced_plans']}"

@@ -60,6 +60,7 @@ Returns platform-wide metrics.
     "scale": 6,
     "enterprise": 2
   },
+  "unpriced_plans": [],
   "generated_at": "2026-06-04T10:23:11Z"
 }
 ```
@@ -71,6 +72,7 @@ Returns platform-wide metrics.
 - `total_costs_cents` is the sum of `cost_tracking.cost_cents` in the last 30 days.
 - `margin_cents = mrr_cents - total_costs_cents`.
 - `plan_breakdown` always contains the 5 canonical keys, defaulting to 0.
+- `unpriced_plans` lists plan names in `PLAN_KEYS` without an entry in `PLAN_PRICES_CENTS`. Empty if all plans are priced.
 
 ### 3.2 GET /admin/tenants
 

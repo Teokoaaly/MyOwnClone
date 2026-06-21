@@ -47,6 +47,7 @@ interface AdminOverview {
   margin_display: string;
   plan_breakdown: Record<string, number>;
   generated_at: string;
+  unpriced_plans: string[];
 }
 
 const PLAN_LABEL: Record<string, string> = {
@@ -120,6 +121,24 @@ export default function AdminResumenPage() {
 
   return (
     <div className="space-y-6">
+      {data.unpriced_plans && data.unpriced_plans.length > 0 && (
+        <div
+          role="alert"
+          className="rounded-md border border-amber-500 bg-amber-50 p-4 text-amber-900 dark:border-amber-400 dark:bg-amber-900/20 dark:text-amber-200"
+        >
+          <p className="font-semibold">Planes sin precio configurado</p>
+          <p className="mt-1 text-sm">
+            Los siguientes planes aparecen en uso pero no tienen precio en
+            <code className="mx-1 rounded bg-amber-100 px-1 py-0.5 font-mono text-xs dark:bg-amber-900/40">
+              PLAN_PRICES_CENTS
+            </code>
+            : <strong>{data.unpriced_plans.join(", ")}</strong>
+          </p>
+          <p className="mt-1 text-xs">
+            Añade el precio en <code className="font-mono">api/core/contracts.py</code> antes de continuar.
+          </p>
+        </div>
+      )}
       <PageHeader
         title="Platform Overview"
         subtitle={
