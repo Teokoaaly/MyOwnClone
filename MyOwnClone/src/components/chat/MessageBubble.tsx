@@ -9,6 +9,7 @@ interface ChatMessage {
   content: string
   confidence?: number
   sources?: Array<{ content: string; score: number }>
+  invocation_id?: string
 }
 
 interface MessageBubbleProps {
@@ -26,13 +27,12 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
     if (submitting || feedback) return
     setSubmitting(true)
     try {
-      const res = await fetch('/api/clone/feedback', {
+      const res = await fetch('/api/clone/ai/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clone_id: cloneId || '',
-          message_id: message.id,
-          rating,
+          invocation_id: message.invocation_id || '',
+          rating: rating === 'up' ? 1 : -1,
         }),
       })
       if (res.ok) {

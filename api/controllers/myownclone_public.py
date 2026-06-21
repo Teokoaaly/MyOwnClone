@@ -950,3 +950,53 @@ def create_booking_public(slug: str):
         "meeting_type": mt.name,
         "visitor_name": visitor_name,
     }), 201
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AI Feedback
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@myownclone_public_bp.route("/ai/feedback", methods=["POST"])
+def post_ai_feedback():
+    """Record feedback on an AI response.
+
+    Request body (JSON):
+        invocation_id: str — the ai_invocations.id
+        rating: int — +1 (thumbs up) or -1 (thumbs down)
+        comment: str (optional) — user comment
+
+    Returns:
+        201: {"message": "feedback recorded"}
+        400: {"error": "invalid rating"} / {"error": "missing invocation_id"}
+        404: {"error": "invocation not found"}
+    """
+    data = request.get_json() or {}
+
+    invocation_id = data.get("invocation_id")
+    if not invocation_id:
+        return jsonify({"error": "missing invocation_id"}), 400
+
+    rating = data.get("rating")
+    if rating not in (-1, 1):
+        return jsonify({"error": "invalid rating, must be +1 or -1"}), 400
+
+    comment = data.get("comment")
+
+    # Get tenant_id from header if provided
+    tenant_id = request.headers.get("X-Tenant-Id")
+
+    try:
+        from api.core.feedback_collector import get_feedback_collector
+        collector = get_feedback_collector()
+        collector.record(
+            tenant_id=tenant_id,
+            invocation_id=invocation_id,
+            rating=rating,
+            comment=comment,
+        )
+        return jsonify({"message": "feedback recorded"}), 201
+    except Exception as exc:
+        logger.exception("Failed to record feedback: %s", exc)
+        return jsonify({"error": "failed to record feedback"}), 500
+

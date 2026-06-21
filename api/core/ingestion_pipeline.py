@@ -16,7 +16,7 @@ from typing import Optional
 
 from api.core.embeddings import EmbeddingService, FallbackEmbeddingService
 from api.models.embedding_outbox import EmbeddingOutbox, OutboxStatus
-from extensions import db
+from api.extensions import db
 
 
 logger = logging.getLogger(__name__)

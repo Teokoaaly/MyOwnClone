@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from extensions import db
+from api.extensions import db
 from api.models.account import Account, Tenant
 
 

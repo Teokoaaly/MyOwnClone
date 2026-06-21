@@ -13,7 +13,7 @@ api = Api(
 console_ns = Namespace("console", description="Console management API operations", path="/")
 
 # Import myownclone controllers
-from .myownclone import admin_platform as myownclone_admin, analytics as myownclone_analytics, booking as myownclone_booking, clone as myownclone_clone, creator_memory as myownclone_creator_memory, feedback as myownclone_feedback, inbox as myownclone_inbox, stripe_ctrl as myownclone_stripe
+from .myownclone import admin_platform as myownclone_admin, admin_ia_models as myownclone_admin_ia_models, analytics as myownclone_analytics, booking as myownclone_booking, clone as myownclone_clone, creator_memory as myownclone_creator_memory, feedback as myownclone_feedback, inbox as myownclone_inbox, stripe_ctrl as myownclone_stripe
 
 api.add_namespace(console_ns)
 
@@ -22,6 +22,7 @@ __all__ = [
     "bp",
     "console_ns",
     "myownclone_admin",
+    "myownclone_admin_ia_models",
     "myownclone_analytics",
     "myownclone_booking",
     "myownclone_clone",

@@ -406,13 +406,14 @@ def invoke_for_task(
     session=None,
 ) -> dict:
     """Resolve the AIModel for (tenant_id, task), call the provider with retries,
-    and record cost in cost_tracking.
+    and record cost in cost_tracking and ai_invocations.
 
     Returns the provider's response dict: {content, tokens_in, tokens_out, model}.
     """
     from api.core.cost_recording import _record_llm_cost
     from api.core.model_registry import get_registry
     from api.core.retry_client import get_retry_client
+    from api.models import AIInvocation, _sha256
     from api.models.analytics import CostCategory
 
     registry = get_registry()
@@ -434,6 +435,10 @@ def invoke_for_task(
     adapter = _select_provider(model, api_key)
     retry_client = get_retry_client()
     breaker_key = f"{model.provider}/{model.name}"
+
+    # Compute prompt hash before the call
+    prompt_text = "".join(m.get("content", "") or "" for m in messages)
+    prompt_hash = _sha256(prompt_text)
 
     start = time.monotonic()
     success = False
@@ -466,6 +471,10 @@ def invoke_for_task(
             cost_per_1k_input_cents=getattr(model, "input_cost_per_1k", None),
             cost_per_1k_output_cents=getattr(model, "output_cost_per_1k", None),
         )
+        # Compute response hash
+        response_text = response.get("content", "") or ""
+        response_hash = _sha256(response_text)
+
         try:
             _record_llm_cost(
                 tenant_id=tenant_id,
@@ -482,6 +491,27 @@ def invoke_for_task(
         except Exception as cost_exc:
             # Don't let cost recording failure mask the original error
             logger.warning("Failed to record LLM cost: %s", cost_exc)
+
+        # Record AI invocation
+        try:
+            invocation = AIInvocation(
+                tenant_id=tenant_id,
+                model_id=str(model.id) if model else None,
+                task=task,
+                prompt_hash=prompt_hash,
+                response_hash=response_hash,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                cost_cents=cost_cents,
+                latency_ms=latency_ms,
+                success=success,
+                error_message=error_message,
+            )
+            from api.extensions.ext_database import db
+            db.session.add(invocation)
+            db.session.commit()
+        except Exception as inv_exc:
+            logger.warning("Failed to record AI invocation: %s", inv_exc)
 
 
 # ─── Public façade ───────────────────────────────────────────────────────────

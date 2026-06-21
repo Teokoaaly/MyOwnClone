@@ -17,6 +17,8 @@ class CostCategory(enum.StrEnum):
     CLONE_RESPONSE = "clone_response"
     CONTENT_INGESTION = "content_ingestion"
     PLATFORM_OPS = "platform_ops"
+    RERANKING = "reranking"
+    MODERATION = "moderation"
 
 
 class CostTracking(TypeBase):

@@ -12,7 +12,7 @@ from typing import Optional
 
 from api.core.embeddings import EmbeddingService
 from api.core.token_budget import DimensionGuard
-from extensions import db
+from api.extensions import db
 
 
 logger = logging.getLogger(__name__)
