@@ -18,7 +18,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from api.base import TypeBase
-from extensions import db
 
 
 class OutboxStatus:

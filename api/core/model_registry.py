@@ -52,18 +52,90 @@ class ModelRegistry:
         1. Active tenant-specific assignment (lowest priority wins)
         2. Active global assignment (tenant_id IS NULL) (lowest priority wins)
 
+        If SMART_ROUTER_ENABLED is true and multiple candidates exist,
+        uses SmartRouter to score and select the best one.
+
         Returns None if no assignment exists.
         """
+        import os
+        use_smart_router = os.environ.get("SMART_ROUTER_ENABLED", "").strip().lower() in ("1", "true", "yes")
+
         cache_key = (tenant_id, task)
         with self._lock:
             entry = self._cache.get(cache_key)
             if entry is not None and not entry.is_expired():
                 return entry.value
 
-        model = self._fetch_from_db(tenant_id, task, session=session)
+        if use_smart_router:
+            # SmartRouter path: fetch all candidates and score them
+            candidates = self._fetch_all_candidates(tenant_id, task, session=session)
+            if not candidates:
+                with self._lock:
+                    self._cache[cache_key] = _CacheEntry(None)
+                return None
+            model = self._select_best_model(tenant_id, task, candidates)
+        else:
+            # Default path: use priority order (backward compatible with existing tests)
+            model = self._fetch_from_db(tenant_id, task, session=session)
+
         with self._lock:
             self._cache[cache_key] = _CacheEntry(model)
         return model
+
+    def _select_best_model(
+        self,
+        tenant_id: Optional[str],
+        task: str,
+        candidates: list[AIModel],
+    ) -> Optional[AIModel]:
+        """Select best model using SmartRouter or fallback to priority order."""
+        import os
+        if os.environ.get("SMART_ROUTER_ENABLED", "").strip().lower() not in ("1", "true", "yes"):
+            # Fallback: return first candidate (priority order from _fetch_all_candidates)
+            return candidates[0] if candidates else None
+
+        # Lazy import to avoid circular dependency
+        from api.core.smart_router import SmartRouter, get_candidates_for_task
+
+        # Re-fetch candidates to get fresh data for scoring
+        fresh_candidates = get_candidates_for_task(tenant_id or "", task)
+        if not fresh_candidates:
+            return candidates[0] if candidates else None
+
+        router = SmartRouter()
+        return router.route(tenant_id or "", task, fresh_candidates)
+
+    def _fetch_all_candidates(
+        self,
+        tenant_id: Optional[str],
+        task: str,
+        *,
+        session: Optional[Session] = None,
+    ) -> list[AIModel]:
+        """Fetch all active candidates for (tenant_id, task), ordered by priority."""
+        sess = session or self._session_factory()
+        # Tenant-specific first, then global
+        stmt = (
+            select(AIModel)
+            .join(AIModelAssignment, AIModelAssignment.model_id == AIModel.id)
+            .where(
+                and_(
+                    AIModelAssignment.task == task,
+                    AIModelAssignment.is_active.is_(True),
+                    AIModel.is_active.is_(True),
+                    or_(
+                        AIModelAssignment.tenant_id == tenant_id,
+                        AIModelAssignment.tenant_id.is_(None),
+                    ),
+                )
+            )
+            .order_by(
+                # Tenant-specific first (lower priority number = higher priority)
+                AIModelAssignment.tenant_id.is_(None),  # NULL (global) last
+                AIModelAssignment.priority.asc(),
+            )
+        )
+        return list(sess.execute(stmt).scalars().all())
 
     def _fetch_from_db(
         self,
@@ -72,6 +144,7 @@ class ModelRegistry:
         *,
         session: Optional[Session] = None,
     ) -> Optional[AIModel]:
+        """Fetch the top candidate (backwards-compatible, used when SmartRouter is disabled)."""
         sess = session or self._session_factory()
         # Tenant-specific first, then global
         stmt = (
