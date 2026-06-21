@@ -3,6 +3,7 @@ Re-export all MyOwnClone models.
 Controllers import from api.models and api.models.myownclone.*
 """
 from api.models.ai_models import AIModel, AIModelAssignment, AIModelType, AssignmentTask
+from api.models.embedding_outbox import EmbeddingOutbox, OutboxStatus  # noqa: F401
 from api.models.analytics import (
     AdminInvitation, AnalyticsGap, AnalyticsQuestion, CostCategory, CostTracking,
     Feedback, GapStatus, ImpersonationLog, ImpersonationToken, Plan,
@@ -31,4 +32,5 @@ __all__ = [
     "Feedback",
     "AdminInvitation",
     "AIModel", "AIModelAssignment", "AIModelType", "AssignmentTask",
+    "EmbeddingOutbox", "OutboxStatus",
 ]
