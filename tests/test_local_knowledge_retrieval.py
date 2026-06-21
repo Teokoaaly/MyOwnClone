@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from api.core.myownclone.silos import CloneSilo
 from api.core.retrieval import (
-    EMBEDDING_DIMENSIONS,
+    _EMBEDDING_DIMENSIONS,
     _lexical_embedding,
     _lexical_score,
     _terms,
@@ -340,7 +340,7 @@ def test_e2e_rag_topk_respected():
 def test_embedding_dimensions_are_stable():
     """Smoke: el tamano del embedding no cambia entre ejecuciones."""
     emb = _lexical_embedding("hola mundo")
-    assert len(emb) == EMBEDDING_DIMENSIONS
+    assert len(emb) == _EMBEDDING_DIMENSIONS
     # Normalizado: norma ~1
     norm = sum(x * x for x in emb) ** 0.5
     assert 0.99 <= norm <= 1.01
