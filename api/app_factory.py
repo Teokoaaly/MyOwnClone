@@ -38,6 +38,7 @@ from api.controllers.console.auth import auth_bp
 
 # Import CLI commands
 from api.commands.seed import seed_demo_data
+from api.commands.generate_master_key import register_generate_master_key
 
 # Import deploy blueprint
 from api.controllers.deploy import deploy_bp
@@ -178,6 +179,7 @@ def create_app():
 
     # Register CLI commands
     app.cli.add_command(seed_demo_data)
+    register_generate_master_key(app)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)
