@@ -16,6 +16,10 @@ from api.models.knowledge import Chunk, Source
 from api.models.meeting import (
     Availability, Booking, BookingStatus, MeetingType_, Product,
 )
+from api.models.ai_models import (
+    AICapability, AIModel, AIModelAssignment, AIInvocation,
+    AIProvider, AITask, TASK_CAPABILITY,
+)
 
 __all__ = [
     "CloneConfig", "CloneModePrompt", "CloneSilo",
@@ -28,4 +32,7 @@ __all__ = [
     "AnalyticsQuestion", "AnalyticsGap", "GapStatus",
     "ImpersonationLog", "ImpersonationToken",
     "Feedback",
+    # Sisyphus M1: configurable AI models by task
+    "AIModel", "AIModelAssignment", "AIInvocation",
+    "AIProvider", "AICapability", "AITask", "TASK_CAPABILITY",
 ]
