@@ -66,7 +66,9 @@ def _file_in_git(path: str) -> bool:
     """True si el path esta tracked (commiteado) en el HEAD del arbol."""
     if not path:
         return False
-    rel = path.lstrip("./")
+    # Quitar SOLO un prefijo './' literal. NO usar lstrip (elimina cualquier
+    # combinacion de '.' y '/', rompiendo paths como '.sisyphus/...').
+    rel = path[2:] if path.startswith("./") else path
     out = _git("ls-files", "--error-unmatch", rel)
     if out is not None:
         return True
@@ -152,8 +154,11 @@ def main() -> int:
                 f"Git add + commit antes de marcar '***REMOVED***'."
             )
         sha = t.get("committed_sha") or ""
-        if not sha:
-            errors.append(f"{tid}: marcada '***REMOVED***' sin committed_sha.")
+        if not sha or sha == "PENDING":
+            errors.append(
+                f"{tid}: marcada '***REMOVED***' con committed_sha vacio/PENDING. "
+                f"Tras commitear, anota el SHA real (git rev-parse HEAD)."
+            )
         elif not _sha_exists(sha):
             errors.append(f"{tid}: committed_sha '{sha}' no existe en git.")
 

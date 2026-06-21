@@ -4,7 +4,7 @@
   "created_at": "2026-06-21",
   "order": ["M0", "M1", "M2", "M4a", "M3", "M4b", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"],
   "tasks": [
-    { "id": "M0", "milestone": "M0", "title": "Capa anti-olvido (progress.json + check-plan-progress.py + test_plan_completion.py + hook)", "status": "***REMOVED***", "evidence_file": ".sisyphus/evidence/task-M0-anti-forget.md", "committed_sha": "PENDING", "qa_at": "2026-06-21", "symbols": [] },
+    { "id": "M0", "milestone": "M0", "title": "Capa anti-olvido (progress.json + check-plan-progress.py + test_plan_completion.py + hook)", "status": "***REMOVED***", "evidence_file": ".sisyphus/evidence/task-M0-anti-forget.md", "committed_sha": "ca26b1f", "qa_at": "2026-06-21", "symbols": [] },
     { "id": "M1", "milestone": "M1", "title": "Capa de datos: AIModel + AIModelAssignment + AIInvocation + migracion", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M1-data-layer.md", "committed_sha": null, "qa_at": null, "symbols": ["api.models.ai_models.AIModel", "api.models.ai_models.AIModelAssignment", "api.models.ai_models.AIInvocation"] },
     { "id": "M2", "milestone": "M2", "title": "Cifrado AES-256-GCM: crypto.py + CLI + security_checks", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M2-crypto.md", "committed_sha": null, "qa_at": null, "symbols": ["api.libs.crypto.SecretCipher"] },
     { "id": "M4a", "milestone": "M4a", "title": "ProviderAdapter interface + ProviderRegistry + move GenerationParams", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M4a-providers-base.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.providers.ProviderAdapter", "api.core.providers.ProviderRegistry"] },
