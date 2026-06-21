@@ -1,0 +1,23 @@
+{
+  "plan": "ai-models-configurable",
+  "scope": "Sistema de Modelos IA Configurables por Tarea (M0-M13)",
+  "created_at": "2026-06-21",
+  "order": ["M0", "M1", "M2", "M4a", "M3", "M4b", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"],
+  "tasks": [
+    { "id": "M0", "milestone": "M0", "title": "Capa anti-olvido (progress.json + check-plan-progress.py + test_plan_completion.py + hook)", "status": "***REMOVED***", "evidence_file": ".sisyphus/evidence/task-M0-anti-forget.md", "committed_sha": "PENDING", "qa_at": "2026-06-21", "symbols": [] },
+    { "id": "M1", "milestone": "M1", "title": "Capa de datos: AIModel + AIModelAssignment + AIInvocation + migracion", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M1-data-layer.md", "committed_sha": null, "qa_at": null, "symbols": ["api.models.ai_models.AIModel", "api.models.ai_models.AIModelAssignment", "api.models.ai_models.AIInvocation"] },
+    { "id": "M2", "milestone": "M2", "title": "Cifrado AES-256-GCM: crypto.py + CLI + security_checks", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M2-crypto.md", "committed_sha": null, "qa_at": null, "symbols": ["api.libs.crypto.SecretCipher"] },
+    { "id": "M4a", "milestone": "M4a", "title": "ProviderAdapter interface + ProviderRegistry + move GenerationParams", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M4a-providers-base.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.providers.ProviderAdapter", "api.core.providers.ProviderRegistry"] },
+    { "id": "M3", "milestone": "M3", "title": "ModelRegistry: resolver con cache TTL 60s + invalidacion + fallback", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M3-model-registry.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.model_registry.ModelRegistry"] },
+    { "id": "M4b", "milestone": "M4b", "title": "6 adapters concretos: openai/anthropic/minimax/together/oai-compat/local", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M4b-provider-adapters.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.providers.OpenAIAdapter"] },
+    { "id": "M5", "milestone": "M5", "title": "RetryClient: backoff exponencial + failover + circuit breaker", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M5-retry-client.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.retry_client.RetryClient"] },
+    { "id": "M6", "milestone": "M6", "title": "TokenBudgeter: tokenizer + limits + guard embedding_dimensions==1536", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M6-token-budget.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.token_budget.TokenBudgeter"] },
+    { "id": "M7", "milestone": "M7", "title": "Refactor model_manager: invoke_for_task + cost tracking en streaming (Defecto #2)", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M7-model-manager-refactor.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.model_manager.ModelManager.invoke_for_task"] },
+    { "id": "M8", "milestone": "M8", "title": "Refactor embeddings: embed_texts acepta AIModel opcional", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M8-embeddings-refactor.md", "committed_sha": null, "qa_at": null, "symbols": ["api.core.embeddings.EmbeddingService.embed_texts"] },
+    { "id": "M9", "milestone": "M9", "title": "API admin REST: 6 endpoints + playground + tests", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M9-admin-api.md", "committed_sha": null, "qa_at": null, "symbols": ["api.controllers.console.myownclone.ai_models"] },
+    { "id": "M10", "milestone": "M10", "title": "Integracion en chat/embeddings/email/STT", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M10-integration.md", "committed_sha": null, "qa_at": null, "symbols": [] },
+    { "id": "M11", "milestone": "M11", "title": "UI /admin/ia-modelos: page + form + playground + chart", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M11-admin-ui.md", "committed_sha": null, "qa_at": null, "symbols": [] },
+    { "id": "M12", "milestone": "M12", "title": "Auditoria + cost_daily_rollup + rotacion doble-clave", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M12-audit-rotation.md", "committed_sha": null, "qa_at": null, "symbols": ["api.commands.crypto.rotate_secrets_key"] },
+    { "id": "M13", "milestone": "M13", "title": "Defectos #3/#4/#6 + backfill + docs", "status": "pending", "evidence_file": ".sisyphus/evidence/task-M13-defects-backfill-docs.md", "committed_sha": null, "qa_at": null, "symbols": ["api.commands.ai_backfill"] }
+  ]
+}
