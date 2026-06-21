@@ -15,6 +15,10 @@ _REQUIRED_IN_PROD: Iterable[str] = (
     "IMPERSONATION_TOKEN_PEPPER",
     "ALLOWED_ORIGINS",
     "REDIS_PASSWORD",
+    # Sisyphus M2: master key for at-rest encryption of ai_models.api_key_encrypted.
+    # Without it, SecretCipher refuses to encrypt/decrypt and the platform cannot
+    # boot a single AI call. The M2 contract is "fail-fast at production boot".
+    "MODEL_SECRETS_KEY",
 )
 
 def _is_production() -> bool:
