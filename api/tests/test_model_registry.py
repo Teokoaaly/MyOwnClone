@@ -1,0 +1,144 @@
+"""Tests for ModelRegistry (cache + DB lookup)."""
+from __future__ import annotations
+import time
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from api.core.model_registry import ModelRegistry, get_registry, reset_registry, CACHE_TTL_SECONDS
+
+
+def _make_mock_session(model, model_id="model-1", provider="openai", name="gpt-4o-mini", model_type="LLM"):
+    """Build a mock SQLAlchemy session that returns a single AIModel."""
+    session = MagicMock()
+    result = MagicMock()
+    result.scalar_one_or_none.return_value = model
+    session.execute.return_value = result
+    return session
+
+
+def _make_mock_aimodel(model_id="model-1", provider="openai", name="gpt-4o-mini", model_type="LLM"):
+    m = MagicMock()
+    m.id = model_id
+    m.provider = provider
+    m.name = name
+    m.model_type = model_type
+    m.is_active = True
+    return m
+
+
+def test_get_model_for_task_returns_model_from_db():
+    registry = ModelRegistry()
+    mock_model = _make_mock_aimodel()
+    session = _make_mock_session(mock_model)
+    result = registry.get_model_for_task("tenant-1", "chat", session=session)
+    assert result is mock_model
+    assert registry.cache_size() == 1
+
+
+def test_get_model_for_task_caches_result():
+    registry = ModelRegistry()
+    mock_model = _make_mock_aimodel()
+    session = _make_mock_session(mock_model)
+
+    # First call: hits DB
+    registry.get_model_for_task("tenant-1", "chat", session=session)
+    # Second call: hits cache, no DB query
+    result = registry.get_model_for_task("tenant-1", "chat", session=session)
+    assert result is mock_model
+    # session.execute called only once
+    assert session.execute.call_count == 1
+
+
+def test_get_model_for_task_returns_none_when_no_assignment():
+    registry = ModelRegistry()
+    session = _make_mock_session(None)
+    result = registry.get_model_for_task("tenant-1", "chat", session=session)
+    assert result is None
+    # None is cached too (negative caching)
+    assert registry.cache_size() == 1
+
+
+def test_invalidate_clears_specific_entry():
+    registry = ModelRegistry()
+    mock_model = _make_mock_aimodel()
+    session = _make_mock_session(mock_model)
+    registry.get_model_for_task("tenant-1", "chat", session=session)
+    assert registry.cache_size() == 1
+
+    registry.invalidate(tenant_id="tenant-1", task="chat")
+    assert registry.cache_size() == 0
+
+
+def test_invalidate_clears_by_tenant():
+    registry = ModelRegistry()
+    mock_model = _make_mock_aimodel()
+    session = _make_mock_session(mock_model)
+    registry.get_model_for_task("tenant-1", "chat", session=session)
+    registry.get_model_for_task("tenant-1", "embedding", session=session)
+    registry.get_model_for_task("tenant-2", "chat", session=session)
+    assert registry.cache_size() == 3
+
+    registry.invalidate(tenant_id="tenant-1")
+    assert registry.cache_size() == 1  # only tenant-2 remains
+
+
+def test_invalidate_clears_all():
+    registry = ModelRegistry()
+    mock_model = _make_mock_aimodel()
+    session = _make_mock_session(mock_model)
+    registry.get_model_for_task("tenant-1", "chat", session=session)
+    registry.get_model_for_task("tenant-2", "embedding", session=session)
+
+    registry.invalidate()
+    assert registry.cache_size() == 0
+
+
+def test_cache_ttl_expires():
+    """Cache entries should expire after TTL."""
+    registry = ModelRegistry()
+    mock_model = _make_mock_aimodel()
+    session = _make_mock_session(mock_model)
+    registry.get_model_for_task("tenant-1", "chat", session=session)
+    assert registry.cache_size() == 1
+
+    # Force expiration by manipulating the cache entry's expires_at
+    with registry._lock:
+        for entry in registry._cache.values():
+            entry.expires_at = time.monotonic() - 1
+
+    # Next call should re-query
+    registry.get_model_for_task("tenant-1", "chat", session=session)
+    assert session.execute.call_count == 2  # called twice now
+
+
+def test_registry_singleton():
+    reset_registry()
+    r1 = get_registry()
+    r2 = get_registry()
+    assert r1 is r2
+    reset_registry()
+
+
+def test_thread_safety():
+    """Concurrent reads should be safe."""
+    import threading
+    registry = ModelRegistry()
+    mock_model = _make_mock_aimodel()
+    session = _make_mock_session(mock_model)
+    errors = []
+
+    def worker():
+        try:
+            for _ in range(50):
+                registry.get_model_for_task("tenant-1", "chat", session=session)
+        except Exception as e:
+            errors.append(e)
+
+    threads = [threading.Thread(target=worker) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert errors == []
