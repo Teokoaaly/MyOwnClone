@@ -26,8 +26,9 @@ import enum
 import logging
 import os
 import threading
+import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Generator, Optional
 
 if TYPE_CHECKING:
     import anthropic
@@ -365,6 +366,122 @@ class _ModelInstance:
 
     def invoke_llm_stream(self, *, prompt: str) -> Generator[str, None, None]:
         yield from _dispatch_stream(prompt, provider=self._provider)
+
+
+# ─── New module-level functions (M7 integration) ────────────────────────────
+
+def _select_provider(model, api_key: str):
+    """Dispatch to the right provider adapter based on model.provider."""
+    from api.core.providers import get_adapter_for_provider
+    return get_adapter_for_provider(model.provider, api_key=api_key)
+
+
+def _calculate_cost_cents(
+    tokens_in: int,
+    tokens_out: int,
+    cost_per_1k_input_cents: Optional[int],
+    cost_per_1k_output_cents: Optional[int],
+) -> int:
+    """Compute cost in cents from token counts and per-1k rates.
+
+    Returns 0 if any rate is None (model has no pricing data).
+    """
+    if cost_per_1k_input_cents is None or cost_per_1k_output_cents is None:
+        return 0
+    input_cost = (tokens_in / 1000.0) * cost_per_1k_input_cents
+    output_cost = (tokens_out / 1000.0) * cost_per_1k_output_cents
+    return int(input_cost + output_cost + 0.5)  # round to nearest cent
+
+
+def invoke_for_task(
+    tenant_id: str,
+    task: str,
+    messages: list[dict[str, str]],
+    *,
+    max_tokens: int = 1024,
+    temperature: float = 0.7,
+    stream: bool = False,
+    operation: str = "chat",
+    api_key: Optional[str] = None,
+    session=None,
+) -> dict:
+    """Resolve the AIModel for (tenant_id, task), call the provider with retries,
+    and record cost in cost_tracking.
+
+    Returns the provider's response dict: {content, tokens_in, tokens_out, model}.
+    """
+    from api.core.cost_recording import _record_llm_cost
+    from api.core.model_registry import get_registry
+    from api.core.retry_client import get_retry_client
+    from api.models.analytics import CostCategory
+
+    registry = get_registry()
+    model = registry.get_model_for_task(tenant_id, task, session=session)
+    if model is None:
+        raise RuntimeError(
+            f"No active model for tenant={tenant_id!r} task={task!r}. "
+            f"Configure one via /admin/ia-modelos or run `flask ai-backfill-from-env`."
+        )
+
+    # Resolve API key
+    if api_key is None:
+        api_key = (model.config or {}).get("api_key", "")
+        if not api_key:
+            import os
+            env_var = f"{model.provider.upper()}_API_KEY"
+            api_key = os.environ.get(env_var, "")
+
+    adapter = _select_provider(model, api_key)
+    retry_client = get_retry_client()
+    breaker_key = f"{model.provider}/{model.name}"
+
+    start = time.monotonic()
+    success = False
+    error_message: Optional[str] = None
+    response: dict = {}
+
+    def _do_call() -> dict:
+        return adapter.chat(
+            model.name,
+            messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stream=stream,
+        )
+
+    try:
+        response = retry_client.call(_do_call, key=breaker_key)
+        success = True
+        return response
+    except Exception as exc:
+        error_message = str(exc)[:500]
+        raise
+    finally:
+        latency_ms = int((time.monotonic() - start) * 1000)
+        tokens_in = response.get("tokens_in", 0) if response else 0
+        tokens_out = response.get("tokens_out", 0) if response else 0
+        cost_cents = _calculate_cost_cents(
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
+            cost_per_1k_input_cents=getattr(model, "input_cost_per_1k", None),
+            cost_per_1k_output_cents=getattr(model, "output_cost_per_1k", None),
+        )
+        try:
+            _record_llm_cost(
+                tenant_id=tenant_id,
+                category=CostCategory.CLONE_RESPONSE if task == "chat" else CostCategory.PLATFORM_OPS,
+                operation=operation,
+                model=model.name,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                cost_cents=cost_cents,
+                latency_ms=latency_ms,
+                success=success,
+                error_message=error_message,
+            )
+        except Exception as cost_exc:
+            # Don't let cost recording failure mask the original error
+            logger.warning("Failed to record LLM cost: %s", cost_exc)
 
 
 # ─── Public façade ───────────────────────────────────────────────────────────
