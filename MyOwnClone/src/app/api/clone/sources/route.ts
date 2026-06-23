@@ -6,6 +6,11 @@ import { auth } from "@/lib/auth";
 const MAX_CHUNK_CHARS = 1200;
 const CHUNK_OVERLAP_CHARS = 160;
 const EMBEDDING_DIMENSIONS = 1536;
+// Defect #4: never POST the whole chunk set to the backend embeddings endpoint
+// in a single request. Large sources can produce hundreds of chunks; one giant
+// request risks payload limits, provider timeouts, and the backend's own
+// _MAX_EMBED_TEXTS guard (256). Batch client-side and validate each batch.
+const EMBEDDING_BATCH_SIZE = 64;
 const STOPWORDS = new Set([
   "the", "and", "for", "from", "about", "with", "that", "this", "you",
   "que", "con", "para", "por", "del", "las", "los", "una", "uno", "como",
@@ -147,35 +152,46 @@ async function resolveEmbeddings(
   }
 
   try {
-    const response = await fetch(`${backendUrl}/console/api/myownclone/embeddings`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": serviceApiKey,
-        "X-User-Id": String(session.user?.id || ""),
-        "X-User-Email": String(session.user?.email || ""),
-        "X-User-Role": String(session.user?.role || ""),
-        "X-Tenant-Id": String(session.user?.tenantId || ""),
-      },
-      body: JSON.stringify({ texts }),
-    });
+    // Defect #4: iterate over fixed-size batches, validate each batch's
+    // response, and accumulate vectors. If any batch fails or returns an
+    // invalid payload we fall back to lexical embeddings for the whole set so
+    // the caller always receives a consistent, fully-populated vector list.
+    const accumulated: number[][] = [];
+    for (let start = 0; start < texts.length; start += EMBEDDING_BATCH_SIZE) {
+      const batch = texts.slice(start, start + EMBEDDING_BATCH_SIZE);
+      const response = await fetch(`${backendUrl}/console/api/myownclone/embeddings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": serviceApiKey,
+          "X-User-Id": String(session.user?.id || ""),
+          "X-User-Email": String(session.user?.email || ""),
+          "X-User-Role": String(session.user?.role || ""),
+          "X-Tenant-Id": String(session.user?.tenantId || ""),
+        },
+        body: JSON.stringify({ texts: batch }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`backend_embeddings_${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`backend_embeddings_${response.status}`);
+      }
 
-    const data = await response.json();
-    const vectors = Array.isArray(data.vectors) ? data.vectors : [];
-    const valid = vectors.length === texts.length && vectors.every(
-      (row: unknown) =>
-        Array.isArray(row) &&
-        row.length === EMBEDDING_DIMENSIONS &&
-        row.every((value) => typeof value === "number"),
-    );
-    if (!valid) {
-      throw new Error("backend_embeddings_invalid_payload");
+      const data = await response.json();
+      const vectors = Array.isArray(data.vectors) ? data.vectors : [];
+      const valid = vectors.length === batch.length && vectors.every(
+        (row: unknown) =>
+          Array.isArray(row) &&
+          row.length === EMBEDDING_DIMENSIONS &&
+          row.every((value) => typeof value === "number"),
+      );
+      if (!valid) {
+        throw new Error("backend_embeddings_invalid_payload");
+      }
+      for (const row of vectors) {
+        accumulated.push(row);
+      }
     }
-    return { vectors, source: "registry_embedding_v1" };
+    return { vectors: accumulated, source: "registry_embedding_v1" };
   } catch {
     return {
       vectors: texts.map((text) => lexicalEmbedding(text)),

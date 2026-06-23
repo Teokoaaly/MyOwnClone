@@ -154,6 +154,7 @@ def _retrieve_from_local_chunks(
         return SiloRetrievalResult(silo=silo, context_id=context_id)
 
     scored: list[LexicalSegment] = []
+    scanned = 0
     min_score = score_threshold
     for chunk, source in rows:
         source_meta = source.source_metadata or {}
@@ -163,6 +164,10 @@ def _retrieve_from_local_chunks(
         if context_id and chunk_meta.get("context_id") != context_id:
             continue
 
+        # Defect #6: count chunks that passed silo/context filtering and were
+        # actually scored, so we can emit a diagnostic when content existed but
+        # nothing cleared the relevance bar.
+        scanned += 1
         term_score = _lexical_score(query_terms, chunk.content)
         vector_score = _cosine_similarity(query_embedding, getattr(chunk, "embedding", None))
         score = max(term_score, vector_score)
@@ -182,6 +187,16 @@ def _retrieve_from_local_chunks(
                     "vector_score": vector_score,
                 },
             )
+        )
+
+    if scanned and not scored:
+        logger.info(
+            "Retrieval below threshold: clone=%s silo=%s threshold=%.2f scanned=%d query_terms=%s",
+            clone_id,
+            silo.value,
+            score_threshold,
+            scanned,
+            sorted(query_terms),
         )
 
     scored.sort(key=lambda segment: segment.metadata.get("score", 0.0), reverse=True)
