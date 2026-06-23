@@ -91,6 +91,14 @@ class ModelRegistry:
         )
         return resolved
 
+    def get_model_for_task(
+        self,
+        *,
+        tenant_id: str | None,
+        task: AITask,
+    ) -> ResolvedModelConfig:
+        return self.resolve(tenant_id=tenant_id, task=task)
+
     def invalidate(self, *, tenant_id: str | None = None, task: AITask | None = None) -> None:
         if tenant_id is None and task is None:
             self._cache.clear()
