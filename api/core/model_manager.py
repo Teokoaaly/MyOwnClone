@@ -32,11 +32,11 @@ Usage:
 
 from __future__ import annotations
 
-import enum
 import logging
 import os
-from dataclasses import dataclass, field
 from typing import Generator
+
+from api.core.providers import GenerationParams, ModelReply, ModelType, ModelUsage
 
 logger = logging.getLogger(__name__)
 
@@ -48,40 +48,6 @@ class ModelInvocationError(Exception):
 
 
 # ─── Value objects ───────────────────────────────────────────────────────────
-
-class ModelType(enum.StrEnum):
-    """Model type selector (mirrors graphon.model_runtime interface)."""
-    LLM = "llm"
-    EMBEDDING = "embedding"
-    RERANKING = "reranking"
-    SPEECH2TEXT = "speech2text"
-    TTS = "tts"
-    MODERATION = "moderation"
-
-
-@dataclass
-class ModelUsage:
-    """Minimal usage metadata returned by the model runtime."""
-
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    total_tokens: int = 0
-
-    def as_dict(self) -> dict[str, int]:
-        return {
-            "prompt_tokens": self.prompt_tokens,
-            "completion_tokens": self.completion_tokens,
-            "total_tokens": self.total_tokens,
-        }
-
-
-@dataclass
-class ModelReply:
-    """Reply returned by invoke_non_streaming."""
-
-    text: str = ""
-    usage: ModelUsage | None = None
-
 
 # ─── Provider detection ──────────────────────────────────────────────────────
 
