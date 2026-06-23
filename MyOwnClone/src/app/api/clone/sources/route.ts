@@ -12,6 +12,36 @@ const STOPWORDS = new Set([
   "este", "esta", "sobre", "sus",
 ]);
 
+function isLocalDevHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname.startsWith("localhost:") ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("127.0.0.1:")
+  );
+}
+
+function getServiceApiKey(hostname: string): string | null {
+  const configured = process.env.SERVICE_API_KEY?.trim();
+  if (configured) return configured;
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (process.env.ALLOW_DEV_SERVICE_KEY === "true" || isLocalDevHost(hostname))
+  ) {
+    return "dev-api-key-for-proxy";
+  }
+  return null;
+}
+
+function getBackendUrl(hostname: string): string | null {
+  const configured = process.env.MYOWNCLONE_API_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, "");
+  if (process.env.NODE_ENV !== "production" && isLocalDevHost(hostname)) {
+    return "http://127.0.0.1:5001";
+  }
+  return null;
+}
+
 /**
  * Resolve the active clone ID from cookie or env var fallback.
  */
@@ -98,6 +128,60 @@ function chunkText(text: string): string[] {
   }
 
   return chunks;
+}
+
+async function resolveEmbeddings(
+  request: NextRequest,
+  session: any,
+  texts: string[],
+): Promise<{ vectors: number[][]; source: string }> {
+  const hostname = new URL(request.url).hostname;
+  const backendUrl = getBackendUrl(hostname);
+  const serviceApiKey = getServiceApiKey(hostname);
+
+  if (!backendUrl || !serviceApiKey) {
+    return {
+      vectors: texts.map((text) => lexicalEmbedding(text)),
+      source: "local_lexical_v1_fallback",
+    };
+  }
+
+  try {
+    const response = await fetch(`${backendUrl}/console/api/myownclone/embeddings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": serviceApiKey,
+        "X-User-Id": String(session.user?.id || ""),
+        "X-User-Email": String(session.user?.email || ""),
+        "X-User-Role": String(session.user?.role || ""),
+        "X-Tenant-Id": String(session.user?.tenantId || ""),
+      },
+      body: JSON.stringify({ texts }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`backend_embeddings_${response.status}`);
+    }
+
+    const data = await response.json();
+    const vectors = Array.isArray(data.vectors) ? data.vectors : [];
+    const valid = vectors.length === texts.length && vectors.every(
+      (row: unknown) =>
+        Array.isArray(row) &&
+        row.length === EMBEDDING_DIMENSIONS &&
+        row.every((value) => typeof value === "number"),
+    );
+    if (!valid) {
+      throw new Error("backend_embeddings_invalid_payload");
+    }
+    return { vectors, source: "registry_embedding_v1" };
+  } catch {
+    return {
+      vectors: texts.map((text) => lexicalEmbedding(text)),
+      source: "local_lexical_v1_fallback",
+    };
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -224,6 +308,8 @@ export async function POST(request: NextRequest) {
       title = file.name;
     }
 
+    const { vectors, source } = await resolveEmbeddings(request, session, chunks);
+
     const newSource = {
       id: crypto.randomUUID(),
       cloneId,
@@ -235,7 +321,7 @@ export async function POST(request: NextRequest) {
         silo,
         wordCount: countWords(ingestableContent),
         chunkCount: chunks.length,
-        ingestion: type === "text" ? "local_lexical_v1" : "pending_external_ingestion",
+        ingestion: type === "text" ? source : "pending_external_ingestion",
       },
     };
 
@@ -246,7 +332,7 @@ export async function POST(request: NextRequest) {
           id: crypto.randomUUID(),
           sourceId: newSource.id,
           content: chunk,
-          embedding: lexicalEmbedding(chunk),
+          embedding: vectors[index] || lexicalEmbedding(chunk),
           tokenCount: countWords(chunk),
           metadata: {
             position: index,

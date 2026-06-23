@@ -23,6 +23,7 @@ from api.core.myownclone.email_processor import parse_inbound_email, resolve_clo
 from api.extensions.ext_database import db
 from api.fields.base import ResponseModel
 from api.libs.login import current_account_with_tenant, login_required
+from api.models.ai_models import AITask
 from api.models.myownclone import (
     CloneConfig,
     EmailInbound,
@@ -183,13 +184,15 @@ class InboxGenerateDraftApi(Resource):
         memory_context, template_context = _get_clone_context(email.clone_id)
 
         def llm_call(prompt: str) -> str:
-            from api.core.model_manager import ModelManager, ModelType
+            from api.core.model_manager import ModelManager
 
             model_manager = ModelManager()
-            model_instance = model_manager.get_default_model_instance(
-                tenant_id=tenant_id, model_type=ModelType.LLM
-            )
-            return model_instance.invoke_llm(prompt=prompt)
+            return model_manager.invoke_for_task(
+                tenant_id=tenant_id,
+                clone_id=email.clone_id,
+                task=AITask.EMAIL_DRAFT,
+                message=prompt,
+            ).text
 
         result = generate_draft_reply(
             from_name=email.from_name or "",
