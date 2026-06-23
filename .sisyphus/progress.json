@@ -109,17 +109,17 @@
       "title": "Refactor embeddings: embed_texts acepta AIModel opcional",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M8-embeddings-refactor.md",
-      "committed_sha": "0dc1abc",
+      "committed_sha": "bec4c68",
       "qa_at": "2026-06-23"
     },
     {
       "id": "M9",
       "milestone": "M9",
       "title": "API admin REST: CRUD, assignments, playground, tests",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M9-admin-api.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "f9c5a39",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M10",
