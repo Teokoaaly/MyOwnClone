@@ -120,3 +120,119 @@ def test_ai_model_test_connection_uses_adapter(ai_client, monkeypatch):
 
     assert resp.status_code == 200
     assert resp.get_json()["ok"] is True
+
+
+def test_ai_model_playground_uses_selected_model(ai_client, monkeypatch):
+    model = SimpleNamespace(
+        id="m1",
+        tenant_id=None,
+        name="Global", provider="openai", model_id="gpt",
+        base_url=None, capabilities=["llm"], input_price_cents_per_mtok=0,
+        output_price_cents_per_mtok=0, priority=1, temperature_default=None,
+        max_tokens_default=None, max_input_tokens=None, embedding_dimensions=None,
+        is_active=True, api_key_encrypted="encrypted",
+    )
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.db.session.execute",
+        lambda stmt: SimpleNamespace(scalar_one_or_none=lambda: model),
+    )
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.ModelRegistry._build_resolved_from_db",
+        lambda self, **kwargs: SimpleNamespace(
+            provider="openai",
+            model_id="gpt",
+            source="database",
+            override_params={},
+            temperature_default=None,
+            max_tokens_default=None,
+        ),
+    )
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.ModelManager._provider_adapter_for",
+        lambda self, resolved: SimpleNamespace(
+            generate=lambda prompt, params: SimpleNamespace(
+                text=f"reply:{prompt}",
+                usage=SimpleNamespace(as_dict=lambda: {"prompt_tokens": 1, "completion_tokens": 2, "total_tokens": 3}),
+                latency_ms=12,
+            )
+        ),
+    )
+
+    resp = ai_client.post(
+        "/console/api/myownclone/ai-models/playground",
+        headers={"Authorization": "Bearer ok"},
+        json={"model_id": "m1", "task": "chat", "prompt": "hello"},
+    )
+
+    assert resp.status_code == 200
+    assert resp.get_json()["text"] == "reply:hello"
+
+
+def test_ai_model_costs_aggregates_rows(ai_client, monkeypatch):
+    rows = [
+        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 8, 0, 0), prompt_tokens=10, completion_tokens=5),
+        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 9, 0, 0), prompt_tokens=20, completion_tokens=15),
+    ]
+
+    class ExecuteResult:
+        def __init__(self, rows):
+            self._rows = rows
+
+        def scalars(self):
+            return SimpleNamespace(all=lambda: self._rows)
+
+    calls = {"count": 0}
+
+    def fake_execute(stmt):
+        calls["count"] += 1
+        return ExecuteResult([] if calls["count"] == 1 else rows)
+
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.db.session.execute",
+        fake_execute,
+    )
+
+    resp = ai_client.get(
+        "/console/api/myownclone/ai-models/costs",
+        headers={"Authorization": "Bearer ok"},
+    )
+
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["totals"]["invocations"] == 2
+    assert body["totals"]["prompt_tokens"] == 30
+    assert body["totals"]["completion_tokens"] == 20
+
+
+def test_ai_model_costs_prefers_rollup_rows(ai_client, monkeypatch):
+    rollups = [
+        SimpleNamespace(day=__import__("datetime").date(2026, 6, 23), invocations=4, prompt_tokens=40, completion_tokens=20)
+    ]
+
+    class ExecuteResult:
+        def __init__(self, rows):
+            self._rows = rows
+
+        def scalars(self):
+            return SimpleNamespace(all=lambda: self._rows)
+
+    calls = {"count": 0}
+
+    def fake_execute(stmt):
+        calls["count"] += 1
+        return ExecuteResult(rollups if calls["count"] == 1 else [])
+
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.db.session.execute",
+        fake_execute,
+    )
+
+    resp = ai_client.get(
+        "/console/api/myownclone/ai-models/costs",
+        headers={"Authorization": "Bearer ok"},
+    )
+
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["totals"]["invocations"] == 4
+    assert body["series"][0]["day"] == "2026-06-23"

@@ -17,7 +17,7 @@ from api.models.meeting import (
     Availability, Booking, BookingStatus, MeetingType_, Product,
 )
 from api.models.ai_models import (
-    AICapability, AIModel, AIModelAssignment, AIInvocation,
+    AICapability, AIModel, AIModelAssignment, AIInvocation, CostDailyRollup,
     AIProvider, AITask, TASK_CAPABILITY,
 )
 
@@ -33,6 +33,6 @@ __all__ = [
     "ImpersonationLog", "ImpersonationToken",
     "Feedback",
     # Sisyphus M1: configurable AI models by task
-    "AIModel", "AIModelAssignment", "AIInvocation",
+    "AIModel", "AIModelAssignment", "AIInvocation", "CostDailyRollup",
     "AIProvider", "AICapability", "AITask", "TASK_CAPABILITY",
 ]

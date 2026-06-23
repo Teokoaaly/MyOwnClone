@@ -1,91 +1,109 @@
-"""Flask CLI commands for crypto key management (Sisyphus M2 + M12).
+"""Flask CLI commands for key management and AI audit rollups."""
 
-Two commands:
-
-* ``flask generate-master-key`` — generate a fresh AES-256 key and print it
-  base64-encoded. The operator is expected to copy the value into a secret
-  manager (1Password, AWS Secrets Manager, vault, etc.) and never commit it.
-
-* ``flask rotate-secrets-key --new <key>`` — STUB for M2. The full rotation
-  body (re-encrypt every ``ai_models.api_key_encrypted`` row using a
-  double-key window) is implemented in M12 (see plan §M12c).
-
-Both commands follow the existing pattern in ``api/commands/seed.py`` and
-``api/commands/reindex.py`` (Click command, registered in
-``api.app_factory.create_app``).
-"""
 from __future__ import annotations
 
-import sys
+import os
+from dataclasses import dataclass
 
 import click
+from sqlalchemy import select
 
-from api.libs.crypto import generate_master_key
+from api.core.ai_audit import refresh_cost_daily_rollup
+from api.extensions.ext_database import db
+from api.libs.crypto import (
+    CiphertextMalformedError,
+    InvalidTag,
+    MasterKeyInvalidError,
+    MasterKeyMissingError,
+    SecretCipher,
+    decode_master_key,
+    decrypt_with_key,
+    encrypt_with_key,
+    generate_master_key,
+)
+from api.models.ai_models import AIModel
+
+
+@dataclass(slots=True)
+class RotationResult:
+    scanned: int
+    rotated: int
+    skipped: int
+
+
+def rotate_secrets_key(
+    *,
+    new_key_b64: str,
+    old_key_b64: str | None = None,
+    dry_run: bool = False,
+) -> RotationResult:
+    old_key_b64 = old_key_b64 or os.environ.get("MODEL_SECRETS_KEY", "")
+    decode_master_key(old_key_b64)
+    decode_master_key(new_key_b64)
+
+    rows = db.session.execute(select(AIModel)).scalars().all()
+    rotated = 0
+    skipped = 0
+
+    for row in rows:
+        plaintext = decrypt_with_key(row.api_key_encrypted, old_key_b64)
+        candidate = encrypt_with_key(plaintext, new_key_b64)
+        if row.api_key_encrypted == candidate:
+            skipped += 1
+            continue
+        rotated += 1
+        if not dry_run:
+            row.api_key_encrypted = candidate
+
+    if not dry_run:
+        db.session.commit()
+    return RotationResult(scanned=len(rows), rotated=rotated, skipped=skipped)
 
 
 @click.command("generate-master-key")
 def generate_master_key_command() -> None:
-    """Print a fresh 32-byte AES master key, base64-encoded.
-
-    The value goes into the ``MODEL_SECRETS_KEY`` environment variable. Treat
-    it like a database root password: anyone holding it can decrypt every
-    row of ``ai_models.api_key_encrypted``.
-
-    Losing the key is IRRECOVERABLE — re-encryption is the only escape, and
-    it requires the key. This is the single most important operational
-    fact of the configurable-AI-by-task system.
-    """
     key = generate_master_key()
-    # Print to stdout (operator-friendly) but also flush a loud warning to
-    # stderr so it shows up in journalctl / docker logs even if stdout is
-    # redirected.
     click.echo(key)
-    click.echo(
-        "\n[!] Store this key in your secret manager NOW.",
-        err=True,
-    )
-    click.echo(
-        "[!] Set MODEL_SECRETS_KEY=<value> in the API environment.",
-        err=True,
-    )
-    click.echo(
-        "[!] Losing it makes every ai_models.api_key_encrypted row unreadable.",
-        err=True,
-    )
+    click.echo("\n[!] Store this key in your secret manager NOW.", err=True)
+    click.echo("[!] Set MODEL_SECRETS_KEY=<value> in the API environment.", err=True)
+    click.echo("[!] Losing it makes every ai_models.api_key_encrypted row unreadable.", err=True)
 
 
 @click.command("rotate-secrets-key")
-@click.option(
-    "--new",
-    "new_key_b64",
-    required=True,
-    help="New master key, base64-encoded (32 bytes). The OLD key must remain "
-         "in MODEL_SECRETS_KEY during rotation so legacy rows still decrypt.",
-)
-def rotate_secrets_key_command_stub(new_key_b64: str) -> None:
-    """STUB. Full implementation lands in M12 (audit + double-key rotation).
-
-    For now this command validates the input shape and exits 0 with a notice
-    pointing to M12. It does NOT mutate the database.
-    """
-    import base64
+@click.option("--new", "new_key_b64", required=True, help="New master key, base64-encoded.")
+@click.option("--old", "old_key_b64", required=False, help="Old master key override. Defaults to MODEL_SECRETS_KEY.")
+@click.option("--dry-run", is_flag=True, help="Validate and count rows without mutating the database.")
+def rotate_secrets_key_command(new_key_b64: str, old_key_b64: str | None, dry_run: bool) -> None:
     try:
-        raw = base64.b64decode(new_key_b64, validate=True)
-    except (ValueError, Exception) as exc:
-        click.echo(f"[FAIL] --new value is not valid base64: {exc}", err=True)
-        sys.exit(2)
-    if len(raw) != 32:
-        click.echo(
-            f"[FAIL] --new value decodes to {len(raw)} bytes, need 32.",
-            err=True,
+        result = rotate_secrets_key(
+            new_key_b64=new_key_b64,
+            old_key_b64=old_key_b64,
+            dry_run=dry_run,
         )
-        sys.exit(2)
+    except (MasterKeyMissingError, MasterKeyInvalidError, CiphertextMalformedError, InvalidTag) as exc:
+        click.echo(f"[FAIL] {exc}", err=True)
+        raise SystemExit(2) from exc
+
+    mode = "dry-run" if dry_run else "applied"
     click.echo(
-        "[stub] rotate-secrets-key is a no-op in M2. "
-        "Full re-encryption is implemented in M12 (plan §M12c). "
-        "Input shape validated: 32-byte base64 OK.",
+        f"[OK] rotation {mode}: scanned={result.scanned} rotated={result.rotated} skipped={result.skipped}"
+    )
+    click.echo(
+        "[!] Keep the old key available for already-running workers until the deployment rolls forward.",
+        err=True,
     )
 
 
-# Re-export under the name ``app_factory.create_app`` expects.
-__all__ = ["generate_master_key_command", "rotate_secrets_key_command_stub"]
+@click.command("refresh-cost-daily-rollup")
+@click.option("--days", default=30, show_default=True, type=int, help="How many recent days to recompute.")
+def refresh_cost_daily_rollup_command(days: int) -> None:
+    rows = refresh_cost_daily_rollup(days=days)
+    click.echo(f"[OK] cost_daily_rollup refreshed: {rows} row(s)")
+
+
+__all__ = [
+    "generate_master_key_command",
+    "rotate_secrets_key_command",
+    "refresh_cost_daily_rollup_command",
+    "rotate_secrets_key",
+]
