@@ -266,6 +266,52 @@ class ModelRegistry:
     def _env(self, name: str, default: str) -> str:
         return os.getenv(name, "").strip() or default
 
+    def dump_status(self, *, tenant_id: str | None = None) -> dict:
+        """Return registry state for the admin monitoring panel."""
+        now = self._time_fn()
+        items = []
+        for task in AITask:
+            key = self._cache_key(tenant_id, task)
+            cached = self._cache.get(key)
+            if cached and cached.expires_at > now:
+                entry = cached.value
+                items.append({
+                    "task": task.value,
+                    "provider": entry.provider,
+                    "model_id": entry.model_id,
+                    "display_name": entry.display_name,
+                    "source": entry.source,
+                    "cache_hit": True,
+                    "cache_ttl_remaining_s": int(cached.expires_at - now),
+                })
+          ***REMOVED***:
+                try:
+                    resolved = self.resolve(tenant_id=tenant_id, task=task)
+                    items.append({
+                        "task": task.value,
+                        "provider": resolved.provider,
+                        "model_id": resolved.model_id,
+                        "display_name": resolved.display_name,
+                        "source": resolved.source,
+                        "cache_hit": False,
+                        "cache_ttl_remaining_s": self.ttl_seconds,
+                    })
+                except ModelRegistryError:
+                    items.append({
+                        "task": task.value,
+                        "provider": None,
+                        "model_id": None,
+                        "display_name": None,
+                        "source": "unresolved",
+                        "cache_hit": False,
+                        "cache_ttl_remaining_s": 0,
+                    })
+        return {
+            "ttl_seconds": self.ttl_seconds,
+            "cache_size": len(self._cache),
+            "tasks": items,
+        }
+
     def _openai_base_url(self) -> str | None:
         return (
             os.getenv("OPENAI_BASE_URL", "").strip()
