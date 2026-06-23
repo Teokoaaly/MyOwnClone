@@ -31,14 +31,11 @@ export function useAdminFetch<T>(
   url: string | null,
 ): UseAdminFetchResult<T> {
   const router = useRouter();
-  const routerRef = useRef(router);
   const redirectedRef = useRef(false);
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadCount, setReloadCount] = useState<number>(0);
-
-  routerRef.current = router;
 
   useEffect(() => {
     if (url === null) {
@@ -54,7 +51,7 @@ export function useAdminFetch<T>(
         if (res.status === 401 || res.status === 403) {
           if (!redirectedRef.current) {
             redirectedRef.current = true;
-            routerRef.current.replace("/login");
+            router.replace("/login");
           }
           return null;
         }
@@ -79,7 +76,7 @@ export function useAdminFetch<T>(
     return () => {
       cancelled = true;
     };
-  }, [url, reloadCount]);
+  }, [router, url, reloadCount]);
 
   return {
     data,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timedelta, timezone
 
 from flask import request
 from flask_restx import Resource
@@ -14,10 +15,11 @@ from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
 from api.core.model_manager import ModelManager
 from api.core.model_registry import ModelRegistry
+from api.core.providers.base import GenerationParams
 from api.extensions.ext_database import db
 from api.libs.crypto import SecretCipher
 from api.libs.login import current_account_with_tenant, login_required
-from api.models.ai_models import AIModel, AIModelAssignment, AITask, TASK_CAPABILITY
+from api.models.ai_models import AIInvocation, AIModel, AIModelAssignment, AITask, TASK_CAPABILITY
 
 logger = logging.getLogger(__name__)
 ai_models_ns = console_ns
@@ -27,7 +29,7 @@ class AIModelPayload(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     provider: str = Field(..., min_length=1, max_length=20)
     model_id: str = Field(..., min_length=1, max_length=120)
-    api_key: str = Field(..., min_length=1)
+    api_key: str | None = Field(default=None, min_length=1)
     base_url: str | None = None
     capabilities: list[str] = Field(default_factory=list)
     input_price_cents_per_mtok: int = 0
@@ -51,11 +53,18 @@ class AIModelConnectionPayload(BaseModel):
     model_id: str
 
 
+class AIModelPlaygroundPayload(BaseModel):
+    model_id: str
+    prompt: str = Field(..., min_length=1, max_length=12000)
+    task: str = Field(default=AITask.CHAT.value)
+
+
 register_schema_models(
     console_ns,
     AIModelPayload,
     AIModelAssignmentPayload,
     AIModelConnectionPayload,
+    AIModelPlaygroundPayload,
 )
 
 
@@ -96,6 +105,22 @@ def _serialize_assignment(assignment: AIModelAssignment) -> dict:
     }
 
 
+def _resolve_model_for_preview(*, tenant_id: str | None, model: AIModel, task: AITask):
+    return ModelRegistry()._build_resolved_from_db(
+        tenant_id=tenant_id,
+        task=task,
+        assignment=AIModelAssignment(
+            id="preview",
+            tenant_id=tenant_id,
+            task=task.value,
+            model_id=model.id,
+            override_params={},
+            is_active=True,
+        ),
+        model=model,
+    )
+
+
 @console_ns.route("/myownclone/ai-models")
 class AIModelListApi(Resource):
     @login_required
@@ -117,10 +142,10 @@ class AIModelListApi(Resource):
     @console_ns.expect(AIModelPayload, location="json", validate=True)
     def post(self):
         tenant_id = _tenant_id()
-        if not tenant_id:
-            return {"error": "tenant not configured"}, 400
 
         payload = AIModelPayload.model_validate(request.json)
+        if not payload.api_key:
+            return {"error": "api_key is required"}, 400
         model = AIModel(
             tenant_id=tenant_id,
             name=payload.name,
@@ -144,6 +169,45 @@ class AIModelListApi(Resource):
         return _serialize_model(model), 201
 
 
+@console_ns.route("/myownclone/ai-models/<string:model_id>")
+class AIModelDetailApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    @console_ns.expect(AIModelPayload, location="json", validate=True)
+    def put(self, model_id: str):
+        tenant_id = _tenant_id()
+        payload = AIModelPayload.model_validate(request.json)
+
+        model = db.session.execute(
+            select(AIModel).where(
+                AIModel.id == model_id,
+                or_(AIModel.tenant_id == tenant_id, AIModel.tenant_id.is_(None)),
+            )
+        ).scalar_one_or_none()
+        if not model:
+            return {"error": "model not found"}, 404
+
+        model.name = payload.name
+        model.provider = payload.provider
+        model.model_id = payload.model_id
+        model.base_url = payload.base_url
+        model.capabilities = payload.capabilities
+        model.input_price_cents_per_mtok = payload.input_price_cents_per_mtok
+        model.output_price_cents_per_mtok = payload.output_price_cents_per_mtok
+        model.priority = payload.priority
+        model.temperature_default = payload.temperature_default
+        model.max_tokens_default = payload.max_tokens_default
+        model.max_input_tokens = payload.max_input_tokens
+        model.embedding_dimensions = payload.embedding_dimensions
+        model.is_active = payload.is_active
+        if payload.api_key:
+            model.api_key_encrypted = SecretCipher.encrypt(payload.api_key)
+        db.session.commit()
+        ModelRegistry().invalidate(tenant_id=tenant_id)
+        return _serialize_model(model), 200
+
+
 @console_ns.route("/myownclone/ai-models/assignments")
 class AIModelAssignmentsApi(Resource):
     @login_required
@@ -165,8 +229,6 @@ class AIModelAssignmentsApi(Resource):
     @console_ns.expect(AIModelAssignmentPayload, location="json", validate=True)
     def put(self):
         tenant_id = _tenant_id()
-        if not tenant_id:
-            return {"error": "tenant not configured"}, 400
 
         payload = AIModelAssignmentPayload.model_validate(request.json)
         if payload.task not in {task.value for task in AITask}:
@@ -226,22 +288,87 @@ class AIModelTestConnectionApi(Resource):
         if not model:
             return {"error": "model not found"}, 404
 
-        resolved = ModelRegistry()._build_resolved_from_db(  # scoped helper reuse
-            tenant_id=tenant_id,
-            task=AITask.CHAT,
-            assignment=AIModelAssignment(
-                id="preview",
-                tenant_id=tenant_id,
-                task=AITask.CHAT.value,
-                model_id=model.id,
-                override_params={},
-                is_active=True,
-            ),
-            model=model,
-        )
+        resolved = _resolve_model_for_preview(tenant_id=tenant_id, model=model, task=AITask.CHAT)
         adapter = ModelManager()._provider_adapter_for(resolved)
         result = adapter.test_connection()
         return {"ok": result.ok, "message": result.message, "details": result.details}, 200
+
+
+@console_ns.route("/myownclone/ai-models/playground")
+class AIModelPlaygroundApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    @console_ns.expect(AIModelPlaygroundPayload, location="json", validate=True)
+    def post(self):
+        tenant_id = _tenant_id()
+        payload = AIModelPlaygroundPayload.model_validate(request.json)
+        if payload.task not in {task.value for task in AITask}:
+            return {"error": "invalid task"}, 400
+
+        task = AITask(payload.task)
+        model = db.session.execute(
+            select(AIModel).where(
+                AIModel.id == payload.model_id,
+                or_(AIModel.tenant_id == tenant_id, AIModel.tenant_id.is_(None)),
+            )
+        ).scalar_one_or_none()
+        if not model:
+            return {"error": "model not found"}, 404
+
+        required_capability = TASK_CAPABILITY[task].value
+        if required_capability not in (model.capabilities or []):
+            return {"error": "model capability mismatch"}, 400
+
+        resolved = _resolve_model_for_preview(tenant_id=tenant_id, model=model, task=task)
+        adapter = ModelManager()._provider_adapter_for(resolved)
+        params = ModelManager()._build_generation_params(resolved)
+        reply = adapter.generate(prompt=payload.prompt, params=params)
+        return {
+            "text": reply.text,
+            "usage": reply.usage.as_dict() if reply.usage else None,
+            "latency_ms": reply.latency_ms,
+        }, 200
+
+
+@console_ns.route("/myownclone/ai-models/costs")
+class AIModelCostsApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self):
+        tenant_id = _tenant_id()
+        since = datetime.now(timezone.utc) - timedelta(days=7)
+        stmt = select(AIInvocation).where(AIInvocation.created_at >= since.replace(tzinfo=None))
+        if tenant_id:
+            stmt = stmt.where(AIInvocation.tenant_id == tenant_id)
+        rows = db.session.execute(stmt.order_by(AIInvocation.created_at.asc())).scalars().all()
+
+        daily: dict[str, dict[str, int]] = {}
+        totals = {
+            "invocations": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+        }
+        for row in rows:
+            day = row.created_at.date().isoformat() if row.created_at else "unknown"
+            bucket = daily.setdefault(day, {
+                "day": day,
+                "invocations": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+            })
+            bucket["invocations"] += 1
+            bucket["prompt_tokens"] += row.prompt_tokens or 0
+            bucket["completion_tokens"] += row.completion_tokens or 0
+            totals["invocations"] += 1
+            totals["prompt_tokens"] += row.prompt_tokens or 0
+            totals["completion_tokens"] += row.completion_tokens or 0
+
+        return {
+            "series": list(daily.values()),
+            "totals": totals,
+        }, 200
 
 
 ns = ai_models_ns
