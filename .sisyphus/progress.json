@@ -154,9 +154,9 @@
       "title": "Defectos #3/#4/#6 + backfill + docs + verificacion final",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M13-defects-backfill-docs.md",
-      "committed_sha": "d7a1e1e8287f7e1412bbb6d8a1d3c96ba2ae426a",
+      "committed_sha": "8f8600e0e4c258fb253a666d9b7758ed1e5a234e",
       "qa_at": "2026-06-23",
-      "notes": "defect #3 explicit CostCategory mapping; defect #4 frontend batching EMBEDDING_BATCH_SIZE=64; defect #6 runtime _MAX_EMBED_TEXTS=256 + 413 + log.exception; defect #6 retrieval scanned-counter INFO log; flask ai-backfill-from-env (idempotent, embedding 1536, STT only openai); docs/model-backfill-and-rollout.md; 12 new tests + 17 regression all green on py3.14 worktree"
+      "notes": "defect #3 explicit CostCategory mapping; defect #4 frontend batching EMBEDDING_BATCH_SIZE=64; defect #6 runtime _MAX_EMBED_TEXTS=256 + 413 + log.exception; defect #6 retrieval scanned-counter INFO log; flask ai-backfill-from-env (idempotent, embedding 1536, STT only openai); docs/model-backfill-and-rollout.md; 12 new tests + 17 regression all green on py3.14 worktree [post-amend canonical SHA on remote: 8f8600e0e4c258fb253a666d9b7758ed1e5a234e]"
     }
   ]
 }

@@ -20,5 +20,5 @@ export async function GET(
     .innerJoin(schema.cloneConfigs, eq(schema.meetingTypes.cloneId, schema.cloneConfigs.id))
     .where(and(eq(schema.meetingTypes.cloneId, id), eq(schema.cloneConfigs.tenantId, tenantId)));
 
-  return NextResponse.json(rows.map((row) => row.meetingTypes));
+  return NextResponse.json(rows.map((row) => row.meeting_types));
 }

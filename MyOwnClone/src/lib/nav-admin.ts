@@ -19,7 +19,7 @@ export const ADMIN_NAV: SidebarNavItem[] = [
     href: "/admin/ia-modelos",
     label: "AI models",
     iconKey: "cerebro",
-    tooltip: "Runtime assignments",
+    tooltip: "Runtime assignments · Balancer · Embeddings · Costs",
     section: "platform",
   },
   {

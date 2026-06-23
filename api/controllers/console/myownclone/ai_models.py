@@ -348,6 +348,7 @@ class AIModelCostsApi(Resource):
         since = datetime.now(timezone.utc) - timedelta(days=7)
         daily: dict[str, dict[str, int]] = {}
         totals = {"invocations": 0, "prompt_tokens": 0, "completion_tokens": 0}
+        by_model: dict[str, dict[str, int]] = {}
 
         rollup_stmt = select(CostDailyRollup).where(CostDailyRollup.day >= since.date())
         if tenant_id:
@@ -371,6 +372,18 @@ class AIModelCostsApi(Resource):
                 totals["invocations"] += row.invocations or 0
                 totals["prompt_tokens"] += row.prompt_tokens or 0
                 totals["completion_tokens"] += row.completion_tokens or 0
+
+            # Per-model breakdown from invocations table (rollup is daily aggregates)
+            inv_stmt = select(AIInvocation).where(AIInvocation.created_at >= since.replace(tzinfo=None))
+            if tenant_id:
+                inv_stmt = inv_stmt.where(AIInvocation.tenant_id == tenant_id)
+            inv_rows = db.session.execute(inv_stmt).scalars().all()
+            for row in inv_rows:
+                key = row.model_id or "unknown"
+                entry = by_model.setdefault(key, {"model_id": key, "invocations": 0, "prompt_tokens": 0, "completion_tokens": 0})
+                entry["invocations"] += 1
+                entry["prompt_tokens"] += row.prompt_tokens or 0
+                entry["completion_tokens"] += row.completion_tokens or 0
         else:
             stmt = select(AIInvocation).where(AIInvocation.created_at >= since.replace(tzinfo=None))
             if tenant_id:
@@ -390,11 +403,66 @@ class AIModelCostsApi(Resource):
                 totals["invocations"] += 1
                 totals["prompt_tokens"] += row.prompt_tokens or 0
                 totals["completion_tokens"] += row.completion_tokens or 0
+                key = row.model_id or "unknown"
+                entry = by_model.setdefault(key, {"model_id": key, "invocations": 0, "prompt_tokens": 0, "completion_tokens": 0})
+                entry["invocations"] += 1
+                entry["prompt_tokens"] += row.prompt_tokens or 0
+                entry["completion_tokens"] += row.completion_tokens or 0
 
         return {
             "series": list(daily.values()),
             "totals": totals,
+            "by_model": list(by_model.values()),
         }, 200
+
+
+# ── M14: Admin monitoring & control panels ──────────────────────────
+
+@console_ns.route("/myownclone/ai-models/registry-status")
+class RegistryStatusApi(Resource):
+    """Return the ModelRegistry balancer state (cache + per-task resolution)."""
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self):
+        tenant_id = _tenant_id()
+        reg = ModelRegistry()
+        return reg.dump_status(tenant_id=tenant_id), 200
+
+
+@console_ns.route("/myownclone/ai-models/embedding-status")
+class EmbeddingStatusApi(Resource):
+    """Return embedding runtime constants for the admin panel."""
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self):
+        from api.controllers.console.myownclone.runtime import _MAX_EMBED_TEXTS
+
+        return {
+            "max_embed_texts": _MAX_EMBED_TEXTS,
+            "client_batch_size": 64,
+            "embedding_dimensions": 1536,
+        }, 200
+
+
+@console_ns.route("/myownclone/ai-models/backfill")
+class AIModelBackfillApi(Resource):
+    """Trigger ai-backfill-from-env from the admin UI (M14)."""
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def post(self):
+        from dataclasses import asdict
+
+        from api.commands.ai_backfill import backfill_from_env
+
+        report = backfill_from_env(dry_run=False)
+        ModelRegistry().invalidate()
+        return asdict(report), 200
 
 
 ns = ai_models_ns

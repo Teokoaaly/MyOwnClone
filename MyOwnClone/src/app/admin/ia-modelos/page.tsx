@@ -53,6 +53,32 @@ interface CostsResponse {
     prompt_tokens: number;
     completion_tokens: number;
   };
+  by_model?: Array<{
+    model_id: string;
+    invocations: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+  }>;
+}
+
+interface RegistryStatusResponse {
+  ttl_seconds: number;
+  cache_size: number;
+  tasks: Array<{
+    task: string;
+    provider: string | null;
+    model_id: string | null;
+    display_name: string | null;
+    source: string;
+    cache_hit: boolean;
+    cache_ttl_remaining_s: number;
+  }>;
+}
+
+interface EmbeddingStatusResponse {
+  max_embed_texts: number;
+  client_batch_size: number;
+  embedding_dimensions: number;
 }
 
 const TASKS: Array<{ id: Task; label: string; capability: Capability }> = [
@@ -122,6 +148,19 @@ export default function AdminAIModelsPage() {
     reload: reloadCosts,
   } = useAdminFetch<CostsResponse>("/api/admin/ai-models/costs");
 
+  const {
+    data: registryStatus,
+    loading: _registryLoading,
+    error: _registryError,
+    reload: reloadRegistry,
+  } = useAdminFetch<RegistryStatusResponse>("/api/admin/ai-models/registry-status");
+
+  const {
+    data: embeddingStatus,
+    loading: _embeddingLoading,
+    error: _embeddingError,
+  } = useAdminFetch<EmbeddingStatusResponse>("/api/admin/ai-models/embedding-status");
+
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [playgroundTask, setPlaygroundTask] = useState<Task>("chat");
@@ -132,6 +171,8 @@ export default function AdminAIModelsPage() {
   const [playgroundLoading, setPlaygroundLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
 
   useEffect(() => {
     if (!playgroundModelId && models?.length) {
@@ -298,6 +339,25 @@ export default function AdminAIModelsPage() {
     }
   }
 
+  async function runBackfill() {
+    setBackfilling(true);
+    setPageError(null);
+    setBackfillResult(null);
+    try {
+      const response = await fetch("/api/admin/ai-models/backfill", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? `Error ${response.status}`);
+      setBackfillResult(JSON.stringify(data, null, 2));
+      reloadModels();
+      reloadAssignments();
+      reloadRegistry();
+    } catch (error) {
+      setPageError(error instanceof Error ? error.message : "Could not run backfill");
+    } finally {
+      setBackfilling(false);
+    }
+  }
+
   if (modelsLoading && assignmentsLoading && costsLoading) {
     return <LoadingState label="Loading AI models..." rows={5} />;
   }
@@ -326,12 +386,19 @@ export default function AdminAIModelsPage() {
             <button type="button" className="btn-secondary text-xs" onClick={() => { reloadModels(); reloadAssignments(); reloadCosts(); }}>
               Refresh
             </button>
+            <button type="button" className="btn-secondary text-xs" disabled={backfilling} onClick={runBackfill}>
+              {backfilling ? "Backfilling..." : "Backfill from env"}
+            </button>
             {actionMessage && <span className="badge-active">{actionMessage}</span>}
           </>
         }
       />
 
       {pageError && <div className="badge-error inline-block">{pageError}</div>}
+
+      {backfillResult && (
+        <pre className="mt-2 text-[11px] font-mono bg-[var(--bg-card)] p-3 rounded max-h-40 overflow-auto text-[var(--text-primary)]">{backfillResult}</pre>
+      )}
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="card space-y-4">
@@ -565,6 +632,86 @@ export default function AdminAIModelsPage() {
           )}
         </section>
       </div>
+
+      {/* ── Registry Status ── */}
+      {registryStatus && (
+        <section className="card space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="stat-label">Model Registry · Balancer</div>
+              <div className="text-xs text-[var(--text-muted)]">TTL: {registryStatus.ttl_seconds}s · Cache entries: {registryStatus.cache_size}</div>
+            </div>
+            <button type="button" className="btn-secondary text-xs" onClick={() => window.location.reload()}>Refresh</button>
+          </div>
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+            {registryStatus.tasks.map((t) => (
+              <div key={t.task} className="rounded-lg border border-[var(--border-soft)] p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={taskBadge(t.task as Task)}>{t.task}</span>
+                  <span className={t.cache_hit ? "badge-active" : "badge-warning"}>{t.cache_hit ? "cached" : "live"}</span>
+                </div>
+                <div className="mt-2 font-mono text-[11px] text-[var(--text-muted)]">
+                  {t.provider ? `${t.provider} / ${t.model_id}` : "unresolved"}
+                </div>
+                <div className="mt-1 text-[11px] text-[var(--text-muted)]">{t.source}</div>
+                {t.cache_ttl_remaining_s > 0 && (
+                  <div className="mt-1 text-[10px] text-[var(--text-muted)]">{t.cache_ttl_remaining_s}s remaining</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Embedding Status ── */}
+      {embeddingStatus && (
+        <section className="card space-y-4">
+          <div className="stat-label">Embedding Configuration</div>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">MAX texts</div>
+              <div className="stat-value mt-1 font-mono">{embeddingStatus.max_embed_texts}</div>
+            </div>
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">Dimensions</div>
+              <div className="stat-value mt-1 font-mono">{embeddingStatus.embedding_dimensions}</div>
+            </div>
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">Client batch</div>
+              <div className="stat-value mt-1 font-mono">{embeddingStatus.client_batch_size}</div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Costs by Model ── */}
+      {costs?.by_model && costs.by_model.length > 0 && (
+        <section className="card space-y-4">
+          <div className="stat-label">Costs by model</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-[var(--border-soft)] text-left">
+                  <th className="pb-2 font-medium text-[var(--text-muted)]">Model</th>
+                  <th className="pb-2 font-medium text-[var(--text-muted)]">Calls</th>
+                  <th className="pb-2 font-medium text-[var(--text-muted)]">Prompt tokens</th>
+                  <th className="pb-2 font-medium text-[var(--text-muted)]">Completion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {costs.by_model.map((m) => (
+                  <tr key={m.model_id} className="border-b border-[var(--border-soft)] last:border-0">
+                    <td className="py-2 font-mono text-[var(--text-primary)]">{m.model_id}</td>
+                    <td className="py-2">{m.invocations}</td>
+                    <td className="py-2">{m.prompt_tokens.toLocaleString()}</td>
+                    <td className="py-2">{m.completion_tokens.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
