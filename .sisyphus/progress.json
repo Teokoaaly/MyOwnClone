@@ -134,10 +134,10 @@
       "id": "M11",
       "milestone": "M11",
       "title": "UI /admin/ia-modelos: page + form + playground + chart",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M11-admin-ui.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "015e012",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M12",
