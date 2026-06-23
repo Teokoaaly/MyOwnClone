@@ -8,6 +8,10 @@ from dataclasses import dataclass, field
 from typing import Any, Generator
 
 
+class ModelInvocationError(RuntimeError):
+    """Raised when a provider invocation fails or is misconfigured."""
+
+
 class ModelType(enum.StrEnum):
     """Model type selector shared by the configurable runtime."""
 
@@ -53,6 +57,7 @@ class ModelReply:
 
     text: str = ""
     usage: ModelUsage | None = None
+    latency_ms: int | None = None
     raw_response: Any | None = None
 
 

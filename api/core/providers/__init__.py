@@ -2,6 +2,7 @@
 
 from .base import (
     GenerationParams,
+    ModelInvocationError,
     ModelReply,
     ModelType,
     ModelUsage,
@@ -13,6 +14,7 @@ from .registry import DuplicateProviderError, ProviderRegistry, UnknownProviderE
 __all__ = [
     "DuplicateProviderError",
     "GenerationParams",
+    "ModelInvocationError",
     "ModelReply",
     "ModelType",
     "ModelUsage",
