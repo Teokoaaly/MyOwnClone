@@ -32,17 +32,32 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
+import time
 from typing import Generator
 
+from api.core.model_registry import ModelRegistry
 from api.core.providers import (
+    AnthropicAdapter,
     GenerationParams,
+    LocalAdapter,
     ModelInvocationError,
+    MiniMaxAdapter,
     ModelReply,
     ModelType,
     ModelUsage,
+    OpenAIAdapter,
+    OpenAICompatibleAdapter,
+    ProviderAdapter,
+    ProviderRegistry,
+    TogetherAdapter,
 )
+from api.core.retry_client import RetryCandidate, RetryClient
+from api.core.token_budget import EmbeddingDimensionError, TokenBudgetError, TokenBudgeter
+from api.extensions import db
+from api.models.ai_models import AIInvocation, AITask
 
 logger = logging.getLogger(__name__)
 
@@ -314,15 +329,26 @@ class _ModelInstance:
       model_instance.invoke_llm(prompt=...)
     """
 
-    def __init__(self, provider: str):
-        self._provider = provider
+    def __init__(self, *, tenant_id: str, model_manager: "ModelManager"):
+        self._tenant_id = tenant_id
+        self._model_manager = model_manager
 
     def invoke_llm(self, *, prompt: str) -> str:
-        reply = _dispatch(prompt, provider=self._provider)
+        reply = self._model_manager.invoke_for_task(
+            tenant_id=self._tenant_id,
+            clone_id=None,
+            task=AITask.CHAT,
+            message=prompt,
+        )
         return reply.text if isinstance(reply, ModelReply) else ""
 
     def invoke_llm_stream(self, *, prompt: str) -> Generator[str, None, None]:
-        yield from _dispatch_stream(prompt, provider=self._provider)
+        yield from self._model_manager.invoke_for_task_stream(
+            tenant_id=self._tenant_id,
+            clone_id=None,
+            task=AITask.CHAT,
+            message=prompt,
+        )
 
 
 # ─── Public façade ───────────────────────────────────────────────────────────
@@ -335,6 +361,173 @@ class ModelManager:
     the streaming endpoint for graphon compatibility).
     """
 
+    _ADAPTER_TYPES = {
+        "openai": OpenAIAdapter,
+        "anthropic": AnthropicAdapter,
+        "minimax": MiniMaxAdapter,
+        "together": TogetherAdapter,
+        "openai_compatible": OpenAICompatibleAdapter,
+        "local": LocalAdapter,
+    }
+
+    def __init__(
+        self,
+        *,
+        registry: ModelRegistry | None = None,
+        retry_client: RetryClient | None = None,
+        token_budgeter: TokenBudgeter | None = None,
+    ) -> None:
+        self.registry = registry or ModelRegistry()
+        self.retry_client = retry_client or RetryClient()
+        self.token_budgeter = token_budgeter or TokenBudgeter()
+
+    @staticmethod
+    def _prompt_hash(message: str) -> str:
+        return hashlib.sha256(message.encode("utf-8")).hexdigest()
+
+    def _provider_adapter_for(self, resolved) -> ProviderAdapter:
+        adapter_type = self._ADAPTER_TYPES.get(resolved.provider)
+        if adapter_type is None:
+            raise ModelInvocationError(f"Unsupported provider {resolved.provider!r}.")
+        return adapter_type(resolved)
+
+    def _build_generation_params(self, resolved) -> GenerationParams:
+        override = resolved.override_params or {}
+        return GenerationParams(
+            model=resolved.model_id,
+            temperature=override.get("temperature", resolved.temperature_default),
+            max_tokens=override.get("max_tokens", resolved.max_tokens_default),
+            metadata={"source": resolved.source, "provider": resolved.provider},
+        )
+
+    def _record_invocation(
+        self,
+        *,
+        tenant_id: str,
+        clone_id: str | None,
+        task: AITask,
+        model_name: str,
+        message: str,
+        success: bool,
+        usage: ModelUsage | None = None,
+        latency_ms: int = 0,
+        error_message: str | None = None,
+    ) -> None:
+        row = AIInvocation(
+            tenant_id=tenant_id,
+            clone_id=clone_id,
+            task=task.value,
+            model=model_name,
+            prompt_hash=self._prompt_hash(message),
+            prompt_tokens=usage.prompt_tokens if usage else 0,
+            completion_tokens=usage.completion_tokens if usage else 0,
+            latency_ms=latency_ms,
+            success=success,
+            error_message=error_message,
+        )
+        db.session.add(row)
+        db.session.commit()
+
+    def invoke_for_task(
+        self,
+        *,
+        tenant_id: str,
+        clone_id: str | None,
+        task: AITask,
+        message: str,
+    ) -> ModelReply:
+        try:
+            resolved = self.registry.get_model_for_task(tenant_id=tenant_id, task=task)
+            if task == AITask.EMBEDDING:
+                self.token_budgeter.validate_embedding_model(model=resolved)
+          ***REMOVED***tted = self.token_budgeter.fit_text(
+                text=message,
+                model=resolved,
+                task=task,
+                truncate=False,
+            )
+            adapter = self._provider_adapter_for(resolved)
+            params = self._build_generation_params(resolved)
+            candidate = RetryCandidate(
+                provider_name=resolved.provider,
+                model_id=resolved.model_id,
+                priority=resolved.priority,
+                invoke=lambda: adapter.generate(prompt=fitted.text, params=params),
+            )
+            reply = self.retry_client.invoke([candidate])
+            self._record_invocation(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=task,
+                model_name=resolved.model_id,
+                message=fitted.text,
+                success=True,
+                usage=reply.usage,
+                latency_ms=reply.latency_ms or 0,
+            )
+            return reply
+        except (EmbeddingDimensionError, TokenBudgetError, ModelInvocationError) as exc:
+            try:
+                self._record_invocation(
+                    tenant_id=tenant_id,
+                    clone_id=clone_id,
+                    task=task,
+                    model_name=locals().get("resolved").model_id if "resolved" in locals() else "unresolved",
+                    message=message,
+                    success=False,
+                    error_message=str(exc),
+                )
+            except Exception:
+                logger.exception("Failed to persist AIInvocation failure row")
+            raise ModelInvocationError(str(exc)) from exc
+
+    def invoke_for_task_stream(
+        self,
+        *,
+        tenant_id: str,
+        clone_id: str | None,
+        task: AITask,
+        message: str,
+    ) -> Generator[str, None, None]:
+        started = time.monotonic()
+        resolved = self.registry.get_model_for_task(tenant_id=tenant_id, task=task)
+      ***REMOVED***tted = self.token_budgeter.fit_text(
+            text=message,
+            model=resolved,
+            task=task,
+            truncate=False,
+        )
+        adapter = self._provider_adapter_for(resolved)
+        params = self._build_generation_params(resolved)
+        chunks: list[str] = []
+        try:
+            for chunk in adapter.generate_stream(prompt=fitted.text, params=params):
+                chunks.append(chunk)
+                yield chunk
+            self._record_invocation(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=task,
+                model_name=resolved.model_id,
+                message=fitted.text,
+                success=True,
+                usage=None,
+                latency_ms=int((time.monotonic() - started) * 1000),
+                error_message="stream_usage_missing",
+            )
+        except Exception as exc:
+            self._record_invocation(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=task,
+                model_name=resolved.model_id,
+                message=fitted.text,
+                success=False,
+                latency_ms=int((time.monotonic() - started) * 1000),
+                error_message=str(exc),
+            )
+            raise ModelInvocationError(str(exc)) from exc
+
     @staticmethod
     def invoke_non_streaming(
         *,
@@ -344,14 +537,13 @@ class ModelManager:
         session_id: str | None = None,
     ) -> ModelReply:
         """Invoke the LLM and return the complete reply (no streaming)."""
-        provider = _detect_provider()
-        if not provider:
-            raise ModelInvocationError(
-                "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
-                "MINIMAX_API_KEY, or TOGETHER_API_KEY in .env"
-            )
         try:
-            return _dispatch(message, provider=provider)
+            return ModelManager().invoke_for_task(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=AITask.CHAT,
+                message=message,
+            )
         except Exception as exc:
             logger.exception("invoke_non_streaming failed for clone=%s", clone_id)
             raise ModelInvocationError(str(exc)) from exc
@@ -372,11 +564,4 @@ class ModelManager:
                 f"Model type {model_type!r} is not supported in standalone mode yet."
             )
 
-        provider = _detect_provider()
-        if not provider:
-            raise ModelInvocationError(
-                "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
-                "MINIMAX_API_KEY, or TOGETHER_API_KEY in .env"
-            )
-
-        return _ModelInstance(provider=provider)
+        return _ModelInstance(tenant_id=tenant_id, model_manager=self)
