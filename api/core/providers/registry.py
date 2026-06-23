@@ -19,6 +19,7 @@ class ProviderRegistry:
     """Singleton-backed registry for provider adapters."""
 
     _default: ClassVar["ProviderRegistry | None"] = None
+    _adapters: ClassVar[dict[str, object]] = {}
 
     def __init__(self) -> None:
         self._providers: dict[str, ProviderAdapter] = {}
