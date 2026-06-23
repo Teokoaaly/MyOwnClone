@@ -19,7 +19,14 @@ from api.core.providers.base import GenerationParams
 from api.extensions.ext_database import db
 from api.libs.crypto import SecretCipher
 from api.libs.login import current_account_with_tenant, login_required
-from api.models.ai_models import AIInvocation, AIModel, AIModelAssignment, AITask, TASK_CAPABILITY
+from api.models.ai_models import (
+    AIInvocation,
+    AIModel,
+    AIModelAssignment,
+    AITask,
+    CostDailyRollup,
+    TASK_CAPABILITY,
+)
 
 logger = logging.getLogger(__name__)
 ai_models_ns = console_ns
@@ -339,31 +346,50 @@ class AIModelCostsApi(Resource):
     def get(self):
         tenant_id = _tenant_id()
         since = datetime.now(timezone.utc) - timedelta(days=7)
-        stmt = select(AIInvocation).where(AIInvocation.created_at >= since.replace(tzinfo=None))
-        if tenant_id:
-            stmt = stmt.where(AIInvocation.tenant_id == tenant_id)
-        rows = db.session.execute(stmt.order_by(AIInvocation.created_at.asc())).scalars().all()
-
         daily: dict[str, dict[str, int]] = {}
-        totals = {
-            "invocations": 0,
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-        }
-        for row in rows:
-            day = row.created_at.date().isoformat() if row.created_at else "unknown"
-            bucket = daily.setdefault(day, {
-                "day": day,
-                "invocations": 0,
-                "prompt_tokens": 0,
-                "completion_tokens": 0,
-            })
-            bucket["invocations"] += 1
-            bucket["prompt_tokens"] += row.prompt_tokens or 0
-            bucket["completion_tokens"] += row.completion_tokens or 0
-            totals["invocations"] += 1
-            totals["prompt_tokens"] += row.prompt_tokens or 0
-            totals["completion_tokens"] += row.completion_tokens or 0
+        totals = {"invocations": 0, "prompt_tokens": 0, "completion_tokens": 0}
+
+        rollup_stmt = select(CostDailyRollup).where(CostDailyRollup.day >= since.date())
+        if tenant_id:
+            rollup_stmt = rollup_stmt.where(CostDailyRollup.tenant_id == tenant_id)
+        rollups = db.session.execute(
+            rollup_stmt.order_by(CostDailyRollup.day.asc())
+        ).scalars().all()
+
+        if rollups:
+            for row in rollups:
+                day = row.day.isoformat()
+                bucket = daily.setdefault(day, {
+                    "day": day,
+                    "invocations": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                })
+                bucket["invocations"] += row.invocations or 0
+                bucket["prompt_tokens"] += row.prompt_tokens or 0
+                bucket["completion_tokens"] += row.completion_tokens or 0
+                totals["invocations"] += row.invocations or 0
+                totals["prompt_tokens"] += row.prompt_tokens or 0
+                totals["completion_tokens"] += row.completion_tokens or 0
+        else:
+            stmt = select(AIInvocation).where(AIInvocation.created_at >= since.replace(tzinfo=None))
+            if tenant_id:
+                stmt = stmt.where(AIInvocation.tenant_id == tenant_id)
+            rows = db.session.execute(stmt.order_by(AIInvocation.created_at.asc())).scalars().all()
+            for row in rows:
+                day = row.created_at.date().isoformat() if row.created_at else "unknown"
+                bucket = daily.setdefault(day, {
+                    "day": day,
+                    "invocations": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                })
+                bucket["invocations"] += 1
+                bucket["prompt_tokens"] += row.prompt_tokens or 0
+                bucket["completion_tokens"] += row.completion_tokens or 0
+                totals["invocations"] += 1
+                totals["prompt_tokens"] += row.prompt_tokens or 0
+                totals["completion_tokens"] += row.completion_tokens or 0
 
         return {
             "series": list(daily.values()),

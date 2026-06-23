@@ -28,9 +28,10 @@ Design constraints (see ``HANDOFF_LLM.md`` §5 M1 and the plan in
 from __future__ import annotations
 
 import enum
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
+import sqlalchemy as sa
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -252,6 +253,53 @@ class AIInvocation(TypeBase):
     )
 
 
+class CostDailyRollup(TypeBase):
+    """Daily aggregated runtime usage for admin/reporting queries."""
+
+    __tablename__ = "cost_daily_rollup"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        insert_default=_new_uuid,
+        default=_new_uuid,
+    )
+    tenant_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    day: Mapped[date] = mapped_column(sa.Date, nullable=False)
+    task: Mapped[str] = mapped_column(String(30), nullable=False)
+    model: Mapped[str] = mapped_column(String(120), nullable=False)
+    invocations: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="0", default=0
+    )
+    prompt_tokens: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="0", default=0
+    )
+    completion_tokens: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="0", default=0
+    )
+    success_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="0", default=0
+    )
+    error_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="0", default=0
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        insert_default=naive_utc_now,
+        default=naive_utc_now,
+        server_default=func.current_timestamp(),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        insert_default=naive_utc_now,
+        default=naive_utc_now,
+        onupdate=naive_utc_now,
+        server_default=func.current_timestamp(),
+    )
+
+
 __all__ = [
     "AIProvider",
     "AICapability",
@@ -260,4 +308,5 @@ __all__ = [
     "AIModel",
     "AIModelAssignment",
     "AIInvocation",
+    "CostDailyRollup",
 ]

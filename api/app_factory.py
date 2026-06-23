@@ -41,7 +41,8 @@ from api.commands.seed import seed_demo_data
 from api.commands.reindex import reindex_command
 from api.commands.crypto import (
     generate_master_key_command,
-    rotate_secrets_key_command_stub,
+    rotate_secrets_key_command,
+    refresh_cost_daily_rollup_command,
 )
 
 # Import deploy blueprint
@@ -180,7 +181,8 @@ def create_app():
     app.cli.add_command(seed_demo_data)
     app.cli.add_command(reindex_command)
     app.cli.add_command(generate_master_key_command)
-    app.cli.add_command(rotate_secrets_key_command_stub)
+    app.cli.add_command(rotate_secrets_key_command)
+    app.cli.add_command(refresh_cost_daily_rollup_command)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)

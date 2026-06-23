@@ -95,6 +95,21 @@ def _load_master_key() -> bytes:
     return decoded
 
 
+def decode_master_key(key_b64: str) -> bytes:
+    """Decode a base64-encoded 32-byte AES key outside the environment."""
+    if not key_b64:
+        raise MasterKeyMissingError(f"{_ENV_VAR} value is empty.")
+    try:
+        decoded = base64.b64decode(key_b64, validate=True)
+    except (ValueError, base64.binascii.Error) as exc:
+        raise MasterKeyInvalidError(f"Provided key is not valid base64: {exc}") from exc
+    if len(decoded) != _KEY_BYTES:
+        raise MasterKeyInvalidError(
+            f"Provided key must decode to exactly {_KEY_BYTES} bytes (got {len(decoded)})."
+        )
+    return decoded
+
+
 def generate_master_key() -> str:
     """Generate a fresh 32-byte master key, return its base64 representation.
 
@@ -197,10 +212,45 @@ class SecretCipher:
         return plaintext_bytes.decode("utf-8")
 
 
+def encrypt_with_key(plaintext: str, key_b64: str) -> str:
+    if not isinstance(plaintext, str):
+        raise TypeError(
+            f"encrypt_with_key expects str, got {type(plaintext).__name__}"
+        )
+    key = decode_master_key(key_b64)
+    nonce = secrets.token_bytes(_NONCE_BYTES)
+    ct_and_tag = AESGCM(key).encrypt(nonce, plaintext.encode("utf-8"), None)
+    return base64.b64encode(nonce + ct_and_tag).decode("ascii")
+
+
+def decrypt_with_key(blob: str, key_b64: str) -> str:
+    if not isinstance(blob, str):
+        raise TypeError(
+            f"decrypt_with_key expects str, got {type(blob).__name__}"
+        )
+    try:
+        raw = base64.b64decode(blob, validate=True)
+    except (ValueError, base64.binascii.Error) as exc:
+        raise CiphertextMalformedError(
+            f"ciphertext is not valid base64: {exc}"
+        ) from exc
+    if len(raw) < _NONCE_BYTES + 16:
+        raise CiphertextMalformedError(
+            f"ciphertext too short: got {len(raw)} bytes, "
+            f"need at least {_NONCE_BYTES + 16} (nonce + tag)."
+        )
+    nonce, ct_and_tag = raw[:_NONCE_BYTES], raw[_NONCE_BYTES:]
+    plaintext_bytes = AESGCM(decode_master_key(key_b64)).decrypt(nonce, ct_and_tag, None)
+    return plaintext_bytes.decode("utf-8")
+
+
 __all__ = [
     "SecretCipher",
     "generate_master_key",
     "is_configured",
+    "decode_master_key",
+    "encrypt_with_key",
+    "decrypt_with_key",
     "CryptoError",
     "MasterKeyMissingError",
     "MasterKeyInvalidError",
