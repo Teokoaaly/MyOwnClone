@@ -62,10 +62,10 @@
       "id": "M3",
       "milestone": "M3",
       "title": "ModelRegistry: resolver con cache TTL 60s + invalidacion + fallback",
-      "status": "pending",
+      "status": "***REMOVED***",
       "evidence_file": ".sisyphus/evidence/task-M3-model-registry.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "5a9f076",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M4b",
