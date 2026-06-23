@@ -12,9 +12,21 @@ from api.extensions.ext_database import db
 from api.fields.base import ResponseModel
 from api.libs.login import current_account_with_tenant, login_required
 from api.models import Conversation, Message
+from api.models.analytics import CostCategory
 from api.models.myownclone import AnalyticsGap, AnalyticsQuestion, CostTracking, CloneConfig
 
 logger = logging.getLogger(__name__)
+
+# Defect #3: explicit mapping from the typed ``CostCategory`` enum to the
+# response field names. Replaces the previous implicit ``f"{row[0]}_cents"``
+# derivation, which silently coupled the API response shape to raw DB string
+# values and dropped/mis-bucketed any category whose name did not happen to
+# match the ``<value>_cents`` convention.
+_COST_CATEGORY_TO_FIELD: dict[CostCategory, str] = {
+    CostCategory.CLONE_RESPONSE: "clone_response_cents",
+    CostCategory.CONTENT_INGESTION: "content_ingestion_cents",
+    CostCategory.PLATFORM_OPS: "platform_ops_cents",
+}
 
 
 def _verify_clone_access(clone_id: str, tenant_id: str) -> None:
@@ -203,14 +215,17 @@ class CostBreakdownApi(Resource):
             .group_by(CostTracking.category)
         ).all()
 
-        costs = {
-            "clone_response_cents": 0,
-            "content_ingestion_cents": 0,
-            "platform_ops_cents": 0,
-        }
-        for row in rows:
-            key = f"{row[0]}_cents"
-            if key in costs:
-                costs[key] = row[1] or 0
+        costs = {field: 0 for field in _COST_CATEGORY_TO_FIELD.values()}
+        for category_value, total in rows:
+            try:
+                category = CostCategory(category_value)
+            except ValueError:
+                logger.warning(
+                    "Unknown cost category %r ignored in breakdown (tenant=%s)",
+                    category_value,
+                    tenant_id,
+                )
+                continue
+            costs[_COST_CATEGORY_TO_FIELD[category]] = total or 0
 
         return {**costs, "total_cents": sum(costs.values())}, 200

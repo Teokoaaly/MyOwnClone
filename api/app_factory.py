@@ -44,6 +44,7 @@ from api.commands.crypto import (
     rotate_secrets_key_command,
     refresh_cost_daily_rollup_command,
 )
+from api.commands.ai_backfill import ai_backfill_from_env_command
 
 # Import deploy blueprint
 from api.controllers.deploy import deploy_bp
@@ -183,6 +184,7 @@ def create_app():
     app.cli.add_command(generate_master_key_command)
     app.cli.add_command(rotate_secrets_key_command)
     app.cli.add_command(refresh_cost_daily_rollup_command)
+    app.cli.add_command(ai_backfill_from_env_command)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)

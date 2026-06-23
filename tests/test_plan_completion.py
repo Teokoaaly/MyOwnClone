@@ -6,6 +6,7 @@ When they all pass, the M0-M13 implementation exists in code, not only in docs.
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import inspect
 
 
@@ -88,8 +89,14 @@ def test_m12_rotate_secrets_key_command_exists() -> None:
 
 
 def test_m13_backfill_command_exists() -> None:
-    try:
-        m = importlib.import_module("api.commands.ai_backfill")
-    except ModuleNotFoundError:
-        m = importlib.import_module("api.commands.crypto")
-    assert hasattr(m, "register_routes") or hasattr(m, "backfill_from_env") or "backfill" in dir(m)
+    m = importlib.import_module("api.commands.ai_backfill")
+    assert hasattr(m, "backfill_from_env")
+    assert hasattr(m, "ai_backfill_from_env_command")
+    # The Flask CLI command must be named exactly `ai-backfill-from-env`.
+    assert m.ai_backfill_from_env_command.name == "ai-backfill-from-env"
+    # And it must be wired into the app factory's CLI registration.
+    spec = importlib.util.find_spec("api.app_factory")
+    assert spec is not None and spec.origin
+    src = open(spec.origin, encoding="utf-8").read()
+    assert "ai_backfill_from_env_command" in src
+    assert "add_command(ai_backfill_from_env_command)" in src
