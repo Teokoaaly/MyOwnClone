@@ -24,7 +24,7 @@ Constraints worth highlighting:
     also guarded. Re-running is safe.
 
 Revision ID: e2f3a4b5c6d7
-Revises: d1e2f3a4b5c6
+Revises: c3d4e5f6a7c1
 Create Date: 2026-06-21 18:30:00.000000
 """
 from alembic import op
@@ -32,7 +32,7 @@ import sqlalchemy as sa
 
 
 revision = 'e2f3a4b5c6d7'
-down_revision = 'd1e2f3a4b5c6'
+down_revision = 'c3d4e5f6a7c1'
 branch_labels = None
 depends_on = None
 
