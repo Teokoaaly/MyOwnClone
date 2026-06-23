@@ -13,6 +13,7 @@ REMOTE_RELEASE_DIR="${REMOTE_RELEASES_DIR}/${RELEASE_ID}"
 REMOTE_CURRENT_LINK="${REMOTE_ROOT}/current"
 LOCAL_REPO="${LOCAL_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 BACKEND_ENV_FILE="${BACKEND_ENV_FILE:-}"
+LOCAL_GIT_SHA="${LOCAL_GIT_SHA:-$(git -C "${LOCAL_REPO}" rev-parse --short HEAD 2>/dev/null || echo unknown)}"
 BASE_SSH_OPTS=(-p "$SSH_PORT" -o StrictHostKeyChecking=accept-new)
 
 log() {
@@ -82,30 +83,84 @@ RSYNC_RSH="$RSYNC_RSH" rsync -az --delete \
   --exclude '*' \
   "${LOCAL_REPO}/" "${SSH_USER}@${HOST}:${REMOTE_RELEASE_DIR}/"
 
+_REMOTE_SHARED_DIR="${REMOTE_SHARED_DIR}"
+_REMOTE_RELEASE_DIR="${REMOTE_RELEASE_DIR}"
+_REMOTE_CURRENT_LINK="${REMOTE_CURRENT_LINK}"
+_LOCAL_GIT_SHA="${LOCAL_GIT_SHA}"
+
 log "Activando release ${RELEASE_ID} y levantando backend Docker"
 "${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash <<EOF
 set -Eeuo pipefail
-ln -sfn '${REMOTE_RELEASE_DIR}' '${REMOTE_CURRENT_LINK}'
-cd '${REMOTE_CURRENT_LINK}/ops'
-cp '${REMOTE_SHARED_DIR}/backend.env.production' './backend.env.production'
+REMOTE_SHARED_DIR="${_REMOTE_SHARED_DIR}"
+REMOTE_RELEASE_DIR="${_REMOTE_RELEASE_DIR}"
+REMOTE_CURRENT_LINK="${_REMOTE_CURRENT_LINK}"
+DEPLOY_GIT_SHA="${_LOCAL_GIT_SHA}"
+PREVIOUS_RELEASE="$(readlink -f "${REMOTE_CURRENT_LINK}" 2>/dev/null || true)"
+ROLLBACK_ACTIVE=0
+
+rollback() {
+  local exit_code=$?
+  if [[ $exit_code -eq 0 || $ROLLBACK_ACTIVE -ne 1 ]]; then
+    return "$exit_code"
+***REMOVED***
+
+  if [[ -z "${PREVIOUS_RELEASE}" || ! -d "${PREVIOUS_RELEASE}" ]]; then
+    echo "Rollback skipped: previous release is unavailable." >&2
+    return "$exit_code"
+***REMOVED***
+
+  echo "Deploy failed; rolling back backend to ${PREVIOUS_RELEASE}" >&2
+  ln -sfn "${PREVIOUS_RELEASE}" "${REMOTE_CURRENT_LINK}"
+  cd "${REMOTE_CURRENT_LINK}/ops"
+  cp "${REMOTE_SHARED_DIR}/backend.env.production" './backend.env.production'
+  set -a
+  . './backend.env.production'
+  set +a
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE_CMD=(docker compose)
+  elif command -v docker-compose >/dev/null 2>&1; then
+    COMPOSE_CMD=(docker-compose)
+***REMOVED***
+    echo 'Rollback failed: no docker compose binary available.' >&2
+    return "$exit_code"
+***REMOVED***
+  COMPOSE_BAKE=true "${COMPOSE_CMD[@]}" -f docker-compose.backend.prod.yml up -d --build --remove-orphans || true
+  "${COMPOSE_CMD[@]}" -f docker-compose.backend.prod.yml ps || true
+  echo "Backend rollback finished; current -> ${PREVIOUS_RELEASE}" >&2
+  return "$exit_code"
+}
+
+trap rollback EXIT
+
+ln -sfn "${REMOTE_RELEASE_DIR}" "${REMOTE_CURRENT_LINK}"
+ROLLBACK_ACTIVE=1
+cd "${REMOTE_CURRENT_LINK}/ops"
+cp "${REMOTE_SHARED_DIR}/backend.env.production" './backend.env.production'
 # Auto-load secrets so \${DB_PASSWORD} etc. resolve in the compose file
 set -a
 . './backend.env.production'
 set +a
 if docker compose version >/dev/null 2>&1; then
-  COMPOSE_CMD='docker compose'
+  COMPOSE_CMD=(docker compose)
 elif command -v docker-compose >/dev/null 2>&1; then
-  COMPOSE_CMD='docker-compose'
+  COMPOSE_CMD=(docker-compose)
 else
   echo 'No se encontró docker compose ni docker-compose en el host remoto' >&2
   exit 1
 fi
-eval "\${COMPOSE_CMD} -f docker-compose.backend.prod.yml pull --ignore-pull-failures"
-COMPOSE_BAKE=true eval "\${COMPOSE_CMD} -f docker-compose.backend.prod.yml up -d --build --remove-orphans"
-eval "\${COMPOSE_CMD} -f docker-compose.backend.prod.yml ps"
+printf 'release_id=%s\nsource_sha=%s\nprevious_release=%s\n' \
+  "${RELEASE_ID}" "${DEPLOY_GIT_SHA}" "${PREVIOUS_RELEASE:-none}" \
+  > "${REMOTE_RELEASE_DIR}/.deploy-backend-meta"
+"${COMPOSE_CMD[@]}" -f docker-compose.backend.prod.yml pull --ignore-pull-failures
+COMPOSE_BAKE=true "${COMPOSE_CMD[@]}" -f docker-compose.backend.prod.yml up -d --build --remove-orphans
+"${COMPOSE_CMD[@]}" -f docker-compose.backend.prod.yml ps
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
   if curl -fsS http://127.0.0.1:5001/console/api/ >/dev/null; then
     echo 'Backend respondió OK en /console/api/'
+    echo "Backend current release: ${REMOTE_RELEASE_DIR}"
+    echo "Backend previous release: ${PREVIOUS_RELEASE:-none}"
+    echo "Backend source SHA: ${DEPLOY_GIT_SHA}"
+    ROLLBACK_ACTIVE=0
     exit 0
 ***REMOVED***
   sleep 3
