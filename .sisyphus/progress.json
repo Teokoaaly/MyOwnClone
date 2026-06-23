@@ -125,10 +125,10 @@
       "id": "M10",
       "milestone": "M10",
       "title": "Integracion en chat/embeddings/email/STT",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M10-integration.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "8e720a8",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M11",
