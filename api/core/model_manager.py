@@ -36,18 +36,16 @@ import logging
 import os
 from typing import Generator
 
-from api.core.providers import GenerationParams, ModelReply, ModelType, ModelUsage
+from api.core.providers import (
+    GenerationParams,
+    ModelInvocationError,
+    ModelReply,
+    ModelType,
+    ModelUsage,
+)
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Public exceptions ───────────────────────────────────────────────────────
-
-class ModelInvocationError(Exception):
-    """Raised when the LLM invocation fails (model unavailable, timeout, etc.)."""
-
-
-# ─── Value objects ───────────────────────────────────────────────────────────
 
 # ─── Provider detection ──────────────────────────────────────────────────────
 
