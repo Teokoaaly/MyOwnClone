@@ -2,7 +2,7 @@
   "plan": "ai-models-configurable",
   "scope": "Sistema de Modelos IA Configurables por Tarea (M0-M13)",
   "created_at": "2026-06-21",
-  "last_updated_at": "2026-06-23",
+  "last_updated_at": "2026-06-26",
   "execution_mode": "chunked-resumable",
   "order": [
     "M0",
@@ -20,6 +20,12 @@
     "M11",
     "M12",
     "M13"
+  ],
+  "notes": [
+    "2026-06-26: local branch is audit/sisyphus-vps-integration, not master.",
+    "2026-06-26: origin/main refreshed to 8b9d3c1 and contains the OSINT/wiki corpus.",
+    "2026-06-26: VPS bootstrap is audit/vps-sync-and-docs at e9b9d89 with local drift; do not use it as a dev workspace.",
+    "2026-06-26: origin/audit/sisyphus-vps-integration has M8-M14 through c00612f; next step is VPS validation and post-Sisyphus prompt foundation planning."
   ],
   "tasks": [
     {
@@ -118,7 +124,7 @@
       "title": "API admin REST: CRUD, assignments, playground, tests",
       "status": "***REMOVED***",
       "evidence_file": ".sisyphus/evidence/task-M9-admin-api.md",
-      "committed_sha": "f9c5a39",
+      "committed_sha": "f3feab0",
       "qa_at": "2026-06-23"
     },
     {
@@ -127,7 +133,7 @@
       "title": "Integracion en chat/embeddings/email/STT",
       "status": "***REMOVED***",
       "evidence_file": ".sisyphus/evidence/task-M10-integration.md",
-      "committed_sha": "8e720a8",
+      "committed_sha": "730f73b",
       "qa_at": "2026-06-23"
     },
     {
@@ -136,7 +142,7 @@
       "title": "UI /admin/ia-modelos: page + form + playground + chart",
       "status": "***REMOVED***",
       "evidence_file": ".sisyphus/evidence/task-M11-admin-ui.md",
-      "committed_sha": "015e012",
+      "committed_sha": "41d41f2",
       "qa_at": "2026-06-23"
     },
     {
@@ -145,7 +151,7 @@
       "title": "Auditoria + cost_daily_rollup + rotacion doble-clave",
       "status": "***REMOVED***",
       "evidence_file": ".sisyphus/evidence/task-M12-audit-rotation.md",
-      "committed_sha": "fac990a",
+      "committed_sha": "2c099f2",
       "qa_at": "2026-06-23"
     },
     {
