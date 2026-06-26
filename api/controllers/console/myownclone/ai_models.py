@@ -9,6 +9,7 @@ from flask import request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
 from sqlalchemy import or_, select
+from sqlalchemy.exc import ProgrammingError
 
 from api.controllers.common.schema import register_schema_models
 from api.controllers.console import console_ns
@@ -78,6 +79,18 @@ register_schema_models(
 def _tenant_id() -> str | None:
     _, tenant_id = current_account_with_tenant()
     return tenant_id
+
+
+def _invocation_model_key(row: "AIInvocation") -> str:
+    """Return the per-model grouping key for an AIInvocation row.
+
+    The deployed ``ai_invocations`` schema exposes the model identifier as
+    ``model`` (NOT ``model_id``). This helper tolerates both column names so
+    the costs endpoint works against either schema; future migrations that
+    rename the column to ``model_id`` will keep working without changes.
+    """
+    value = getattr(row, "model_id", None) or getattr(row, "model", None)
+    return value or "unknown"
 
 
 def _serialize_model(model: AIModel) -> dict:
@@ -353,9 +366,18 @@ class AIModelCostsApi(Resource):
         rollup_stmt = select(CostDailyRollup).where(CostDailyRollup.day >= since.date())
         if tenant_id:
             rollup_stmt = rollup_stmt.where(CostDailyRollup.tenant_id == tenant_id)
-        rollups = db.session.execute(
-            rollup_stmt.order_by(CostDailyRollup.day.asc())
-        ).scalars().all()
+        try:
+            rollups = db.session.execute(
+                rollup_stmt.order_by(CostDailyRollup.day.asc())
+            ).scalars().all()
+        except ProgrammingError as exc:
+            # cost_daily_rollup table is missing — migration not yet applied.
+            # Fall through to AIInvocation aggregation so the admin panel stays usable.
+            logger.warning(
+                "cost_daily_rollup unavailable; falling back to AIInvocation: %s",
+                exc,
+            )
+            rollups = []
 
         if rollups:
             for row in rollups:
@@ -377,9 +399,13 @@ class AIModelCostsApi(Resource):
             inv_stmt = select(AIInvocation).where(AIInvocation.created_at >= since.replace(tzinfo=None))
             if tenant_id:
                 inv_stmt = inv_stmt.where(AIInvocation.tenant_id == tenant_id)
-            inv_rows = db.session.execute(inv_stmt).scalars().all()
+            try:
+                inv_rows = db.session.execute(inv_stmt).scalars().all()
+            except ProgrammingError as exc:
+                logger.warning("ai_invocations unavailable for by_model: %s", exc)
+                inv_rows = []
             for row in inv_rows:
-                key = row.model_id or "unknown"
+                key = _invocation_model_key(row)
                 entry = by_model.setdefault(key, {"model_id": key, "invocations": 0, "prompt_tokens": 0, "completion_tokens": 0})
                 entry["invocations"] += 1
                 entry["prompt_tokens"] += row.prompt_tokens or 0
@@ -388,7 +414,11 @@ class AIModelCostsApi(Resource):
             stmt = select(AIInvocation).where(AIInvocation.created_at >= since.replace(tzinfo=None))
             if tenant_id:
                 stmt = stmt.where(AIInvocation.tenant_id == tenant_id)
-            rows = db.session.execute(stmt.order_by(AIInvocation.created_at.asc())).scalars().all()
+            try:
+                rows = db.session.execute(stmt.order_by(AIInvocation.created_at.asc())).scalars().all()
+            except ProgrammingError as exc:
+                logger.warning("ai_invocations unavailable for costs fallback: %s", exc)
+                rows = []
             for row in rows:
                 day = row.created_at.date().isoformat() if row.created_at else "unknown"
                 bucket = daily.setdefault(day, {
@@ -403,7 +433,7 @@ class AIModelCostsApi(Resource):
                 totals["invocations"] += 1
                 totals["prompt_tokens"] += row.prompt_tokens or 0
                 totals["completion_tokens"] += row.completion_tokens or 0
-                key = row.model_id or "unknown"
+                key = _invocation_model_key(row)
                 entry = by_model.setdefault(key, {"model_id": key, "invocations": 0, "prompt_tokens": 0, "completion_tokens": 0})
                 entry["invocations"] += 1
                 entry["prompt_tokens"] += row.prompt_tokens or 0
