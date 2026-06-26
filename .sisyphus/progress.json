@@ -2,7 +2,7 @@
   "plan": "ai-models-configurable",
   "scope": "Sistema de Modelos IA Configurables por Tarea (M0-M13)",
   "created_at": "2026-06-21",
-  "last_updated_at": "2026-06-23",
+  "last_updated_at": "2026-06-26",
   "execution_mode": "chunked-resumable",
   "order": [
     "M0",
@@ -20,6 +20,12 @@
     "M11",
     "M12",
     "M13"
+  ],
+  "notes": [
+    "2026-06-26: local branch is audit/sisyphus-vps-integration, not master.",
+    "2026-06-26: origin/main refreshed to 8b9d3c1 and contains the OSINT/wiki corpus.",
+    "2026-06-26: VPS bootstrap is audit/vps-sync-and-docs at e9b9d89 with local drift; do not use it as a dev workspace.",
+    "2026-06-26: M8-M13 have code/evidence fragments in the dirty worktree but are not done until sliced, tested, committed, pushed, and recorded here."
   ],
   "tasks": [
     {
@@ -55,7 +61,7 @@
       "title": "ProviderAdapter interface + ProviderRegistry + move GenerationParams",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M4a-providers-base.md",
-      "committed_sha": "18fc1b5",
+      "committed_sha": "a7a19df",
       "qa_at": "2026-06-23"
     },
     {
@@ -64,7 +70,7 @@
       "title": "ModelRegistry: resolver con cache TTL 60s + invalidacion + fallback",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M3-model-registry.md",
-      "committed_sha": "5a9f076",
+      "committed_sha": "6aefc30",
       "qa_at": "2026-06-23"
     },
     {
@@ -73,7 +79,7 @@
       "title": "6 adapters concretos: openai/anthropic/minimax/together/oai-compat/local",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M4b-provider-adapters.md",
-      "committed_sha": "9030755",
+      "committed_sha": "42dbee1",
       "qa_at": "2026-06-23"
     },
     {
@@ -82,7 +88,7 @@
       "title": "RetryClient: backoff exponencial + failover + circuit breaker",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M5-retry-client.md",
-      "committed_sha": "8744ab0",
+      "committed_sha": "01c2d93",
       "qa_at": "2026-06-23"
     },
     {
@@ -91,7 +97,7 @@
       "title": "TokenBudgeter: tokenizer + limits + guard embedding_dimensions==1536",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M6-token-budget.md",
-      "committed_sha": "4388535",
+      "committed_sha": "df781e4",
       "qa_at": "2026-06-23"
     },
     {
@@ -100,14 +106,14 @@
       "title": "Refactor model_manager: invoke_for_task + cost tracking en streaming",
       "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M7-model-manager-refactor.md",
-      "committed_sha": "3d1fd19",
+      "committed_sha": "5baa1bc",
       "qa_at": "2026-06-23"
     },
     {
       "id": "M8",
       "milestone": "M8",
       "title": "Refactor embeddings: embed_texts acepta AIModel opcional",
-      "status": "pending",
+      "status": "in_progress",
       "evidence_file": ".sisyphus/evidence/task-M8-embeddings-refactor.md",
       "committed_sha": null,
       "qa_at": null
