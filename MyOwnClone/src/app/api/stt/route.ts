@@ -13,6 +13,36 @@ const ALLOWED_AUDIO_TYPES = new Set([
   "audio/m4a",
 ]);
 
+function isLocalDevHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname.startsWith("localhost:") ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("127.0.0.1:")
+  );
+}
+
+function getServiceApiKey(hostname: string): string | null {
+  const configured = process.env.SERVICE_API_KEY?.trim();
+  if (configured) return configured;
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (process.env.ALLOW_DEV_SERVICE_KEY === "true" || isLocalDevHost(hostname))
+  ) {
+    return "dev-api-key-for-proxy";
+  }
+  return null;
+}
+
+function getBackendUrl(hostname: string): string | null {
+  const configured = process.env.MYOWNCLONE_API_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, "");
+  if (process.env.NODE_ENV !== "production" && isLocalDevHost(hostname)) {
+    return "http://127.0.0.1:5001";
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -41,40 +71,41 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    const url = new URL(request.url);
+    const backendUrl = getBackendUrl(url.hostname);
+    const serviceApiKey = getServiceApiKey(url.hostname);
+    if (!backendUrl || !serviceApiKey) {
       return NextResponse.json(
         { error: "Speech service unavailable" },
         { status: 503 },
       );
     }
 
-    const openai = await fetch(
-      "https://api.openai.com/v1/audio/transcriptions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: (() => {
-          const fd = new FormData();
-          fd.append("file", audioFile);
-          fd.append("model", "whisper-1");
-          fd.append("language", "es");
-          return fd;
-        })(),
-      }
-    );
+    const fd = new FormData();
+    fd.append("audio", audioFile);
+    fd.append("language", "es");
 
-    const data = await openai.json();
+    const response = await fetch(`${backendUrl}/console/api/myownclone/stt/transcribe`, {
+      method: "POST",
+      headers: {
+        "X-API-Key": serviceApiKey,
+        "X-User-Id": String((session.user as any).id || ""),
+        "X-User-Email": String(session.user.email || ""),
+        "X-User-Role": String((session.user as any).role || ""),
+        "X-Tenant-Id": String((session.user as any).tenantId || ""),
+      },
+      body: fd,
+    });
 
-    if (!openai.ok) {
+    const data = await response.json().catch(() => ({ error: "Error transcribing audio" }));
+    if (!response.ok) {
       return NextResponse.json(
-        { error: "Error transcribing audio" },
-        { status: openai.status || 502 },
+        { error: data.error || "Error transcribing audio" },
+        { status: response.status || 502 },
       );
     }
 
-    return NextResponse.json({ text: data.text });
+    return NextResponse.json({ text: data.text || "" });
   } catch (error) {
     console.error("STT error:", error);
     return NextResponse.json(

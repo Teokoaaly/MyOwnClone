@@ -6,11 +6,46 @@ import { auth } from "@/lib/auth";
 const MAX_CHUNK_CHARS = 1200;
 const CHUNK_OVERLAP_CHARS = 160;
 const EMBEDDING_DIMENSIONS = 1536;
+// Defect #4: never POST the whole chunk set to the backend embeddings endpoint
+// in a single request. Large sources can produce hundreds of chunks; one giant
+// request risks payload limits, provider timeouts, and the backend's own
+// _MAX_EMBED_TEXTS guard (256). Batch client-side and validate each batch.
+const EMBEDDING_BATCH_SIZE = 64;
 const STOPWORDS = new Set([
   "the", "and", "for", "from", "about", "with", "that", "this", "you",
   "que", "con", "para", "por", "del", "las", "los", "una", "uno", "como",
   "este", "esta", "sobre", "sus",
 ]);
+
+function isLocalDevHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname.startsWith("localhost:") ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("127.0.0.1:")
+  );
+}
+
+function getServiceApiKey(hostname: string): string | null {
+  const configured = process.env.SERVICE_API_KEY?.trim();
+  if (configured) return configured;
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (process.env.ALLOW_DEV_SERVICE_KEY === "true" || isLocalDevHost(hostname))
+  ) {
+    return "dev-api-key-for-proxy";
+  }
+  return null;
+}
+
+function getBackendUrl(hostname: string): string | null {
+  const configured = process.env.MYOWNCLONE_API_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, "");
+  if (process.env.NODE_ENV !== "production" && isLocalDevHost(hostname)) {
+    return "http://127.0.0.1:5001";
+  }
+  return null;
+}
 
 /**
  * Resolve the active clone ID from cookie or env var fallback.
@@ -98,6 +133,71 @@ function chunkText(text: string): string[] {
   }
 
   return chunks;
+}
+
+async function resolveEmbeddings(
+  request: NextRequest,
+  session: any,
+  texts: string[],
+): Promise<{ vectors: number[][]; source: string }> {
+  const hostname = new URL(request.url).hostname;
+  const backendUrl = getBackendUrl(hostname);
+  const serviceApiKey = getServiceApiKey(hostname);
+
+  if (!backendUrl || !serviceApiKey) {
+    return {
+      vectors: texts.map((text) => lexicalEmbedding(text)),
+      source: "local_lexical_v1_fallback",
+    };
+  }
+
+  try {
+    // Defect #4: iterate over fixed-size batches, validate each batch's
+    // response, and accumulate vectors. If any batch fails or returns an
+    // invalid payload we fall back to lexical embeddings for the whole set so
+    // the caller always receives a consistent, fully-populated vector list.
+    const accumulated: number[][] = [];
+    for (let start = 0; start < texts.length; start += EMBEDDING_BATCH_SIZE) {
+      const batch = texts.slice(start, start + EMBEDDING_BATCH_SIZE);
+      const response = await fetch(`${backendUrl}/console/api/myownclone/embeddings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": serviceApiKey,
+          "X-User-Id": String(session.user?.id || ""),
+          "X-User-Email": String(session.user?.email || ""),
+          "X-User-Role": String(session.user?.role || ""),
+          "X-Tenant-Id": String(session.user?.tenantId || ""),
+        },
+        body: JSON.stringify({ texts: batch }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`backend_embeddings_${response.status}`);
+      }
+
+      const data = await response.json();
+      const vectors = Array.isArray(data.vectors) ? data.vectors : [];
+      const valid = vectors.length === batch.length && vectors.every(
+        (row: unknown) =>
+          Array.isArray(row) &&
+          row.length === EMBEDDING_DIMENSIONS &&
+          row.every((value) => typeof value === "number"),
+      );
+      if (!valid) {
+        throw new Error("backend_embeddings_invalid_payload");
+      }
+      for (const row of vectors) {
+        accumulated.push(row);
+      }
+    }
+    return { vectors: accumulated, source: "registry_embedding_v1" };
+  } catch {
+    return {
+      vectors: texts.map((text) => lexicalEmbedding(text)),
+      source: "local_lexical_v1_fallback",
+    };
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -224,6 +324,8 @@ export async function POST(request: NextRequest) {
       title = file.name;
     }
 
+    const { vectors, source } = await resolveEmbeddings(request, session, chunks);
+
     const newSource = {
       id: crypto.randomUUID(),
       cloneId,
@@ -235,7 +337,7 @@ export async function POST(request: NextRequest) {
         silo,
         wordCount: countWords(ingestableContent),
         chunkCount: chunks.length,
-        ingestion: type === "text" ? "local_lexical_v1" : "pending_external_ingestion",
+        ingestion: type === "text" ? source : "pending_external_ingestion",
       },
     };
 
@@ -246,7 +348,7 @@ export async function POST(request: NextRequest) {
           id: crypto.randomUUID(),
           sourceId: newSource.id,
           content: chunk,
-          embedding: lexicalEmbedding(chunk),
+          embedding: vectors[index] || lexicalEmbedding(chunk),
           tokenCount: countWords(chunk),
           metadata: {
             position: index,

@@ -25,7 +25,7 @@
     "2026-06-26: local branch is audit/sisyphus-vps-integration, not master.",
     "2026-06-26: origin/main refreshed to 8b9d3c1 and contains the OSINT/wiki corpus.",
     "2026-06-26: VPS bootstrap is audit/vps-sync-and-docs at e9b9d89 with local drift; do not use it as a dev workspace.",
-    "2026-06-26: M8-M13 have code/evidence fragments in the dirty worktree but are not done until sliced, tested, committed, pushed, and recorded here."
+    "2026-06-26: origin/audit/sisyphus-vps-integration has M8-M14 through c00612f; next step is VPS validation and post-Sisyphus prompt foundation planning."
   ],
   "tasks": [
     {
@@ -113,55 +113,56 @@
       "id": "M8",
       "milestone": "M8",
       "title": "Refactor embeddings: embed_texts acepta AIModel opcional",
-      "status": "in_progress",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M8-embeddings-refactor.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "bec4c68",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M9",
       "milestone": "M9",
       "title": "API admin REST: CRUD, assignments, playground, tests",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M9-admin-api.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "f3feab0",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M10",
       "milestone": "M10",
       "title": "Integracion en chat/embeddings/email/STT",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M10-integration.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "730f73b",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M11",
       "milestone": "M11",
       "title": "UI /admin/ia-modelos: page + form + playground + chart",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M11-admin-ui.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "41d41f2",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M12",
       "milestone": "M12",
       "title": "Auditoria + cost_daily_rollup + rotacion doble-clave",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M12-audit-rotation.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "2c099f2",
+      "qa_at": "2026-06-23"
     },
     {
       "id": "M13",
       "milestone": "M13",
       "title": "Defectos #3/#4/#6 + backfill + docs + verificacion final",
-      "status": "pending",
+      "status": "done",
       "evidence_file": ".sisyphus/evidence/task-M13-defects-backfill-docs.md",
-      "committed_sha": null,
-      "qa_at": null
+      "committed_sha": "8f8600e0e4c258fb253a666d9b7758ed1e5a234e",
+      "qa_at": "2026-06-23",
+      "notes": "defect #3 explicit CostCategory mapping; defect #4 frontend batching EMBEDDING_BATCH_SIZE=64; defect #6 runtime _MAX_EMBED_TEXTS=256 + 413 + log.exception; defect #6 retrieval scanned-counter INFO log; flask ai-backfill-from-env (idempotent, embedding 1536, STT only openai); docs/model-backfill-and-rollout.md; 12 new tests + 17 regression all green on py3.14 worktree [post-amend canonical SHA on remote: 8f8600e0e4c258fb253a666d9b7758ed1e5a234e]"
     }
   ]
 }

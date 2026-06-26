@@ -26,6 +26,7 @@ from sqlalchemy import select
 from api.core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
 from api.core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
 from api.extensions.ext_database import db
+from api.models.ai_models import AITask
 from api.models.myownclone import (
     CloneConfig,
     CreatorMemory,
@@ -360,15 +361,17 @@ Pregunta del usuario: {message}"""
 
     def generate():
         try:
-            from api.core.model_manager import ModelManager, ModelType
+            from api.core.model_manager import ModelManager
 
             model_manager = ModelManager()
-            model_instance = model_manager.get_default_model_instance(
-                tenant_id=clone.tenant_id, model_type=ModelType.LLM
-            )
 
             accumulated = ""
-            for chunk in model_instance.invoke_llm_stream(prompt=full_prompt):
+            for chunk in model_manager.invoke_for_task_stream(
+                tenant_id=clone.tenant_id,
+                clone_id=clone.id,
+                task=AITask.CHAT,
+                message=full_prompt,
+            ):
                 accumulated += chunk
                 yield f"data: {json.dumps({'content': chunk})}\n\n"
 
@@ -415,7 +418,7 @@ Pregunta del usuario: {message}"""
 
 def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
     try:
-        from api.core.model_manager import ModelManager, ModelType
+        from api.core.model_manager import ModelManager
 
         clone = db.session.execute(
             select(CloneConfig).where(CloneConfig.id == clone_id)
@@ -426,23 +429,33 @@ def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
 
         model_manager = ModelManager()
 
-        def llm_call(prompt: str) -> str:
-            model_instance = model_manager.get_default_model_instance(
-                tenant_id=clone.tenant_id, model_type=ModelType.LLM
-            )
-            return model_instance.invoke_llm(prompt=prompt)
+        def classify_llm_call(prompt: str) -> str:
+            return model_manager.invoke_for_task(
+                tenant_id=clone.tenant_id,
+                clone_id=clone.id,
+                task=AITask.EMAIL_CLASSIFICATION,
+                message=prompt,
+            ).text
 
         classification = classify_email(
             from_name=email.from_name or "",
             from_email=email.from_email or "",
             subject=email.subject or "",
             body_text=email.body_text or "",
-            llm_callable=llm_call,
+            llm_callable=classify_llm_call,
         )
         email.classification = classification.category
         email.labels = [classification.category]
 
         memory_context, template_context = _get_clone_context(clone_id)
+
+        def draft_llm_call(prompt: str) -> str:
+            return model_manager.invoke_for_task(
+                tenant_id=clone.tenant_id,
+                clone_id=clone.id,
+                task=AITask.EMAIL_DRAFT,
+                message=prompt,
+            ).text
 
         draft = generate_draft_reply(
             from_name=email.from_name or "",
@@ -451,7 +464,7 @@ def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
             body_text=email.body_text or "",
             memory_context=memory_context,
             template_context=template_context,
-            llm_callable=llm_call,
+            llm_callable=draft_llm_call,
         )
         email.draft_reply = draft.body
 

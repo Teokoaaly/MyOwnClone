@@ -16,6 +16,13 @@ export const ADMIN_NAV: SidebarNavItem[] = [
     section: "platform",
   },
   {
+    href: "/admin/ia-modelos",
+    label: "AI models",
+    iconKey: "cerebro",
+    tooltip: "Runtime assignments · Balancer · Embeddings · Costs",
+    section: "platform",
+  },
+  {
     href: "/admin/audit",
     label: "Audit log",
     iconKey: "configuracion",
