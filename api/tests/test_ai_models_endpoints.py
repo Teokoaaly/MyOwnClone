@@ -170,8 +170,8 @@ def test_ai_model_playground_uses_selected_model(ai_client, monkeypatch):
 
 def test_ai_model_costs_aggregates_rows(ai_client, monkeypatch):
     rows = [
-        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 8, 0, 0), prompt_tokens=10, completion_tokens=5),
-        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 9, 0, 0), prompt_tokens=20, completion_tokens=15),
+        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 8, 0, 0), prompt_tokens=10, completion_tokens=5, model_id="gpt-4o-mini"),
+        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 9, 0, 0), prompt_tokens=20, completion_tokens=15, model_id="gpt-4o-mini"),
     ]
 
     class ExecuteResult:
@@ -202,6 +202,7 @@ def test_ai_model_costs_aggregates_rows(ai_client, monkeypatch):
     assert body["totals"]["invocations"] == 2
     assert body["totals"]["prompt_tokens"] == 30
     assert body["totals"]["completion_tokens"] == 20
+    assert body["by_model"][0]["invocations"] == 2
 
 
 def test_ai_model_costs_prefers_rollup_rows(ai_client, monkeypatch):
@@ -236,3 +237,75 @@ def test_ai_model_costs_prefers_rollup_rows(ai_client, monkeypatch):
     body = resp.get_json()
     assert body["totals"]["invocations"] == 4
     assert body["series"][0]["day"] == "2026-06-23"
+
+
+def test_ai_model_costs_handles_missing_rollup_table(ai_client, monkeypatch):
+    """When the cost_daily_rollup table does not exist (migration not applied),
+    the endpoint must return 200 by falling back to AIInvocation, not 500."""
+    from sqlalchemy.exc import ProgrammingError
+
+    inv_rows = [
+        SimpleNamespace(
+            created_at=__import__("datetime").datetime(2026, 6, 23, 10, 0, 0),
+            prompt_tokens=7, completion_tokens=3, model_id="gpt-4o-mini",
+        ),
+    ]
+
+    class ExecuteResult:
+        def __init__(self, rows):
+            self._rows = rows
+
+        def scalars(self):
+            return SimpleNamespace(all=lambda: self._rows)
+
+    calls = {"count": 0}
+
+    def fake_execute(stmt):
+        calls["count"] += 1
+        # First query targets cost_daily_rollup → table missing → ProgrammingError
+        if calls["count"] == 1:
+            raise ProgrammingError("SELECT cost_daily_rollup", {}, Exception("relation does not exist"))
+        # Fallback to AIInvocation
+        return ExecuteResult(inv_rows)
+
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.db.session.execute",
+        fake_execute,
+    )
+
+    resp = ai_client.get(
+        "/console/api/myownclone/ai-models/costs",
+        headers={"Authorization": "Bearer ok"},
+    )
+
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+    body = resp.get_json()
+    assert body["totals"]["invocations"] == 1
+    assert body["totals"]["prompt_tokens"] == 7
+    assert body["totals"]["completion_tokens"] == 3
+    assert body["by_model"][0]["model_id"] == "gpt-4o-mini"
+
+
+def test_ai_model_costs_handles_both_tables_missing(ai_client, monkeypatch):
+    """When BOTH cost_daily_rollup and AIInvocation queries fail, the endpoint
+    must still return 200 with empty series (defensive degradation)."""
+    from sqlalchemy.exc import ProgrammingError
+
+    def fake_execute(stmt):
+        raise ProgrammingError("SELECT cost_daily_rollup", {}, Exception("relation does not exist"))
+
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.db.session.execute",
+        fake_execute,
+    )
+
+    resp = ai_client.get(
+        "/console/api/myownclone/ai-models/costs",
+        headers={"Authorization": "Bearer ok"},
+    )
+
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+    body = resp.get_json()
+    assert body["series"] == []
+    assert body["by_model"] == []
+    assert body["totals"] == {"invocations": 0, "prompt_tokens": 0, "completion_tokens": 0}
