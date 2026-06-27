@@ -2,10 +2,27 @@
 
 **Date**: 2026-06-27
 **Author**: Claude (ZCode) for Hacchi
-**Status**: APPROVED v1 + CORRECTED v2 (pre-deploy audit found 3 errors)
-**Version**: 2 (corrections applied 2026-06-27)
+**Status**: v3 (5 additional bugs from second audit fixed 2026-06-27)
+**Version**: 3 (re-audit after v2 fix)
 
-**CORRECTIONS in v2**:
+**CORRECTIONS in v3** (5 additional bugs from second audit):
+- Bug #4: Context said "writes blocked even for admins" but
+  brainstorming decision was "only admins can use site". Fixed: admins
+  can do GETs and writes during maintenance; non-admin blocked.
+- Bug #5: Line 227 referenced "Phase 4b" for conflict resolution but
+  conflict resolution is Phase 4a. Fixed: reference corrected.
+- Bug #6: Context listed deploy sequence without "Apply migrations"
+  step. Fixed: full sequence now in spec.
+- Bug #7: Middleware path was `/maintenance-status` but controller
+  endpoint was `/maintenance/status`. Fixed: standardized to
+  `/maintenance/status`.
+- Bug #8: Phase 4 referenced `deploy/maint-mode-plus-wip` branch
+  before Phase 4a creates it. Fixed: phase ordering clarified.
+- Bug #9: Rollback step said "Deactivate maintenance" but the
+  maintenance flag doesn't exist in the pre-migration state. Fixed:
+  rollback doesn't try to deactivate.
+
+**CORRECTIONS in v2** (pre-deploy audit):
 1. WIP file count: was 14, actually 15.
 2. Cherry-pick of WIP has add/add conflicts on 4 files with PR #5
    (`f427c53`). Phase 4a added with manual merge resolution strategy.
@@ -24,8 +41,13 @@ on the VPS:
 1. **Maintenance mode** with admin-only access. Login must remain
    functional for everyone. Non-admin users see a full-screen
    "maintenance" message. Admins see a yellow banner at the top of
-   every admin page. All write operations (POST/PUT/DELETE/PATCH) are
-   blocked while maintenance is active, even for admins.
+   every admin page.
+
+   **CORRECTION (bug #4)**: Original context said "writes blocked
+   even for admins", which contradicts the brainstorming decision
+   "only admins can use site". Correct interpretation: **admins can
+   do everything (reads + writes); non-admin users are fully
+   blocked** (page-level redirect to /maintenance).
 
 2. **Sisyphus M8–M13 WIP** (commit `67262b6` on
    `wip/sisyphus-m8-m13-preservation`) needs to be applied to
@@ -34,7 +56,8 @@ on the VPS:
 The deployment sequence is:
 
 ```
-maintenance ON → backup DB + code → apply WIP → run tests →
+maintenance ON → backup DB + code → apply code (conflict resolution +
+  cherry-pick) → apply migrations → run tests →
    if pass → maintenance OFF
    if fail → rollback (git revert + restore DB)
 ```
@@ -49,7 +72,7 @@ maintenance ON → backup DB + code → apply WIP → run tests →
 | Banner style | Yellow banner fixed at top, full-width, with countdown |
 | Activation mechanism | Flag in DB (`system_settings` table) |
 | Rollback strategy | Backup + restore (snapshot before applying) |
-| Deploy order | Maintenance ON → backup → apply WIP → tests → Maintenance OFF |
+| Deploy order | Maintenance ON → backup → apply code → apply migrations → tests → maintenance OFF |
 
 ## Architecture
 
@@ -104,13 +127,17 @@ maintenance ON → backup DB + code → apply WIP → run tests →
    def enforce_maintenance():
        if not is_maintenance_active():
            return
-       # Allow login endpoints
-       if request.path.endswith("/auth/login") or "/maintenance-status" in request.path:
+       # Always allow login and maintenance status endpoints
+       if request.path.endswith("/auth/login"):
            return
-       # Allow GET requests for admins
-       if request.method == "GET" and _is_admin():
+       if "/maintenance/status" in request.path:
            return
-       # Block everything else
+       # Admins pass through everything (BUG #4 FIX: admins not blocked)
+       if _is_admin():
+           return
+       # Non-admin: block everything (they should already have been
+       # redirected to /maintenance by the frontend middleware, but
+       # this is a backstop)
        return jsonify({"error": "service_unavailable",
                        "message": "Sistema en mantenimiento"}), 503
    ```
@@ -224,8 +251,8 @@ tests/test_plan_completion.py                                         +8/-9    (
 - `api/tests/test_ai_models_endpoints.py` (add/add)
 
 **These conflicts must be resolved manually before the deploy can
-proceed.** Resolution strategy: see "Phase 4b: Conflict resolution"
-below.
+proceed.** Resolution strategy: see "Phase 4a (PRE-DEPLOY): Conflict
+resolution" below. (Bug #5 fix: was incorrectly referencing Phase 4b.)
 
 The WIP also includes the Sisyphus anti-forget layer which is
 preserved on `sisyphus/anti-forget-layer` branch but NOT part of this
@@ -389,8 +416,15 @@ Once SSH works:
 2. Rebuild image tagged as `myownclone_api:rollback`.
 3. Stop current container, start container with rollback image.
 4. Restore DB: `psql myownclone < /opt/myownclone/backups/pre-wip-*.sql`.
-5. Deactivate maintenance (even though site is broken, this lets
-   users see what's happening).
+
+**BUG #9 FIX**: Do NOT attempt to "deactivate maintenance" during
+rollback. The maintenance flag was introduced by the new
+`system_settings` migration (`2026_06_27_0001`). The pre-migration
+DB snapshot does NOT have this row. Trying to run
+`UPDATE system_settings SET value='false' ...` against the restored
+DB will fail with "relation does not exist". The rollback procedure
+ends with the DB restored to pre-migration state, which means
+maintenance is implicitly "off" because the flag does not exist.
 
 ## Out of scope
 
