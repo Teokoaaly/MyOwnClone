@@ -2,7 +2,19 @@
 
 **Date**: 2026-06-27
 **Author**: Claude (ZCode) for Hacchi
-**Status**: APPROVED by user, pending implementation plan
+**Status**: APPROVED v1 + CORRECTED v2 (pre-deploy audit found 3 errors)
+**Version**: 2 (corrections applied 2026-06-27)
+
+**CORRECTIONS in v2**:
+1. WIP file count: was 14, actually 15.
+2. Cherry-pick of WIP has add/add conflicts on 4 files with PR #5
+   (`f427c53`). Phase 4a added with manual merge resolution strategy.
+3. SSH to VPS is blocked by local sandbox. Phase 4d cannot run until
+   user re-authorizes Tailscale. Decision: defer VPS phases; do
+   code-only work now.
+
+See `.omo/evidence/pre-deploy-audit-errors-found-2026-06-27.md` for
+full audit details.
 
 ## Context
 
@@ -180,17 +192,40 @@ Client (admin)            Client (non-admin)
 
 ## Sisyphus WIP contents (commit `67262b6`)
 
-The WIP adds/modifies 14 files vs `audit/sisyphus-vps-integration`:
+**CORRECTED 2026-06-27 (pre-deploy audit found file count was wrong)**.
+
+The WIP adds/modifies **15 files** vs `audit/sisyphus-vps-integration`
+(+599/-1467 net, not -1172 as previously stated):
 
 ```
-api/controllers/console/myownclone/ai_models.py      +16/-7   (M9 catalog)
-api/tests/test_ai_models_endpoints.py                +30/-28  (M9 tests)
-docs/model-backfill-and-rollout.md                   -98/-98   (M9 docs cleanup)
-tests/test_plan_completion.py                        +8/-9    (M9 test helper)
-... (10 more files)
+.omo/evidence/backfill-executed-vps-2026-06-26.md                       +109  (new)
+.omo/evidence/current-symlink-investigation-2026-06-26.md              +117  (new)
+.omo/evidence/ssh-access-lost-2026-06-26.md                            +90   (new)
+.omo/evidence/deploy-ai-costs-fix-vps-2026-06-26.md                    -137  (removed)
+.omo/evidence/fix-ai-costs-missing-rollup-table-2026-06-26.md          -154  (removed)
+.omo/evidence/pr-creation-blocked-2026-06-26.md                        +53/-some  (modified)
+.omo/evidence/...other 4 evidence files                                 ...
+HANDOFF_LLM.md                                                          +.../-113  (modified)
+.hermes/plans/2026-06-23_M14-admin-panels.md                            -403  (removed)
+docs/model-backfill-and-rollout.md                                     -98   (removed)
+MyOwnClone/src/app/api/stt/route.ts                                    +.../-...   (modified)
+MyOwnClone/src/components/admin/useAdminFetch.ts                       +.../-...   (modified)
+api/controllers/console/myownclone/ai_models.py                        +16/-7   (M9 catalog)
+api/tests/test_ai_models_endpoints.py                                  +.../-...  (M9 tests)
+tests/test_plan_completion.py                                         +8/-9    (M9 test helper)
 ```
 
-Net change: +599/-1172 (mostly deletions — code cleanup + new tests).
+**CONFLICT WARNING**: 4 files have add/add conflicts with PR #5
+(`f427c53`, the AI costs fix that was already merged):
+
+- `MyOwnClone/src/app/api/stt/route.ts` (text conflicts)
+- `MyOwnClone/src/components/admin/useAdminFetch.ts` (text conflicts)
+- `api/controllers/console/myownclone/ai_models.py` (add/add)
+- `api/tests/test_ai_models_endpoints.py` (add/add)
+
+**These conflicts must be resolved manually before the deploy can
+proceed.** Resolution strategy: see "Phase 4b: Conflict resolution"
+below.
 
 The WIP also includes the Sisyphus anti-forget layer which is
 preserved on `sisyphus/anti-forget-layer` branch but NOT part of this
@@ -234,6 +269,98 @@ deploy.
 4. Stop + remove old container, start new container with same env vars
    from `/opt/myownclone/shared/api_env.json`.
 5. Smoke test: `curl /readyz` and `curl /console/api/myownclone/maintenance/status`.
+
+### Phase 4a (PRE-DEPLOY): Conflict resolution
+
+**This phase must be done BEFORE Phase 4**. The WIP commit (`67262b6`)
+was created before PR #5 was merged, so cherry-picking it onto
+`audit/sisyphus-vps-integration` produces add/add conflicts on 4 files.
+
+Manual resolution strategy (decision approved by user 2026-06-27):
+
+1. **Stash current WIP** from `audit/sisyphus-vps-integration` working
+   tree (no live WIP currently exists, this is just a precaution).
+2. **Create deploy branch**:
+   `git checkout -b deploy/maint-mode-plus-wip audit/sisyphus-vps-integration`.
+3. **Cherry-pick WIP**:
+   `git cherry-pick 67262b6` — will fail with conflicts.
+4. **Resolve each conflict manually**:
+
+   For each of the 4 files in conflict, the resolution depends on the
+   file:
+
+   - **`MyOwnClone/src/app/api/stt/route.ts`** and
+     **`useAdminFetch.ts`**: text conflicts. Open each file, look for
+     `<<<<<<<`, `=======`, `>>>>>>>` markers. The WIP version is
+     typically MORE recent (improvements to existing API surface).
+     Default strategy: take WIP version, then re-run `tsc` to verify
+     no type errors.
+
+   - **`api/controllers/console/myownclone/ai_models.py`**:
+     add/add conflict. The WIP modifies this file with the M14 catalog
+     changes. PR #5 (already merged) modifies it with the costs fix
+     (`_invocation_model_key` helper). Both modifications should be
+     kept: the file should have BOTH the WIP M14 catalog changes AND
+     the costs fix. Resolution: edit the file manually to include
+     both sets of changes.
+
+   - **`api/tests/test_ai_models_endpoints.py`**: similar add/add.
+     Both branches added test cases. The WIP version contains tests
+     for M14 catalog; the PR #5 version contains tests for the
+     `_invocation_model_key` helper. Keep both sets of tests.
+
+5. **Mark as resolved**: `git add <file>` for each resolved file.
+6. **Continue cherry-pick**: `git cherry-pick --continue`.
+7. **Verify**: `git log --oneline -n 3` to see the WIP commit on the
+   deploy branch.
+
+### Phase 4b: Add maintenance mode code
+
+After the WIP is applied to `deploy/maint-mode-plus-wip`, add the
+maintenance mode files (per design above):
+
+1. Create the new files:
+   - `api/core/maintenance.py`
+   - `api/models/system_settings.py`
+   - `api/middleware/maintenance.py`
+   - `api/controllers/console/myownclone/maintenance.py`
+   - `api/migrations/versions/2026_06_27_0001_system_settings.py`
+   - `api/tests/test_maintenance.py`
+   - `MyOwnClone/src/app/maintenance/page.tsx`
+
+2. Modify existing files:
+   - `api/app_factory.py` (register middleware)
+   - `MyOwnClone/src/app/admin/layout.tsx` (banner)
+   - `MyOwnClone/src/middleware.ts` (redirect non-admin)
+
+3. Commit each logical group separately:
+   - Commit 1: "feat(api): add maintenance mode middleware and model"
+   - Commit 2: "feat(api): add maintenance controller endpoints"
+   - Commit 3: "feat(frontend): add maintenance banner and full-screen page"
+   - Commit 4: "chore(api): register maintenance middleware in app factory"
+
+### Phase 4c: Local validation
+
+Before deploying to VPS, validate locally:
+
+1. Run unit tests:
+   `pytest api/tests/test_maintenance.py api/tests/test_ai_models_endpoints.py`
+2. Run frontend build (if Node.js available):
+   `cd MyOwnClone && npm run build`
+3. If both pass, push the deploy branch.
+
+### Phase 4d: VPS deploy (BLOCKED until SSH restored)
+
+**SSH TO VPS IS CURRENTLY BLOCKED.** This phase cannot run from this
+session. Defer until the user re-authorizes Tailscale auth.
+
+Once SSH works:
+
+1. Tag the deploy branch as `v1.1.0-rc1`.
+2. `git fetch && git checkout v1.1.0-rc1` in the VPS worktree.
+3. Rebuild image.
+4. Stop + remove old container, start new container.
+5. Smoke test.
 
 ### Phase 5: Apply migrations
 
