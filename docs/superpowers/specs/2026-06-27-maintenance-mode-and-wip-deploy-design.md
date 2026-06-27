@@ -2,8 +2,20 @@
 
 **Date**: 2026-06-27
 **Author**: Claude (ZCode) for Hacchi
-**Status**: v3 (5 additional bugs from second audit fixed 2026-06-27)
-**Version**: 3 (re-audit after v2 fix)
+**Status**: v4 (3 additional bugs from third audit fixed)
+**Version**: 4 (re-audit after v3 fix)
+
+**CORRECTIONS in v4** (3 additional bugs from third audit):
+- Bug #10: Phase 2 (activate maintenance) was ordered before Phase 4
+  (deploy code), so the flag would be active but no middleware reads
+  it. Fixed: sequence reordered to Phase 1 → Phase 3 → Phase 4 → Phase 4d →
+  Phase 2 → Phase 5 → Phase 6 → Phase 7.
+- Bug #11: Phase 4d described as "once SSH works" but listed in the
+  same active sequence. Fixed: marked clearly as DEFERRED, with the
+  dependent phases (5, 6, 7) gated on its completion.
+- Bug #12: Phase 5 assumed `maintenance_mode = 'true'` from Phase 2
+  but Phase 2 was reordered. Fixed: Phase 5 verifies via the
+  `/maintenance/status` endpoint instead.
 
 **CORRECTIONS in v3** (5 additional bugs from second audit):
 - Bug #4: Context said "writes blocked even for admins" but
@@ -53,13 +65,22 @@ on the VPS:
    `wip/sisyphus-m8-m13-preservation`) needs to be applied to
    `audit/sisyphus-vps-integration` and deployed to the VPS.
 
-The deployment sequence is:
+**CORRECTED DEPLOYMENT SEQUENCE (BUG #10 fix)**:
+
+The original sequence had maintenance activated before code deploy,
+which meant the flag would be active in DB but no production code
+would read it. Correct sequence:
 
 ```
-maintenance ON → backup DB + code → apply code (conflict resolution +
-  cherry-pick) → apply migrations → run tests →
-   if pass → maintenance OFF
-   if fail → rollback (git revert + restore DB)
+Phase 1: Prepare (local, no production impact)
+Phase 3: Backup (after code is ready, before production deploy)
+Phase 4: Deploy code (NEW image with maintenance middleware + WIP)
+Phase 4d: VPS deploy (BLOCKED until SSH restored)
+Phase 2: Activate maintenance (after code reads the flag)
+Phase 5: Apply migrations (DB schema update)
+Phase 6: Run integration tests
+Phase 7: Deactivate maintenance
+Phase 8: Rollback (if Phase 6 fails)
 ```
 
 ## Decisions captured during brainstorming
@@ -72,7 +93,7 @@ maintenance ON → backup DB + code → apply code (conflict resolution +
 | Banner style | Yellow banner fixed at top, full-width, with countdown |
 | Activation mechanism | Flag in DB (`system_settings` table) |
 | Rollback strategy | Backup + restore (snapshot before applying) |
-| Deploy order | Maintenance ON → backup → apply code → apply migrations → tests → maintenance OFF |
+| Deploy order (CORRECTED, bug #10) | Prepare → Backup → Deploy code → VPS deploy → Activate maintenance → Apply migrations → Tests → Deactivate |
 
 ## Architecture
 
@@ -258,46 +279,43 @@ The WIP also includes the Sisyphus anti-forget layer which is
 preserved on `sisyphus/anti-forget-layer` branch but NOT part of this
 deploy.
 
-## Deploy sequence (final)
+## Deploy sequence (final, REORDERED for bug #10 fix)
 
-### Phase 1: Prepare (online, no maintenance)
+### Phase 1: Prepare (local, no production impact)
 
 1. Create branch `deploy/maint-mode-plus-wip` based on
    `audit/sisyphus-vps-integration`.
-2. Cherry-pick WIP commit `67262b6` onto it.
-3. Add maintenance mode files (per design above).
+2. Cherry-pick WIP commit `67262b6` onto it (Phase 4a).
+3. Add maintenance mode files (Phase 4b).
 4. Push branch.
-5. Run unit tests locally (no production risk).
+5. Run unit tests locally (Phase 4c).
+6. **Do NOT activate maintenance yet** — the code is not in production
+   yet.
 
-### Phase 2: Activate maintenance (online)
+### Phase 3: Backup (after code is ready, before production deploy)
 
-1. SSH to VPS.
-2. Apply migration `2026_06_27_0001_system_settings` to create the
-   flag table.
-3. Set flag to `true`:
-   `UPDATE system_settings SET value='true' WHERE key='maintenance_mode';`
-4. Reload gunicorn workers (SIGHUP) so the middleware picks up the
-   flag on next request.
-5. Verify: `curl /console/api/myownclone/maintenance/status` returns
-   `{active: true}`.
-
-### Phase 3: Backup
+**REORDERED (bug #10 fix)**: Backup is ***REMOVED*** AFTER code is ready but
+BEFORE production deploy.
 
 1. Snapshot DB:
    `pg_dump myownclone > /opt/myownclone/backups/pre-wip-$(date +%s).sql`
 2. Snapshot code: tag current worktree HEAD as
    `pre-wip-deploy-$(date +%Y%m%d-%H%M%S)`.
 
-### Phase 4: Deploy code
+### Phase 4: Deploy code to VPS (with maintenance middleware)
 
 1. In the worktree: `git fetch && git checkout deploy/maint-mode-plus-wip`.
 2. Rebuild Docker image: `docker compose -f docker-compose.backend.prod.yml build api`.
 3. Tag new image as `myownclone_api:v1.1.0-maint-mode-wip`.
 4. Stop + remove old container, start new container with same env vars
    from `/opt/myownclone/shared/api_env.json`.
-5. Smoke test: `curl /readyz` and `curl /console/api/myownclone/maintenance/status`.
+5. Smoke test: `curl /readyz` should still return 200.
+6. **Verify maintenance middleware is loaded** (it is now in production
+   but flag is still false so no effect yet):
+   `curl /console/api/myownclone/maintenance/status` returns
+   `{active: false}`.
 
-### Phase 4a (PRE-DEPLOY): Conflict resolution
+### Phase 4d: VPS deploy (BLOCKED until SSH restored)
 
 **This phase must be ***REMOVED*** BEFORE Phase 4**. The WIP commit (`67262b6`)
 was created before PR #5 was merged, so cherry-picking it onto
@@ -381,6 +399,11 @@ Before deploying to VPS, validate locally:
 **SSH TO VPS IS CURRENTLY BLOCKED.** This phase cannot run from this
 session. Defer until the user re-authorizes Tailscale auth.
 
+**REORDERED (bug #10/11 fix)**: Phase 4d is now between Phase 4
+(deploy code) and Phase 2 (activate maintenance). It is GATED on
+SSH availability. All subsequent phases (5, 6, 7) cannot run until
+Phase 4d completes successfully.
+
 Once SSH works:
 
 1. Tag the deploy branch as `v1.1.0-rc1`.
@@ -389,12 +412,93 @@ Once SSH works:
 4. Stop + remove old container, start new container.
 5. Smoke test.
 
-### Phase 5: Apply migrations
+### Phase 4a (PRE-DEPLOY): Conflict resolution
+
+**This phase is ***REMOVED*** BEFORE Phase 4**. The WIP commit (`67262b6`)
+was created before PR #5 was merged, so cherry-picking it onto
+`audit/sisyphus-vps-integration` produces add/add conflicts on 4 files.
+
+Manual resolution strategy (decision approved by user 2026-06-27):
+
+1. **Stash current WIP** from `audit/sisyphus-vps-integration` working
+   tree (no live WIP currently exists, this is just a precaution).
+2. **Create deploy branch**:
+   `git checkout -b deploy/maint-mode-plus-wip audit/sisyphus-vps-integration`.
+3. **Cherry-pick WIP**:
+   `git cherry-pick 67262b6` — will fail with conflicts.
+4. **Resolve each conflict manually**:
+
+   For each of the 4 files in conflict, the resolution depends on the
+ ***REMOVED***le:
+
+   - **`MyOwnClone/src/app/api/stt/route.ts`** and
+     **`useAdminFetch.ts`**: text conflicts. Open each file, look for
+     `<<<<<<<`, `=======`, `>>>>>>>` markers. The WIP version is
+     typically MORE recent (improvements to existing API surface).
+     Default strategy: take WIP version, then re-run `tsc` to verify
+     no type errors.
+
+   - **`api/controllers/console/myownclone/ai_models.py`**:
+     add/add conflict. The WIP modifies this file with the M14 catalog
+     changes. PR #5 (already merged) modifies it with the costs fix
+     (`_invocation_model_key` helper). Both modifications should be
+     kept: the file should have BOTH the WIP M14 catalog changes AND
+     the costs fix. Resolution: edit the file manually to include
+     both sets of changes.
+
+   - **`api/tests/test_ai_models_endpoints.py`**: similar add/add.
+     Both branches added test cases. The WIP version contains tests
+     for M14 catalog; the PR #5 version contains tests for the
+     `_invocation_model_key` helper. Keep both sets of tests.
+
+5. **Mark as resolved**: `git add <file>` for each resolved file.
+6. **Continue cherry-pick**: `git cherry-pick --continue`.
+7. **Verify**: `git log --oneline -n 3` to see the WIP commit on the
+   deploy branch.
+
+### Phase 4b: Add maintenance mode code
+
+After the WIP is applied to `deploy/maint-mode-plus-wip`, add the
+maintenance mode files (per design above):
+
+1. Create the new files:
+   - `api/core/maintenance.py`
+   - `api/models/system_settings.py`
+   - `api/middleware/maintenance.py`
+   - `api/controllers/console/myownclone/maintenance.py`
+   - `api/migrations/versions/2026_06_27_0001_system_settings.py`
+   - `api/tests/test_maintenance.py`
+   - `MyOwnClone/src/app/maintenance/page.tsx`
+
+2. Modify existing files:
+   - `api/app_factory.py` (register middleware)
+   - `MyOwnClone/src/app/admin/layout.tsx` (banner)
+   - `MyOwnClone/src/middleware.ts` (redirect non-admin)
+
+3. Commit each logical group separately:
+   - Commit 1: "feat(api): add maintenance mode middleware and model"
+   - Commit 2: "feat(api): add maintenance controller endpoints"
+   - Commit 3: "feat(frontend): add maintenance banner and full-screen page"
+   - Commit 4: "chore(api): register maintenance middleware in app factory"
+
+### Phase 4c: Local validation
+
+Before deploying to VPS, validate locally:
+
+1. Run unit tests:
+   `pytest api/tests/test_maintenance.py api/tests/test_ai_models_endpoints.py`
+2. Run frontend build (if Node.js available):
+   `cd MyOwnClone && npm run build`
+3. If both pass, push the deploy branch.
+
+### Phase 5: Apply migrations (now GATED on Phase 4d)
 
 1. Inside the new container:
    `flask db upgrade`
-2. Verify `system_settings` table exists with
-   `maintenance_mode = 'true'`.
+2. **BUG #12 FIX**: Verify the maintenance middleware is loaded by
+   checking `curl /console/api/myownclone/maintenance/status` returns
+   `{active: false}`. If 404, the migration was applied to a
+   container without the new code (wrong order).
 
 ### Phase 6: Run integration tests
 
