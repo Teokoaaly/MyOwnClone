@@ -315,23 +315,15 @@ BEFORE production deploy.
    `curl /console/api/myownclone/maintenance/status` returns
    `{active: false}`.
 
-### Phase 4d: VPS deploy (BLOCKED until SSH restored)
-
-**SSH TO VPS IS CURRENTLY BLOCKED.** This phase cannot run from this
-session. Defer until the user re-authorizes Tailscale auth.
-
-**REORDERED (bug #10/11 fix)**: Phase 4d is now between Phase 4
-(deploy code) and Phase 2 (activate maintenance). It is GATED on
-SSH availability. All subsequent phases (5, 6, 7) cannot run until
-Phase 4d completes successfully.
-
-Once SSH works:
-
-1. Tag the deploy branch as `v1.1.0-rc1`.
-2. `git fetch && git checkout v1.1.0-rc1` in the VPS worktree.
-3. Rebuild image.
-4. Stop + remove old container, start new container.
-5. Smoke test.
+**BUG #14 FIX**: Phase 4d was originally a separate "VPS deploy"
+phase, but it duplicated the deploy steps in Phase 4. Both phases
+described the same Docker rebuild + container restart workflow.
+Phase 4 IS the VPS deploy (executed via SSH from the local admin
+machine). Phase 4d has been removed as it was redundant. SSH
+accessibility remains a hard requirement for Phase 4 — if SSH is
+blocked, Phase 4 cannot run, and neither can any subsequent phase.
+This is now documented under "Prerequisites" instead of as a
+separate phase.
 
 ### Phase 4a (PRE-DEPLOY): Conflict resolution
 
@@ -428,12 +420,17 @@ Before deploying to VPS, validate locally:
 3. Manual smoke: curl admin endpoints, expect 200/403 patterns as
    designed.
 
-### Phase 7: Deactivate maintenance
+### Phase 7: Deactivate maintenance and final verification
+
+**BUG #15 FIX**: Renamed from "Deactivate maintenance" to clarify
+this phase is the inverse of Phase 2, not a separate maintenance
+operation.
 
 1. Set flag to false:
    `UPDATE system_settings SET value='false' WHERE key='maintenance_mode';`
 2. Reload gunicorn (SIGHUP).
 3. Verify: `/maintenance/status` returns `{active: false}`.
+4. Final smoke test: `curl /readyz` returns 200.
 
 ### Phase 8: Rollback procedure (if Phase 6 fails)
 
