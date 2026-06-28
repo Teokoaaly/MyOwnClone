@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { MaintenanceBanner } from "@/components/admin/MaintenanceBanner";
 import { ADMIN_NAV } from "@/lib/nav-admin";
 import { isPlatformAdminSession } from "@/lib/platform-admin";
 import { Link } from "@/i18n/navigation";
@@ -32,6 +33,7 @@ export default async function AdminLayout({
         `,
       }}
     >
+      <MaintenanceBanner />
       <div
         className="mx-auto flex max-w-[1680px] overflow-hidden rounded-[18px] border md:rounded-[22px] md:min-h-[calc(100vh-48px)]"
         style={{
