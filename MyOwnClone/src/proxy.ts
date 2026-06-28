@@ -202,6 +202,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Maintenance mode check (cached 60s).
+  // Non-admin users are redirected to /maintenance when active.
+  if (
+    !pathname.startsWith("/maintenance") &&
+    !pathname.startsWith("/api/") &&
+    !pathname.startsWith("/_next") &&
+    !(await isPlatformAdmin(request))
+  ) {
+    const active = await isMaintenanceActive();
+    if (active) {
+      return NextResponse.redirect(new URL("/maintenance", request.url));
+    }
+  }
+
   const localeMatch = routing.locales.find(
     (candidate) =>
       pathname === `/${candidate}` || pathname.startsWith(`/${candidate}/`),
@@ -361,6 +375,52 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next({
     request: { headers: requestHeaders },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance mode helpers
+// ---------------------------------------------------------------------------
+
+let cachedMaintenanceState: { active: boolean; expiresAt: number } | null = null;
+const MAINTENANCE_CACHE_MS = 60_000;
+
+async function isMaintenanceActive(): Promise<boolean> {
+  if (cachedMaintenanceState && cachedMaintenanceState.expiresAt > Date.now()) {
+    return cachedMaintenanceState.active;
+  }
+  try {
+    const base =
+      process.env.MYOWNCLONE_API_URL?.trim() || "http://127.0.0.1:5001";
+    const res = await fetch(`${base}/console/api/myownclone/maintenance/status`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return false;
+    }
+    const data = await res.json();
+    const active = Boolean(data?.active);
+    cachedMaintenanceState = {
+      active,
+      expiresAt: Date.now() + MAINTENANCE_CACHE_MS,
+    };
+    return active;
+  } catch {
+    return false;
+  }
+}
+
+async function isPlatformAdmin(request: NextRequest): Promise<boolean> {
+  try {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET || "",
+    });
+    return Boolean(
+      token && typeof token === "object" && (token as any).role === "platform_admin"
+    );
+  } catch {
+    return false;
+  }
 }
 
 export const config = {
