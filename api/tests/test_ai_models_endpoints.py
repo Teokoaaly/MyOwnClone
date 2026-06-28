@@ -3,6 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+from sqlalchemy.sql.elements import TextClause
 
 @pytest.fixture
 def ai_client(app, monkeypatch):
@@ -361,3 +362,116 @@ def test_ai_model_costs_handles_both_tables_missing(ai_client, monkeypatch):
     assert body["series"] == []
     assert body["by_model"] == []
     assert body["totals"] == {"invocations": 0, "prompt_tokens": 0, "completion_tokens": 0}
+
+
+def test_embedding_status_reports_real_storage_state(ai_client, monkeypatch):
+    def fake_resolve(self, *, tenant_id, task):
+        return SimpleNamespace(
+            provider="openai",
+            model_id="text-embedding-3-small",
+            source="database",
+            display_name="OpenAI embeddings",
+        )
+
+    def fake_execute(stmt):
+        if isinstance(stmt, TextClause):
+            sql = str(stmt)
+            if "information_schema.tables" in sql:
+                return SimpleNamespace(scalar=lambda: 1)
+            if "information_schema.columns" in sql:
+                return SimpleNamespace(scalar=lambda: 1)
+            if "pg_extension" in sql:
+                return SimpleNamespace(scalar=lambda: 1)
+            if "COUNT(*) FROM chunks WHERE embedding IS NOT NULL" in sql:
+                return SimpleNamespace(scalar=lambda: 2)
+            if "COUNT(*) FROM chunks" in sql:
+                return SimpleNamespace(scalar=lambda: 5)
+        raise AssertionError(f"unexpected stmt: {stmt!r}")
+
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.ModelRegistry.resolve",
+        fake_resolve,
+    )
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.db.session.execute",
+        fake_execute,
+    )
+
+    resp = ai_client.get(
+        "/console/api/myownclone/ai-models/embedding-status",
+        headers={"Authorization": "Bearer ok"},
+    )
+
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["canonical_store"] == "postgres_chunks"
+    assert body["chunks_table_present"] is True
+    assert body["embedding_column_present"] is True
+    assert body["pgvector_extension_enabled"] is True
+    assert body["chunks_total"] == 5
+    assert body["chunks_embedded"] == 2
+    assert body["chunks_pending_embedding"] == 3
+    assert body["resolved_model"]["provider"] == "openai"
+    assert body["resolved_model"]["source"] == "database"
+
+
+def test_embedding_status_handles_unresolved_model(ai_client, monkeypatch):
+    from api.core.model_registry import ModelRegistryError
+
+    def fake_resolve(self, *, tenant_id, task):
+        raise ModelRegistryError("no embedding model")
+
+    def fake_execute(stmt):
+        if isinstance(stmt, TextClause):
+            sql = str(stmt)
+            if "information_schema.tables" in sql:
+                return SimpleNamespace(scalar=lambda: 1)
+            if "information_schema.columns" in sql:
+                return SimpleNamespace(scalar=lambda: 1)
+            if "pg_extension" in sql:
+                return SimpleNamespace(scalar=lambda: 1)
+            if "COUNT(*) FROM chunks WHERE embedding IS NOT NULL" in sql:
+                return SimpleNamespace(scalar=lambda: 0)
+            if "COUNT(*) FROM chunks" in sql:
+                return SimpleNamespace(scalar=lambda: 0)
+        raise AssertionError(f"unexpected stmt: {stmt!r}")
+
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.ModelRegistry.resolve",
+        fake_resolve,
+    )
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.db.session.execute",
+        fake_execute,
+    )
+
+    resp = ai_client.get(
+        "/console/api/myownclone/ai-models/embedding-status",
+        headers={"Authorization": "Bearer ok"},
+    )
+
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["resolved_model"] is None
+    assert body["chunks_pending_embedding"] == 0
+
+
+def test_registry_invalidate_endpoint_clears_tenant_cache(ai_client, monkeypatch):
+    calls: list[dict[str, object | None]] = []
+
+    def fake_invalidate(self, **kwargs):
+        calls.append(kwargs)
+
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models.ModelRegistry.invalidate",
+        fake_invalidate,
+    )
+
+    resp = ai_client.post(
+        "/console/api/myownclone/ai-models/registry-invalidate",
+        headers={"Authorization": "Bearer ok"},
+    )
+
+    assert resp.status_code == 200
+    assert resp.get_json() == {"ok": True, "tenant_id": "tenant-1"}
+    assert calls == [{"tenant_id": "tenant-1"}]
