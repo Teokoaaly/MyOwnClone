@@ -72,6 +72,13 @@ def init_i18n(app: Flask) -> Babel:
 
     Returns the Babel instance so it can be extended in tests if needed.
     """
+    # Tell Flask-Babel where to find compiled .mo files.
+    import os
+    locales_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "locales"
+    )
+    app.config.setdefault("BABEL_TRANSLATION_DIRECTORIES", locales_path)
+    app.config.setdefault("BABEL_DEFAULT_LOCALE", DEFAULT_LOCALE)
     babel = Babel(app, locale_selector=_get_locale)
     return babel
 
