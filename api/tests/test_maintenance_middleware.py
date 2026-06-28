@@ -5,11 +5,13 @@ import pytest
 from flask import Flask
 
 from api.middleware.maintenance import init_maintenance_middleware
+from api.i18n import init_i18n
 
 
 @pytest.fixture
 def app():
     app = Flask(__name__)
+    init_i18n(app)
     init_maintenance_middleware(app)
 
     @app.route("/auth/login", methods=["POST"])

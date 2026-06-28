@@ -13,6 +13,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from api.extensions import db
+from api.i18n import init_i18n
 from api.models import (
     Availability,
     Booking,
@@ -144,6 +145,9 @@ def create_app():
     assert_production_secrets()
     _setup_dev_keys()
     app = Flask(__name__)
+
+    # Initialize i18n (locale from ?locale=, session, or Accept-Language)
+    init_i18n(app)
 
     # Custom JSON encoder for UUID/datetime serialization
     from flask.json.provider import DefaultJSONProvider

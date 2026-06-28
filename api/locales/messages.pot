@@ -1,0 +1,30 @@
+# Translations template for MyOwnClone backend.
+# Copyright (C) 2026 MyOwnClone
+# This file is distributed under the same license as the MyOwnClone project.
+# FIRST AUTHOR <Hacchi@local>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: MyOwnClone 1.0\n"
+"Report-Msgid-Bugs-To: hacchi@local\n"
+"POT-Creation-Date: 2026-06-28 09:50+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: api/controllers/console/myownclone/maintenance.py
+msgid "Sistema en mantenimiento. Vuelve pronto."
+msgstr ""
+
+#: api/middleware/maintenance.py
+msgid "Service unavailable"
+msgstr ""
+
+#: api/controllers/console/myownclone/admin_platform.py
+msgid "Admin platform"
+msgstr ""
+
+#: api/controllers/console/myownclone/ai_models.py
+msgid "AI models"
+msgstr ""

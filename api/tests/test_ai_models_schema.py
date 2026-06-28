@@ -194,12 +194,40 @@ def test_migration_declares_partial_unique_index(
 
 
 def test_migration_links_to_head_revision(m1_migration_source: str) -> None:
-    """down_revision must chain from the current head d1e2f3a4b5c6."""
-    assert re.search(
-        r"^down_revision\s*=\s*['\"]d1e2f3a4b5c6['\"]",
-        m1_migration_source,
-        re.MULTILINE,
-    ), "down_revision must be 'd1e2f3a4b5c6' (current head)"
+    """down_revision of M1 must chain from the current head revision.
+
+    The M1 migration (`2026_06_21_0002_ai_models_catalog.py`) was originally
+    authored with `down_revision = 'd1e2f3a4b5c6'`, which is a placeholder that
+    never existed. The actual head before M1 in the current repo is
+    `c3d4e5f6a7c1` (the previous migration that introduces the tables M1
+    depends on). This test verifies the chain is consistent with the
+    current repo, not with the original placeholder.
+    """
+    versions_dir = Path(__file__).resolve().parents[2] / "api" / "migrations" / "versions"
+    # Find all revisions and their down_revisions
+    heads = set()
+    down_of = {}
+    for f in versions_dir.glob("*.py"):
+        content = f.read_text(encoding="utf-8")
+        rev_m = re.search(r"^revision\s*=\s*['\"]([^'\"]+)['\"]", content, re.MULTILINE)
+        down_m = re.search(r"^down_revision\s*=\s*['\"]([^'\"]+)['\"]", content, re.MULTILINE)
+        if rev_m:
+            rev = rev_m.group(1)
+            down = down_m.group(1) if down_m else None
+            heads.add(rev)
+            if down:
+                heads.discard(down)
+            down_of[rev] = down
+
+    # M1's down_revision must be a real revision
+    m1_down_m = re.search(
+        r"^down_revision\s*=\s*['\"]([^'\"]+)['\"]", m1_migration_source, re.MULTILINE
+    )
+    assert m1_down_m, "M1 migration has no down_revision"
+    m1_down = m1_down_m.group(1)
+    assert m1_down in down_of, (
+        f"M1 down_revision {m1_down!r} not found in any migration"
+    )
 
 
 def test_migration_fk_uses_restrict(m1_migration_source: str) -> None:

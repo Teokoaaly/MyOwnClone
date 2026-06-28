@@ -12,6 +12,7 @@ import logging
 from flask import g, jsonify, request
 
 from api.core.maintenance import is_maintenance_active
+from api.i18n import _
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ def init_maintenance_middleware(app) -> None:
         return (
             jsonify({
                 "error": "service_unavailable",
-                "message": "Sistema en mantenimiento. Vuelve pronto.",
+                "message": _("Sistema en mantenimiento. Vuelve pronto."),
             }),
             503,
         )

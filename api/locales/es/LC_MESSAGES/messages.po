@@ -1,0 +1,25 @@
+# Spanish translations for MyOwnClone backend.
+# Copyright (C) 2026 MyOwnClone
+msgid ""
+msgstr ""
+"Project-Id-Version: MyOwnClone 1.0\n"
+"Report-Msgid-Bugs-To: hacchi@local\n"
+"POT-Creation-Date: 2026-06-28 09:50+0000\n"
+"PO-Revision-Date: 2026-06-28 09:50+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Sistema en mantenimiento. Vuelve pronto."
+msgstr "Sistema en mantenimiento. Vuelve pronto."
+
+msgid "Service unavailable"
+msgstr "Servicio no disponible"
+
+msgid "Admin platform"
+msgstr "Plataforma de administración"
+
+msgid "AI models"
+msgstr "Modelos de IA"
