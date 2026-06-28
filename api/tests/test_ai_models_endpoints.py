@@ -170,8 +170,18 @@ def test_ai_model_playground_uses_selected_model(ai_client, monkeypatch):
 
 def test_ai_model_costs_aggregates_rows(ai_client, monkeypatch):
     rows = [
-        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 8, 0, 0), prompt_tokens=10, completion_tokens=5),
-        SimpleNamespace(created_at=__import__("datetime").datetime(2026, 6, 23, 9, 0, 0), prompt_tokens=20, completion_tokens=15),
+        SimpleNamespace(
+            day=__import__("datetime").date(2026, 6, 23),
+            created_at=__import__("datetime").datetime(2026, 6, 23, 8, 0, 0),
+            prompt_tokens=10, completion_tokens=5,
+            invocations=1, model="minimax",
+        ),
+        SimpleNamespace(
+            day=__import__("datetime").date(2026, 6, 23),
+            created_at=__import__("datetime").datetime(2026, 6, 23, 9, 0, 0),
+            prompt_tokens=20, completion_tokens=15,
+            invocations=1, model="minimax",
+        ),
     ]
 
     class ExecuteResult:
@@ -181,15 +191,33 @@ def test_ai_model_costs_aggregates_rows(ai_client, monkeypatch):
         def scalars(self):
             return SimpleNamespace(all=lambda: self._rows)
 
-    calls = {"count": 0}
+        def scalar_one_or_none(self):
+            return None  # maintenance flag reads return None (off)
+
+    # Count ONLY rollup queries (skip maintenance middleware queries)
+    rollup_calls = {"count": 0}
 
     def fake_execute(stmt):
-        calls["count"] += 1
-        return ExecuteResult([] if calls["count"] == 1 else rows)
+        try:
+            stmt_str = str(stmt)
+        except Exception:
+            stmt_str = ""
+        # Maintenance middleware queries system_settings table
+        if "system_settings" in stmt_str:
+            return ExecuteResult([])
+        # Otherwise it's a rollup query - return real data on first call
+        rollup_calls["count"] += 1
+        if rollup_calls["count"] == 1:
+            return ExecuteResult(rows)
+        return ExecuteResult([])
 
     monkeypatch.setattr(
         "api.controllers.console.myownclone.ai_models.db.session.execute",
         fake_execute,
+    )
+    # Mock _tenant_id to return a known value (test expects tenant-scoped query)
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.ai_models._tenant_id", lambda: "test-tenant"
     )
 
     resp = ai_client.get(
@@ -216,11 +244,23 @@ def test_ai_model_costs_prefers_rollup_rows(ai_client, monkeypatch):
         def scalars(self):
             return SimpleNamespace(all=lambda: self._rows)
 
-    calls = {"count": 0}
+        def scalar_one_or_none(self):
+            return None  # maintenance flag reads return None (off)
+
+    # Count ONLY rollup queries (skip maintenance middleware queries)
+    rollup_calls = {"count": 0}
 
     def fake_execute(stmt):
-        calls["count"] += 1
-        return ExecuteResult(rollups if calls["count"] == 1 else [])
+        try:
+            stmt_str = str(stmt)
+        except Exception:
+            stmt_str = ""
+        if "system_settings" in stmt_str:
+            return ExecuteResult([])
+        rollup_calls["count"] += 1
+        if rollup_calls["count"] == 1:
+            return ExecuteResult(rollups)
+        return ExecuteResult([])
 
     monkeypatch.setattr(
         "api.controllers.console.myownclone.ai_models.db.session.execute",
@@ -257,14 +297,19 @@ def test_ai_model_costs_handles_missing_rollup_table(ai_client, monkeypatch):
         def scalars(self):
             return SimpleNamespace(all=lambda: self._rows)
 
-    calls = {"count": 0}
+    # Count only rollup queries (skip maintenance middleware queries)
+    rollup_calls = {"count": 0}
 
     def fake_execute(stmt):
-        calls["count"] += 1
-        # First query targets cost_daily_rollup → table missing → ProgrammingError
-        if calls["count"] == 1:
+        try:
+            stmt_str = str(stmt)
+        except Exception:
+            stmt_str = ""
+        if "system_settings" in stmt_str:
+            return ExecuteResult([])
+        rollup_calls["count"] += 1
+        if rollup_calls["count"] == 1:
             raise ProgrammingError("SELECT cost_daily_rollup", {}, Exception("relation does not exist"))
-        # Fallback to AIInvocation
         return ExecuteResult(inv_rows)
 
     monkeypatch.setattr(
@@ -291,6 +336,14 @@ def test_ai_model_costs_handles_both_tables_missing(ai_client, monkeypatch):
     from sqlalchemy.exc import ProgrammingError
 
     def fake_execute(stmt):
+        try:
+            stmt_str = str(stmt)
+        except Exception:
+            stmt_str = ""
+        if "system_settings" in stmt_str:
+            # Maintenance middleware query - return empty
+            return SimpleNamespace(scalar_one_or_none=lambda: None)
+        # Both tables missing - always raise
         raise ProgrammingError("SELECT cost_daily_rollup", {}, Exception("relation does not exist"))
 
     monkeypatch.setattr(
