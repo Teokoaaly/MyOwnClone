@@ -12,7 +12,7 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Sistema en mantenimiento. Vuelve pronto."
+msgid "System in maintenance. Please come back soon."
 msgstr "System in maintenance. Please come back soon."
 
 msgid "Service unavailable"

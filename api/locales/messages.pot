@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: api/controllers/console/myownclone/maintenance.py
-msgid "Sistema en mantenimiento. Vuelve pronto."
+msgid "System in maintenance. Please come back soon."
 msgstr ""
 
 #: api/middleware/maintenance.py
