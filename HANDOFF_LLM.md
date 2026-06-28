@@ -11,30 +11,18 @@ This handoff is the fast path for another agent. Read this file first, then:
 ## Current local state
 
 - Workspace: `C:\Users\haxth3\Documents\MyOwnClone`
-- Local branch for AI costs fix in progress: `fix/ai-costs-missing-rollup-table`
-  - HEAD: `4a1e252` (no new commits yet at handoff time; fix is staged)
-  - Base: `audit/sisyphus-vps-integration-push-sync` (NOT the `audit/sisyphus-vps-integration` branch this handoff originally assumed).
 - Local branch: `audit/sisyphus-vps-integration`
-  - HEAD: `9f5c9a6` — this branch is BEHIND the integration branch and
-    **does NOT contain M8-M14**. A previous agent believed it was the
-    integration lane, but the M8-M14 work lives on
-    `audit/sisyphus-vps-integration-push-sync` (HEAD `fa03fea`).
-  - The remote `origin/audit/sisyphus-vps-integration` HEAD is `4a1e252`,
-    which is the same SHA as the push-sync branch tip — confirming both
-    branches converge at the integration SHA, but the M8-M14 series is
-    cherry-picked on top of `push-sync` only.
-- Remote integration branch: `origin/audit/sisyphus-vps-integration-push-sync`
-  - HEAD: `fa03fea` (or current at push time) — contains M1, M2, M3, M4a,
-    M4b, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, plus the reconciliation
-    commits.
+- Local HEAD: `d189879`
+- Remote integration branch: `origin/audit/sisyphus-vps-integration`
+- Remote integration HEAD visible locally: `5baa1bc`
 - Refreshed documentation corpus source: `origin/main` at `8b9d3c1`
 - Live VPS base branch: `origin/audit/vps-sync-and-docs`
 - Production compatibility base SHA: `e9b9d89`
 
 ## Current worktree warning
 
-The original local worktree was dirty when audited. The remote integration
-branch has since advanced through M14. Do not batch-commit the dirty local tree.
+The local worktree is dirty. It contains mixed work from M8-M13 plus planning
+artifacts under `.omo/`. Do not batch-commit the whole tree.
 
 Required discipline:
 
@@ -68,7 +56,7 @@ Required discipline:
 
 ## Current Sisyphus state
 
-Done and committed/pushed on the integration branch:
+Done and committed:
 
 - M0
 - M1
@@ -79,13 +67,19 @@ Done and committed/pushed on the integration branch:
 - M5
 - M6
 - M7
-- M8
-- M9
-- M10
-- M11
-- M12
-- M13
-- M14
+
+Not yet closed cleanly:
+
+- M8: embeddings refactor
+- M9: admin API
+- M10: runtime integrations
+- M11: admin UI
+- M12: audit / rollup / key rotation
+- M13: defects / backfill / final docs
+
+The repo already contains code/evidence fragments for M8-M13, but they are not
+yet safe to treat as complete until they are sliced, verified, committed, and
+pushed.
 
 ## Documentation corpus status
 
@@ -122,58 +116,17 @@ Do not use raw OSINT as a direct implementation spec. Use the distilled backlog.
 
 ## Next recommended step
 
-Next steps:
+Start with Todo 1 from `.omo/plans/sisyphus-system-improvement.md`:
 
-1. Validate `origin/audit/sisyphus-vps-integration` on VPS without using the
-   bootstrap checkout as a scratch area.
-2. Confirm admin login, `/admin/ia-modelos`, registry status, embeddings
-   status, costs by model, and backfill UI on the running deployment.
-3. Start the post-Sisyphus prompt foundation tranche from
-   `.omo/evidence/docs-to-backlog-2026-06-26.md`.
+- reconcile `.sisyphus/progress.json`
+- finish milestone slicing plan for M8-M13
+- commit only documentation/tracker reconciliation first
 
-## 2026-06-26 handoff: AI costs endpoint 500 fix
+Then continue with:
 
-Symptom: `GET /console/api/myownclone/ai-models/costs` returns 500 on the live
-VPS even when authenticated as `platform_admin`. All sibling AI admin
-endpoints (`ai-models`, `assignments`, `registry-status`, `embedding-status`)
-return 200.
-
-Investigation summary:
-
-- `audit/sisyphus-vps-integration` HEAD `9f5c9a6` does NOT carry M8-M14;
-  M8-M14 live on `audit/sisyphus-vps-integration-push-sync` HEAD `fa03fea`
-  / `4a1e252` (the same SHA the remote reports).
-- The live backend gunicorn is running code equivalent to M14
-  (`api/controllers/console/myownclone/ai_models.py` is byte-identical to
-  the M14 commit `c00612f`); the bootstrap checkout has uncommitted drift
-  and was NOT used for diagnosis.
-- `cost_daily_rollup` table is almost certainly missing in the live DB:
-  every other admin query returns 200 with empty data, while `costs` 500s on
-  the first `select(CostDailyRollup)` call with no `ProgrammingError`
-  guard.
-
-Fix in progress on branch `fix/ai-costs-missing-rollup-table` (based on
-`audit/sisyphus-vps-integration-push-sync`):
-
-- Wrap the rollup query in `try/except ProgrammingError` and fall through to
-  the existing `AIInvocation` aggregation.
-- Wrap the per-model breakdown and the fallback queries similarly so the
-  endpoint degrades to empty series instead of 500 if either table is
-  missing.
-- Add regression tests:
-  `test_ai_model_costs_handles_missing_rollup_table`,
-  `test_ai_model_costs_handles_both_tables_missing`.
-- Fix pre-existing broken test `test_ai_model_costs_aggregates_rows` (the
-  M14 baseline already failed this one because `model_id` was missing from
-  the mock rows).
-
-Evidence: `.omo/evidence/fix-ai-costs-missing-rollup-table-2026-06-26.md`.
-
-Local verification: 10/10 tests pass in
-`api/tests/test_ai_models_endpoints.py`. `git diff --check` is clean.
-
-Deploy is OUT OF SCOPE of this unit. The user explicitly required rollback
-+ SHA + explicit approval before any production change. Recommended next
-deploy step: cherry-pick or merge this fix into the integration branch and
-redeploy the backend release `20260623000000-M13-defects-backfill` (or its
-successor).
+1. M8 + M10 runtime slice
+2. M9 admin API slice
+3. M11 admin UI / visibility slice
+4. M12 + M13 operational closure
+5. VPS validation
+6. post-Sisyphus prompt foundation plan
