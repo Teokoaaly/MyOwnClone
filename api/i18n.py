@@ -44,10 +44,16 @@ def _get_locale() -> str:
 
     Priority:
     1. ?locale= query parameter (for testing)
-    2. Session-stored preference (g.locale, set by login flow)
-    3. Accept-Language header
-    4. DEFAULT_LOCALE
+    2. X-Locale header (set by Next.js proxy or nginx)
+    3. Session-stored preference (g.locale, set by login flow)
+    4. Accept-Language header
+    5. DEFAULT_LOCALE
     """
+    # 0. X-Locale header (set by Next.js proxy via nginx, or directly)
+    x_locale = request.headers.get("X-Locale", "").strip()
+    if x_locale and x_locale in SUPPORTED_LOCALES:
+        return x_locale
+
     # 1. Query parameter
     forced = request.args.get("locale")
     if forced and forced in SUPPORTED_LOCALES:
