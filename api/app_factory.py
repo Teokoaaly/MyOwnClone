@@ -232,6 +232,10 @@ def register_myownclone_blueprints(app):
     app.register_blueprint(console_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(deploy_bp)
+    # Maintenance mode middleware (must be registered BEFORE other
+    # before_request handlers so it can short-circuit).
+    from api.middleware.maintenance import init_maintenance_middleware
+    init_maintenance_middleware(app)
 
 
 # Flask uses this when FLASK_APP=app_factory
