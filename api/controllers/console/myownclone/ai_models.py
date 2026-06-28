@@ -81,6 +81,19 @@ def _tenant_id() -> str | None:
     return tenant_id
 
 
+
+def _invocation_model_key(row: "AIInvocation") -> str:
+    """Return the per-model grouping key for an AIInvocation row.
+
+    The deployed ai_invocations schema exposes the model identifier as
+    "model" (NOT "model_id"). This helper tolerates both column names so
+    the costs endpoint works against either schema; future migrations that
+    rename the column to "model_id" will keep working without changes.
+    """
+    value = getattr(row, "model_id", None) or getattr(row, "model", None)
+    return value or "unknown"
+
+
 def _serialize_model(model: AIModel) -> dict:
     return {
         "id": str(model.id),
@@ -393,7 +406,7 @@ class AIModelCostsApi(Resource):
                 logger.warning("ai_invocations unavailable for by_model: %s", exc)
                 inv_rows = []
             for row in inv_rows:
-                key = row.model_id or "unknown"
+                key = _invocation_model_key(row)
                 entry = by_model.setdefault(key, {"model_id": key, "invocations": 0, "prompt_tokens": 0, "completion_tokens": 0})
                 entry["invocations"] += 1
                 entry["prompt_tokens"] += row.prompt_tokens or 0
@@ -421,7 +434,7 @@ class AIModelCostsApi(Resource):
                 totals["invocations"] += 1
                 totals["prompt_tokens"] += row.prompt_tokens or 0
                 totals["completion_tokens"] += row.completion_tokens or 0
-                key = row.model_id or "unknown"
+                key = _invocation_model_key(row)
                 entry = by_model.setdefault(key, {"model_id": key, "invocations": 0, "prompt_tokens": 0, "completion_tokens": 0})
                 entry["invocations"] += 1
                 entry["prompt_tokens"] += row.prompt_tokens or 0
