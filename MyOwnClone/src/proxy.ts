@@ -18,6 +18,7 @@ function getCloneId(request: NextRequest): string {
 
 function isProtectedProxyRoute(pathname: string): boolean {
   if (pathname === "/api/auth/login") return false;
+  if (pathname === "/api/me/locale") return false;
   if (/^\/api\/clone\/[^/]+\/chat(?:-simple)?$/.test(pathname)) return false;
   return true;
 }
@@ -84,7 +85,32 @@ const ROUTE_MAP: Record<string, string> = {
   "/api/clone/ai/feedback": "/api/myownclone/public/ai/feedback",
   "/api/inbox": "/console/api/myownclone/inbox",
   "/api/auth/login": "/console/api/auth/login",
+  "/api/me/locale": "/console/api/myownclone/me/locale",
 };
+
+/**
+ * Split a combined ``Set-Cookie`` header into individual cookie strings.
+ * The standard forbids splitting on commas because ``Expires=`` may
+ * contain them; this helper handles the date forms used by Flask/Werkzeug.
+ */
+function splitSetCookie(header: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let buf = "";
+  for (let i = 0; i < header.length; i++) {
+    const ch = header[i];
+    if (ch === "(") depth++;
+  ***REMOVED*** if (ch === ")") depth--;
+    if (ch === "," && depth === 0 && /\s/.test(header[i + 1] ?? "")) {
+      out.push(buf);
+      buf = "";
+      continue;
+    }
+    buf += ch;
+  }
+  if (buf) out.push(buf);
+  return out;
+}
 
 function getTenantFromHost(hostname: string): string | null {
   if (hostname === "localhost" || hostname.startsWith("localhost:")) return null;
@@ -331,7 +357,28 @@ export async function proxy(request: NextRequest) {
             return response2;
           }
 
-          return NextResponse.json(data, { status: response.status });
+          // Forward Set-Cookie headers from the backend (locale cookie,
+          // session cookies, etc.) so the browser persists them.
+          const nextResponse = NextResponse.json(data, { status: response.status });
+          const setCookie = response.headers.get("set-cookie");
+          if (setCookie) {
+            // Node fetch returns a single combined header for set-cookie.
+            // Split on commas that aren't inside an Expires= date value.
+            const cookies = splitSetCookie(setCookie);
+            for (const raw of cookies) {
+              const [pair] = raw.split(";");
+              const eq = pair.indexOf("=");
+              if (eq === -1) continue;
+              const name = pair.slice(0, eq).trim();
+              const value = pair.slice(eq + 1).trim();
+              nextResponse.cookies.set(name, value, {
+                path: "/",
+                sameSite: "lax",
+                secure: request.nextUrl.protocol === "https:",
+              });
+            }
+          }
+          return nextResponse;
         }
 
         const text = await response.text();
