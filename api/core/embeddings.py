@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import requests
 from typing import Iterable
 
 from api.core.model_registry import ModelRegistry, ResolvedModelConfig
@@ -57,6 +58,8 @@ class EmbeddingService:
             )
         if not model.api_key:
             raise ModelInvocationError("Embedding model requires a decrypted api_key.")
+        if model.provider == "minimax":
+            return self._embed_batch_minimax(texts, model=model)
 
         try:
             import openai
@@ -72,3 +75,42 @@ class EmbeddingService:
             input=texts,
         )
         return [row.embedding for row in response.data]
+
+    def _embed_batch_minimax(
+        self,
+        texts: list[str],
+        *,
+        model: ResolvedModelConfig,
+    ) -> list[list[float]]:
+        base_url = (model.base_url or "https://api.minimax.io/v1").rstrip("/")
+        response = requests.post(
+            f"{base_url}/embeddings",
+            headers={
+                "Authorization": f"Bearer {model.api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model.model_id,
+                "texts": texts,
+                "type": "db",
+            },
+            timeout=60,
+        )
+        if response.status_code >= 400:
+            raise ModelInvocationError(
+                f"MiniMax embeddings request failed with status {response.status_code}: "
+                f"{response.text[:200]}"
+            )
+
+        payload = response.json()
+        base_resp = payload.get("base_resp") or {}
+        if base_resp.get("status_code") not in (0, None):
+            raise ModelInvocationError(
+                f"MiniMax embeddings error {base_resp.get('status_code')}: "
+                f"{base_resp.get('status_msg', 'unknown error')}"
+            )
+
+        vectors = payload.get("vectors")
+        if not isinstance(vectors, list):
+            raise ModelInvocationError("MiniMax embeddings response did not include vectors.")
+        return vectors

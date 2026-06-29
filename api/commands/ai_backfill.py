@@ -58,6 +58,7 @@ _PROVIDER_SPECS: dict[str, dict[str, str]] = {
     AIProvider.MINIMAX.value: {
         "env": "MINIMAX_API_KEY",
         "chat_model": "abab6.5s-chat",
+        "embedding_model": "embo-01",
     },
     AIProvider.TOGETHER.value: {
         "env": "TOGETHER_API_KEY",
@@ -85,6 +86,7 @@ _CAPABILITY_PRIORITY: dict[AICapability, list[str]] = {
     AICapability.EMBEDDING: [
         AIProvider.OPENAI.value,
         AIProvider.TOGETHER.value,
+        AIProvider.MINIMAX.value,
     ],
     AICapability.STT: [
         AIProvider.OPENAI.value,

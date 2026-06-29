@@ -17,6 +17,7 @@ from typing import Any
 
 from sqlalchemy import select
 
+from api.core.embeddings import EmbeddingService
 from api.core.rag.datasource.retrieval_service import RetrievalService
 from api.core.rag.retrieval.retrieval_methods import RetrievalMethod
 from api.core.myownclone.silos import CloneSilo, filter_segments_by_context, get_dataset_id_for_silo
@@ -128,6 +129,7 @@ def _lexical_score(query_terms: set[str], content: str) -> float:
 
 def _retrieve_from_local_chunks(
     session: Any,
+    tenant_id: str,
     clone_id: str,
     query: str,
     silo: CloneSilo,
@@ -138,7 +140,6 @@ def _retrieve_from_local_chunks(
     query_terms = _terms(query)
     if not query_terms:
         return SiloRetrievalResult(silo=silo, context_id=context_id)
-    query_embedding = _lexical_embedding(query)
 
     try:
         rows = session.execute(
@@ -152,6 +153,20 @@ def _retrieve_from_local_chunks(
     except Exception:
         logger.exception("Local chunk retrieval failed for clone=%s silo=%s", clone_id, silo.value)
         return SiloRetrievalResult(silo=silo, context_id=context_id)
+
+    has_vector_rows = any(getattr(chunk, "embedding", None) for chunk, _source in rows)
+    query_embedding = _lexical_embedding(query)
+    if has_vector_rows:
+        try:
+            semantic_vectors = EmbeddingService().embed_texts([query], tenant_id=tenant_id)
+            if semantic_vectors and semantic_vectors[0]:
+                query_embedding = semantic_vectors[0]
+        except Exception:
+            logger.exception(
+                "Semantic query embedding failed for clone=%s silo=%s; falling back to lexical query embedding",
+                clone_id,
+                silo.value,
+            )
 
     scored: list[LexicalSegment] = []
     scanned = 0
@@ -222,6 +237,7 @@ def retrieve_from_silo(
 ) -> SiloRetrievalResult:
     local_result = _retrieve_from_local_chunks(
         session=session,
+        tenant_id=tenant_id,
         clone_id=clone_id,
         query=query,
         silo=silo,
