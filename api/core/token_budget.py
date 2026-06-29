@@ -10,9 +10,6 @@ from api.models.ai_models import AITask
 
 logger = logging.getLogger(__name__)
 
-EXPECTED_EMBEDDING_DIMENSIONS = 1536
-
-
 class TokenBudgetError(ValueError):
     """Raised when an input cannot fit the allowed token budget."""
 
@@ -104,8 +101,8 @@ class TokenBudgeter:
         )
 
     def validate_embedding_model(self, *, model: ResolvedModelConfig) -> None:
-        if model.embedding_dimensions != EXPECTED_EMBEDDING_DIMENSIONS:
+        if model.embedding_dimensions is None or model.embedding_dimensions <= 0:
             raise EmbeddingDimensionError(
-                f"Embedding model {model.model_id!r} must expose embedding_dimensions="
-                f"{EXPECTED_EMBEDDING_DIMENSIONS}, got {model.embedding_dimensions!r}."
+                f"Embedding model {model.model_id!r} must expose a positive embedding_dimensions value, "
+                f"got {model.embedding_dimensions!r}."
             )

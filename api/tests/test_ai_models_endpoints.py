@@ -371,6 +371,7 @@ def test_embedding_status_reports_real_storage_state(ai_client, monkeypatch):
             model_id="text-embedding-3-small",
             source="database",
             display_name="OpenAI embeddings",
+            embedding_dimensions=1536,
         )
 
     def fake_execute(stmt):
@@ -411,8 +412,10 @@ def test_embedding_status_reports_real_storage_state(ai_client, monkeypatch):
     assert body["chunks_total"] == 5
     assert body["chunks_embedded"] == 2
     assert body["chunks_pending_embedding"] == 3
+    assert body["embedding_dimensions"] == 1536
     assert body["resolved_model"]["provider"] == "openai"
     assert body["resolved_model"]["source"] == "database"
+    assert body["resolved_model"]["embedding_dimensions"] == 1536
 
 
 def test_embedding_status_handles_unresolved_model(ai_client, monkeypatch):
@@ -452,6 +455,7 @@ def test_embedding_status_handles_unresolved_model(ai_client, monkeypatch):
 
     assert resp.status_code == 200
     body = resp.get_json()
+    assert body["embedding_dimensions"] is None
     assert body["resolved_model"] is None
     assert body["chunks_pending_embedding"] == 0
 
