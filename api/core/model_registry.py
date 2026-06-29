@@ -233,14 +233,16 @@ class ModelRegistry:
                 api_key=os.environ["ANTHROPIC_API_KEY"],
             )
         if provider == "minimax":
+            model_id, dimensions = self._minimax_legacy_model_for_task(task=task)
             return ResolvedModelConfig(
                 task=task,
                 provider="minimax",
-                model_id=self._env("MINIMAX_MODEL", "minimax-m2.7"),
+                model_id=model_id,
                 tenant_id=tenant_id,
                 source="legacy_env",
                 api_key=os.environ["MINIMAX_API_KEY"],
                 base_url="https://api.minimax.io/v1",
+                embedding_dimensions=dimensions,
             )
         if provider == "together":
             model_id, dimensions = self._together_legacy_model_for_task(task=task)
@@ -264,6 +266,8 @@ class ModelRegistry:
                 return "openai"
             if os.getenv("TOGETHER_API_KEY"):
                 return "together"
+            if os.getenv("MINIMAX_API_KEY"):
+                return "minimax"
             return None
 
         if os.getenv("OPENAI_API_KEY"):
@@ -287,6 +291,11 @@ class ModelRegistry:
         if task is AITask.EMBEDDING:
             return ("togethercomputer/m2-bert-80M-8k-retrieval", 1536)
         return (self._env("TOGETHER_MODEL", "meta-llama/Llama-3-8B-Instruct-Turbo"), None)
+
+    def _minimax_legacy_model_for_task(self, *, task: AITask) -> tuple[str, int | None]:
+        if task is AITask.EMBEDDING:
+            return ("embo-01", 1536)
+        return (self._env("MINIMAX_MODEL", "minimax-m2.7"), None)
 
     def _env(self, name: str, default: str) -> str:
         return os.getenv(name, "").strip() or default

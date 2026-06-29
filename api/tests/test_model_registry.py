@@ -218,12 +218,13 @@ def test_model_registry_legacy_env_rejects_unsupported_task_provider(monkeypatch
     monkeypatch.setenv("MINIMAX_MODEL", "abab6.5s-chat")
 
     chat = registry.resolve(tenant_id="tenant-1", task=AITask.CHAT)
+    embedding = registry.resolve(tenant_id="tenant-1", task=AITask.EMBEDDING)
 
     assert chat.provider == "minimax"
     assert chat.model_id == "abab6.5s-chat"
-
-    with pytest.raises(ModelRegistryError):
-        registry.resolve(tenant_id="tenant-1", task=AITask.EMBEDDING)
+    assert embedding.provider == "minimax"
+    assert embedding.model_id == "embo-01"
+    assert embedding.embedding_dimensions == 1536
 
     with pytest.raises(ModelRegistryError):
         registry.resolve(tenant_id="tenant-1", task=AITask.STT)
