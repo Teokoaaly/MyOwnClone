@@ -58,6 +58,8 @@ class EmbeddingService:
             )
         if not model.api_key:
             raise ModelInvocationError("Embedding model requires a decrypted api_key.")
+        if model.provider == "local":
+            return self._embed_batch_local(texts, model=model)
         if model.provider == "minimax":
             return self._embed_batch_minimax(texts, model=model)
 
@@ -114,3 +116,34 @@ class EmbeddingService:
         if not isinstance(vectors, list):
             raise ModelInvocationError("MiniMax embeddings response did not include vectors.")
         return vectors
+
+    def _embed_batch_local(
+        self,
+        texts: list[str],
+        *,
+        model: ResolvedModelConfig,
+    ) -> list[list[float]]:
+        base_url = (model.base_url or "http://127.0.0.1:11434/v1").rstrip("/")
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3]
+
+        response = requests.post(
+            f"{base_url}/api/embed",
+            headers={"Content-Type": "application/json"},
+            json={
+                "model": model.model_id,
+                "input": texts if len(texts) > 1 else texts[0],
+            },
+            timeout=180,
+        )
+        if response.status_code >= 400:
+            raise ModelInvocationError(
+                f"Local embeddings request failed with status {response.status_code}: "
+                f"{response.text[:200]}"
+            )
+
+        payload = response.json()
+        vectors = payload.get("embeddings")
+        if not isinstance(vectors, list):
+            raise ModelInvocationError("Local embeddings response did not include embeddings.")
+        return [list(vector) for vector in vectors]

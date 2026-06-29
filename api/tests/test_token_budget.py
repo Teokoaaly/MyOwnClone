@@ -6,7 +6,6 @@ import pytest
 
 from api.core.model_registry import ResolvedModelConfig
 from api.core.token_budget import (
-    EXPECTED_EMBEDDING_DIMENSIONS,
     EmbeddingDimensionError,
     TokenBudgetError,
     TokenBudgeter,
@@ -23,7 +22,7 @@ def _model(**overrides) -> ResolvedModelConfig:
         "source": "database",
         "max_input_tokens": 100,
         "max_tokens_default": 20,
-        "embedding_dimensions": EXPECTED_EMBEDDING_DIMENSIONS,
+        "embedding_dimensions": 1536,
     }
     data.update(overrides)
     return ResolvedModelConfig(**data)
@@ -82,16 +81,23 @@ def test_token_budgeter_uses_override_max_tokens():
     assert available == 65
 
 
-def test_embedding_dimension_guard_accepts_1536():
+def test_embedding_dimension_guard_accepts_positive_dimensions():
     budgeter = TokenBudgeter()
 
     budgeter.validate_embedding_model(model=_model(task=AITask.EMBEDDING, embedding_dimensions=1536))
+    budgeter.validate_embedding_model(model=_model(task=AITask.EMBEDDING, embedding_dimensions=1024))
+    budgeter.validate_embedding_model(model=_model(task=AITask.EMBEDDING, embedding_dimensions=768))
 
 
-def test_embedding_dimension_guard_rejects_non_1536():
+def test_embedding_dimension_guard_rejects_missing_or_non_positive_dimension():
     budgeter = TokenBudgeter()
 
     with pytest.raises(EmbeddingDimensionError):
         budgeter.validate_embedding_model(
-            model=_model(task=AITask.EMBEDDING, embedding_dimensions=768)
+            model=_model(task=AITask.EMBEDDING, embedding_dimensions=None)
+        )
+
+    with pytest.raises(EmbeddingDimensionError):
+        budgeter.validate_embedding_model(
+            model=_model(task=AITask.EMBEDDING, embedding_dimensions=0)
         )

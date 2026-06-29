@@ -182,6 +182,7 @@ def _embedding_store_status(*, tenant_id: str | None) -> dict:
             "model_id": resolved.model_id,
             "display_name": resolved.display_name,
             "source": resolved.source,
+            "embedding_dimensions": resolved.embedding_dimensions,
         }
     except ModelRegistryError:
         resolved_model = None
@@ -541,7 +542,11 @@ class EmbeddingStatusApi(Resource):
         return {
             "max_embed_texts": _MAX_EMBED_TEXTS,
             "client_batch_size": 64,
-            "embedding_dimensions": 1536,
+            "embedding_dimensions": (
+                status["resolved_model"]["embedding_dimensions"]
+                if status["resolved_model"] is not None
+              ***REMOVED*** None
+            ),
             **status,
         }, 200
 
