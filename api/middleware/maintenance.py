@@ -78,7 +78,7 @@ def init_maintenance_middleware(app) -> None:
         return (
             jsonify({
                 "error": "service_unavailable",
-                "message": _("Sistema en mantenimiento. Vuelve pronto."),
+                "message": _("System in maintenance. Please come back soon."),
             }),
             503,
         )
