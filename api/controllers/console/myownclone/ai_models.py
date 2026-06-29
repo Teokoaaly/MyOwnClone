@@ -8,14 +8,14 @@ from datetime import datetime, timedelta, timezone
 from flask import request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, text
 from sqlalchemy.exc import ProgrammingError
 
 from api.controllers.common.schema import register_schema_models
 from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
 from api.core.model_manager import ModelManager
-from api.core.model_registry import ModelRegistry
+from api.core.model_registry import ModelRegistry, ModelRegistryError
 from api.core.providers.base import GenerationParams
 from api.extensions.ext_database import db
 from api.libs.crypto import SecretCipher
@@ -140,6 +140,63 @@ def _resolve_model_for_preview(*, tenant_id: str | None, model: AIModel, task: A
         ),
         model=model,
     )
+
+
+def _embedding_store_status(*, tenant_id: str | None) -> dict:
+    chunks_table_present = bool(
+        db.session.execute(
+            text("SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'chunks'")
+        ).scalar()
+    )
+    embedding_column_present = bool(
+        db.session.execute(
+            text(
+                "SELECT COUNT(*) FROM information_schema.columns "
+                "WHERE table_name = 'chunks' AND column_name = 'embedding'"
+            )
+        ).scalar()
+    )
+    pgvector_extension_enabled = bool(
+        db.session.execute(
+            text("SELECT COUNT(*) FROM pg_extension WHERE extname = 'vector'")
+        ).scalar()
+    )
+
+    chunks_total = 0
+    chunks_embedded = 0
+    if chunks_table_present and embedding_column_present:
+        chunks_total = int(
+            db.session.execute(text("SELECT COUNT(*) FROM chunks")).scalar() or 0
+        )
+        chunks_embedded = int(
+            db.session.execute(
+                text("SELECT COUNT(*) FROM chunks WHERE embedding IS NOT NULL")
+            ).scalar()
+            or 0
+        )
+
+    try:
+        resolved = ModelRegistry().resolve(tenant_id=tenant_id, task=AITask.EMBEDDING)
+        resolved_model: dict | None = {
+            "provider": resolved.provider,
+            "model_id": resolved.model_id,
+            "display_name": resolved.display_name,
+            "source": resolved.source,
+            "embedding_dimensions": resolved.embedding_dimensions,
+        }
+    except ModelRegistryError:
+        resolved_model = None
+
+    return {
+        "canonical_store": "postgres_chunks",
+        "chunks_table_present": chunks_table_present,
+        "embedding_column_present": embedding_column_present,
+        "pgvector_extension_enabled": pgvector_extension_enabled,
+        "chunks_total": chunks_total,
+        "chunks_embedded": chunks_embedded,
+        "chunks_pending_embedding": max(chunks_total - chunks_embedded, 0),
+        "resolved_model": resolved_model,
+    }
 
 
 @console_ns.route("/myownclone/ai-models")
@@ -462,20 +519,35 @@ class RegistryStatusApi(Resource):
         return reg.dump_status(tenant_id=tenant_id), 200
 
 
+@console_ns.route("/myownclone/ai-models/registry-invalidate")
+class RegistryInvalidateApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def post(self):
+        tenant_id = _tenant_id()
+        ModelRegistry().invalidate(tenant_id=tenant_id)
+        return {"ok": True, "tenant_id": tenant_id}, 200
+
+
 @console_ns.route("/myownclone/ai-models/embedding-status")
 class EmbeddingStatusApi(Resource):
-    """Return embedding runtime constants for the admin panel."""
-
     @login_required
     @account_initialization_required
     @setup_required
     def get(self):
         from api.controllers.console.myownclone.runtime import _MAX_EMBED_TEXTS
 
+        status = _embedding_store_status(tenant_id=_tenant_id())
         return {
             "max_embed_texts": _MAX_EMBED_TEXTS,
             "client_batch_size": 64,
-            "embedding_dimensions": 1536,
+            "embedding_dimensions": (
+                status["resolved_model"]["embedding_dimensions"]
+                if status["resolved_model"] is not None
+                else None
+            ),
+            **status,
         }, 200
 
 

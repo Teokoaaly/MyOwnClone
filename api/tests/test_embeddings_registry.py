@@ -92,7 +92,7 @@ def test_embedding_service_rejects_dimension_mismatch():
     service = EmbeddingService()
 
     with pytest.raises(EmbeddingDimensionError):
-        service.embed_texts(["hello"], model=_embedding_model(embedding_dimensions=768))
+        service.embed_texts(["hello"], model=_embedding_model(embedding_dimensions=None))
 
 
 def test_embedding_service_rejects_unsupported_provider():
@@ -100,3 +100,80 @@ def test_embedding_service_rejects_unsupported_provider():
 
     with pytest.raises(ModelInvocationError):
         service.embed_texts(["hello"], model=_embedding_model(provider="anthropic"))
+
+
+def test_embedding_service_uses_minimax_embeddings_contract(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        status_code = 200
+
+        def json(self):
+            return {
+                "vectors": [[0.1, 0.2, 0.3]],
+                "base_resp": {"status_code": 0, "status_msg": "ok"},
+            }
+
+    def fake_post(url, *, headers, json, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["json"] = json
+        captured["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.setattr("api.core.embeddings.requests.post", fake_post)
+
+    service = EmbeddingService()
+    vectors = service.embed_texts(
+        ["hola"],
+        model=_embedding_model(
+            provider="minimax",
+            model_id="embo-01",
+            base_url="https://api.minimax.io/v1",
+        ),
+    )
+
+    assert vectors == [[0.1, 0.2, 0.3]]
+    assert captured["url"] == "https://api.minimax.io/v1/embeddings"
+    assert captured["json"] == {
+        "model": "embo-01",
+        "texts": ["hola"],
+        "type": "db",
+    }
+
+
+def test_embedding_service_uses_local_ollama_embeddings_contract(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        status_code = 200
+
+        def json(self):
+            return {"embeddings": [[0.4, 0.5], [0.6, 0.7]]}
+
+    def fake_post(url, *, headers, json, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["json"] = json
+        captured["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.setattr("api.core.embeddings.requests.post", fake_post)
+
+    service = EmbeddingService()
+    vectors = service.embed_texts(
+        ["uno", "dos"],
+        model=_embedding_model(
+            provider="local",
+            model_id="mxbai-embed-large",
+            base_url="http://ollama:11434/v1",
+            embedding_dimensions=1024,
+        ),
+    )
+
+    assert vectors == [[0.4, 0.5], [0.6, 0.7]]
+    assert captured["url"] == "http://ollama:11434/api/embed"
+    assert captured["json"] == {
+        "model": "mxbai-embed-large",
+        "input": ["uno", "dos"],
+    }

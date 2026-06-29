@@ -79,6 +79,19 @@ interface EmbeddingStatusResponse {
   max_embed_texts: number;
   client_batch_size: number;
   embedding_dimensions: number;
+  canonical_store: string;
+  chunks_table_present: boolean;
+  embedding_column_present: boolean;
+  pgvector_extension_enabled: boolean;
+  chunks_total: number;
+  chunks_embedded: number;
+  chunks_pending_embedding: number;
+  resolved_model: {
+    provider: string;
+    model_id: string;
+    display_name: string | null;
+    source: string;
+  } | null;
 }
 
 const TASKS: Array<{ id: Task; label: string; capability: Capability }> = [
@@ -159,6 +172,7 @@ export default function AdminAIModelsPage() {
     data: embeddingStatus,
     loading: _embeddingLoading,
     error: _embeddingError,
+    reload: reloadEmbedding,
   } = useAdminFetch<EmbeddingStatusResponse>("/api/admin/ai-models/embedding-status");
 
   const [form, setForm] = useState(emptyForm);
@@ -173,6 +187,7 @@ export default function AdminAIModelsPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
   const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const [invalidatingRegistry, setInvalidatingRegistry] = useState(false);
 
   useEffect(() => {
     if (!playgroundModelId && models?.length) {
@@ -351,10 +366,29 @@ export default function AdminAIModelsPage() {
       reloadModels();
       reloadAssignments();
       reloadRegistry();
+      reloadEmbedding();
     } catch (error) {
       setPageError(error instanceof Error ? error.message : "Could not run backfill");
     } finally {
       setBackfilling(false);
+    }
+  }
+
+  async function invalidateRegistry() {
+    setInvalidatingRegistry(true);
+    setPageError(null);
+    setActionMessage(null);
+    try {
+      const response = await fetch("/api/admin/ai-models/registry-invalidate", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? `Error ${response.status}`);
+      setActionMessage("Registry cache invalidated.");
+      reloadRegistry();
+      reloadEmbedding();
+    } catch (error) {
+      setPageError(error instanceof Error ? error.message : "Could not invalidate registry");
+    } finally {
+      setInvalidatingRegistry(false);
     }
   }
 
@@ -383,7 +417,17 @@ export default function AdminAIModelsPage() {
         subtitle="Manage catalog entries, task routing, playground checks, and recent runtime usage."
         actions={
           <>
-            <button type="button" className="btn-secondary text-xs" onClick={() => { reloadModels(); reloadAssignments(); reloadCosts(); }}>
+            <button
+              type="button"
+              className="btn-secondary text-xs"
+              onClick={() => {
+                reloadModels();
+                reloadAssignments();
+                reloadCosts();
+                reloadRegistry();
+                reloadEmbedding();
+              }}
+            >
               Refresh
             </button>
             <button type="button" className="btn-secondary text-xs" disabled={backfilling} onClick={runBackfill}>
@@ -641,7 +685,19 @@ export default function AdminAIModelsPage() {
               <div className="stat-label">Model Registry · Balancer</div>
               <div className="text-xs text-[var(--text-muted)]">TTL: {registryStatus.ttl_seconds}s · Cache entries: {registryStatus.cache_size}</div>
             </div>
-            <button type="button" className="btn-secondary text-xs" onClick={() => window.location.reload()}>Refresh</button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="btn-secondary text-xs"
+                disabled={invalidatingRegistry}
+                onClick={invalidateRegistry}
+              >
+                {invalidatingRegistry ? "Invalidating..." : "Invalidate cache"}
+              </button>
+              <button type="button" className="btn-secondary text-xs" onClick={() => { reloadRegistry(); reloadEmbedding(); }}>
+                Refresh
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             {registryStatus.tasks.map((t) => (
@@ -666,8 +722,22 @@ export default function AdminAIModelsPage() {
       {/* ── Embedding Status ── */}
       {embeddingStatus && (
         <section className="card space-y-4">
-          <div className="stat-label">Embedding Configuration</div>
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="stat-label">Embedding Configuration</div>
+              <div className="mt-1 text-sm text-[var(--text-muted)]">
+                Runtime limits plus live visibility into the PostgreSQL chunk embedding store.
+              </div>
+            </div>
+            {embeddingStatus.resolved_model ? (
+              <span className="badge-active">
+                {embeddingStatus.resolved_model.provider} · {embeddingStatus.resolved_model.model_id}
+              </span>
+            ) : (
+              <span className="badge-warning">No embedding model resolved</span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3 xl:grid-cols-6">
             <div className="rounded-lg border border-[var(--border-soft)] p-3">
               <div className="stat-label">MAX texts</div>
               <div className="stat-value mt-1 font-mono">{embeddingStatus.max_embed_texts}</div>
@@ -679,6 +749,65 @@ export default function AdminAIModelsPage() {
             <div className="rounded-lg border border-[var(--border-soft)] p-3">
               <div className="stat-label">Client batch</div>
               <div className="stat-value mt-1 font-mono">{embeddingStatus.client_batch_size}</div>
+            </div>
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">Store</div>
+              <div className="stat-value mt-1 font-mono text-base">{embeddingStatus.canonical_store}</div>
+            </div>
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">Chunk rows</div>
+              <div className="stat-value mt-1 font-mono">{embeddingStatus.chunks_total}</div>
+            </div>
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">Pending embeddings</div>
+              <div className="stat-value mt-1 font-mono">{embeddingStatus.chunks_pending_embedding}</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">Resolved embedding model</div>
+              {embeddingStatus.resolved_model ? (
+                <>
+                  <div className="mt-2 font-mono text-sm text-[var(--text-primary)]">
+                    {embeddingStatus.resolved_model.provider} / {embeddingStatus.resolved_model.model_id}
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--text-muted)]">
+                    Source: {embeddingStatus.resolved_model.source}
+                    {embeddingStatus.resolved_model.display_name ? ` · ${embeddingStatus.resolved_model.display_name}` : ""}
+                  </div>
+                </>
+              ) : (
+                <div className="mt-2 text-sm text-[var(--text-muted)]">
+                  No embedding-capable model resolves for this tenant. Backfill or assign one before ingesting new content.
+                </div>
+              )}
+            </div>
+            <div className="rounded-lg border border-[var(--border-soft)] p-3">
+              <div className="stat-label">Storage health</div>
+              <div className="mt-2 space-y-2 text-xs text-[var(--text-muted)]">
+                <div className="flex items-center justify-between gap-2">
+                  <span>chunks table</span>
+                  <span className={embeddingStatus.chunks_table_present ? "badge-active" : "badge-warning"}>
+                    {embeddingStatus.chunks_table_present ? "present" : "missing"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span>embedding column</span>
+                  <span className={embeddingStatus.embedding_column_present ? "badge-active" : "badge-warning"}>
+                    {embeddingStatus.embedding_column_present ? "present" : "missing"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span>pgvector extension</span>
+                  <span className={embeddingStatus.pgvector_extension_enabled ? "badge-active" : "badge-warning"}>
+                    {embeddingStatus.pgvector_extension_enabled ? "enabled" : "missing"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span>embedded rows</span>
+                  <span className="font-mono text-[var(--text-primary)]">{embeddingStatus.chunks_embedded}</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>

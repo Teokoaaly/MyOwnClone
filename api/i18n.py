@@ -1,18 +1,20 @@
 """Internationalization (i18n) setup for the MyOwnClone backend.
 
-This module wires Flask-Babel into the Flask app, exposes the
-translation callable `_()`, and provides a helper to pick the locale
-for each request (from the `Accept-Language` header, the `locale`
-query parameter, or a user-preference cookie).
+Wires Flask-Babel into the Flask app, exposes the translation callable
+`_()`, and selects the locale per request using the following priority:
 
-Usage in application code:
+    1. Cookie ``moc_locale`` (set by the manual selector / POST /api/me/locale)
+    2. ``X-Locale`` request header (set by the nginx map or service proxy)
+    3. ``?locale=`` query parameter (debug / one-shot override)
+    4. ``Accept-Language`` header
+    5. ``DEFAULT_LOCALE`` (``"en"``)
 
-    from api.i18n import _
-
-    @app.route("/")
-    def index():
-        flash(_("Welcome to MyOwnClone"))
-        return render_template("index.html")
+Public helpers:
+- ``init_i18n(app)`` registers Babel and the before_request hook.
+- ``_get_locale()`` selects the locale for the current request.
+- ``_(s)`` shorthand for gettext.
+- ``set_locale_cookie(resp, locale)`` persists the user choice.
+- ``SUPPORTED_LOCALES`` and ``LOCALE_COOKIE_NAME`` for cross-module use.
 
 Translation workflow:
 
@@ -23,79 +25,98 @@ Translation workflow:
     #      pybabel init -i api/locales/messages.pot -d api/locales -l es
     #      # or update existing:
     #      pybabel update -i api/locales/messages.pot -d api/locales -l es
-    # 4. Edit api/locales/es/LC_MESSAGES/messages.po
+    # 4. Edit api/locales/<lang>/LC_MESSAGES/messages.po
     # 5. Compile:
     #      pybabel compile -d api/locales
 """
-import os
-from typing import Any, Optional
+from __future__ import annotations
 
-from flask import Flask, g, request
+import os
+from typing import Any
+
+from flask import Flask, Response, request
 from flask_babel import Babel, gettext as _flask_gettext
 
-# Default locale
+
+# Default locale (used when no other source matches).
 DEFAULT_LOCALE = "en"
-# Supported locales (must have a .mo file compiled in api/locales/<lang>/LC_MESSAGES)
-SUPPORTED_LOCALES = ["en", "es"]
+
+# Supported locales. Each MUST have a compiled .mo file under
+# api/locales/<lang>/LC_MESSAGES/messages.mo.
+SUPPORTED_LOCALES = ("en", "es")
+
+# Cookie name used to persist the user's manual selection.
+LOCALE_COOKIE_NAME = "moc_locale"
+
+# Cookie lifetime in seconds (1 year).
+LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+
+
+def _normalize(value: str | None) -> str | None:
+    """Return ``value`` trimmed and lowercased, or ``None`` if empty."""
+    if not value:
+        return None
+    value = value.strip().lower()
+    return value or None
+
+
+def _is_supported(value: str | None) -> bool:
+    return bool(value) and value in SUPPORTED_LOCALES
 
 
 def _get_locale() -> str:
     """Pick the best locale for the current request.
 
     Priority:
-    1. ?locale= query parameter (for testing)
-    2. X-Locale header (set by Next.js proxy or nginx)
-    3. Session-stored preference (g.locale, set by login flow)
-    4. Accept-Language header
-    5. DEFAULT_LOCALE
+    1. ``moc_locale`` cookie (manual user preference)
+    2. ``X-Locale`` header (nginx ``$my_locale``)
+    3. ``?locale=`` query parameter
+    4. ``Accept-Language`` header
+    5. ``DEFAULT_LOCALE``
     """
-    # 0. X-Locale header (set by Next.js proxy via nginx, or directly)
-    x_locale = request.headers.get("X-Locale", "").strip()
-    if x_locale and x_locale in SUPPORTED_LOCALES:
-        return x_locale
+    # 1. Cookie (manual user preference, persisted across requests).
+    cookie_locale = _normalize(request.cookies.get(LOCALE_COOKIE_NAME))
+    if _is_supported(cookie_locale):
+        return cookie_locale  # type: ignore[return-value]
 
-    # 1. Query parameter
-    forced = request.args.get("locale")
-    if forced and forced in SUPPORTED_LOCALES:
-        return forced
+    # 2. X-Locale header (set by nginx from Accept-Language).
+    header_locale = _normalize(request.headers.get("X-Locale"))
+    if _is_supported(header_locale):
+        return header_locale  # type: ignore[return-value]
 
-    # 2. Session-stored preference (g.locale is set by /auth/login)
-    g_locale = getattr(g, "locale", None)
-    if g_locale and g_locale in SUPPORTED_LOCALES:
-        return g_locale
+    # 3. Query parameter (one-shot override, useful for debugging).
+    forced = _normalize(request.args.get("locale"))
+    if _is_supported(forced):
+        return forced  # type: ignore[return-value]
 
-    # 3. Accept-Language header
+    # 4. Accept-Language header.
     if request.accept_languages:
-        best = request.accept_languages.best_match(SUPPORTED_LOCALES)
+        best = request.accept_languages.best_match(list(SUPPORTED_LOCALES))
         if best:
             return best
 
+    # 5. Default.
     return DEFAULT_LOCALE
 
 
 def init_i18n(app: Flask) -> Babel:
-    """Initialize Flask-Babel on the given Flask app.
-
-    Returns the Babel instance so it can be extended in tests if needed.
-    """
-    # Tell Flask-Babel where to find compiled .mo files.
-    import os
+    """Initialize Flask-Babel on the given Flask app."""
     locales_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "locales"
     )
     app.config.setdefault("BABEL_TRANSLATION_DIRECTORIES", locales_path)
     app.config.setdefault("BABEL_DEFAULT_LOCALE", DEFAULT_LOCALE)
+    app.config.setdefault("BABEL_DEFAULT_TIMEZONE", "UTC")
+    # Expose supported locales so the front-end and other modules can read them.
+    app.config.setdefault("MOC_SUPPORTED_LOCALES", list(SUPPORTED_LOCALES))
+    app.config.setdefault("MOC_DEFAULT_LOCALE", DEFAULT_LOCALE)
+    app.config.setdefault("MOC_LOCALE_COOKIE_NAME", LOCALE_COOKIE_NAME)
     babel = Babel(app, locale_selector=_get_locale)
     return babel
 
 
 def _(s: str) -> str:
-    """Shorthand for gettext / Flask-Babel's translation.
-
-    Importable as `from api.i18n import _` for use in application code.
-    The function picks the current request's locale from Flask's request
-    context automatically.
-    """
+    """Shorthand for gettext / Flask-Babel's translation."""
     return _flask_gettext(s)
 
 
@@ -114,3 +135,23 @@ def lazy_gettext(s: str):
     """Lazy translation (returns a marker evaluated at request time)."""
     from flask_babel import lazy_gettext as _lazy
     return _lazy(s)
+
+
+def set_locale_cookie(response: Response, locale: str) -> Response:
+    """Persist the locale choice in a cookie on the given response.
+
+    Validates ``locale`` against ``SUPPORTED_LOCALES``. If invalid, the
+    cookie is cleared instead of being set.
+    """
+    if _is_supported(locale):
+        response.set_cookie(
+            LOCALE_COOKIE_NAME,
+            locale,  # type: ignore[arg-type]
+            max_age=LOCALE_COOKIE_MAX_AGE,
+            httponly=False,  # front-end reads it via document.cookie
+            samesite="Lax",
+            path="/",
+        )
+    else:
+        response.delete_cookie(LOCALE_COOKIE_NAME, path="/")
+    return response

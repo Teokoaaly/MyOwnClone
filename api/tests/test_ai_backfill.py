@@ -164,3 +164,20 @@ def test_dry_run_does_not_write():
     assert result.assignments_created == 5
     assert session.added == []
     assert session.committed is False
+
+
+def test_backfill_minimax_creates_chat_and_embedding_models():
+    session = _FakeSession(models=[], assignments=[])
+
+    result = backfill_from_env(session=session, env={"MINIMAX_API_KEY": "sk-minimax"})
+
+    assert result.providers_detected == ("minimax",)
+    assert result.models_created == 2
+    assert result.assignments_created == 4
+    assert result.skipped_tasks == ("stt",)
+
+    models = [row for row in session.added if isinstance(row, AIModel)]
+    model_ids = {model.model_id for model in models}
+    assert {"abab6.5s-chat", "embo-01"} == model_ids
+    emb = next(model for model in models if model.model_id == "embo-01")
+    assert emb.embedding_dimensions == 1536

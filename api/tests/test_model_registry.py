@@ -179,3 +179,52 @@ def test_model_registry_raises_when_no_db_or_legacy_model(monkeypatch):
 
     with pytest.raises(ModelRegistryError):
         registry.resolve(tenant_id="tenant-1", task=AITask.CHAT)
+
+
+def test_model_registry_legacy_env_uses_task_specific_provider(monkeypatch):
+    registry = ModelRegistry()
+    monkeypatch.setattr(registry, "_resolve_from_db", lambda **_: None)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai")
+    monkeypatch.setenv("TOGETHER_API_KEY", "sk-together")
+    monkeypatch.setenv("MINIMAX_API_KEY", "sk-minimax")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4o-mini")
+    monkeypatch.setenv("TOGETHER_MODEL", "meta-llama/Llama-3.1-8B-Instruct-Turbo")
+
+    chat = registry.resolve(tenant_id="tenant-1", task=AITask.CHAT)
+    embedding = registry.resolve(tenant_id="tenant-1", task=AITask.EMBEDDING)
+    stt = registry.resolve(tenant_id="tenant-1", task=AITask.STT)
+
+    assert chat.source == "legacy_env"
+    assert chat.provider == "openai"
+    assert chat.model_id == "gpt-4o-mini"
+
+    assert embedding.source == "legacy_env"
+    assert embedding.provider == "openai"
+    assert embedding.model_id == "text-embedding-3-small"
+    assert embedding.embedding_dimensions == 1536
+
+    assert stt.source == "legacy_env"
+    assert stt.provider == "openai"
+    assert stt.model_id == "whisper-1"
+
+
+def test_model_registry_legacy_env_rejects_unsupported_task_provider(monkeypatch):
+    registry = ModelRegistry()
+    monkeypatch.setattr(registry, "_resolve_from_db", lambda **_: None)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("TOGETHER_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("MINIMAX_API_KEY", "sk-minimax")
+    monkeypatch.setenv("MINIMAX_MODEL", "abab6.5s-chat")
+
+    chat = registry.resolve(tenant_id="tenant-1", task=AITask.CHAT)
+    embedding = registry.resolve(tenant_id="tenant-1", task=AITask.EMBEDDING)
+
+    assert chat.provider == "minimax"
+    assert chat.model_id == "abab6.5s-chat"
+    assert embedding.provider == "minimax"
+    assert embedding.model_id == "embo-01"
+    assert embedding.embedding_dimensions == 1536
+
+    with pytest.raises(ModelRegistryError):
+        registry.resolve(tenant_id="tenant-1", task=AITask.STT)
