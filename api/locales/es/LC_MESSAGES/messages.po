@@ -4,15 +4,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyOwnClone 1.0\n"
 "Report-Msgid-Bugs-To: hacchi@local\n"
-"POT-Creation-Date: 2026-06-28 09:50+0000\n"
-"PO-Revision-Date: 2026-06-28 09:50+0000\n"
+"POT-Creation-Date: 2026-06-29 00:00+0000\n"
+"PO-Revision-Date: 2026-06-29 00:00+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Sistema en mantenimiento. Vuelve pronto."
+msgid "System in maintenance. Please come back soon."
 msgstr "Sistema en mantenimiento. Vuelve pronto."
 
 msgid "Service unavailable"
@@ -23,3 +23,9 @@ msgstr "Plataforma de administración"
 
 msgid "AI models"
 msgstr "Modelos de IA"
+
+msgid "Locale updated"
+msgstr "Idioma actualizado"
+
+msgid "Unsupported locale"
+msgstr "Idioma no soportado"
