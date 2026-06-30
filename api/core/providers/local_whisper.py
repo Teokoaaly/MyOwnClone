@@ -36,7 +36,7 @@ class LocalWhisperAdapter:
         "LOCAL_WHISPER_COMPUTE_TYPE", "int8"
     )
     DEFAULT_DOWNLOAD_ROOT = os.environ.get(
-        "LOCAL_WHISPER_DOWNLOAD_ROOT", "/root/.cache/huggingface"
+        "LOCAL_WHISPER_DOWNLOAD_ROOT", "/tmp/whisper"
     )
 
     def __init__(self, config: ResolvedModelConfig) -> None:
