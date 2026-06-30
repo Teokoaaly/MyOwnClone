@@ -1,15 +1,26 @@
-import { LoginForm } from "./login-form";
+import { SignupForm } from "./signup-form";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
+import { auth } from "@/lib/auth";
+import { getPostAuthHref } from "@/lib/session-routing";
+import { redirect } from "next/navigation";
 
-export default function LoginPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SignupPage() {
+  const session = await auth();
+
+  if (session?.user) {
+    redirect(getPostAuthHref(session));
+  }
+
   return (
     <main
       className="flex min-h-screen items-center justify-center px-4 py-12"
       style={{
         background: `
-          radial-gradient(circle at 12% 8%, rgba(249, 115, 22, 0.18), transparent 36%),
-          radial-gradient(circle at 88% 90%, rgba(236, 72, 153, 0.14), transparent 36%),
+          radial-gradient(circle at 12% 8%, rgba(234, 88, 12, 0.18), transparent 36%),
+          radial-gradient(circle at 88% 90%, rgba(219, 39, 119, 0.14), transparent 36%),
           var(--bg-page)
         `,
       }}
@@ -31,11 +42,11 @@ export default function LoginPage() {
               MyOwnClone
             </h1>
             <p className="mt-1 text-sm text-[var(--text-muted)]">
-              Sign in to manage your clone
+              Create your account and start scaling yourself
             </p>
           </div>
           <div className="px-8 pb-8 pt-4">
-            <LoginForm />
+            <SignupForm />
           </div>
         </div>
       </div>

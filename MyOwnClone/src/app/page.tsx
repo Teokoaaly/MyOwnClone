@@ -1,4 +1,5 @@
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
+import { LanguageSelector } from "@/components/ui/LanguageSelector";
 import LandingPricing from "@/components/ui/LandingPricing";
 import NeonTubesBackground from "@/components/ui/NeonTubesBackground";
 import { Link } from "@/i18n/navigation";
@@ -67,6 +68,7 @@ export default async function LandingPage() {
           <Link className="nav-cta" href={nav.primaryHref}>
             {session?.user ? nav.primaryLabel : "Get started"}
           </Link>
+          <LanguageSelector variant="header" />
         </div>
       </nav>
 
