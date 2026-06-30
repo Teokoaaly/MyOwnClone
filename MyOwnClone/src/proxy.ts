@@ -70,18 +70,19 @@ const ROUTE_MAP: Record<string, string> = {
   "/api/admin/impersonate": "/console/api/myownclone/admin/impersonate",
   "/api/admin/impersonation": "/console/api/myownclone/admin/impersonation",
   "/api/admin/audit-log": "/console/api/myownclone/admin/audit-log",
+  "/api/admin/ai-models": "/console/api/myownclone/ai-models",
+  "/api/admin/ai-models/assignments": "/console/api/myownclone/ai-models/assignments",
+  "/api/admin/ai-models/test-connection": "/console/api/myownclone/ai-models/test-connection",
+  "/api/admin/ai-models/playground": "/console/api/myownclone/ai-models/playground",
+  "/api/admin/ai-models/costs": "/console/api/myownclone/ai-models/costs",
   "/api/admin/feedback": "/console/api/myownclone/admin/feedback",
   "/api/admin/courtesy": "/console/api/myownclone/admin/courtesy-account",
   "/api/admin/courtesy-account": "/console/api/myownclone/admin/courtesy-account",
-  "/api/admin/ia-modelos/models": "/console/api/myownclone/admin/ia-modelos/models",
-  "/api/admin/ia-modelos/assignments": "/console/api/myownclone/admin/ia-modelos/assignments",
-  "/api/admin/ia-modelos/breaker-states": "/console/api/myownclone/admin/ia-modelos/breaker-states",
   "/api/clones": "/console/api/myownclone/clones",
   "/api/plans": "/console/api/myownclone/plans",
   "/api/stripe/checkout": "/console/api/myownclone/stripe/checkout",
   "/api/stripe/billing": "/console/api/myownclone/stripe/billing",
   "/api/feedback": "/console/api/myownclone/feedback",
-  "/api/clone/ai/feedback": "/api/myownclone/public/ai/feedback",
   "/api/inbox": "/console/api/myownclone/inbox",
   "/api/auth/login": "/console/api/auth/login",
 };
@@ -96,6 +97,16 @@ function getTenantFromHost(hostname: string): string | null {
 }
 
 function findBackendPath(pathname: string, request: NextRequest): string | null {
+  const publicChatPath = pathname.match(/^\/api\/public\/clones\/([^/]+)\/chat$/);
+  if (publicChatPath) {
+    return `/api/myownclone/public/clones/${publicChatPath[1]}/chat`;
+  }
+
+  const publicSimpleChatPath = pathname.match(/^\/api\/public\/clones\/([^/]+)\/chat-simple$/);
+  if (publicSimpleChatPath) {
+    return `/api/myownclone/public/clones/${publicSimpleChatPath[1]}/chat-simple`;
+  }
+
   // Ignoramos la biblioteca de contenidos (sources), que se resolverá localmente en Next.js
   if (pathname === "/api/clone/sources" || pathname.startsWith("/api/clone/sources/")) {
     return null;
@@ -190,6 +201,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Maintenance mode check (cached 60s).
+  // Non-admin users are redirected to /maintenance when active.
+  if (
+    !pathname.startsWith("/maintenance") &&
+    !pathname.startsWith("/api/") &&
+    !pathname.startsWith("/_next") &&
+    !(await isPlatformAdmin(request))
+  ) {
+    const active = await isMaintenanceActive();
+    if (active) {
+      return NextResponse.redirect(new URL("/maintenance", request.url));
+    }
+  }
+
   const localeMatch = routing.locales.find(
     (candidate) =>
       pathname === `/${candidate}` || pathname.startsWith(`/${candidate}/`),
@@ -224,10 +249,20 @@ export async function proxy(request: NextRequest) {
     if (backendPath) {
       const search = request.nextUrl.search;
       const backendBaseUrl = getBackendUrl(hostname);
-      const token = await getToken({
-        req: request,
-        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-      });
+      const forwardedProto = request.headers.get("x-forwarded-proto");
+      const isHttpsRequest =
+        request.nextUrl.protocol === "https:" || forwardedProto === "https";
+      const token =
+        await getToken({
+          req: request,
+          secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+          secureCookie: isHttpsRequest,
+        }) ??
+        await getToken({
+          req: request,
+          secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+          secureCookie: !isHttpsRequest,
+        });
       const serviceApiKey = getServiceApiKey(hostname);
 
       if (!backendBaseUrl) {
@@ -277,19 +312,13 @@ export async function proxy(request: NextRequest) {
       }
 
       try {
-        const abortController = new AbortController();
-        const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30s timeout
-
         const response = await fetch(backendUrl, {
           method: request.method,
           headers: forwardedHeaders,
           body: request.method !== "GET" && request.method !== "HEAD"
             ? await request.text()
             : undefined,
-          signal: abortController.signal,
         });
-
-        clearTimeout(timeoutId);
 
         const contentType = response.headers.get("content-type") || "";
         if (contentType.includes("text/event-stream")) {
@@ -344,6 +373,52 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next({
     request: { headers: requestHeaders },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance mode helpers
+// ---------------------------------------------------------------------------
+
+let cachedMaintenanceState: { active: boolean; expiresAt: number } | null = null;
+const MAINTENANCE_CACHE_MS = 60_000;
+
+async function isMaintenanceActive(): Promise<boolean> {
+  if (cachedMaintenanceState && cachedMaintenanceState.expiresAt > Date.now()) {
+    return cachedMaintenanceState.active;
+  }
+  try {
+    const base =
+      process.env.MYOWNCLONE_API_URL?.trim() || "http://127.0.0.1:5001";
+    const res = await fetch(`${base}/console/api/myownclone/maintenance/status`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return false;
+    }
+    const data = await res.json();
+    const active = Boolean(data?.active);
+    cachedMaintenanceState = {
+      active,
+      expiresAt: Date.now() + MAINTENANCE_CACHE_MS,
+    };
+    return active;
+  } catch {
+    return false;
+  }
+}
+
+async function isPlatformAdmin(request: NextRequest): Promise<boolean> {
+  try {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET || "",
+    });
+    return Boolean(
+      token && typeof token === "object" && (token as any).role === "platform_admin"
+    );
+  } catch {
+    return false;
+  }
 }
 
 export const config = {
