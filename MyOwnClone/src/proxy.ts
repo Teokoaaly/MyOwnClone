@@ -19,6 +19,7 @@ function getCloneId(request: NextRequest): string {
 function isProtectedProxyRoute(pathname: string): boolean {
   if (pathname === "/api/auth/login") return false;
   if (pathname.startsWith("/api/public/")) return false;
+  if (pathname === "/api/me/locale") return false;
   if (/^\/api\/clone\/[^/]+\/chat(?:-simple)?$/.test(pathname)) return false;
   return true;
 }
@@ -86,7 +87,32 @@ const ROUTE_MAP: Record<string, string> = {
   "/api/feedback": "/console/api/myownclone/feedback",
   "/api/inbox": "/console/api/myownclone/inbox",
   "/api/auth/login": "/console/api/auth/login",
+  "/api/me/locale": "/console/api/myownclone/me/locale",
 };
+
+/**
+ * Split a combined ``Set-Cookie`` header into individual cookie strings.
+ * The standard forbids splitting on commas because ``Expires=`` may
+ * contain them; this helper handles the date forms used by Flask/Werkzeug.
+ */
+function splitSetCookie(header: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let buf = "";
+  for (let i = 0; i < header.length; i++) {
+    const ch = header[i];
+    if (ch === "(") depth++;
+    else if (ch === ")") depth--;
+    if (ch === "," && depth === 0 && /\s/.test(header[i + 1] ?? "")) {
+      out.push(buf);
+      buf = "";
+      continue;
+    }
+    buf += ch;
+  }
+  if (buf) out.push(buf);
+  return out;
+}
 
 function getTenantFromHost(hostname: string): string | null {
   if (hostname === "localhost" || hostname.startsWith("localhost:")) return null;
@@ -342,7 +368,7 @@ export async function proxy(request: NextRequest) {
 
         if (contentType.includes("application/json")) {
           const data = await response.json();
-          return NextResponse.json(data, { status: response.status });
+
         }
 
         const text = await response.text();
