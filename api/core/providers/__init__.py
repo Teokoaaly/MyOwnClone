@@ -11,6 +11,7 @@ from .base import (
     TestResult,
 )
 from .local import LocalAdapter
+from .local_whisper import LocalWhisperAdapter
 from .minimax import MiniMaxAdapter
 from .openai import OpenAIAdapter
 from .openai_compatible import OpenAICompatibleAdapter
@@ -25,6 +26,7 @@ ProviderRegistry._adapters.update(
         "together": TogetherAdapter,
         "openai_compatible": OpenAICompatibleAdapter,
         "local": LocalAdapter,
+        "local_whisper": LocalWhisperAdapter,
     }
 )
 
@@ -33,6 +35,7 @@ __all__ = [
     "DuplicateProviderError",
     "GenerationParams",
     "LocalAdapter",
+    "LocalWhisperAdapter",
     "ModelInvocationError",
     "ModelReply",
     "ModelType",

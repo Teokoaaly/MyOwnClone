@@ -256,11 +256,33 @@ class ModelRegistry:
                 base_url="https://api.together.xyz/v1",
                 embedding_dimensions=dimensions,
             )
+        if provider == "local_whisper":
+            # Local faster-whisper: no API key, no base URL. The
+            # ``model_id`` selects which whisper size to load (default
+            # ``tiny``) and can be overridden via LOCAL_WHISPER_MODEL.
+            model_id = (
+                os.environ.get("LOCAL_WHISPER_MODEL", "").strip()
+                or "tiny"
+            )
+            return ResolvedModelConfig(
+                task=task,
+                provider="local_whisper",
+                model_id=model_id,
+                tenant_id=tenant_id,
+                source="legacy_env",
+                api_key=None,
+                base_url=None,
+            )
         return None
 
     def _detect_legacy_provider_for_task(self, *, task: AITask) -> str | None:
         if task is AITask.STT:
-            return "openai" if os.getenv("OPENAI_API_KEY") else None
+            if os.getenv("OPENAI_API_KEY"):
+                return "openai"
+            # No external key? Fall back to the local faster-whisper
+            # runtime so STT keeps working out of the box on hosts
+            # that don't have a paid STT provider configured.
+            return "local_whisper"
         if task is AITask.EMBEDDING:
             if os.getenv("OPENAI_API_KEY"):
                 return "openai"
