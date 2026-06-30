@@ -1,0 +1,286 @@
+"""Tests for the local_whisper STT provider and registry routing."""
+import sys
+import types
+from unittest.mock import patch
+
+import pytest
+
+from api.core.model_registry import ResolvedModelConfig
+from api.core.providers.base import ModelInvocationError
+from api.core.providers.local_whisper import LocalWhisperAdapter
+from api.models.ai_models import AITask
+
+
+# -----------------------------------------------------------------------------
+# Adapter shape
+# -----------------------------------------------------------------------------
+
+def _resolved(*, provider: str = "local_whisper", model_id: str = "tiny"):
+    return ResolvedModelConfig(
+        task=AITask.STT,
+        provider=provider,
+        model_id=model_id,
+        tenant_id="t1",
+        source="test",
+        api_key=None,
+        base_url=None,
+    )
+
+
+def test_local_whisper_provider_name():
+    assert LocalWhisperAdapter.provider_name == "local_whisper"
+
+
+def test_local_whisper_supports_only_speech2text():
+    a = LocalWhisperAdapter(_resolved())
+    assert a.supports("speech2text")
+    assert not a.supports("llm")
+    assert not a.supports("embedding")
+
+
+def test_local_whisper_generate_raises():
+    a = LocalWhisperAdapter(_resolved())
+    with pytest.raises(ModelInvocationError):
+        a.generate(prompt="hello")
+
+
+def test_local_whisper_generate_stream_raises():
+    a = LocalWhisperAdapter(_resolved())
+    with pytest.raises(ModelInvocationError):
+        list(a.generate_stream(prompt="hello"))
+
+
+def test_local_whisper_rejects_empty_audio():
+    a = LocalWhisperAdapter(_resolved())
+    with pytest.raises(ModelInvocationError):
+        a.transcribe(audio_bytes=b"", filename="a.webm")
+
+
+def test_local_whisper_model_name_falls_back_to_default():
+    a = LocalWhisperAdapter(_resolved(model_id=""))
+    assert a._model_name() == LocalWhisperAdapter.DEFAULT_MODEL_SIZE
+
+
+def test_local_whisper_model_name_uses_resolved_when_set():
+    a = LocalWhisperAdapter(_resolved(model_id="base"))
+    assert a._model_name() == "base"
+
+
+# -----------------------------------------------------------------------------
+# Lazy model loading
+# -----------------------------------------------------------------------------
+
+def test_local_whisper_loads_model_lazily_and_caches():
+    """First call instantiates the model, second call reuses it."""
+    a = LocalWhisperAdapter(_resolved())
+    assert a._model is None
+
+    fake_module = types.ModuleType("faster_whisper")
+
+    class _FakeWhisperModel:
+        calls = 0
+
+        def __init__(self, *args, **kwargs):
+            type(self).calls += 1
+            self.args = args
+            self.kwargs = kwargs
+
+    fake_module.WhisperModel = _FakeWhisperModel
+
+    a._model = None
+    with patch.dict(sys.modules, {"faster_whisper": fake_module}):
+        m1 = a._ensure_model()
+        m2 = a._ensure_model()
+
+    assert isinstance(m1, _FakeWhisperModel)
+    assert m1 is m2
+    assert _FakeWhisperModel.calls == 1
+
+
+# -----------------------------------------------------------------------------
+# Transcribe happy-path with a mocked model
+# -----------------------------------------------------------------------------
+
+def test_local_whisper_transcribe_returns_joined_text():
+    a = LocalWhisperAdapter(_resolved())
+
+    class _Seg:
+        def __init__(self, t):
+            self.text = t
+
+    class _FakeModel:
+        def transcribe(self, *args, **kwargs):
+            # faster-whisper returns (segments_iter, info)
+            return iter([_Seg("hola"), _Seg("mundo")]), None
+
+    with patch.object(a, "_ensure_model", return_value=_FakeModel()):
+        out = a.transcribe(
+            audio_bytes=b"\x00\x01", filename="clip.webm", language="es",
+        )
+    assert out == "hola mundo"
+
+
+def test_local_whisper_transcribe_empty_result_raises():
+    a = LocalWhisperAdapter(_resolved())
+
+    class _FakeModel:
+        def transcribe(self, *args, **kwargs):
+            return iter([]), None  # empty iterator
+
+    with patch.object(a, "_ensure_model", return_value=_FakeModel()):
+        with pytest.raises(ModelInvocationError):
+            a.transcribe(audio_bytes=b"\x00\x01", filename="clip.webm")
+
+
+def test_local_whisper_test_connection_when_model_loads():
+    a = LocalWhisperAdapter(_resolved())
+    with patch.object(a, "_ensure_model", return_value=object()):
+        result = a.test_connection()
+    assert result.ok is True
+    assert "tiny" in result.details["model"]
+
+
+def test_local_whisper_test_connection_when_model_fails():
+    a = LocalWhisperAdapter(_resolved())
+
+    def _boom():
+        raise RuntimeError("model download failed")
+
+    with patch.object(a, "_ensure_model", side_effect=_boom):
+        result = a.test_connection()
+    assert result.ok is False
+    assert "model download failed" in result.message
+
+
+# -----------------------------------------------------------------------------
+# SpeechToTextService routing
+# -----------------------------------------------------------------------------
+
+def test_speech_to_text_service_routes_to_local_whisper():
+    """When the registry resolves local_whisper, the service delegates to it."""
+    from api.core.stt import SpeechToTextService, ADAPTER_TYPES
+
+    fake_resolved = _resolved()
+    fake_registry = type(
+        "R",
+        (),
+        {"get_model_for_task": staticmethod(lambda **kw: fake_resolved)},
+    )()
+
+    assert ADAPTER_TYPES["local_whisper"] is LocalWhisperAdapter
+    service = SpeechToTextService(registry=fake_registry)
+
+    with patch.object(
+        LocalWhisperAdapter, "transcribe", return_value="hola mundo",
+    ) as mocked:
+        text = service.transcribe(
+            tenant_id="t1",
+            audio_bytes=b"\x00",
+            filename="a.webm",
+            language="es",
+        )
+    assert text == "hola mundo"
+    assert mocked.called
+
+
+def test_speech_to_text_service_raises_when_provider_unknown_and_no_fallback():
+    """A provider not in ADAPTER_TYPES falls back to openai_compatible
+    legacy path. With a future-stt provider and a fake api_key, the
+    legacy openai path is invoked."""
+    from api.core.stt import SpeechToTextService
+
+    fake_resolved = ResolvedModelConfig(
+        task=AITask.STT,
+        provider="some-future-stt",
+        model_id="foo",
+        tenant_id="t1",
+        source="test",
+        api_key="sk-fake",
+        base_url="https://example.com/v1",
+    )
+    fake_registry = type(
+        "R",
+        (),
+        {"get_model_for_task": staticmethod(lambda **kw: fake_resolved)},
+    )()
+    service = SpeechToTextService(registry=fake_registry)
+    with patch.object(
+        service,
+        "_legacy_openai_transcribe",
+        return_value="legacy-ok",
+    ) as mocked_legacy:
+        text = service.transcribe(
+            tenant_id="t1",
+            audio_bytes=b"\x00",
+            filename="a.webm",
+        )
+    assert text == "legacy-ok"
+    assert mocked_legacy.called
+
+
+def test_speech_to_text_service_raises_when_anthropic_lacks_transcribe():
+    """Anthropic has no transcribe() and isn't in the legacy fallback list."""
+    from api.core.stt import SpeechToTextService
+
+    fake_resolved = ResolvedModelConfig(
+        task=AITask.STT,
+        provider="anthropic",
+        model_id="claude-3",
+        tenant_id="t1",
+        source="test",
+        api_key="x",
+        base_url=None,
+    )
+    fake_registry = type(
+        "R",
+        (),
+        {"get_model_for_task": staticmethod(lambda **kw: fake_resolved)},
+    )()
+    service = SpeechToTextService(registry=fake_registry)
+    with pytest.raises(ModelInvocationError):
+        service.transcribe(
+            tenant_id="t1",
+            audio_bytes=b"\x00",
+            filename="a.webm",
+        )
+
+
+# -----------------------------------------------------------------------------
+# Legacy fallback in model_registry
+# -----------------------------------------------------------------------------
+
+def test_legacy_stt_provider_falls_back_to_local_whisper(monkeypatch):
+    """No OPENAI_API_KEY -> registry returns ``local_whisper`` for STT."""
+    from api.core.model_registry import ModelRegistry
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    reg = ModelRegistry()
+    provider = reg._detect_legacy_provider_for_task(task=AITask.STT)
+    assert provider == "local_whisper"
+
+
+def test_legacy_stt_provider_prefers_openai_when_key_present(monkeypatch):
+    """With OPENAI_API_KEY, OpenAI still wins."""
+    from api.core.model_registry import ModelRegistry
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-fake")
+    reg = ModelRegistry()
+    provider = reg._detect_legacy_provider_for_task(task=AITask.STT)
+    assert provider == "openai"
+
+
+def test_legacy_stt_provider_resolves_to_local_whisper_config(monkeypatch):
+    """The resolved config has provider='local_whisper', model_id='tiny'
+    and no api_key/base_url."""
+    from api.core.model_registry import ModelRegistry
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("LOCAL_WHISPER_MODEL", "tiny")
+    reg = ModelRegistry()
+    # Invalidate cache so the env-driven resolve runs.
+    reg.invalidate(task=AITask.STT)
+    # _resolve_from_legacy_env returns ResolvedModelConfig without DB.
+    # Patch out _resolve_from_db to force the legacy path.
+    with patch.object(reg, "_resolve_from_db", return_value=None):
+        resolved = reg.resolve(tenant_id="t1", task=AITask.STT)
+    assert resolved.provider == "local_whisper"
+    assert resolved.model_id == "tiny"
+    assert resolved.api_key is None
+    assert resolved.base_url is None
