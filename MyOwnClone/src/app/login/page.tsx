@@ -1,6 +1,5 @@
 import { LoginForm } from "./login-form";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
-import { LanguageSelector } from "@/components/ui/LanguageSelector";
 
 export default function LoginPage() {
   return (
@@ -14,9 +13,6 @@ export default function LoginPage() {
         `,
       }}
     >
-      <div className="absolute right-4 top-4">
-        <LanguageSelector variant="header" />
-      </div>
       <div className="w-full max-w-md">
         <div
           className="mx-auto overflow-hidden rounded-[20px] border border-[var(--border-soft)] bg-[var(--bg-shell)]"
