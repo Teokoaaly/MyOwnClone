@@ -19,3 +19,10 @@ bcrypt>=4.1.0
 # for each respective provider)
 openai>=1.30.0
 anthropic>=0.30.0
+
+# Local speech-to-text (in-process faster-whisper / CTranslate2).
+# Optional at install-time: when missing the registry falls back to
+# cloud STT providers. The api Docker image installs it eagerly so
+# VPS deployments get STT out of the box without external API keys.
+faster-whisper>=1.0.0
+ctranslate2>=4.0.0
