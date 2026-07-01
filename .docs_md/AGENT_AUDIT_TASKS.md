@@ -55,7 +55,7 @@ Estados validos:
 - `working`: esta leyendo o escribiendo su documento.
 - `blocked`: necesita decision del coordinador.
 - `review-ready`: entrego documento y espera consolidacion.
-- `***REMOVED***`: consolidado por coordinacion.
+- `done`: consolidado por coordinacion.
 
 Si un lock lleva mas de 30 minutos sin `Last heartbeat`, otro agente no debe sobrescribirlo: avisa en `_inbox.md` y espera decision del coordinador.
 

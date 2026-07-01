@@ -43,9 +43,9 @@ describe('RegisterForm', () => {
     mockSignIn.mockResolvedValueOnce({ error: null })
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+    fireEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     await waitFor(() => {
       expect(screen.getByText('Check your email')).toBeDefined()
@@ -56,9 +56,9 @@ describe('RegisterForm', () => {
     mockSignIn.mockResolvedValueOnce({ error: 'some-error' })
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+    fireEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Error sending the link. Try again.')
@@ -69,9 +69,9 @@ describe('RegisterForm', () => {
     mockSignIn.mockRejectedValueOnce(new Error('network'))
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+    fireEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Connection error. Try again.')
@@ -82,9 +82,9 @@ describe('RegisterForm', () => {
     mockSignIn.mockImplementation(() => new Promise(() => {}))
     render(<RegisterForm />)
 
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
-  ***REMOVED***reEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Test User' } })
+    fireEvent.change(screen.getByPlaceholderText('you@email.com'), { target: { value: 'test@example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     const button = screen.getByRole('button', { name: 'Sending...' })
     expect(button).toBeDisabled()
@@ -92,13 +92,13 @@ describe('RegisterForm', () => {
 
   it('Google button calls signIn with google and callbackUrl /resumen', () => {
     render(<RegisterForm />)
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Continue with Google' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue with Google' }))
     expect(mockSignIn).toHaveBeenCalledWith('google', { callbackUrl: '/resumen' })
   })
 
   it('Sign in link routes to /login', () => {
     render(<RegisterForm />)
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
     expect(mockPush).toHaveBeenCalledWith('/login')
   })
 })

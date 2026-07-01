@@ -58,7 +58,7 @@ describe('FacturacionPage', () => {
       expect(screen.getByText('Voucher Records')).toBeDefined()
     })
 
-  ***REMOVED***reEvent.click(screen.getByText('Voucher Records'))
+    fireEvent.click(screen.getByText('Voucher Records'))
 
     expect(screen.getByText('No voucher records yet.')).toBeDefined()
   })
@@ -70,7 +70,7 @@ describe('FacturacionPage', () => {
       expect(screen.getByText('Get API Key')).toBeDefined()
     })
 
-  ***REMOVED***reEvent.click(screen.getByText('Get API Key'))
+    fireEvent.click(screen.getByText('Get API Key'))
 
     expect(push).toHaveBeenCalledWith('/configuracion')
   })

@@ -116,8 +116,8 @@ export function ChatPanel({
       let finalSources: Array<{ content: string; score: number }> | undefined
 
       while (true) {
-        const { ***REMOVED***, value } = await reader.read()
-        if (***REMOVED***) break
+        const { done, value } = await reader.read()
+        if (done) break
         pending += decoder.decode(value, { stream: true })
         const lines = pending.split('\n')
         pending = lines.pop() ?? ''
@@ -128,7 +128,7 @@ export function ChatPanel({
             try {
               const parsed = JSON.parse(data) as {
                 content?: string
-                ***REMOVED***?: boolean
+                done?: boolean
                 error?: boolean
                 confidence?: number
                 sources?: Array<{ content: string; score: number }>
@@ -136,9 +136,9 @@ export function ChatPanel({
               if (parsed.error) {
                 throw new Error(parsed.content || 'Error sending message')
               }
-              if (parsed.***REMOVED***) {
-              ***REMOVED***nalConfidence = parsed.confidence
-              ***REMOVED***nalSources = parsed.sources
+              if (parsed.done) {
+                finalConfidence = parsed.confidence
+                finalSources = parsed.sources
               } else {
                 fullResponse += parsed.content || ''
                 setStreaming(sanitizeAssistantContent(fullResponse))
@@ -344,7 +344,7 @@ export function ChatPanel({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-            ***REMOVED***ll="none"
+              fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"

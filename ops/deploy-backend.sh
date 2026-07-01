@@ -32,9 +32,9 @@ capture_previous_release() {
     "readlink '${REMOTE_CURRENT_LINK}' 2>/dev/null || true")"
   if [[ -n "$PREV_RELEASE_LINK" ]]; then
     log "Captured previous release: ${PREV_RELEASE_LINK}"
-***REMOVED***
+  else
     log "No previous release found (first deploy?)"
-***REMOVED***
+  fi
 }
 
 rollback_backend() {
@@ -42,7 +42,7 @@ rollback_backend() {
   if [[ -z "$PREV_RELEASE_LINK" ]]; then
     log "ROLLBACK ABORTED: No previous release to restore"
     return 1
-***REMOVED***
+  fi
   "${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash <<'ROLLBACK_EOF'
 set -Eeuo pipefail
 ln -sfn '${PREV_RELEASE_LINK}' '${REMOTE_CURRENT_LINK}'
@@ -65,7 +65,7 @@ rollback_on_error() {
     log "Deployment failed (exit ${exit_code}) - initiating rollback"
     rollback_backend || true
     exit $exit_code
-***REMOVED***
+  fi
 }
 
 require_cmd() {
@@ -156,9 +156,9 @@ for attempt in 1 2 3 4 5 6 7 8 9 10; do
   if curl -fsS http://127.0.0.1:5001/console/api/ >/dev/null; then
     echo 'Backend respondió OK en /console/api/'
     exit 0
-***REMOVED***
+  fi
   sleep 3
-***REMOVED***
+done
 printf 'Backend no respondió sano tras el despliegue\n' >&2
 exit 1
 EOF

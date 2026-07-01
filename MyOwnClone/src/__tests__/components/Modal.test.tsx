@@ -62,7 +62,7 @@ describe('Modal', () => {
   it('closes when Escape is pressed', () => {
     const onClose = vi.fn()
     render(<Host onClose={onClose} />)
-  ***REMOVED***reEvent.keyDown(window, { key: 'Escape' })
+    fireEvent.keyDown(window, { key: 'Escape' })
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -73,7 +73,7 @@ describe('Modal', () => {
     // aria-hidden marker — backdrops are decorative.
     const backdrop = document.querySelector('[aria-hidden="true"]') as HTMLElement
     expect(backdrop).toBeTruthy()
-  ***REMOVED***reEvent.click(backdrop)
+    fireEvent.click(backdrop)
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -101,7 +101,7 @@ describe('Modal', () => {
     const buttons = screen.getAllByRole('button')
     const last = buttons[buttons.length - 1]
     last.focus()
-  ***REMOVED***reEvent.keyDown(window, { key: 'Tab' })
+    fireEvent.keyDown(window, { key: 'Tab' })
     // We cannot directly assert document.activeElement after the
     // synthetic handler (the handler only calls e.preventDefault and
     // moves focus, which jsdom reflects on activeElement).
@@ -127,7 +127,7 @@ describe('Modal', () => {
     // Focus the first focusable inside the dialog (the close button)
     // and Shift+Tab — the trap should cycle to the last.
     buttons[0].focus()
-  ***REMOVED***reEvent.keyDown(window, { key: 'Tab', shiftKey: true })
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true })
     expect(document.activeElement).toBe(buttons[buttons.length - 1])
   })
 })

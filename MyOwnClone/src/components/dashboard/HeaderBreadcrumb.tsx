@@ -44,7 +44,7 @@ export const HeaderBreadcrumb: FC<HeaderBreadcrumbProps> = ({
                     <svg
                       aria-hidden="true"
                       className="h-3 w-3 text-[var(--text-faint)]"
-                    ***REMOVED***ll="none"
+                      fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >

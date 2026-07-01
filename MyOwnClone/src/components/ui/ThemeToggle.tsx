@@ -49,7 +49,7 @@ export const ThemeToggle: FC<ThemeToggleProps> = ({ showLabel = false }) => {
         <svg
           className="h-4 w-4"
           viewBox="0 0 24 24"
-        ***REMOVED***ll="none"
+          fill="none"
           stroke="currentColor"
           strokeWidth={2}
           strokeLinecap="round"
@@ -63,7 +63,7 @@ export const ThemeToggle: FC<ThemeToggleProps> = ({ showLabel = false }) => {
         <svg
           className="h-4 w-4"
           viewBox="0 0 24 24"
-        ***REMOVED***ll="none"
+          fill="none"
           stroke="currentColor"
           strokeWidth={2}
           strokeLinecap="round"

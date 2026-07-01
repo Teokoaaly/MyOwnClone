@@ -121,21 +121,21 @@ class AdminIAModelsListApi(Resource):
         model_type = request.args.get("type", "").strip()
         is_active = request.args.get("is_active", "").strip()
 
-      ***REMOVED***lters = []
+        filters = []
         if search:
             escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-          ***REMOVED***lters.append(
+            filters.append(
                 or_(
                     AIModel.name.ilike(f"%{escaped}%", escape="\\"),
                     AIModel.provider.ilike(f"%{escaped}%", escape="\\"),
                 )
             )
         if provider:
-          ***REMOVED***lters.append(AIModel.provider == provider)
+            filters.append(AIModel.provider == provider)
         if model_type:
-          ***REMOVED***lters.append(AIModel.model_type == model_type)
+            filters.append(AIModel.model_type == model_type)
         if is_active in ("true", "false"):
-          ***REMOVED***lters.append(AIModel.is_active == (is_active == "true"))
+            filters.append(AIModel.is_active == (is_active == "true"))
 
         total = db.session.execute(select(func.count(AIModel.id)).where(*filters)).scalar() or 0
 
@@ -286,13 +286,13 @@ class AdminIAModelsAssignmentsListApi(Resource):
         task = request.args.get("task", "").strip()
         is_active = request.args.get("is_active", "").strip()
 
-      ***REMOVED***lters = []
+        filters = []
         if tenant_id:
-          ***REMOVED***lters.append(AIModelAssignment.tenant_id == tenant_id)
+            filters.append(AIModelAssignment.tenant_id == tenant_id)
         if task:
-          ***REMOVED***lters.append(AIModelAssignment.task == task)
+            filters.append(AIModelAssignment.task == task)
         if is_active in ("true", "false"):
-          ***REMOVED***lters.append(AIModelAssignment.is_active == (is_active == "true"))
+            filters.append(AIModelAssignment.is_active == (is_active == "true"))
 
         total = db.session.execute(
             select(func.count(AIModelAssignment.id)).where(*filters)

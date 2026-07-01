@@ -75,7 +75,7 @@ def _get_client() -> redis.Redis | None:
         if _circuit_last_failure_time and (current_time - _circuit_last_failure_time) >= _CIRCUIT_BREAKER_RESET_TIMEOUT:
             logger.info("Rate limiter: circuit breaker transitioning to HALF_OPEN (testing Redis)")
             _circuit_state = CircuitState.HALF_OPEN
-      ***REMOVED***:
+        else:
             # Circuit is open, refuse to attempt Redis
             return None
 

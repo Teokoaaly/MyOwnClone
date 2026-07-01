@@ -14,7 +14,7 @@ Created the master documentation set as required by TASK-ADMIN-BACKEND.md:
 - `BACKEND_SECURITY_AUDIT.md` — current security state + 8 action items (B1-B7 + B8 unpriced plans).
 - `FRONTEND_UI_AUDIT.md` — per-route status, missing components, hardcoded content, dark mode gap, mock data hotspots.
 - `ROUTE_AND_COMPONENT_MAP.md` — every route, every API endpoint, every reusable component, every model, every migration.
-- `QA_CHECKLIST.md` — per-screen, per-system, per-breakpoint checks; definition of ***REMOVED***.
+- `QA_CHECKLIST.md` — per-screen, per-system, per-breakpoint checks; definition of done.
 - `IMPLEMENTATION_LOG.md` — this file.
 
 ### Files created
@@ -261,7 +261,7 @@ This session delivered:
 - Phase C: ✅ Admin UI complete
 - Phase D: ✅ Design system polished
 - Phase E: partial (3 of 9 dashboard pages polished — inbox, biblioteca, facturacion, resumen)
-- Phase F: deferred to follow-up (lint config is broken pre-existing; build/vitest not run; manual responsive sweep not ***REMOVED*** in this session)
+- Phase F: deferred to follow-up (lint config is broken pre-existing; build/vitest not run; manual responsive sweep not done in this session)
 
 ### Recommended follow-ups
 
@@ -277,7 +277,7 @@ This session delivered:
 
 Author: sisyphus orchestrator (this session)
 
-### What was ***REMOVED***
+### What was done
 
 #### ESLint
 - Replaced broken `FlatCompat`-based config with proper flat config using `@eslint/js`, `@typescript-eslint`, `eslint-plugin-react`, `eslint-plugin-react-hooks` directly
@@ -350,7 +350,7 @@ Author: sisyphus orchestrator (this session)
 - `replica/src/i18n/request.ts` (stubbed — `getRequestConfig` no longer uses `request` param)
 - `replica/src/app/api/bookings/route.ts` (Drizzle insert/update cast to fix type inference)
 
-### What was NOT ***REMOVED*** (scope removed)
+### What was NOT done (scope removed)
 - `DashboardShell` client wrapper — inlined in layout instead (Turbopack `"use client"` recognition bug)
 - `ThemeProvider` app-wide context — `ThemeToggle` is now self-contained
 
@@ -742,7 +742,7 @@ Added `replica/src/__tests__/components/SearchCommandBar.test.tsx`
   refactor could move all dashboard pages onto the shared
   `DashboardShell` (with the topbar + sidebar) for a more uniform
   surface, but the existing layout already works and the visual
-***REMOVED***delity of the tokens is consistent.
+  fidelity of the tokens is consistent.
 - The SearchCommandBar only searches the 4 most common resource
   types. Sources (biblioteca) and feedback items could be added
   later by following the same pattern (single fetch in
@@ -853,7 +853,7 @@ Visual snapshots saved during the sweep:
   viewport, the badge and title flow as expected.
 - `verificar-1440.png` — mail card centred, link underlined with
   the warm accent (the new `link-in-text-block` / `color-contrast`
-***REMOVED***x), no overflow.
+  fix), no overflow.
 
 ### J-E — Manual Lighthouse-style audit
 
@@ -1115,7 +1115,7 @@ mechanism:
     and a `text-secondary` inline `style.color`.
 - `ChatPanel`:
   - "send button is disabled when input is empty" now
-  ***REMOVED***nds the button via
+    finds the button via
     `screen.getByRole('button', { name: 'Enviar mensaje' })`
     (was the empty-name SVG hack).
   - "clears input after sending" and "shows error message
@@ -1178,7 +1178,7 @@ rings.
   the inbound-email `x-myownclone-context-id` header
   (or the `?context=` query param) into the chat
   fetch. That header is injected by the inbound email
-  webhook; the runtime axe pass was ***REMOVED*** with no
+  webhook; the runtime axe pass was done with no
   header, so the conversation scoping behaviour is
   covered structurally but not at runtime.
 

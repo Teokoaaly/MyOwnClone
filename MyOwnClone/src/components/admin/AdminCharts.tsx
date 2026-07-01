@@ -119,19 +119,19 @@ export function AdminCharts({ data }: AdminChartsProps) {
             />
             <Bar
               dataKey="MRR"
-            ***REMOVED***ll={FINANCE_COLORS.mrr}
+              fill={FINANCE_COLORS.mrr}
               radius={[4, 4, 0, 0]}
               name="Revenue"
             />
             <Bar
               dataKey="Costs"
-            ***REMOVED***ll={FINANCE_COLORS.costs}
+              fill={FINANCE_COLORS.costs}
               radius={[4, 4, 0, 0]}
               name="Costs"
             />
             <Bar
               dataKey="Margin"
-            ***REMOVED***ll={
+              fill={
                 data.margin_cents >= 0
                   ? FINANCE_COLORS.margin
                   : FINANCE_COLORS.marginNeg

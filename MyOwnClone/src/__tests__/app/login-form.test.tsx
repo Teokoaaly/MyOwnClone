@@ -33,13 +33,13 @@ describe("LoginForm", () => {
 
     render(<LoginForm />)
 
-  ***REMOVED***reEvent.change(screen.getByLabelText(/email/i), {
+    fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: "admin@myownclone.com" },
     })
-  ***REMOVED***reEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: "secret" },
     })
-  ***REMOVED***reEvent.submit(screen.getByRole("button", { name: /sign in/i }))
+    fireEvent.submit(screen.getByRole("button", { name: /sign in/i }))
 
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith("credentials", {
@@ -57,13 +57,13 @@ describe("LoginForm", () => {
 
     render(<LoginForm />)
 
-  ***REMOVED***reEvent.change(screen.getByLabelText(/email/i), {
+    fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: "admin@myownclone.com" },
     })
-  ***REMOVED***reEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: "bad" },
     })
-  ***REMOVED***reEvent.submit(screen.getByRole("button", { name: /sign in/i }))
+    fireEvent.submit(screen.getByRole("button", { name: /sign in/i }))
 
     await waitFor(() => {
       expect(screen.getByRole("alert").textContent).toContain(

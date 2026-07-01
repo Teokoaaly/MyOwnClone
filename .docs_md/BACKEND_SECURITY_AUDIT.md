@@ -70,7 +70,7 @@ def account_initialization_required(f):
             if IS_DEV:
                 g.account_id = 'dev-account-id'
                 g.account = type('obj', (object,), {'id': 'dev-account-id'})()
-          ***REMOVED***:
+            else:
                 return {'error': 'account_not_initialized', 'message': '...'}, 401
         return f(*args, **kwargs)
     return decorated_function

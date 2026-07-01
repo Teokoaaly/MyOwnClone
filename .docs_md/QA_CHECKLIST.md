@@ -145,7 +145,7 @@ For every list page (tenants, feedback, audit, inbox, biblioteca):
 - [ ] All dates are localized (`es-ES` via `toLocaleString` or `Intl.DateTimeFormat`)
 - [ ] All money is `Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" })`
 
-## 4. Definition of ***REMOVED*** (final gate)
+## 4. Definition of done (final gate)
 
 A screen is "Implemented" only if:
 1. Its tokens match the design system (no hardcoded colors)

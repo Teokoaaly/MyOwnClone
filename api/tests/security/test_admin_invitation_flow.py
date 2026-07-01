@@ -169,12 +169,12 @@ class TestAdminEndpointsProtected:
             method = "POST"
         elif endpoint == "/console/api/myownclone/admin/impersonate":
             method = "POST"
-      ***REMOVED***:
+        else:
             method = "GET"
 
         if method == "GET":
             response = client.get(endpoint)
-      ***REMOVED***:
+        else:
             response = client.post(endpoint, json={})
 
         assert response.status_code == 401, (
@@ -192,7 +192,7 @@ class TestAdminEndpointsProtected:
         elif endpoint == "/console/api/myownclone/admin/impersonate":
             method = "POST"
             payload = {"tenant_id": "test", "reason": "test"}
-      ***REMOVED***:
+        else:
             method = "GET"
             payload = None
 
@@ -200,7 +200,7 @@ class TestAdminEndpointsProtected:
 
         if method == "GET":
             response = client.get(endpoint, headers=headers)
-      ***REMOVED***:
+        else:
             response = client.post(endpoint, json=payload, headers=headers)
 
         assert response.status_code == 401, (
@@ -230,7 +230,7 @@ class TestAdminEndpointsProtected:
         elif endpoint == "/console/api/myownclone/admin/impersonate":
             method = "POST"
             payload = {"tenant_id": "test", "reason": "test"}
-      ***REMOVED***:
+        else:
             method = "GET"
             payload = None
 
@@ -238,7 +238,7 @@ class TestAdminEndpointsProtected:
 
         if method == "GET":
             response = client.get(endpoint, headers=headers)
-      ***REMOVED***:
+        else:
             response = client.post(endpoint, json=payload, headers=headers)
 
         assert response.status_code == 401, (
@@ -271,7 +271,7 @@ class TestAdminEndpointsProtected:
         elif endpoint == "/console/api/myownclone/admin/impersonate":
             method = "POST"
             payload = {"tenant_id": "test", "reason": "test"}
-      ***REMOVED***:
+        else:
             method = "GET"
             payload = None
 
@@ -279,7 +279,7 @@ class TestAdminEndpointsProtected:
 
         if method == "GET":
             response = client.get(endpoint, headers=headers)
-      ***REMOVED***:
+        else:
             response = client.post(endpoint, json=payload, headers=headers)
 
         assert response.status_code == 401, (

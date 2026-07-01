@@ -33,7 +33,7 @@ function CheckIcon({
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-    ***REMOVED***ll="none"
+      fill="none"
       viewBox="0 0 24 24"
       strokeWidth={2}
       stroke="currentColor"
@@ -59,7 +59,7 @@ function NuevoContentPage() {
 
   const handleBack = useCallback(() => {
     if (window.history.length > 1) router.back()
-  ***REMOVED*** router.push("/biblioteca")
+    else router.push("/biblioteca")
   }, [router])
 
   useEffect(() => {

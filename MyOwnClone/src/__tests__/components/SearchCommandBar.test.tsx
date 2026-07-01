@@ -29,7 +29,7 @@ function renderOpen() {
       ]}
     />,
   )
-***REMOVED***reEvent.click(screen.getByRole('button', { name: /open search/i }))
+  fireEvent.click(screen.getByRole('button', { name: /open search/i }))
 }
 
 describe('SearchCommandBar', () => {
@@ -71,7 +71,7 @@ describe('SearchCommandBar', () => {
   it('filters results by query', () => {
     renderOpen()
     const input = screen.getByPlaceholderText(/search pages/i)
-  ***REMOVED***reEvent.change(input, { target: { value: 'cere' } })
+    fireEvent.change(input, { target: { value: 'cere' } })
     // "Cerebro" still matches. "Resumen" and "Productos" do not.
     const options = screen.getAllByRole('option')
     expect(options).toHaveLength(1)
@@ -85,16 +85,16 @@ describe('SearchCommandBar', () => {
     // on the listbox.
     // initial active idx = 0
     expect(input.getAttribute('aria-activedescendant')).toBe('cmdk-result-0')
-  ***REMOVED***reEvent.keyDown(window, { key: 'ArrowDown' })
+    fireEvent.keyDown(window, { key: 'ArrowDown' })
     expect(input.getAttribute('aria-activedescendant')).toBe('cmdk-result-1')
-  ***REMOVED***reEvent.keyDown(window, { key: 'ArrowUp' })
+    fireEvent.keyDown(window, { key: 'ArrowUp' })
     expect(input.getAttribute('aria-activedescendant')).toBe('cmdk-result-0')
   })
 
   it('Enter on a result calls router.push and closes the dialog', () => {
     renderOpen()
-  ***REMOVED***reEvent.keyDown(window, { key: 'ArrowDown' }) // idx = 1 -> /cerebro
-  ***REMOVED***reEvent.keyDown(window, { key: 'Enter' })
+    fireEvent.keyDown(window, { key: 'ArrowDown' }) // idx = 1 -> /cerebro
+    fireEvent.keyDown(window, { key: 'Enter' })
     expect(pushMock).toHaveBeenCalledWith('/cerebro')
     // Dialog should now be unmounted.
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -103,7 +103,7 @@ describe('SearchCommandBar', () => {
   it('Escape closes the dialog', () => {
     renderOpen()
     expect(screen.queryByRole('dialog')).not.toBeNull()
-  ***REMOVED***reEvent.keyDown(window, { key: 'Escape' })
+    fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -114,9 +114,9 @@ describe('SearchCommandBar', () => {
       />,
     )
     expect(screen.queryByRole('dialog')).toBeNull()
-  ***REMOVED***reEvent.keyDown(window, { key: 'k', metaKey: true })
+    fireEvent.keyDown(window, { key: 'k', metaKey: true })
     expect(screen.queryByRole('dialog')).not.toBeNull()
-  ***REMOVED***reEvent.keyDown(window, { key: 'k', metaKey: true })
+    fireEvent.keyDown(window, { key: 'k', metaKey: true })
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -126,7 +126,7 @@ describe('SearchCommandBar', () => {
         pages={[{ href: '/resumen', label: 'Resumen', icon: '📊' }]}
       />,
     )
-  ***REMOVED***reEvent.keyDown(window, { key: 'k', ctrlKey: true })
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
     expect(screen.queryByRole('dialog')).not.toBeNull()
   })
 })

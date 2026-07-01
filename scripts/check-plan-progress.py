@@ -3,9 +3,9 @@
 
 Lee `.sisyphus/progress.json` (estado canonico del plan M0-M13) y comprueba:
 
-  1. Toda tarea marcada `status="***REMOVED***"` tiene su `evidence_file` presente en el
+  1. Toda tarea marcada `status="done"` tiene su `evidence_file` presente en el
      arbol de git (no solo en working tree) y el `committed_sha` existe en git.
-  2. El orden de `status="***REMOVED***"` respeta el campo `order` (no puede estar "***REMOVED***"
+  2. El orden de `status="done"` respeta el campo `order` (no puede estar "done"
      un milestone cuyos predecesores no lo esten).
   3. `in_progress` como maximo uno a la vez.
 
@@ -123,40 +123,40 @@ def main() -> int:
             f"Permitido: como mucho 1."
         )
 
-    # 2. Orden de '***REMOVED***': un milestone solo puede estar ***REMOVED*** si todos sus
+    # 2. Orden de 'done': un milestone solo puede estar done si todos sus
     #    predecesores en 'order' tambien lo estan.
     if order:
-        ***REMOVED*** = {t["id"] for t in tasks if t.get("status") == "***REMOVED***"}
+        done = {t["id"] for t in tasks if t.get("status") == "done"}
         for i, mid in enumerate(order):
-            if mid in ***REMOVED***:
+            if mid in done:
                 preds = order[:i]
-                missing = [p for p in preds if p not in ***REMOVED***]
+                missing = [p for p in preds if p not in done]
                 if missing:
                     errors.append(
-                        f"{mid} esta '***REMOVED***' pero sus predecesores no: {missing}. "
+                        f"{mid} esta 'done' pero sus predecesores no: {missing}. "
                         f"El orden exige {order}."
                     )
 
-    # 3. Toda tarea '***REMOVED***' debe tener evidence_file commiteado y sha valido.
+    # 3. Toda tarea 'done' debe tener evidence_file commiteado y sha valido.
     for t in tasks:
-        if t.get("status") != "***REMOVED***":
+        if t.get("status") != "done":
             continue
         tid = t["id"]
         ev = t.get("evidence_file", "")
         if not ev:
-            errors.append(f"{tid}: marcada '***REMOVED***' sin evidence_file.")
+            errors.append(f"{tid}: marcada 'done' sin evidence_file.")
             continue
         if not (ROOT / ev).exists():
             errors.append(f"{tid}: evidence_file '{ev}' no existe en el working tree.")
         elif not _file_in_git(ev):
             errors.append(
                 f"{tid}: evidence_file '{ev}' NO esta commiteado. "
-                f"Git add + commit antes de marcar '***REMOVED***'."
+                f"Git add + commit antes de marcar 'done'."
             )
         sha = t.get("committed_sha") or ""
         if not sha or sha == "PENDING":
             errors.append(
-                f"{tid}: marcada '***REMOVED***' con committed_sha vacio/PENDING. "
+                f"{tid}: marcada 'done' con committed_sha vacio/PENDING. "
                 f"Tras commitear, anota el SHA real (git rev-parse HEAD)."
             )
         elif not _sha_exists(sha):
@@ -164,20 +164,20 @@ def main() -> int:
 
     # 4. Modo estricto: ninguna tarea puede quedar pending/skipped.
     if args.strict:
-        unfinished = [t["id"] for t in tasks if t.get("status") != "***REMOVED***"]
+        unfinished = [t["id"] for t in tasks if t.get("status") != "done"]
         if unfinished:
             errors.append(
                 f"--strict: quedan {len(unfinished)} tareas sin completar: {unfinished}"
             )
 
     # ── Reporte ───────────────────────────────────────────────────────────────
-    ***REMOVED*** = [t["id"] for t in tasks if t.get("status") == "***REMOVED***"]
+    done = [t["id"] for t in tasks if t.get("status") == "done"]
     prog = [t["id"] for t in tasks if t.get("status") == "in_progress"]
     pend = [t["id"] for t in tasks if t.get("status") == "pending"]
 
     _print(f"\n{Colors.BOLD}Sisyphus plan: {data.get('scope', '?')}{Colors.RESET}")
     total = len(tasks)
-    _print(f"  ***REMOVED***:        {len(***REMOVED***)}/{total}  {***REMOVED***}")
+    _print(f"  done:        {len(done)}/{total}  {done}")
     _print(f"  in_progress: {len(prog)}        {prog}")
     _print(f"  pending:     {len(pend)}        {pend}")
 
@@ -186,7 +186,7 @@ def main() -> int:
         for e in errors:
             _print(f"  - {e}", Colors.RED)
         _print(
-            "\nResolucion: marca '***REMOVED***' SOLO tras commitear el evidence_file y "
+            "\nResolucion: marca 'done' SOLO tras commitear el evidence_file y "
             "anotar el SHA; respeta el orden declarado en 'order'.",
             Colors.YELLOW,
         )

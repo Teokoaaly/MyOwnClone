@@ -174,7 +174,7 @@ class RetryClient:
                 # Non-provider error (e.g. network) — record and re-raise without retry
                 self._record_failure(key)
                 raise
-          ***REMOVED***:
+            else:
                 self._record_success(key)
                 return result
         

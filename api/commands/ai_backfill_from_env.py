@@ -132,7 +132,7 @@ def _assignment_exists(model_id: str, task: str, tenant_id: str | None = None) -
     )
     if tenant_id is None:
         query = query.where(AIModelAssignment.tenant_id.is_(None))
-  ***REMOVED***:
+    else:
         query = query.where(AIModelAssignment.tenant_id == tenant_id)
     return db.session.execute(query).scalar_one_or_none() is not None
 
@@ -170,7 +170,7 @@ def ai_backfill_from_env():
         # Check if env var is set for this provider
         if provider == "ollama":
             has_key = _has_ollama()
-      ***REMOVED***:
+        else:
             has_key = _has_api_key(provider)
 
         if not has_key:
@@ -213,7 +213,7 @@ def ai_backfill_from_env():
             db.session.flush()
             click.echo(f"    └── Created AIModelAssignment: task={task} (global)")
             created_assignments.append(f"{provider}/{name} → {task}")
-      ***REMOVED***:
+        else:
             click.echo(f"    └── Assignment for task={task} already exists")
 
     db.session.commit()

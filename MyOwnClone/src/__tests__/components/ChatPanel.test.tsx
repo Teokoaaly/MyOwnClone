@@ -56,8 +56,8 @@ describe('ChatPanel', () => {
     // Mock successful response with empty stream
     const mockReader = {
       read: vi.fn()
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: true }),
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+        .mockResolvedValueOnce({ done: true }),
     }
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -66,10 +66,10 @@ describe('ChatPanel', () => {
 
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
     const textarea = screen.getByPlaceholderText('Write your question...')
-  ***REMOVED***reEvent.change(textarea, { target: { value: 'Hola' } })
+    fireEvent.change(textarea, { target: { value: 'Hola' } })
 
     const sendBtn = screen.getByRole('button', { name: 'Send message' })
-  ***REMOVED***reEvent.click(sendBtn)
+    fireEvent.click(sendBtn)
 
     await waitFor(() => {
       expect((textarea as HTMLTextAreaElement).value).toBe('')
@@ -81,10 +81,10 @@ describe('ChatPanel', () => {
 
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
     const textarea = screen.getByPlaceholderText('Write your question...')
-  ***REMOVED***reEvent.change(textarea, { target: { value: 'Hola' } })
+    fireEvent.change(textarea, { target: { value: 'Hola' } })
 
     const sendBtn = screen.getByRole('button', { name: 'Send message' })
-  ***REMOVED***reEvent.click(sendBtn)
+    fireEvent.click(sendBtn)
 
     await waitFor(() => {
       expect(screen.getByText('Network error')).toBeDefined()
@@ -94,9 +94,9 @@ describe('ChatPanel', () => {
   it('surfaces backend stream errors as UI errors', async () => {
     const mockReader = {
       read: vi.fn()
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"content":"Backend failed","error":true}\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: true }),
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"content":"Backend failed","error":true}\n\n') })
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+        .mockResolvedValueOnce({ done: true }),
     }
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -105,8 +105,8 @@ describe('ChatPanel', () => {
 
     render(<ChatPanel slug="test-clone" initialSilo="teach" />)
     const textarea = screen.getByPlaceholderText('Write your question...')
-  ***REMOVED***reEvent.change(textarea, { target: { value: 'Hola' } })
-  ***REMOVED***reEvent.click(screen.getByRole('button', { name: 'Send message' }))
+    fireEvent.change(textarea, { target: { value: 'Hola' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
 
     await waitFor(() => {
       expect(screen.getByText('Backend failed')).toBeDefined()
@@ -116,10 +116,10 @@ describe('ChatPanel', () => {
   it('auto-sends the initial query when provided', async () => {
     const mockReader = {
       read: vi.fn()
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"content":"Hola"}\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"***REMOVED***":true,"confidence":0.9,"sources":[]}\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: true }),
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"content":"Hola"}\n\n') })
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"done":true,"confidence":0.9,"sources":[]}\n\n') })
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+        .mockResolvedValueOnce({ done: true }),
     }
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -141,10 +141,10 @@ describe('ChatPanel', () => {
   it('does not render hidden think blocks in assistant replies', async () => {
     const mockReader = {
       read: vi.fn()
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"content":"<think>Internal reasoning</think>Hola visible"}\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: {"***REMOVED***":true,"confidence":0.9,"sources":[]}\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
-        .mockResolvedValueOnce({ ***REMOVED***: true }),
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"content":"<think>Internal reasoning</think>Hola visible"}\n\n') })
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"done":true,"confidence":0.9,"sources":[]}\n\n') })
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+        .mockResolvedValueOnce({ done: true }),
     }
     mockFetch.mockResolvedValueOnce({
       ok: true,

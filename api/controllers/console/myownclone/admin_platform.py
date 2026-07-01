@@ -243,19 +243,19 @@ class AdminTenantsApi(Resource):
         plan = request.args.get("plan", "").strip()
         status = request.args.get("status", "").strip()
 
-      ***REMOVED***lters = []
+        filters = []
         if search:
             escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-          ***REMOVED***lters.append(
+            filters.append(
                 or_(
                     Tenant.name.ilike(f"%{escaped}%", escape="\\"),
                     Tenant.slug.ilike(f"%{escaped}%", escape="\\"),
                 )
             )
         if plan:
-          ***REMOVED***lters.append(Tenant.plan == normalize_plan(plan))
+            filters.append(Tenant.plan == normalize_plan(plan))
         if status:
-          ***REMOVED***lters.append(Tenant.status == normalize_tenant_status(status))
+            filters.append(Tenant.status == normalize_tenant_status(status))
 
         total = db.session.execute(select(func.count(Tenant.id)).where(*filters)).scalar() or 0
 
@@ -355,10 +355,10 @@ class AdminImpersonationLogApi(Resource):
         page, limit = _pagination_args()
         search = request.args.get("search", "").strip()
 
-      ***REMOVED***lters = []
+        filters = []
         if search:
             escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-          ***REMOVED***lters.append(
+            filters.append(
                 or_(
                     Account.email.ilike(f"%{escaped}%", escape="\\"),
                     Tenant.name.ilike(f"%{escaped}%", escape="\\"),
@@ -452,7 +452,7 @@ class AdminImpersonateApi(Resource):
         tenant = db.session.execute(select(Tenant).where(Tenant.id == data.tenant_id)).scalar_one_or_none()
         if tenant:
             tenant_name = tenant.name
-      ***REMOVED***:
+        else:
             logger.warning("Tenant not found for id=%s, using fallback", data.tenant_id)
             tenant_name = f"Unknown tenant ({data.tenant_id})"
 
@@ -516,10 +516,10 @@ class AdminCourtesyAccountApi(Resource):
         page, limit = _pagination_args()
         search = request.args.get("search", "").strip()
 
-      ***REMOVED***lters = [ImpersonationLog.reason.ilike("Courtesy account:%")]
+        filters = [ImpersonationLog.reason.ilike("Courtesy account:%")]
         if search:
             escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-          ***REMOVED***lters.append(
+            filters.append(
                 or_(
                     ImpersonationLog.reason.ilike(f"%{escaped}%", escape="\\"),
                     Tenant.name.ilike(f"%{escaped}%", escape="\\"),
@@ -617,15 +617,15 @@ class AdminAuditLogApi(Resource):
         actor_id = request.args.get("actor_id", "").strip()
         target_id = request.args.get("target_id", "").strip()
 
-      ***REMOVED***lters = []
+        filters = []
         if actor_id:
-          ***REMOVED***lters.append(ImpersonationLog.admin_id == actor_id)
+            filters.append(ImpersonationLog.admin_id == actor_id)
         if target_id:
-          ***REMOVED***lters.append(ImpersonationLog.tenant_id == target_id)
+            filters.append(ImpersonationLog.tenant_id == target_id)
         if action == "impersonation_stopped":
-          ***REMOVED***lters.append(ImpersonationLog.ended_at.is_not(None))
+            filters.append(ImpersonationLog.ended_at.is_not(None))
         elif action and action != "impersonation_started":
-          ***REMOVED***lters.append(false())
+            filters.append(false())
 
         total = db.session.execute(
             select(func.count(ImpersonationLog.id)).where(*filters)
@@ -673,12 +673,12 @@ class AdminFeedbackApi(Resource):
         rating = request.args.get("rating", "").strip()
         search = request.args.get("search", "").strip()
 
-      ***REMOVED***lters = []
+        filters = []
         if rating in {"up", "down"}:
-          ***REMOVED***lters.append(Feedback.rating == rating)
+            filters.append(Feedback.rating == rating)
         if search:
             escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-          ***REMOVED***lters.append(
+            filters.append(
                 or_(
                     Feedback.comment.ilike(f"%{escaped}%", escape="\\"),
                     CloneConfig.name.ilike(f"%{escaped}%", escape="\\"),
@@ -867,7 +867,7 @@ class AdminAcceptInvitationApi(Resource):
         # Determine tenant (use invitation's tenant_id or get platform tenant)
         if invitation.tenant_id:
             tenant_id = invitation.tenant_id
-      ***REMOVED***:
+        else:
             platform_tenant = db.session.execute(
                 select(Tenant).order_by(Tenant.created_at.asc())
             ).scalar_one_or_none()

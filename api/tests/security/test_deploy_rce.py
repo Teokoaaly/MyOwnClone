@@ -61,7 +61,7 @@ class TestDeployRCEDirect:
             _run("git pull origin master; rm -rf /", cwd=None)
         except Exception:
             pass
-      ***REMOVED***nally:
+        finally:
             subprocess.run = original_run
 
         # Verify shell=False was passed
@@ -90,7 +90,7 @@ class TestDeployRCEDirect:
             returncode, output = _run("any command", timeout=1)
             assert returncode == 124, f"Expected return code 124, got {returncode}"
             assert "timed out" in output.lower(), f"Expected timeout message, got: {output}"
-      ***REMOVED***nally:
+        finally:
             subprocess.run = original_run
 
     def test_output_sanitization(self):

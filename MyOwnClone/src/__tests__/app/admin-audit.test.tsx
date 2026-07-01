@@ -124,7 +124,7 @@ describe('AdminAuditPage', () => {
     render(<AdminAuditPage />)
 
     const select = screen.getByRole('combobox') as HTMLSelectElement
-  ***REMOVED***reEvent.change(select, { target: { value: 'tenant_updated' } })
+    fireEvent.change(select, { target: { value: 'tenant_updated' } })
 
     // Assert that useAdminFetch was called with a URL containing action=tenant_updated
     const calls = mockUseAdminFetch.mock.calls

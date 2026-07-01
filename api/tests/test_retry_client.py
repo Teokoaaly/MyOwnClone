@@ -194,7 +194,7 @@ def test_circuit_breaker_resets_to_closed_after_success_threshold():
         result = client.call(func_ok, key="trip")
         assert result == "ok"
         assert client.get_breaker_state("trip")["state"] == STATE_CLOSED
-  ***REMOVED***nally:
+    finally:
         rc.time.monotonic = orig_monotonic
 
 
@@ -230,7 +230,7 @@ def test_circuit_breaker_reopens_on_failed_probe():
             client.call(func_fail, key="trip2")
         # Should be back to OPEN
         assert client.get_breaker_state("trip2")["state"] == STATE_OPEN
-  ***REMOVED***nally:
+    finally:
         rc.time.monotonic = orig_monotonic
 
 

@@ -217,7 +217,7 @@ def register_health_routes(app):
         redis_ok, redis_error = _redis_ready()
         if redis_ok:
             checks["redis"] = redis_error or "ok"
-      ***REMOVED***:
+        else:
             checks["redis"] = f"error: {redis_error}"
             status = 503
 

@@ -108,7 +108,7 @@ describe('NuevoContentPage', () => {
     })
 
     const supportBtns = screen.getAllByRole('radio', { name: 'Support' })
-  ***REMOVED***reEvent.click(supportBtns[0])
+    fireEvent.click(supportBtns[0])
 
     await waitFor(() => {
       const teachBtn = screen.getAllByRole('radio', { name: 'Teaching' })[0]
@@ -127,11 +127,11 @@ describe('NuevoContentPage', () => {
       expect(screen.getByLabelText('Content')).toBeDefined()
     })
 
-  ***REMOVED***reEvent.change(screen.getByLabelText('Content'), {
+    fireEvent.change(screen.getByLabelText('Content'), {
       target: { value: 'Este es mi contenido de prueba' },
     })
     const addBtns = screen.getAllByRole('button', { name: 'Add content' })
-  ***REMOVED***reEvent.click(addBtns[0])
+    fireEvent.click(addBtns[0])
 
     await waitFor(() => {
       expect(screen.getByText('Content added')).toBeDefined()
@@ -153,11 +153,11 @@ describe('NuevoContentPage', () => {
       expect(screen.getByLabelText('Content')).toBeDefined()
     })
 
-  ***REMOVED***reEvent.change(screen.getByLabelText('Content'), {
+    fireEvent.change(screen.getByLabelText('Content'), {
       target: { value: 'Content' },
     })
     const addBtns = screen.getAllByRole('button', { name: 'Add content' })
-  ***REMOVED***reEvent.click(addBtns[0])
+    fireEvent.click(addBtns[0])
 
     await waitFor(() => {
       const btns = screen.getAllByRole('button', { name: 'Processing...' })
@@ -184,7 +184,7 @@ describe('NuevoContentPage', () => {
     })
 
     const backBtn = screen.getAllByRole('button', { name: /Back to library/i })[0]
-  ***REMOVED***reEvent.click(backBtn)
+    fireEvent.click(backBtn)
 
     await waitFor(() => {
       expect(mockBack).toHaveBeenCalled()
@@ -207,7 +207,7 @@ describe('NuevoContentPage', () => {
     })
 
     const backBtn = screen.getAllByRole('button', { name: /Back to library/i })[0]
-  ***REMOVED***reEvent.click(backBtn)
+    fireEvent.click(backBtn)
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/biblioteca')

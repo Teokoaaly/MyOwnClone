@@ -74,7 +74,7 @@ class ModelRegistry:
                     self._cache[cache_key] = _CacheEntry(None)
                 return None
             model = self._select_best_model(tenant_id, task, candidates)
-      ***REMOVED***:
+        else:
             # Default path: use priority order (backward compatible with existing tests)
             model = self._fetch_from_db(tenant_id, task, session=session)
 

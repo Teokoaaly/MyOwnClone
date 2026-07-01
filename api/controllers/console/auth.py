@@ -147,7 +147,7 @@ def login():
     except Exception as exc:
         if "UndefinedTable" in str(exc) or "does not exist" in str(exc):
             logger.info("'accounts' table missing - will try legacy 'users'")
-      ***REMOVED***:
+        else:
             logger.exception("'accounts' lookup failed - will try legacy 'users'")
 
     if not row:
@@ -162,7 +162,7 @@ def login():
         except Exception as exc:
             if "UndefinedTable" in str(exc) or "does not exist" in str(exc):
                 pass
-          ***REMOVED***:
+            else:
                 logger.exception("Legacy 'users' fallback failed")
 
     if not row:

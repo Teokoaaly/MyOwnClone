@@ -32,9 +32,9 @@ capture_previous_release() {
     "readlink '${REMOTE_CURRENT_LINK}' 2>/dev/null || true")"
   if [[ -n "$PREV_RELEASE_LINK" ]]; then
     log "Captured previous release: ${PREV_RELEASE_LINK}"
-***REMOVED***
+  else
     log "No previous release found (first deploy?)"
-***REMOVED***
+  fi
 }
 
 rollback_frontend() {
@@ -42,7 +42,7 @@ rollback_frontend() {
   if [[ -z "$PREV_RELEASE_LINK" ]]; then
     log "ROLLBACK ABORTED: No previous release to restore"
     return 1
-***REMOVED***
+  fi
   "${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash <<'ROLLBACK_EOF'
 set -Eeuo pipefail
 ln -sfn '${PREV_RELEASE_LINK}' '${REMOTE_CURRENT_LINK}'
@@ -58,7 +58,7 @@ rollback_on_error() {
     log "Deployment failed (exit ${exit_code}) - initiating rollback"
     rollback_frontend || true
     exit $exit_code
-***REMOVED***
+  fi
 }
 
 require_cmd() {
@@ -81,7 +81,7 @@ for file in \
     printf 'No existe %s\n' "$file" >&2
     exit 1
   }
-***REMOVED***
+done
 
 if [[ -n "$FRONTEND_ENV_FILE" && ! -f "$FRONTEND_ENV_FILE" ]]; then
   printf 'No existe FRONTEND_ENV_FILE=%s\n' "$FRONTEND_ENV_FILE" >&2
@@ -158,9 +158,9 @@ for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
   if curl -fsS http://127.0.0.1:3000/ >/dev/null; then
     echo 'Frontend respondió OK en /'
     exit 0
-***REMOVED***
+  fi
   sleep 3
-***REMOVED***
+done
 printf 'Frontend no respondió sano tras el despliegue\n' >&2
 exit 1
 EOF

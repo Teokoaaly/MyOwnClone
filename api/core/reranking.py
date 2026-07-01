@@ -100,7 +100,7 @@ class RerankingService:
             # Sort by score descending
             results.sort(key=lambda x: x.score, reverse=True)
             return results[:top_n]
-      ***REMOVED***nally:
+        finally:
             # Record cost
             self._record_cost(tenant_id=tenant_id, model=model, num_documents=len(documents))
 

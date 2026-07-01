@@ -287,7 +287,7 @@ Response (stream):
 data: {"content": "Para empezar,"}
 data: {"content": " puedes registrar"}
 data: {"content": " tu cuenta..."}
-data: {"***REMOVED***": true, "confidence": 0.92, "sources": [...]}
+data: {"done": true, "confidence": 0.92, "sources": [...]}
 ```
 
 ### 2.5.4 Mensajes y Feedback
@@ -1552,7 +1552,7 @@ Fields:
   type: "pdf" | "youtube" | "web" | "text" | "interview"
   content: string (para type=text)
   url: string (para type=youtube|web)
-***REMOVED***le: File (para type=pdf)
+  file: File (para type=pdf)
 ```
 
 ### Chat
@@ -1574,7 +1574,7 @@ Fields:
 Response (SSE stream):
 ```
 data: {"content": "texto parcial..."}
-data: {"***REMOVED***": true, "confidence": 0.92, "sources": [{"chunkId": "...", "score": 0.95}]}
+data: {"done": true, "confidence": 0.92, "sources": [{"chunkId": "...", "score": 0.95}]}
 ```
 
 ### Analytics

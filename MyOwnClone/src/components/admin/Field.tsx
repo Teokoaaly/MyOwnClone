@@ -6,7 +6,7 @@ interface FieldProps {
   /** The control itself (input, select, etc). */
   children: ReactNode;
   /** When true, the field grows to fill the available row width. */
-***REMOVED***ll?: boolean;
+  fill?: boolean;
   /** Optional extra classes appended to the outer wrapper. */
   className?: string;
 }

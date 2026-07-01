@@ -37,7 +37,7 @@ class AnthropicAdapter(ProviderAdapter):
         for msg in messages:
             if msg["role"] == "system":
                 system_msg = msg["content"]
-          ***REMOVED***:
+            else:
                 chat_messages.append(msg)
 
         url = f"{self.base_url}/messages"

@@ -82,7 +82,7 @@ class InMemoryRedis:
                 min_ok = True
             elif min_inclusive:
                 min_ok = min_val <= s
-          ***REMOVED***:
+            else:
                 min_ok = min_val < s
             
             # Check max bound
@@ -90,7 +90,7 @@ class InMemoryRedis:
                 max_ok = True
             elif max_inclusive:
                 max_ok = s <= max_val
-          ***REMOVED***:
+            else:
                 max_ok = s < max_val
             
             return min_ok and max_ok
@@ -108,7 +108,7 @@ class InMemoryRedis:
         # end=-1 means "to the end" in Redis
         if end == -1:
             end = len(data)
-      ***REMOVED***:
+        else:
             end = end + 1  # Redis is inclusive
         sliced = data[start:end]
         if withscores:
@@ -283,7 +283,7 @@ class MetricsCollector:
                 if ":" in m:
                     parts = m.split(":", 1)
                     values.append(float(parts[1]))
-              ***REMOVED***:
+                else:
                     values.append(float(m))
             except (ValueError, IndexError):
                 continue

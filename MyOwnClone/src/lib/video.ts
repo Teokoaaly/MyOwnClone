@@ -21,7 +21,7 @@ async function wherebyRequest(
 export async function createMeeting(params: {
   roomName?: string;
   endDate?: string;
-***REMOVED***elds?: string[];
+  fields?: string[];
 }, signal?: AbortSignal) {
   const response = await wherebyRequest("/meetings", {
     method: "POST",
@@ -31,7 +31,7 @@ export async function createMeeting(params: {
       roomMode: "normal",
       startDate: new Date().toISOString(),
       endDate: params.endDate ?? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    ***REMOVED***elds: params.fields ?? ["hostRoomUrl"],
+      fields: params.fields ?? ["hostRoomUrl"],
     }),
   }, signal);
 

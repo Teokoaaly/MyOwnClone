@@ -119,7 +119,7 @@ export const Sidebar: FC<SidebarProps> = ({
         <svg
           className="h-5 w-5"
           viewBox="0 0 24 24"
-        ***REMOVED***ll="none"
+          fill="none"
           stroke="currentColor"
           strokeWidth={2}
           strokeLinecap="round"

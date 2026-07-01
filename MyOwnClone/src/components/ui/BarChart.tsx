@@ -82,7 +82,7 @@ export const BarChart: FC<BarChartProps> = ({
               y={y + 3}
               textAnchor="end"
               fontSize={9}
-            ***REMOVED***ll="var(--text-muted)"
+              fill="var(--text-muted)"
               fontFamily="var(--font-mono)"
             >
               {Math.round(axisMax * t).toLocaleString("en-US")}
@@ -113,7 +113,7 @@ export const BarChart: FC<BarChartProps> = ({
                   y={y}
                   width={barWidth}
                   height={Math.max(0, h)}
-                ***REMOVED***ll={v.color}
+                  fill={v.color}
                   rx={3}
                 />
               );
@@ -123,7 +123,7 @@ export const BarChart: FC<BarChartProps> = ({
               y={chartTop + chartHeight + 14}
               textAnchor="middle"
               fontSize={10}
-            ***REMOVED***ll="var(--text-muted)"
+              fill="var(--text-muted)"
             >
               {row.label}
             </text>

@@ -7,7 +7,7 @@ Cuando `pytest tests/test_plan_completion.py` pasa verde, el plan M0-M13 esta
 COMPLETO en codigo (no solo en documentacion).
 
 Filosofia: este modulo NO se mockea ni se xfail. Es la fuente de verdad que
-obliga a que ningun agente declare '***REMOVED***' un hito sin haberlo codeado.
+obliga a que ningun agente declare 'done' un hito sin haberlo codeado.
 """
 from __future__ import annotations
 

@@ -12,36 +12,36 @@ Before doing anything, the audit shows the project is **substantially more advan
 
 | Endpoint | Status | Notes |
 |---|---|---|
-| `GET /console/api/myownclone/admin/overview` | ✅ ***REMOVED*** | MRR, plan breakdown, 30d costs, generated_at |
-| `GET /console/api/myownclone/admin/tenants` | ✅ ***REMOVED*** | paginated, search, status, plan, sort, direction |
-| `GET /console/api/myownclone/admin/tenants/<id>` | ✅ ***REMOVED*** | tenant + 30d usage + clones list |
-| `PATCH /console/api/myownclone/admin/tenants/<id>` | ✅ ***REMOVED*** | allowlist, audit, plan+status |
-| `GET /console/api/myownclone/admin/feedback` | ✅ ***REMOVED*** | paginated, rating/clone/tenant/search filters |
-| `POST /console/api/myownclone/admin/impersonate` | ✅ ***REMOVED*** | reason 10-1000 chars, 30 min TTL, hashed token, audit |
-| `POST /console/api/myownclone/admin/impersonate/stop` | ✅ ***REMOVED*** | closes matching log, deletes token, audit |
-| `GET /console/api/myownclone/admin/audit-log` | ✅ ***REMOVED*** | paginated, action/actor/target filters |
-| `POST /console/api/myownclone/admin/courtesy` | ✅ ***REMOVED*** | creates tenant + account, audit |
-| Auth: Bearer JWT + `X-Admin-Token` service token | ✅ ***REMOVED*** | HS256, constant-time compare |
-| SQLAlchemy 2.x models with proper Mapped columns | ✅ ***REMOVED*** | Tenant, Account, CostTracking, Feedback, AnalyticsGap, AnalyticsQuestion, ImpersonationLog, ImpersonationToken, AdminAuditLog |
-| 6 Alembic migrations | ✅ ***REMOVED*** | core tables, plan seeds, indexes, impersonation_tokens, admin_audit_log |
-| Plan aliases DB↔API (Spanish↔English) | ✅ ***REMOVED*** | `PLAN_NAME_ALIASES_DB_TO_API` / `API_TO_DB` |
-| `generated_at`, ISO-8601 dates, `{items, pagination}` contracts | ✅ ***REMOVED*** | consistent across all list endpoints |
+| `GET /console/api/myownclone/admin/overview` | ✅ done | MRR, plan breakdown, 30d costs, generated_at |
+| `GET /console/api/myownclone/admin/tenants` | ✅ done | paginated, search, status, plan, sort, direction |
+| `GET /console/api/myownclone/admin/tenants/<id>` | ✅ done | tenant + 30d usage + clones list |
+| `PATCH /console/api/myownclone/admin/tenants/<id>` | ✅ done | allowlist, audit, plan+status |
+| `GET /console/api/myownclone/admin/feedback` | ✅ done | paginated, rating/clone/tenant/search filters |
+| `POST /console/api/myownclone/admin/impersonate` | ✅ done | reason 10-1000 chars, 30 min TTL, hashed token, audit |
+| `POST /console/api/myownclone/admin/impersonate/stop` | ✅ done | closes matching log, deletes token, audit |
+| `GET /console/api/myownclone/admin/audit-log` | ✅ done | paginated, action/actor/target filters |
+| `POST /console/api/myownclone/admin/courtesy` | ✅ done | creates tenant + account, audit |
+| Auth: Bearer JWT + `X-Admin-Token` service token | ✅ done | HS256, constant-time compare |
+| SQLAlchemy 2.x models with proper Mapped columns | ✅ done | Tenant, Account, CostTracking, Feedback, AnalyticsGap, AnalyticsQuestion, ImpersonationLog, ImpersonationToken, AdminAuditLog |
+| 6 Alembic migrations | ✅ done | core tables, plan seeds, indexes, impersonation_tokens, admin_audit_log |
+| Plan aliases DB↔API (Spanish↔English) | ✅ done | `PLAN_NAME_ALIASES_DB_TO_API` / `API_TO_DB` |
+| `generated_at`, ISO-8601 dates, `{items, pagination}` contracts | ✅ done | consistent across all list endpoints |
 
 **Frontend (Next 16 / React 19, `replica/src/`)** — ~70% of the design system:
 
 | Asset | Status | Notes |
 |---|---|---|
-| Design tokens (`globals.css`) | ✅ ***REMOVED*** | light + dark tokens, accent palette, series, surface stack |
-| App shell pattern | ✅ ***REMOVED*** | 220px sidebar + 72px topbar + 24px main, rounded 18-22px, soft shadow |
-| `Sidebar` component | ✅ ***REMOVED*** | nav with sections, search stub, FREE TRAIL card, user block |
-| `EndpointCard`, `StatsCard`, `QuickActionCard`, `OnboardingBanner`, `HeaderBreadcrumb`, `ChatOrb` | ✅ ***REMOVED*** | reusable in dashboard |
-| Reusable classes: `card`, `stat-label`, `stat-value`, `table-header`, `table-row`, `badge-active/trial/warning/error`, `btn-primary/secondary`, `mono`, `section-label`, `nav-item-active/normal` | ✅ ***REMOVED*** | 30+ utility classes |
-| Phosphor icons (NavIcons, ShortcutIcons, ContentTypeIcons, SiloIcons, ToneIcons, LanguageIcons, StatusIcons, UiIcons) | ✅ ***REMOVED*** | 8 icon namespaces |
-| DM Sans + JetBrains Mono via `next/font/google` | ✅ ***REMOVED*** | already wired in `app/layout.tsx` |
-| Admin overview, tenants list, tenant detail, feedback pages | ✅ ***REMOVED*** | 4 working admin pages with loading/error/empty/pagination |
-| Next.js proxy `/api/admin/[...path]` | ✅ ***REMOVED*** | NextAuth + DB role check + X-Admin-Token forwarding + 30s timeout + 502/504 |
-| `prefers-reduced-motion` honored | ✅ ***REMOVED*** | global override in globals.css |
-| Drizzle schema (auth/web only, not admin) | ✅ ***REMOVED*** | users, tenants, sources, emails, conversations, clones, chunks, bookings, analytics |
+| Design tokens (`globals.css`) | ✅ done | light + dark tokens, accent palette, series, surface stack |
+| App shell pattern | ✅ done | 220px sidebar + 72px topbar + 24px main, rounded 18-22px, soft shadow |
+| `Sidebar` component | ✅ done | nav with sections, search stub, FREE TRAIL card, user block |
+| `EndpointCard`, `StatsCard`, `QuickActionCard`, `OnboardingBanner`, `HeaderBreadcrumb`, `ChatOrb` | ✅ done | reusable in dashboard |
+| Reusable classes: `card`, `stat-label`, `stat-value`, `table-header`, `table-row`, `badge-active/trial/warning/error`, `btn-primary/secondary`, `mono`, `section-label`, `nav-item-active/normal` | ✅ done | 30+ utility classes |
+| Phosphor icons (NavIcons, ShortcutIcons, ContentTypeIcons, SiloIcons, ToneIcons, LanguageIcons, StatusIcons, UiIcons) | ✅ done | 8 icon namespaces |
+| DM Sans + JetBrains Mono via `next/font/google` | ✅ done | already wired in `app/layout.tsx` |
+| Admin overview, tenants list, tenant detail, feedback pages | ✅ done | 4 working admin pages with loading/error/empty/pagination |
+| Next.js proxy `/api/admin/[...path]` | ✅ done | NextAuth + DB role check + X-Admin-Token forwarding + 30s timeout + 502/504 |
+| `prefers-reduced-motion` honored | ✅ done | global override in globals.css |
+| Drizzle schema (auth/web only, not admin) | ✅ done | users, tenants, sources, emails, conversations, clones, chunks, bookings, analytics |
 
 ### What is MISSING or NEEDS POLISH
 
@@ -237,7 +237,7 @@ Because the existing system is well-structured, blindly delegating to subagents 
 - Subagents (when used) get told which existing components to reuse.
 - Every PR/commit must show the deltas in this file.
 
-## 8. Conditions for "***REMOVED***"
+## 8. Conditions for "done"
 
 Same as the spec:
 

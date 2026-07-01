@@ -183,11 +183,11 @@ def _filter_output_for_leakage(response_text: str) -> str:
         r"(?i)\bconfiguración\s+interna",
     ]
 
-  ***REMOVED***ltered = response_text
+    filtered = response_text
     for pattern in leakage_patterns:
         compiled = re.compile(pattern)
         if compiled.search(filtered):
-          ***REMOVED***ltered = compiled.sub("[MEMORY-LEAK-REJECTED]", filtered)
+            filtered = compiled.sub("[MEMORY-LEAK-REJECTED]", filtered)
 
     return filtered
 
@@ -421,7 +421,7 @@ def inbound_email():
     if request.is_json:
         data = request.get_json(silent=True) or {}
         raw_email = data.get("email") or data.get("raw")
-  ***REMOVED***:
+    else:
         raw_email = request.form.get("email") or request.data
 
     if not raw_email:
@@ -430,7 +430,7 @@ def inbound_email():
 
     if isinstance(raw_email, str):
         raw_bytes = raw_email.encode("utf-8")
-  ***REMOVED***:
+    else:
         raw_bytes = raw_email if isinstance(raw_email, bytes) else str(raw_email).encode("utf-8")
 
     try:
@@ -454,7 +454,7 @@ def inbound_email():
         if remaining is None:
             # Redis unavailable - fail closed
             payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
+        else:
             payload, status = _rate_limit_response()
         return jsonify(payload), status
 
@@ -469,7 +469,7 @@ def inbound_email():
         if remaining is None:
             # Redis unavailable - fail closed
             payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
+        else:
             payload, status = _rate_limit_response()
         return jsonify(payload), status
 
@@ -561,7 +561,7 @@ def chat_public(slug: str):
         if remaining is None:
             # Redis unavailable - fail closed
             payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
+        else:
             payload, status = _rate_limit_response()
         return jsonify(payload), status
 
@@ -636,7 +636,7 @@ Pregunta del usuario:"""
             accumulated = ""
             for chunk in model_instance.invoke_llm_stream(prompt=full_prompt):
                 # Apply output filter to detect memory data leakage
-              ***REMOVED***ltered_chunk = _filter_output_for_leakage(chunk)
+                filtered_chunk = _filter_output_for_leakage(chunk)
                 accumulated += filtered_chunk
                 yield f"data: {json.dumps({'content': filtered_chunk})}\n\n"
 
@@ -661,7 +661,7 @@ Pregunta del usuario:"""
                 sources=sources,
             )
 
-            yield f"data: {json.dumps({'content': '', '***REMOVED***': True, 'conversation_id': persisted_conversation_id, 'context_found': result.found, 'silo': silo.value, 'confidence': confidence, 'sources': sources})}\n\n"
+            yield f"data: {json.dumps({'content': '', 'done': True, 'conversation_id': persisted_conversation_id, 'context_found': result.found, 'silo': silo.value, 'confidence': confidence, 'sources': sources})}\n\n"
             yield "data: [DONE]\n\n"
 
         except Exception:
@@ -792,7 +792,7 @@ def chat_public_simple(slug: str):
         if remaining is None:
             # Redis unavailable - fail closed
             payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
+        else:
             payload, status = _rate_limit_response()
         return jsonify(payload), status
 
@@ -868,7 +868,7 @@ def create_booking_public(slug: str):
         if remaining is None:
             # Redis unavailable - fail closed
             payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
+        else:
             payload, status = _rate_limit_response()
         return jsonify(payload), status
 

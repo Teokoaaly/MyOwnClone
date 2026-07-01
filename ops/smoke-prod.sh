@@ -38,14 +38,14 @@ assert_http() {
     sed -n '1,40p' "$body_file" >&2 || true
     fail_count=$((fail_count + 1))
     return 1
-***REMOVED***
+  fi
 
   if [[ -n "$expect_pattern" ]] && ! grep -Eq "$expect_pattern" "$body_file"; then
     log "FALLO ${name}: body sin patrón ${expect_pattern} (${url})"
     sed -n '1,40p' "$body_file" >&2 || true
     fail_count=$((fail_count + 1))
     return 1
-***REMOVED***
+  fi
 
   log "OK ${name}: ${code} ${url}"
   pass_count=$((pass_count + 1))

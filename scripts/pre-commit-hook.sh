@@ -1,7 +1,7 @@
 #!/bin/sh
 # Sisyphus pre-commit hook (M0 capa anti-olvido)
 # Verifica que .sisyphus/progress.json sea consistente antes de cada commit.
-# Si una tarea se marca '***REMOVED***' sin evidence_file commiteado o sin SHA, bloquea.
+# Si una tarea se marca 'done' sin evidence_file commiteado o sin SHA, bloquea.
 #
 # Instalacion:
 #   cp scripts/pre-commit-hook.sh .git/hooks/pre-commit
@@ -20,7 +20,7 @@ _find_python() {
   # 1. Explicito via env o git config.
   if [ -n "$SISYPHUS_PYTHON" ]; then
     echo "$SISYPHUS_PYTHON"; return 0
-***REMOVED***
+  fi
   cfg=$(git config sisyphus.python 2>/dev/null || true)
   if [ -n "$cfg" ]; then echo "$cfg"; return 0; fi
   # 2. Probar candidatos ejecutando --version (filtra el stub de WindowsApps).
@@ -28,9 +28,9 @@ _find_python() {
     if command -v "$cand" >/dev/null 2>&1; then
       if "$cand" --version >/dev/null 2>&1; then
         echo "$cand"; return 0
-    ***REMOVED***
-  ***REMOVED***
-  ***REMOVED***
+      fi
+    fi
+  done
   return 1
 }
 
@@ -50,7 +50,7 @@ if [ ! -f "$PROGRESS" ]; then
 fi
 
 "$PY" "$REPO_ROOT/scripts/check-plan-progress.py" || {
-  ***REMOVED***
+  echo ""
   echo "[pre-commit] Bloqueado: progreso del plan Sisyphus inconsistente."
   echo "  Arregla .sisyphus/progress.json o usa --no-verify SOLO para commits"
   echo "  ajenos al plan (y documentalo)."

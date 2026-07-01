@@ -257,7 +257,7 @@ def upgrade():
             nullable=False,
         )
         if is_postgres
-      ***REMOVED*** sa.Column(
+        else sa.Column(
             'admin_id',
             StringUUID,
             sa.ForeignKey('accounts.id', ondelete='CASCADE'),
@@ -346,5 +346,5 @@ def _array_col(pg_dialect, is_postgres: bool, item_type):
 def _create_index(name: str, table: str, columns: list[str], is_postgres: bool) -> None:
     if is_postgres:
         op.create_index(name, table, columns, unique=False)
-  ***REMOVED***:
+    else:
         op.create_index(name, table, columns, unique=False)

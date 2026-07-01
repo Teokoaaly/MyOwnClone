@@ -113,7 +113,7 @@ for p in \
   test -e "$p" && stat "$p" || echo "missing"
   systemctl cat myownclone-frontend.service 2>/dev/null | grep -F "$p" || true
   grep -R -F "$p" /opt/myownclone/current/ops /etc/systemd /etc/nginx 2>/dev/null || true
- ***REMOVED***
+ done
 ```
 
 Si el path existe y las búsquedas salen vacías, recién entonces:

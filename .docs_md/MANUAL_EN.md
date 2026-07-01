@@ -287,7 +287,7 @@ Response (stream):
 data: {"content": "To get started,"}
 data: {"content": " you need to register"}
 data: {"content": " your account..."}
-data: {"***REMOVED***": true, "confidence": 0.92, "sources": [...]}
+data: {"done": true, "confidence": 0.92, "sources": [...]}
 ```
 
 ### 2.5.4 Messages and Feedback

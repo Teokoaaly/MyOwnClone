@@ -1,4 +1,4 @@
-***REMOVED***
+#!/bin/bash
 # Centralized variables for MyOwnClone deployment
 # Source this file before running deploy scripts
 

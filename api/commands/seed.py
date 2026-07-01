@@ -42,7 +42,7 @@ def seed_demo_data():
         db.session.add(clone)
         created.append("CloneConfig (demo-clone)")
         click.echo("  ✓ Created CloneConfig: demo-clone")
-  ***REMOVED***:
+    else:
         click.echo("  ✓ CloneConfig already exists: demo-clone")
 
     # ── Meeting Type ─────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ def seed_demo_data():
         db.session.add(meeting)
         created.append("MeetingType (Consultation)")
         click.echo("  ✓ Created MeetingType: Consultation (30min, $99)")
-  ***REMOVED***:
+    else:
         click.echo("  ✓ MeetingType already exists: Consultation")
 
     # ── Availability Slot ────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ def seed_demo_data():
         db.session.add(availability)
         created.append("Availability (Monday 09:00-17:00)")
         click.echo("  ✓ Created Availability: Monday 09:00-17:00")
-  ***REMOVED***:
+    else:
         click.echo("  ✓ Availability already exists for Monday")
 
     # ── Admin User ───────────────────────────────────────────────────────────
@@ -104,11 +104,11 @@ def seed_demo_data():
     click.echo("")
     if created:
         click.echo(f"Created: {', '.join(created)}")
-  ***REMOVED***:
+    else:
         click.echo("No new records created (all data already exists)")
     click.echo("Demo data seeding complete!")
 
 
 # Register command with Flask CLI
-# This is ***REMOVED*** via: app.cli.add_command(seed_demo_data)
+# This is done via: app.cli.add_command(seed_demo_data)
 # See app_factory.py for registration

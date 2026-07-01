@@ -323,7 +323,7 @@ def _dispatch(prompt: str, *, provider: str) -> ModelReply:
         return _invoke_minimax(prompt)
     elif provider == "together":
         return _invoke_together(prompt)
-  ***REMOVED***:
+    else:
         raise ModelInvocationError(
             "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
             "MINIMAX_API_KEY, or TOGETHER_API_KEY in your environment."
@@ -339,7 +339,7 @@ def _dispatch_stream(prompt: str, *, provider: str) -> Generator[str, None, None
         yield from _invoke_minimax_stream(prompt)
     elif provider == "together":
         yield from _invoke_together_stream(prompt)
-  ***REMOVED***:
+    else:
         raise ModelInvocationError(
             "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
             "MINIMAX_API_KEY, or TOGETHER_API_KEY in your environment."
@@ -461,7 +461,7 @@ def invoke_for_task(
     except Exception as exc:
         error_message = str(exc)[:500]
         raise
-  ***REMOVED***nally:
+    finally:
         latency_ms = int((time.monotonic() - start) * 1000)
         tokens_in = response.get("tokens_in", 0) if response else 0
         tokens_out = response.get("tokens_out", 0) if response else 0

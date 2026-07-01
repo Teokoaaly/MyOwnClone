@@ -158,10 +158,10 @@ d70a0d5  docs: English manual
 e919e63  feat(ui): ReflectiveOrb animado
 2ed4caa  feat(ui): AnimatedLogoMark + integracion
 299cff3  feat(admin): crear tenant endpoint
-20ac0cc***REMOVED***x(auth): raw SQL authorize callback
-672262e***REMOVED***x(backend): proxy UUID en analytics/inbox
-3b3fcba***REMOVED***x: traduccion a ingles + login
-323aac8***REMOVED***x: logo login/registro + setup DB
+20ac0cc  fix(auth): raw SQL authorize callback
+672262e  fix(backend): proxy UUID en analytics/inbox
+3b3fcba  fix: traduccion a ingles + login
+323aac8  fix: logo login/registro + setup DB
 ```
 
 ---

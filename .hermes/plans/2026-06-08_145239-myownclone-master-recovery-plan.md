@@ -174,7 +174,7 @@ Execution order
 6. Then perform VPS cleanup/docs finalization.
 7. Send Telegram update after each checkpoint.
 
-Definition of ***REMOVED***
+Definition of done
 - admin login works from browser with real production session
 - `/admin/resumen` reachable for bootstrap admin in production
 - production smoke script passes

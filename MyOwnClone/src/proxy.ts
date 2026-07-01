@@ -100,7 +100,7 @@ function splitSetCookie(header: string): string[] {
   for (let i = 0; i < header.length; i++) {
     const ch = header[i];
     if (ch === "(") depth++;
-  ***REMOVED*** if (ch === ")") depth--;
+    else if (ch === ")") depth--;
     if (ch === "," && depth === 0 && /\s/.test(header[i + 1] ?? "")) {
       out.push(buf);
       buf = "";

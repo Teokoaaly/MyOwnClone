@@ -230,7 +230,7 @@ class TestRateLimitServiceUnavailable:
                 if not allowed and remaining is None:
                     payload, status = _rate_limit_service_unavailable()
                     assert status == 503
-              ***REMOVED***:
+                else:
                     pytest.fail("Expected fail-closed behavior when Redis is down")
 
 

@@ -192,7 +192,7 @@ npm run i18n:missing      # Reporta keys faltantes por idioma
 | 26 | `el` | Ελληνικά | 🔵 |
 | 27 | `he` | עברית | 🔵 |
 | 28 | `hi` | हिन्दी | 🔵 |
-| 29 | `id` | Bahasa In***REMOVED***sia | 🔵 |
+| 29 | `id` | Bahasa Indonesia | 🔵 |
 | 30 | `ms` | Bahasa Melayu | 🔵 |
 | 31 | `bn` | বাংলা | 🔵 |
 | 32 | `ta` | தமிழ் | 🔵 |
@@ -630,7 +630,7 @@ async function main() {
     
     const targetPath = path.join(LOCALES_DIR, `${locale}.json`);
     await fs.writeFile(targetPath, JSON.stringify(translated, null, 2));
-    console.log(`✅ ${locale} ***REMOVED*** (${Object.keys(translated).length} keys)`);
+    console.log(`✅ ${locale} done (${Object.keys(translated).length} keys)`);
   }
 }
 

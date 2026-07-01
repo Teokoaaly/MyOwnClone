@@ -14,8 +14,8 @@
    - `python scripts/check-plan-progress.py` → exit 0 = progreso consistente.
    - `pytest tests/test_plan_completion.py` → 15 tests, **1 por milestone**, en ROJO hasta que el símbolo canónico del hito sea importable.
    - Pre-commit hook en `C:/Users/haxth3/Documents/MyOwnClone/.git/hooks/pre-commit` bloquea commits si progress.json es inconsistente.
-4. **Orden de ejecución obligatorio** (dependencias reales): `M0(***REMOVED***) → M1 → M2 → M4a → M3 → M4b → M5 → M6 → M7 → M8 → M9 → M10 → M11 → M12 → M13`.
-5. **Para cada hito:** marca `status:"in_progress"` al empezar → codea → `pytest` verde → crea `.sisyphus/evidence/task-M<N>-*.md` → `git add` + `git commit` → captura SHA con `git rev-parse HEAD` → escribe SHA en `progress.json` → marca `status:"***REMOVED***"` → commit final.
+4. **Orden de ejecución obligatorio** (dependencias reales): `M0(done) → M1 → M2 → M4a → M3 → M4b → M5 → M6 → M7 → M8 → M9 → M10 → M11 → M12 → M13`.
+5. **Para cada hito:** marca `status:"in_progress"` al empezar → codea → `pytest` verde → crea `.sisyphus/evidence/task-M<N>-*.md` → `git add` + `git commit` → captura SHA con `git rev-parse HEAD` → escribe SHA en `progress.json` → marca `status:"done"` → commit final.
 
 ---
 
@@ -106,7 +106,7 @@ check-plan-progress.py:                   [OK] progreso consistente ✅
 - **Fix aplicado:** tratar `"PENDING"` y `""` como inválidos, con mensaje claro:
   ```python
   if not sha or sha == "PENDING":
-      errors.append(f"{tid}: marcada '***REMOVED***' con committed_sha vacio/PENDING...")
+      errors.append(f"{tid}: marcada 'done' con committed_sha vacio/PENDING...")
   ```
 
 ### 3.3 Hook pre-commit no encontraba `python` en Windows
@@ -354,7 +354,7 @@ Cada hito = 1 commit atómico `feat(<scope>): M<n> — <resumen>`.
 
 ## 6. DEFINITION OF DONE (verificable sin intervención humana)
 - [ ] `pytest -v` verde: 96 existentes + ~9 nuevos + `tests/test_plan_completion.py` (15 tests).
-- [ ] `python scripts/check-plan-progress.py` → exit 0 (15/15 ***REMOVED*** con evidence+SHA).
+- [ ] `python scripts/check-plan-progress.py` → exit 0 (15/15 done con evidence+SHA).
 - [ ] `flask --app app_factory db upgrade` limpio; `downgrade -1` reversible.
 - [ ] `flask generate-master-key` imprime base64-32.
 - [ ] `GET /console/api/myownclone/ai/assignments` devuelve las 5 tareas.

@@ -85,7 +85,7 @@ def create_attack_request(client):
             return client.patch(
                 endpoint, data=payload, headers=headers, content_type=content_type
             )
-      ***REMOVED***:
+        else:
             raise ValueError(f"Unsupported HTTP method: {method}")
 
     return _make_attack_request

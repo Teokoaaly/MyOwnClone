@@ -23,7 +23,7 @@ describe('SiloToggle', () => {
   it('calls onChange with silo id when clicked', () => {
     const onChange = vi.fn()
     render(<SiloToggle active="teach" onChange={onChange} />)
-  ***REMOVED***reEvent.click(screen.getAllByText('Sales')[0])
+    fireEvent.click(screen.getAllByText('Sales')[0])
     expect(onChange).toHaveBeenCalledWith('sales')
   })
 

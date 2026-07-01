@@ -69,7 +69,7 @@ Acciones:
 Criterio de cierre:
 
 - Documento creado.
-- Cada task posterior puede actualizar estado `pending / in_progress / blocked / ***REMOVED***`.
+- Cada task posterior puede actualizar estado `pending / in_progress / blocked / done`.
 
 Tests:
 

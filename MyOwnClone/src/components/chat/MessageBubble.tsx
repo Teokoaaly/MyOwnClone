@@ -170,7 +170,7 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                  ***REMOVED***ll="none"
+                    fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.8}
                     stroke="currentColor"
@@ -201,7 +201,7 @@ export function MessageBubble({ message, isStreaming, cloneId }: MessageBubblePr
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                  ***REMOVED***ll="none"
+                    fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.8}
                     stroke="currentColor"

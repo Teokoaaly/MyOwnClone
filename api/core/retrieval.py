@@ -31,7 +31,7 @@ class SiloRetrievalResult:
     silo: CloneSilo = CloneSilo.TEACH
     context_id: str | None = None
     total_found: int = 0
-  ***REMOVED***ltered_out: int = 0
+    filtered_out: int = 0
 
     @property
     def found(self) -> bool:
@@ -284,7 +284,7 @@ def retrieve_from_silo(
         return SiloRetrievalResult(silo=silo, context_id=context_id)
 
     total = len(documents)
-  ***REMOVED***ltered = 0
+    filtered = 0
 
     if context_id and documents:
         segment_ids = [
@@ -303,12 +303,12 @@ def retrieve_from_silo(
             doc for doc in documents
             if getattr(doc, "metadata", {}).get("segment_id", "") in valid_set
         ]
-      ***REMOVED***ltered = total - len(documents)
+        filtered = total - len(documents)
 
     return SiloRetrievalResult(
         segments=documents,
         silo=silo,
         context_id=context_id,
         total_found=len(documents),
-      ***REMOVED***ltered_out=filtered,
+        filtered_out=filtered,
     )

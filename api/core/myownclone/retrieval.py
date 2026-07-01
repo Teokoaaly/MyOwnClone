@@ -93,7 +93,7 @@ def retrieve_from_silo(
                 near_vector=query_vector,
                 limit=top_k,
                 return_metadata=MetadataQuery(distance=True),
-              ***REMOVED***lters=tenant_filter,
+                filters=tenant_filter,
             )
 
             # Parse response

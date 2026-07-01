@@ -94,7 +94,7 @@ class EmbeddingService:
         except Exception as exc:
             error_message = str(exc)[:500]
             raise
-      ***REMOVED***nally:
+        finally:
             latency_ms = int((time.monotonic() - start) * 1000)
             cost_cents = _calculate_cost_cents(
                 tokens_in=total_tokens_in,

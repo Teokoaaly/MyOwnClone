@@ -454,7 +454,7 @@ body {
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
   font-size: 26px;
   line-height: 1;
-***REMOVED***lter: grayscale(1) contrast(0.85);
+  filter: grayscale(1) contrast(0.85);
   opacity: 0.65;
 }
 
@@ -477,7 +477,7 @@ body {
   align-items: center;
   justify-content: center;
   margin-bottom: 18px;
-***REMOVED***lter: drop-shadow(0 6px 18px rgba(15, 23, 42, 0.08));
+  filter: drop-shadow(0 6px 18px rgba(15, 23, 42, 0.08));
   transform: scale(1.05);
 }
 
@@ -532,7 +532,7 @@ body {
     radial-gradient(circle at 50% 45%, rgba(155, 213, 255, 0.55), transparent 34%),
     radial-gradient(circle at 35% 75%, rgba(196, 181, 253, 0.45), transparent 30%),
     radial-gradient(circle at 70% 70%, rgba(167, 243, 208, 0.48), transparent 32%);
-***REMOVED***lter: drop-shadow(0 22px 35px rgba(14, 165, 233, 0.14));
+  filter: drop-shadow(0 22px 35px rgba(14, 165, 233, 0.14));
 }
 
 .activity-card {
@@ -1381,7 +1381,7 @@ body {
 .moc-local-landing canvas {
   opacity: 0.82;
   mix-blend-mode: multiply;
-***REMOVED***lter: saturate(1.22) brightness(1.01) contrast(1.04);
+  filter: saturate(1.22) brightness(1.01) contrast(1.04);
 }
 
 .moc-local-landing .site-backdrop {
@@ -1397,7 +1397,7 @@ body {
   content: "";
   position: absolute;
   border-radius: 999px;
-***REMOVED***lter: blur(18px);
+  filter: blur(18px);
   opacity: 0.95;
 }
 
@@ -1854,7 +1854,7 @@ body {
   height: 14px;
   border-radius: 999px;
   opacity: 0;
-***REMOVED***lter: blur(0.1px);
+  filter: blur(0.1px);
   transform: translate3d(0, -10px, 0);
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
 }

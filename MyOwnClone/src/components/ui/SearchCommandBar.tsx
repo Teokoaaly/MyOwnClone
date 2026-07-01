@@ -313,7 +313,7 @@ export const SearchCommandBar: FC<SearchCommandBarProps> = ({ pages }) => {
         last.focus();
       } else if (!e.shiftKey && active === last) {
         e.preventDefault();
-      ***REMOVED***rst.focus();
+        first.focus();
       }
     };
     window.addEventListener("keydown", handler, true);

@@ -37,7 +37,7 @@
     radial-gradient(circle at 60% 50%, rgba(120, 255, 220, 0.45), transparent 18%),
     radial-gradient(circle at 50% 70%, rgba(255, 170, 240, 0.4), transparent 20%);
 
-***REMOVED***lter: blur(10px);
+  filter: blur(10px);
   mix-blend-mode: screen;
   animation: reflectionsMove 6s ease-in-out infinite;
 }
@@ -102,9 +102,9 @@
 
 @keyframes orbHue {
   0% {
-  ***REMOVED***lter: hue-rotate(0deg) saturate(1.05);
+    filter: hue-rotate(0deg) saturate(1.05);
   }
   100% {
-  ***REMOVED***lter: hue-rotate(360deg) saturate(1.05);
+    filter: hue-rotate(360deg) saturate(1.05);
   }
 }

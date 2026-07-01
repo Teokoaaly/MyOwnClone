@@ -74,13 +74,13 @@ def _extract_body(msg: EmailMessage) -> tuple[str, str]:
                 payload = part.get_payload(decode=True)
                 if payload:
                     html_body = payload.decode("utf-8", errors="replace")
-  ***REMOVED***:
+    else:
         payload = msg.get_payload(decode=True)
         if payload:
             content = payload.decode("utf-8", errors="replace")
             if msg.get_content_type() == "text/html":
                 html_body = content
-          ***REMOVED***:
+            else:
                 text_body = content
 
     text_body = text_body.strip()
