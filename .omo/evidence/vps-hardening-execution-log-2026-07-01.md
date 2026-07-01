@@ -247,3 +247,47 @@ node_ metrics: 2308
 
 Estado global: ✅ todos los servicios healthy, frontend OK, monitoring
 activo, STT en modelo `base`, nginx con rate limit + headers limpios.
+
+## POST-FIX (2026-07-01 09:00 UTC)
+
+### Problema
+El `limit_req zone=login_zone burst=10 nodelay` quedó dentro de `location /`,
+lo que hacía que TODO el frontend (HTML + CSS + JS + favicon) sufriera
+el rate limit. Con `burst=10`, un navegador cargando una página con > 10
+assets paralelos pegaba 503 Service Unavailable.
+
+### Fix
+Movido el `limit_req` a `location = /login` y `location = /registro`
+específicas (con `burst=20 nodelay` y `limit_req_status 429`).
+`location /` queda libre de rate limit — solo los formularios de auth
+lo sufren.
+
+### Verificación
+- Navegación normal (`/`, `/login`, `/registro`): **200** ✅
+- 30 hits paralelos a `/login`: 21× 200 + 9× **429** (rate limit funciona)
+- Frontend assets sin restricción: ✅
+
+### Patch aplicado
+```nginx
+# location = /login
+location = /login {
+    limit_req zone=login_zone burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://127.0.0.1:3000;
+    ...
+}
+location = /registro { ... mismo ... }
+# location / SIN limit_req
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    ...
+}
+```
+
+### Comando aplicado
+```bash
+ssh myownclone-vps 'python3 < patch_nginx.py && nginx -t && systemctl reload nginx'
+```
+
+### Resultado: ÉXITO
+Bug corregido, navegación funcional, rate limit preservado donde corresponde.
