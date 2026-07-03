@@ -355,13 +355,23 @@ class SourceListApi(Resource):
         db.session.add(source)
         db.session.commit()
 
-        # Ingestion sincrónica (para textos cortos). PDFs grandes iran async en T2.3.
-        from api.core.ingestion import ingest_source
-        ingest_source(source.id)
+        # T3.5: ingestion ASYNC para no bloquear el request HTTP.
+        # Para text/URL cortos, sigue siendo rápido (síncrono).
+        # Para PDF/YouTube, va a la cola RQ (worker procesa en background).
+        job_id = None
+        if payload.type in ("pdf", "youtube"):
+            from api.core.queue import enqueue_ingestion
+            job_id = enqueue_ingestion(source.id, timeout=600)
+        else:
+            from api.core.ingestion import ingest_source
+            ingest_source(source.id)
 
         # Refrescar tras ingestion
         db.session.refresh(source)
-        return _serialize_source(source), 201
+        response = _serialize_source(source)
+        if job_id:
+            response["job_id"] = job_id  # cliente puede consultar status
+        return response, 202 if job_id else 201
 
 
 def _serialize_source(source: Source) -> dict:

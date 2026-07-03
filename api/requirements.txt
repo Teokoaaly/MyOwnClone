@@ -43,3 +43,6 @@ youtube-transcript-api>=0.6.0
 
 # T2.12: Sentry error tracking (opcional, solo si SENTRY_DSN está configurado)
 sentry-sdk[flask]>=2.0.0
+
+# T3.5: Worker asincrono para ingestion de PDFs grandes
+rq>=1.16.0

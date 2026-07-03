@@ -111,6 +111,43 @@ services:
       retries: 5
       start_period: 30s
 
+  # T3.5: Worker RQ para ingestion asíncrona de PDFs/YouTube
+  api_worker:
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    container_name: myownclone_worker
+    restart: unless-stopped
+    networks:
+      - backend_internal
+      - redis_network
+    env_file:
+      - ./backend.env.production
+    volumes:
+      - ./tls/redis:/etc/redis/tls:ro  # Certs cliente para mTLS Redis
+    environment:
+      PYTHONPATH: /app
+      HOME: /tmp
+      TMPDIR: /tmp
+      REDIS_URL: rediss://redis:6380
+      REDIS_HOST: redis
+      REDIS_PORT: "6380"
+      REDIS_TLS: "true"
+    command: ["python", "/app/api/worker_entrypoint.py", "ingestion"]
+    depends_on:
+      redis:
+        condition: service_healthy
+      db_postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.1"
+
 volumes:
   postgres_data:
   redis_data:
