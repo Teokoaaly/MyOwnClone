@@ -156,3 +156,43 @@ GET /readyz → {"status":"ready"}
 
 ### Próxima task
 **T1.8** — Runbook operacional (más rápida, sin tocar infra)
+
+---
+
+## Task T1.8 — Runbook operacional ✅ COMPLETADA
+
+**Fecha ejecución**: 2026-07-03
+
+### Archivo creado
+`RUNBOOK_VPS.md` en la raíz del repo.
+
+### Contenido (13 secciones)
+1. Acceso SSH
+2. Servicios (frontend, backend, postgres, redis, ollama, weaviate, nginx)
+3. Layout del VPS
+4. Comandos frecuentes (status, deploy, healthcheck)
+5. Procedimiento de rollback paso a paso
+6. Backups (manual, restaurar, ubicaciones)
+7. Base de datos (comandos psql, queries útiles)
+8. Troubleshooting por escenario (frontend caído, backend caído, DB caída, disco lleno, etc.)
+9. Variables de entorno importantes
+10. Catálogo IA (cómo ver modelos y asignaciones)
+11. Decisión sobre Weaviate (pendiente T1.3)
+12. Respaldo de seguridad (off-site pendiente T1.1)
+13. Contactos y ramas git activas
+
+### Datos recopilados del VPS en vivo
+- Hostname: ubuntu, kernel 7.0.0-22-generic
+- Uptime: 17 días, 22h
+- 5 releases en /opt/myownclone/releases/
+- 6 backups diarios + 1 pre-maintenance
+- Variables de entorno (sin secrets)
+- Estado de contenedores
+
+### Verificación
+- ✅ Archivo `RUNBOOK_VPS.md` existe en raíz
+- ✅ 13 secciones, ~250 líneas
+- ✅ Contiene comandos reales verificados (no placeholders)
+
+### Próxima task
+**T1.1** — Backup off-site (requiere cuenta B2/S3 del usuario)
