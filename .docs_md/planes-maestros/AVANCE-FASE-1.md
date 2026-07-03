@@ -248,3 +248,41 @@ rclone config  # seguir asistente
 
 ### Próxima task
 **T1.4** — Migrar `chunks.embedding` de ARRAY a vector(1024)
+
+---
+
+## Task T1.4 — chunks.embedding ARRAY → vector(1024) ✅ COMPLETADA
+
+**Fecha ejecución**: 2026-07-03
+
+### Antes
+- `chunks.embedding` era `double precision[]` (array Postgres)
+- Sin índice vectorial, sin operadores de distancia pgvector
+- pgvector 0.8.2 ya instalado pero sin uso
+- Modelo SQLAlchemy: `Mapped[list[float]] = mapped_column(sa.ARRAY(Float))`
+
+### Pasos ejecutados
+1. **Backup de seguridad** (`pg_dump` completo + tabla `chunks` aislada) → `/tmp/`
+2. **Dry-run con rollback** para validar el cast `embedding::vector(1024)`
+3. **Migración real** ejecutada:
+   ```sql
+   ALTER TABLE chunks ALTER COLUMN embedding TYPE vector(1024)
+     USING embedding::vector(1024);
+   ```
+4. **Modelo SQLAlchemy actualizado**: `Mapped[Optional[list[float]]] = mapped_column(Vector(1024))`
+5. **requirements.txt**: añadido `pgvector>=0.3.0`
+6. **Migración Alembic**: `2026_07_03_0001_chunks_embedding_to_vector.py`
+7. **Rebuild + restart api**: 14s downtime
+
+### Issue encontrado y resuelto
+El primer rebuild falló porque `requirements.txt` local estaba desactualizado (sin `Flask-Babel>=3.1.0`). Lo resolví descargando el requirements correcto desde `origin/codex/backend-admin-vps-exec` y añadiendo pgvector manualmente.
+
+### Verificación
+- ✅ `vector_dims(embedding) = 1024` para los 3 chunks
+- ✅ Operador `<=>` (cosine distance) funciona: distancias reales calculadas (0, 0.166, 0.238)
+- ✅ Healthcheck: `{database:ok, ollama:ok, redis:ok, status:ready}`
+- ✅ Modelo SQLAlchemy carga: `embedding: VECTOR(1024)`
+- ✅ Sin downtime real (8s tras rebuild)
+
+### Próxima task
+**T1.2** — Índice ivfflat (aprovecha la nueva columna vector)
