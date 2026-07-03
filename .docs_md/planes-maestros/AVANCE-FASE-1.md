@@ -196,3 +196,55 @@ GET /readyz → {"status":"ready"}
 
 ### Próxima task
 **T1.1** — Backup off-site (requiere cuenta B2/S3 del usuario)
+
+---
+
+## Task T1.1 — Backup off-site ✅ COMPLETADA (workaround local)
+
+**Fecha ejecución**: 2026-07-03
+
+### Contexto
+El usuario no tiene cuenta de B2/S3 todavía. Como workaround, se implementa backup dual local (secundario en `/var/backups/myownclone/`). NO es off-site real, pero está en otra partición lógica del VPS, fuera de `/opt/`.
+
+### Archivos creados
+- `ops/backup_dual.sh` (script de backup dual)
+
+### Cambios aplicados
+1. **Script `backup_dual.sh`**:
+   - Crea `/var/backups/myownclone/` si no existe
+   - Rsync desde `/opt/myownclone/backups/` con `--delete` (espejo)
+   - Aplica retención de 7 días
+   - Tiene sección de rclone **comentada** lista para activar cuando haya credenciales
+2. **Cron actualizado**:
+   ```
+   0 3 * * * /opt/myownclone/current/ops/backup_postgres.sh 7 >> /var/log/myownclone-backup.log 2>&1
+            && /opt/myownclone/current/ops/backup_dual.sh >> /var/log/myownclone-backup-dual.log 2>&1
+   ```
+3. **Permisos**: directorio secundario con chmod 700 (solo root)
+
+### Verificación
+- ✅ 7 backups copiados al secundario (mismo número que primario)
+- ✅ Cron configurado para ejecutar backup_dual diariamente después del pg_dump
+- ✅ Script subido a `/opt/myownclone/current/ops/`
+- ✅ Permisos 700 en directorio secundario
+
+### Para activar off-site real
+Cuando el usuario tenga credenciales de B2/S3:
+```bash
+# 1. Instalar rclone
+curl https://rclone.org/install.sh | sudo bash
+
+# 2. Configurar remote
+rclone config  # seguir asistente
+
+# 3. Descomentar la sección rclone en backup_dual.sh
+# Líneas comentadas en el script:
+#   # rclone copy "$SECONDARY/" myownclone:myownclone-backups/db/ --progress
+#   # rclone delete myownclone:myownclone-backups/db/ --min-age ${RETENTION}d
+
+# 4. Probar
+/opt/myownclone/current/ops/backup_dual.sh
+```
+
+### Próxima task
+**T1.4** — Migrar `chunks.embedding` de ARRAY a vector(1024)
