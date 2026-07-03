@@ -2,6 +2,7 @@ import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
 import ShaderBackground from "@/components/ui/ShaderBackground";
+import { UseCasesShowcase } from "@/components/landing/UseCasesShowcase";
 import { Link } from "@/i18n/navigation";
 
 const services = [
@@ -137,6 +138,9 @@ export default function LandingPage() {
         </div>
         <PublicPricing mode="landing" />
       </section>
+
+      {/* T2.6: Demos interactivas — clones con conocimiento pre-cargado */}
+      <UseCasesShowcase />
 
       <section className="cta-final" id="cta">
         <h2 className="reveal">
