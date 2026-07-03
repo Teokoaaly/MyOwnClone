@@ -2,6 +2,7 @@
 MyOwnClone application factory.
 Register all MyOwnClone blueprints here.
 """
+import logging
 import os
 import uuid
 from datetime import datetime, timezone
@@ -157,6 +158,39 @@ def create_app():
     # SECURITY: Validate config before doing anything else (fail-fast)
     assert_production_secrets()
     _setup_dev_keys()
+
+    # T2.12: Sentry error tracking (solo si SENTRY_DSN está configurado)
+    sentry_dsn = os.environ.get("SENTRY_DSN", "").strip()
+    if sentry_dsn:
+        try:
+            import sentry_sdk
+            from sentry_sdk.integrations.flask import FlaskIntegration
+            from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+            from sentry_sdk.integrations.redis import RedisIntegration
+
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                integrations=[
+                    FlaskIntegration(),
+                    SqlalchemyIntegration(),
+                    RedisIntegration(),
+                ],
+                # Capturar 10% de transacciones para performance
+                traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+                # Capturar errores de profiling 100% (es gratis)
+                profiles_sample_rate=1.0,
+                environment=os.environ.get("FLASK_ENV", "production"),
+                release=f"myownclone-api@{os.environ.get('RELEASE_ID', 'dev')}",
+            )
+            logging.getLogger(__name__).info("Sentry inicializado: %s...", sentry_dsn[:30])
+        except ImportError:
+            logging.getLogger(__name__).warning(
+                "SENTRY_DSN configurado pero sentry-sdk no instalado. "
+                "Anade 'sentry-sdk[flask]>=2.0.0' a requirements.txt"
+            )
+        except Exception as exc:
+            logging.getLogger(__name__).warning("Sentry init fallo (no-fatal): %s", exc)
+
     app = Flask(__name__)
 
     # Custom JSON encoder for UUID/datetime serialization
