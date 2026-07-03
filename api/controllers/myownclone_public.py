@@ -14,21 +14,19 @@ Authentication:
 """
 
 import hmac
-import ipaddress
 import logging
 import os
-import re
+import time
+from collections import defaultdict
 from hashlib import sha256
-from typing import Optional
 
 from flask import Blueprint, request, jsonify
 from sqlalchemy import select
 
 from api.core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
 from api.core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
-from api.core.rate_limit import check_rate_limit, RateLimitConfig
-from api.core.security_types import RateLimitKeyType
 from api.extensions.ext_database import db
+from api.models.ai_models import AITask
 from api.models.myownclone import (
     CloneConfig,
     CreatorMemory,
@@ -51,145 +49,7 @@ _BOOKING_LIMIT = 10
 _MAX_PUBLIC_MESSAGE_LENGTH = 2000
 _MAX_VISITOR_FIELD_LENGTH = 200
 _MAX_EMAIL_LENGTH = 320
-
-# Memory limit: ~4000 tokens max for memories section (≈16000 chars at ~4 chars/token)
-_MAX_MEMORY_CHARS = 16000
-
-# Rate limit configs for Redis-based rate limiting
-_CHAT_RATE_LIMIT_CONFIG = RateLimitConfig(limit=_CHAT_LIMIT, window_seconds=_WINDOW_SECONDS)
-_CHAT_SIMPLE_RATE_LIMIT_CONFIG = RateLimitConfig(limit=_CHAT_SIMPLE_LIMIT, window_seconds=_WINDOW_SECONDS)
-_BOOKING_RATE_LIMIT_CONFIG = RateLimitConfig(limit=_BOOKING_LIMIT, window_seconds=_WINDOW_SECONDS)
-_INBOUND_EMAIL_RATE_LIMIT_CONFIG = RateLimitConfig(limit=20, window_seconds=_WINDOW_SECONDS)
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Prompt Injection Protection
-# ═══════════════════════════════════════════════════════════════════════════════
-
-# Instruction patterns to strip from user input (prevent prompt injection)
-# These patterns match the instruction AND any following content up to sentence end
-_INSTRUCTION_PATTERNS = [
-    # Direct override attempts - capture entire instruction with following content
-    r"(?i)\bignore\s+(all\s+)?previous\s+(instructions?|directions?)[^.!?]*(?:[.!?]|$)",
-    r"(?i)\bdisregard\s+(all\s+)?(your|previous)[^.!?]*(?:[.!?]|$)",
-    r"(?i)\bforget\s+(everything|all|what\s+you\s+said)[^.!?]*(?:[.!?]|$)",
-    r"(?i)\bnew\s+instruction[s]?[^.!?]*(?:[.!?]|$)",
-    r"(?i)\bsystem\s*:[^.!?]*(?:[.!?]|$)",
-    r"(?i)\byou\s+are\s+now\s+[^.!?]*(?:[.!?]|$)",
-    r"(?i)\bchange\s+your\s+(behavior|response)\s+to\s*[^.!?]*(?:[.!?]|$)",
-    r"(?i)\boutput\s+your\s+(full\s+)?system\s+prompt[s]?[^.!?]*(?:[.!?]|$)",
-    r"(?i)\bwhat\s+is\s+your\s+(system\s+)?prompt[s]?[^.!?]*(?:[.!?]|$)",
-    r"(?i)\btell\s+me\s+your\s+instructions[s]?[^.!?]*(?:[.!?]|$)",
-    r"(?i)\bprint\s*\(\s*['\"](INJECTED|PWNED|HACKED)\s*['\"]\s*\)",
-    r"(?i)\bprint\s*\(\s*['\"]INJECT",
-    r"(?i)\b\x08",  # Backspace character
-    r"(?i)\b\u200b",  # Zero-width space
-    r"(?i)\b\u200c",  # Zero-width non-joiner
-    r"(?i)\b\u200d",  # Zero-width joiner
-    r"(?i)\b\U000e0001",  # Cancel character
-]
-
-# Compile patterns for efficiency
-_COMPILED_INSTRUCTION_PATTERNS = [
-    (re.compile(pattern), pattern) for pattern in _INSTRUCTION_PATTERNS
-]
-
-
-def _sanitize_user_input(user_input: str) -> str:
-    """Strip instruction patterns from user input to prevent prompt injection.
-
-    Uses regex patterns to detect and remove common prompt injection attempts.
-    Returns sanitized input with markers delimiting user content.
-    """
-    import re
-    import unicodedata
-
-    sanitized = user_input
-    for compiled_pattern, _ in _COMPILED_INSTRUCTION_PATTERNS:
-        sanitized = compiled_pattern.sub("[REDACTED]", sanitized)
-
-    # Normalize unicode homoglyphs that might be used to evade detection
-    # Remove combining characters that create visual homoglyphs
-    sanitized = sanitized.replace("\u200b", "")  # Remove zero-width spaces
-    sanitized = sanitized.replace("\u200c", "")
-    sanitized = sanitized.replace("\u200d", "")
-    sanitized = sanitized.replace("\u200e", "")  # Left-to-right mark
-    sanitized = sanitized.replace("\u200f", "")  # Right-to-left mark
-    sanitized = sanitized.replace("\u2028", "")  # Line separator
-    sanitized = sanitized.replace("\u2029", "")  # Paragraph separator
-    sanitized = sanitized.replace("\ufeff", "")  # BOM
-    sanitized = sanitized.replace("\u0335", "")  # Combining short stroke overlay
-    sanitized = sanitized.replace("\u0336", "")  # Combining long stroke overlay
-    sanitized = sanitized.replace("\u0337", "")  # Combining short solidus overlay
-    sanitized = sanitized.replace("\u0338", "")  # Combining long solidus overlay
-    sanitized = sanitized.replace("\u0340", "")  # Combining grave tone mark
-    sanitized = sanitized.replace("\u0341", "")  # Combining acute tone mark
-    sanitized = sanitized.replace("\u0342", "")  # Combining Greek perispomeni
-    sanitized = sanitized.replace("\u0343", "")  # Combining Greek koronis
-    sanitized = sanitized.replace("\u0344", "")  # Combining Greek dialytika
-    sanitized = sanitized.replace("\u0345", "")  # Combining Greek ypogegrammeni
-    sanitized = sanitized.replace("\u0346", "")  # Combining Greek rough breathing
-    sanitized = sanitized.replace("\u0347", "")  # Combining Greek smooth breathing
-    sanitized = sanitized.replace("\u0348", "")  # Combining Greek rough breathing
-    sanitized = sanitized.replace("\u0349", "")  # Combining Greek smooth breathing
-    sanitized = sanitized.replace("\u0350", "")  # Combining right half ring
-    sanitized = sanitized.replace("\u0351", "")  # Combining left half ring
-    sanitized = sanitized.replace("\u0352", "")  # Combining fermata
-    sanitized = sanitized.replace("\u0353", "")  # Combining X below
-    sanitized = sanitized.replace("\u0354", "")  # Combining left arrowhead
-    sanitized = sanitized.replace("\u0355", "")  # Combining right arrowhead
-    sanitized = sanitized.replace("\u0356", "")  # Combining right half ring above
-    sanitized = sanitized.replace("\u0357", "")  # Combining right half ring below
-    sanitized = sanitized.replace("\u0358", "")  # Combining dot above right
-    sanitized = sanitized.replace("\u0359", "")  # Combining left half ring above
-    sanitized = sanitized.replace("\u035a", "")  # Combining left half ring below
-    sanitized = sanitized.replace("\u035b", "")  # Combining Greek zeta
-    sanitized = sanitized.replace("\u035c", "")  # Combining double acute accent
-    sanitized = sanitized.replace("\u035d", "")  # Combining double grave accent
-    sanitized = sanitized.replace("\u035e", "")  # Combining candrabindu
-    sanitized = sanitized.replace("\u035f", "")  # Combining caron below
-    sanitized = sanitized.replace("\u0360", "")  # Combining double tilde
-    sanitized = sanitized.replace("\u0361", "")  # Combining double inverted breve
-    sanitized = sanitized.replace("\u0362", "")  # Combining double rightwards arrowhead
-
-    # NFD normalize to separate combining characters from base characters
-    # then remove any remaining combining marks in the pattern range
-    normalized = unicodedata.normalize("NFD", sanitized)
-    # Filter out combining characters that could be used for homoglyph attacks
-    sanitized = "".join(
-        c for c in normalized
-        if not unicodedata.combining(c) or unicodedata.category(c) not in ("Mn", "Mc")
-    )
-
-    return sanitized
-
-
-def _filter_output_for_leakage(response_text: str) -> str:
-    """Detect and redact memory data leakage in LLM responses.
-
-    Scans response for patterns that might indicate the model is outputting
-    internal system information, memories, or prompt content.
-    """
-    import re
-
-    # Patterns indicating potential memory/prompt leakage
-    leakage_patterns = [
-        r"Información importante que debes recordar",
-        r"(?i)\binformación\s+importante",
-        r"(?i)\bmemoria\s+anterior",
-        r"(?i)\brecuerda\s+que",
-        r"(?i)\bsystem\s+prompt",
-        r"(?i)\binstrucciones\s+internas",
-        r"(?i)\bprompt\s+original",
-        r"(?i)\bconfiguración\s+interna",
-    ]
-
-  ***REMOVED***ltered = response_text
-    for pattern in leakage_patterns:
-        compiled = re.compile(pattern)
-        if compiled.search(filtered):
-          ***REMOVED***ltered = compiled.sub("[MEMORY-LEAK-REJECTED]", filtered)
-
-    return filtered
+_public_rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
 
 _SENDGRID_SECRET = os.environ.get("SENDGRID_INBOUND_WEBHOOK_SECRET", "")
@@ -217,116 +77,38 @@ def _is_production() -> bool:
     return os.environ.get("FLASK_ENV", "production") == "production"
 
 
-def _get_trusted_proxy_nets() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
-    """Parse TRUSTED_PROXY_IPS env var into a list of networks.
-
-    Expected format: comma-separated CIDR notation, e.g. "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
-    """
-    raw = os.environ.get("TRUSTED_PROXY_IPS", "")
-    if not raw:
-        return []
-    networks = []
-    for part in raw.split(","):
-        part = part.strip()
-        if not part:
-            continue
-        try:
-            networks.append(ipaddress.ip_network(part, strict=False))
-        except ValueError:
-            logger.warning("Invalid trusted proxy network: %s", part)
-    return networks
+def _rate_limit_key(scope: str, slug: str | None = None) -> str:
+    client_ip = (request.headers.get("X-Forwarded-For", "") or request.remote_addr or "unknown").split(",")[0].strip()
+    parts = [scope, client_ip]
+    if slug:
+        parts.append(slug)
+    return ":".join(parts)
 
 
-def _is_from_trusted_proxy(remote_addr: str) -> bool:
-    """Check if remote_addr belongs to a trusted proxy network."""
-    if not remote_addr or remote_addr == "unknown":
+def _consume_rate_limit(scope: str, limit: int, slug: str | None = None) -> bool:
+    key = _rate_limit_key(scope, slug)
+    now = time.time()
+    recent = [stamp for stamp in _public_rate_limit_store[key] if now - stamp < _WINDOW_SECONDS]
+    if len(recent) >= limit:
+        _public_rate_limit_store[key] = recent
         return False
-    trusted_nets = _get_trusted_proxy_nets()
-    if not trusted_nets:
-        # No trusted proxies configured - assume direct connection
-        return False
-    try:
-        addr = ipaddress.ip_address(remote_addr)
-        return any(addr in net for net in trusted_nets)
-    except ValueError:
-        return False
-
-
-def _get_validated_client_ip() -> str:
-    """Get client IP with proper X-Forwarded-For validation.
-
-    Only trusts X-Forwarded-For header when the request comes from a trusted proxy.
-    Otherwise falls back to request.remote_addr.
-
-    Returns:
-        The validated client IP address.
-    """
-    remote_addr = request.remote_addr or "unknown"
-
-    if _is_from_trusted_proxy(remote_addr):
-        forwarded_for = request.headers.get("X-Forwarded-For", "")
-        if forwarded_for:
-            # X-Forwarded-For can be a comma-separated list, take the first (original client)
-            client_ip = forwarded_for.split(",")[0].strip()
-            if client_ip:
-                return client_ip
-
-    # Not from trusted proxy or no X-Forwarded-For - use remote_addr
-    return remote_addr
+    recent.append(now)
+    _public_rate_limit_store[key] = recent
+    return True
 
 
 def _rate_limit_response() -> tuple[dict[str, str], int]:
     return {"error": "rate_limit_exceeded"}, 429
 
 
-def _rate_limit_service_unavailable() -> tuple[dict[str, str], int]:
-    """Return 503 when Redis is unavailable (fail-closed)."""
-    return {"error": "rate_limit_service_unavailable"}, 503
-
-
-def _check_rate_limit_public(scope: str, config: RateLimitConfig, slug: str | None = None) -> tuple[bool, int | None]:
-    """Check rate limit using Redis with fail-closed behavior.
-
-    Args:
-        scope: The endpoint scope (e.g., 'chat_public')
-        config: Rate limit configuration
-        slug: Optional slug for endpoint-specific limiting
-
-    Returns:
-        Tuple of (allowed, remaining): allowed=True if request is allowed,
-        allowed=False if rate limited or Redis unavailable. remaining=None
-        when Redis is unavailable (fail-closed).
-    """
-    client_ip = _get_validated_client_ip()
-    endpoint = f"/{scope}" if not slug else f"/{scope}/{slug}"
-
-    allowed, remaining, _ = check_rate_limit(
-        identifier=client_ip,
-        endpoint=endpoint,
-        key_type=RateLimitKeyType.PUBLIC,
-        config=config,
-    )
-    return allowed, remaining
-
-
 def _visitor_id() -> str:
-    raw = _get_validated_client_ip()
+    raw = (request.headers.get("X-Forwarded-For", "") or request.remote_addr or "unknown").split(",")[0].strip()
     user_agent = request.headers.get("User-Agent", "")
     return sha256(f"{raw}:{user_agent}".encode("utf-8")).hexdigest()[:32]
 
 
 def _conversation_mode_for_silo(silo_value: str) -> str:
     return "pedagogy" if silo_value == "teach" else silo_value
-
-
-def safe_int(value, default=None):
-    """Safely parse integer, return default or raise ValueError."""
-    try:
-        return int(value)
-    except (ValueError, TypeError):
-        if default is not None:
-            return default
-        raise
 
 
 def _record_question(clone_id: str, question: str) -> None:
@@ -415,13 +197,12 @@ def inbound_email():
         )
         return jsonify({"error": "unauthorized"}), 401
 
-    # Parse email first to get recipient domain for rate limiting
     raw_email = None
 
     if request.is_json:
         data = request.get_json(silent=True) or {}
         raw_email = data.get("email") or data.get("raw")
-  ***REMOVED***:
+    else:
         raw_email = request.form.get("email") or request.data
 
     if not raw_email:
@@ -430,7 +211,7 @@ def inbound_email():
 
     if isinstance(raw_email, str):
         raw_bytes = raw_email.encode("utf-8")
-  ***REMOVED***:
+    else:
         raw_bytes = raw_email if isinstance(raw_email, bytes) else str(raw_email).encode("utf-8")
 
     try:
@@ -438,40 +219,6 @@ def inbound_email():
     except Exception:
         logger.exception("Failed to parse inbound email")
         return jsonify({"status": "parse_error"}), 200
-
-    # Rate limit check: per sender IP AND per recipient domain
-    # This prevents both individual attackers and mass-emailing to a single domain
-    client_ip = _get_validated_client_ip()
-
-    # Check rate limit by sender IP
-    allowed, remaining, _ = check_rate_limit(
-        identifier=client_ip,
-        endpoint="inbound-email",
-        key_type=RateLimitKeyType.PUBLIC,
-        config=_INBOUND_EMAIL_RATE_LIMIT_CONFIG,
-    )
-    if not allowed:
-        if remaining is None:
-            # Redis unavailable - fail closed
-            payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
-            payload, status = _rate_limit_response()
-        return jsonify(payload), status
-
-    # Check rate limit by recipient domain (prevents mass-emailing to single domain)
-    allowed, remaining, _ = check_rate_limit(
-        identifier=parsed.to_domain,
-        endpoint="inbound-email",
-        key_type=RateLimitKeyType.PUBLIC,
-        config=_INBOUND_EMAIL_RATE_LIMIT_CONFIG,
-    )
-    if not allowed:
-        if remaining is None:
-            # Redis unavailable - fail closed
-            payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
-            payload, status = _rate_limit_response()
-        return jsonify(payload), status
 
     clone_id = resolve_clone_by_domain(parsed.to_domain)
 
@@ -556,13 +303,8 @@ def chat_public(slug: str):
     if not clone:
         return jsonify({"error": "clone not found"}), 404
 
-    allowed, remaining = _check_rate_limit_public("chat_public", _CHAT_RATE_LIMIT_CONFIG, slug)
-    if not allowed:
-        if remaining is None:
-            # Redis unavailable - fail closed
-            payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
-            payload, status = _rate_limit_response()
+    if not _consume_rate_limit("chat_public", _CHAT_LIMIT, slug):
+        payload, status = _rate_limit_response()
         return jsonify(payload), status
 
     data = request.get_json(silent=True) or {}
@@ -610,35 +352,30 @@ def chat_public(slug: str):
 
     context_text = result.to_context_string() if result.found else ""
 
-    # Sanitize user input to prevent prompt injection
-    sanitized_message = _sanitize_user_input(message)
-
     full_prompt = f"""{system_prompt}
 
 {"CONTENIDO DE REFERENCIA:" if context_text else "No se encontró contenido relevante en la base de conocimiento."}
 {context_text}
 
-<<<USER_INPUT>>>
-{sanitized_message}
-<<<END_USER_INPUT>>>
-
-Pregunta del usuario:"""
+Pregunta del usuario: {message}"""
 
     def generate():
         try:
-            from api.core.model_manager import ModelManager, ModelType
+            from api.core.model_manager import ModelManager
 
             model_manager = ModelManager()
-            model_instance = model_manager.get_default_model_instance(
-                tenant_id=clone.tenant_id, model_type=ModelType.LLM
-            )
 
             accumulated = ""
-            for chunk in model_instance.invoke_llm_stream(prompt=full_prompt):
-                # Apply output filter to detect memory data leakage
-              ***REMOVED***ltered_chunk = _filter_output_for_leakage(chunk)
-                accumulated += filtered_chunk
-                yield f"data: {json.dumps({'content': filtered_chunk})}\n\n"
+            tokens_in_est = len(full_prompt.split())  # aproximado
+            for chunk in model_manager.invoke_for_task_stream(
+                tenant_id=clone.tenant_id,
+                clone_id=clone.id,
+                task=AITask.CHAT,
+                message=full_prompt,
+            ):
+                accumulated += chunk
+                yield f"data: {json.dumps({'content': chunk})}\n\n"
+            tokens_out_est = len(accumulated.split())  # aproximado
 
             confidence = round(result.scores[0], 2) if result.scores else 0
             sources = [
@@ -661,7 +398,28 @@ Pregunta del usuario:"""
                 sources=sources,
             )
 
-            yield f"data: {json.dumps({'content': '', '***REMOVED***': True, 'conversation_id': persisted_conversation_id, 'context_found': result.found, 'silo': silo.value, 'confidence': confidence, 'sources': sources})}\n\n"
+            # T2.11: registrar coste de IA en ai_invocations (Defecto #2 Sisyphus)
+            try:
+                from api.core.model_manager import record_llm_cost, estimate_cost_cents
+                from api.core.model_registry import ModelRegistry
+
+                reg = ModelRegistry()
+                m = reg.get_model_for_task(tenant_id=clone.tenant_id, task=AITask.CHAT)
+                cost = estimate_cost_cents(m.model_id, m.provider, tokens_in_est, tokens_out_est)
+                record_llm_cost(
+                    tenant_id=clone.tenant_id,
+                    clone_id=str(clone.id),
+                    model=m.model_id,
+                    provider=m.provider,
+                    tokens_in=tokens_in_est,
+                    tokens_out=tokens_out_est,
+                    cost_cents=cost,
+                    task="chat",
+                )
+            except Exception as exc:
+                logger.warning("T2.11: cost tracking falló (no-fatal): %s", exc)
+
+            yield f"data: {json.dumps({'content': '', 'done': True, 'conversation_id': persisted_conversation_id, 'context_found': result.found, 'silo': silo.value, 'confidence': confidence, 'sources': sources})}\n\n"
             yield "data: [DONE]\n\n"
 
         except Exception:
@@ -683,7 +441,7 @@ Pregunta del usuario:"""
 
 def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
     try:
-        from api.core.model_manager import ModelManager, ModelType
+        from api.core.model_manager import ModelManager
 
         clone = db.session.execute(
             select(CloneConfig).where(CloneConfig.id == clone_id)
@@ -694,23 +452,33 @@ def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
 
         model_manager = ModelManager()
 
-        def llm_call(prompt: str) -> str:
-            model_instance = model_manager.get_default_model_instance(
-                tenant_id=clone.tenant_id, model_type=ModelType.LLM
-            )
-            return model_instance.invoke_llm(prompt=prompt)
+        def classify_llm_call(prompt: str) -> str:
+            return model_manager.invoke_for_task(
+                tenant_id=clone.tenant_id,
+                clone_id=clone.id,
+                task=AITask.EMAIL_CLASSIFICATION,
+                message=prompt,
+            ).text
 
         classification = classify_email(
             from_name=email.from_name or "",
             from_email=email.from_email or "",
             subject=email.subject or "",
             body_text=email.body_text or "",
-            llm_callable=llm_call,
+            llm_callable=classify_llm_call,
         )
         email.classification = classification.category
         email.labels = [classification.category]
 
         memory_context, template_context = _get_clone_context(clone_id)
+
+        def draft_llm_call(prompt: str) -> str:
+            return model_manager.invoke_for_task(
+                tenant_id=clone.tenant_id,
+                clone_id=clone.id,
+                task=AITask.EMAIL_DRAFT,
+                message=prompt,
+            ).text
 
         draft = generate_draft_reply(
             from_name=email.from_name or "",
@@ -719,7 +487,7 @@ def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
             body_text=email.body_text or "",
             memory_context=memory_context,
             template_context=template_context,
-            llm_callable=llm_call,
+            llm_callable=draft_llm_call,
         )
         email.draft_reply = draft.body
 
@@ -730,12 +498,6 @@ def _classify_and_draft(email: EmailInbound, clone_id: str) -> None:
 
 
 def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
-    """Add memories to prompt with size limit to prevent unbounded prompt growth.
-
-    Memories are added in priority order (highest first) until the character limit
-    is reached. If total memories exceed ~4000 tokens (16000 chars), older/lower
-    priority memories are dropped.
-    """
     memories = db.session.execute(
         select(CreatorMemory).where(
             CreatorMemory.clone_id == clone_id,
@@ -743,29 +505,8 @@ def _add_memories_to_prompt(clone_id: str, base_prompt: str) -> str:
         ).order_by(CreatorMemory.priority.desc())
     ).scalars().all()
 
-    if not memories:
-        return base_prompt
-
-    # Build memories text, respecting character limit
-    # Reserve space for the header (~60 chars) and buffer (~200 chars)
-    available_chars = _MAX_MEMORY_CHARS - 260
-
-    mem_lines: list[str] = []
-    total_chars = 0
-
-    for m in memories:
-        line = f"- {m.content}"
-        line_chars = len(line) + 1  # +1 for newline
-
-        if total_chars + line_chars > available_chars:
-            # Stop adding more memories if we can't fit this one
-            break
-
-        mem_lines.append(line)
-        total_chars += line_chars
-
-    if mem_lines:
-        mem_text = "\n".join(mem_lines)
+    if memories:
+        mem_text = "\n".join(f"- {m.content}" for m in memories)
         base_prompt += f"\n\nInformación importante que debes recordar:\n{mem_text}"
 
     return base_prompt
@@ -787,13 +528,8 @@ def chat_public_simple(slug: str):
     if not clone:
         return jsonify({"error": "clone_not_found"}), 404
 
-    allowed, remaining = _check_rate_limit_public("chat_public_simple", _CHAT_SIMPLE_RATE_LIMIT_CONFIG, slug)
-    if not allowed:
-        if remaining is None:
-            # Redis unavailable - fail closed
-            payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
-            payload, status = _rate_limit_response()
+    if not _consume_rate_limit("chat_public_simple", _CHAT_SIMPLE_LIMIT, slug):
+        payload, status = _rate_limit_response()
         return jsonify(payload), status
 
     payload = request.get_json(silent=True) or {}
@@ -863,20 +599,12 @@ def create_booking_public(slug: str):
     from sqlalchemy import select
     from api.models.myownclone import CloneConfig, Booking, MeetingType_
 
-    allowed, remaining = _check_rate_limit_public("booking_public", _BOOKING_RATE_LIMIT_CONFIG, slug)
-    if not allowed:
-        if remaining is None:
-            # Redis unavailable - fail closed
-            payload, status = _rate_limit_service_unavailable()
-      ***REMOVED***:
-            payload, status = _rate_limit_response()
+    if not _consume_rate_limit("booking_public", _BOOKING_LIMIT, slug):
+        payload, status = _rate_limit_response()
         return jsonify(payload), status
 
     data = request.get_json(silent=True) or {}
-    try:
-        meeting_type_id = safe_int(data.get("meeting_type_id"))
-    except ValueError:
-        return jsonify({"error": "invalid meeting_type_id"}), 400
+    meeting_type_id = data.get("meeting_type_id")
     visitor_name = (data.get("visitor_name") or "").strip()
     visitor_email = (data.get("visitor_email") or "").strip().lower()
     booking_date = data.get("date")

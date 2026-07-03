@@ -1,13 +1,23 @@
 """ModelManager — LLM invocation façade for MyOwnClone standalone.
 
-Provides a concrete implementation that uses OpenAI or Anthropic directly,
-without requiring the external `graphon` package.
+Provides a concrete implementation that uses OpenAI-compatible APIs,
+Anthropic, MiniMax, or Together directly, without requiring the external
+`graphon` package.
 
 Priority order for model selection:
-  1. OPENAI_API_KEY  → uses GPT-4o-mini (cost-effective, fast)
+  1. OPENAI_API_KEY  → uses OPENAI_MODEL or gpt-4o-mini
   2. ANTHROPIC_API_KEY → uses claude-3-haiku (fallback)
-  3. TOGETHER_API_KEY  → uses Llama 3 via Together.ai (budget option)
-  4. No API key       → raises ModelInvocationError
+  3. MINIMAX_API_KEY → uses MiniMax OpenAI-compatible endpoint
+  4. TOGETHER_API_KEY  → uses Llama 3 via Together.ai (budget option)
+  5. No API key       → raises ModelInvocationError
+
+OpenAI-compatible providers such as DeepSeek can be configured with:
+  OPENAI_API_KEY=...
+  OPENAI_BASE_URL=https://api.deepseek.com
+  OPENAI_MODEL=deepseek-chat
+
+`OPENAI_API_BASE` is accepted as a legacy alias for deployments that already
+use that variable name.
 
 Usage:
   from api.core.model_manager import ModelManager, ModelInvocationError
@@ -22,115 +32,34 @@ Usage:
 
 from __future__ import annotations
 
-import enum
+import hashlib
 import logging
 import os
-import threading
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Generator
+import time
+from typing import Generator
 
-if TYPE_CHECKING:
-    import anthropic
-    import openai
+from api.core.model_registry import ModelRegistry
+from api.core.providers import (
+    AnthropicAdapter,
+    GenerationParams,
+    LocalAdapter,
+    ModelInvocationError,
+    MiniMaxAdapter,
+    ModelReply,
+    ModelType,
+    ModelUsage,
+    OpenAIAdapter,
+    OpenAICompatibleAdapter,
+    ProviderAdapter,
+    ProviderRegistry,
+    TogetherAdapter,
+)
+from api.core.retry_client import RetryCandidate, RetryClient
+from api.core.token_budget import EmbeddingDimensionError, TokenBudgetError, TokenBudgeter
+from api.extensions import db
+from api.models.ai_models import AIInvocation, AITask
 
 logger = logging.getLogger(__name__)
-
-
-# ─── Singleton client holders (thread-safe lazy initialization) ────────────────
-
-_OPENAI_CLIENT: "openai.OpenAI | None" = None
-_ANTHROPIC_CLIENT: "anthropic.Anthropic | None" = None
-_TOGETHER_CLIENT: "openai.OpenAI | None" = None
-_MINIMAX_CLIENT: "openai.OpenAI | None" = None
-_CLIENT_LOCK = threading.Lock()
-
-
-def _get_openai_client() -> "openai.OpenAI":
-    """Return singleton OpenAI client (connection pooling, TLS reuse)."""
-    global _OPENAI_CLIENT
-    if _OPENAI_CLIENT is None:
-        with _CLIENT_LOCK:
-            if _OPENAI_CLIENT is None:
-                _OPENAI_CLIENT = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    return _OPENAI_CLIENT
-
-
-def _get_anthropic_client() -> "anthropic.Anthropic":
-    """Return singleton Anthropic client (connection pooling, TLS reuse)."""
-    global _ANTHROPIC_CLIENT
-    if _ANTHROPIC_CLIENT is None:
-        with _CLIENT_LOCK:
-            if _ANTHROPIC_CLIENT is None:
-                _ANTHROPIC_CLIENT = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-    return _ANTHROPIC_CLIENT
-
-
-def _get_together_client() -> "openai.OpenAI":
-    """Return singleton Together.ai client (connection pooling, TLS reuse)."""
-    global _TOGETHER_CLIENT
-    if _TOGETHER_CLIENT is None:
-        with _CLIENT_LOCK:
-            if _TOGETHER_CLIENT is None:
-                _TOGETHER_CLIENT = openai.OpenAI(
-                    api_key=os.environ["TOGETHER_API_KEY"],
-                    base_url="https://api.together.xyz/v1",
-                )
-    return _TOGETHER_CLIENT
-
-
-def _get_minimax_client() -> "openai.OpenAI":
-    """Return singleton MiniMax client (connection pooling, TLS reuse)."""
-    global _MINIMAX_CLIENT
-    if _MINIMAX_CLIENT is None:
-        with _CLIENT_LOCK:
-            if _MINIMAX_CLIENT is None:
-                _MINIMAX_CLIENT = openai.OpenAI(
-                    api_key=os.environ["MINIMAX_API_KEY"],
-                    base_url="https://api.minimax.io/v1",
-                )
-    return _MINIMAX_CLIENT
-
-
-# ─── Public exceptions ───────────────────────────────────────────────────────
-
-class ModelInvocationError(Exception):
-    """Raised when the LLM invocation fails (model unavailable, timeout, etc.)."""
-
-
-# ─── Value objects ───────────────────────────────────────────────────────────
-
-class ModelType(enum.StrEnum):
-    """Model type selector (mirrors graphon.model_runtime interface)."""
-    LLM = "llm"
-    EMBEDDING = "embedding"
-    RERANKING = "reranking"
-    SPEECH2TEXT = "speech2text"
-    TTS = "tts"
-    MODERATION = "moderation"
-
-
-@dataclass
-class ModelUsage:
-    """Minimal usage metadata returned by the model runtime."""
-
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    total_tokens: int = 0
-
-    def as_dict(self) -> dict[str, int]:
-        return {
-            "prompt_tokens": self.prompt_tokens,
-            "completion_tokens": self.completion_tokens,
-            "total_tokens": self.total_tokens,
-        }
-
-
-@dataclass
-class ModelReply:
-    """Reply returned by invoke_non_streaming."""
-
-    text: str = ""
-    usage: ModelUsage | None = None
 
 
 # ─── Provider detection ──────────────────────────────────────────────────────
@@ -148,15 +77,40 @@ def _detect_provider() -> str | None:
     return None
 
 
+# ─── Provider config ─────────────────────────────────────────────────────────
+
+def _env(name: str, default: str) -> str:
+    """Return a stripped environment value or a default when unset/blank."""
+    return os.getenv(name, "").strip() or default
+
+
+def _openai_base_url() -> str | None:
+    """Return the OpenAI-compatible base URL, supporting the legacy alias."""
+    return (
+        os.getenv("OPENAI_BASE_URL", "").strip()
+        or os.getenv("OPENAI_API_BASE", "").strip()
+        or None
+    )
+
+
+def _openai_client_kwargs() -> dict[str, str]:
+    kwargs = {"api_key": os.environ["OPENAI_API_KEY"]}
+    base_url = _openai_base_url()
+    if base_url:
+        kwargs["base_url"] = base_url
+    return kwargs
+
+
 # ─── OpenAI backend ──────────────────────────────────────────────────────────
 
-def _invoke_openai(prompt: str, *, model: str = "gpt-4o-mini") -> ModelReply:
+def _invoke_openai(prompt: str, *, model: str | None = None) -> ModelReply:
     """Invoke OpenAI (non-streaming)."""
     try:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed") from exc
-    client = _get_openai_client()
+    model = model or _env("OPENAI_MODEL", "gpt-4o-mini")
+    client = openai.OpenAI(**_openai_client_kwargs())
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -172,13 +126,14 @@ def _invoke_openai(prompt: str, *, model: str = "gpt-4o-mini") -> ModelReply:
     )
 
 
-def _invoke_openai_stream(prompt: str, *, model: str = "gpt-4o-mini"):
+def _invoke_openai_stream(prompt: str, *, model: str | None = None):
     """Invoke OpenAI (streaming)."""
     try:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed") from exc
-    client = _get_openai_client()
+    model = model or _env("OPENAI_MODEL", "gpt-4o-mini")
+    client = openai.OpenAI(**_openai_client_kwargs())
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -192,13 +147,14 @@ def _invoke_openai_stream(prompt: str, *, model: str = "gpt-4o-mini"):
 
 # ─── Anthropic backend ───────────────────────────────────────────────────────
 
-def _invoke_anthropic(prompt: str, *, model: str = "claude-3-haiku-20240307") -> ModelReply:
+def _invoke_anthropic(prompt: str, *, model: str | None = None) -> ModelReply:
     """Invoke Anthropic (non-streaming)."""
     try:
         import anthropic
     except ImportError as exc:
         raise ModelInvocationError("anthropic package not installed") from exc
-    client = _get_anthropic_client()
+    model = model or _env("ANTHROPIC_MODEL", "claude-3-haiku-20240307")
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     response = client.messages.create(
         model=model,
         max_tokens=2048,
@@ -216,13 +172,14 @@ def _invoke_anthropic(prompt: str, *, model: str = "claude-3-haiku-20240307") ->
     )
 
 
-def _invoke_anthropic_stream(prompt: str, *, model: str = "claude-3-haiku-20240307"):
+def _invoke_anthropic_stream(prompt: str, *, model: str | None = None):
     """Invoke Anthropic (streaming)."""
     try:
         import anthropic
     except ImportError as exc:
         raise ModelInvocationError("anthropic package not installed") from exc
-    client = _get_anthropic_client()
+    model = model or _env("ANTHROPIC_MODEL", "claude-3-haiku-20240307")
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     with client.messages.stream(
         model=model,
         max_tokens=2048,
@@ -234,13 +191,17 @@ def _invoke_anthropic_stream(prompt: str, *, model: str = "claude-3-haiku-202403
 
 # ─── Together.ai backend (Llama 3) ───────────────────────────────────────────
 
-def _invoke_together(prompt: str, *, model: str = "meta-llama/Llama-3-8b-chat-hf") -> ModelReply:
+def _invoke_together(prompt: str, *, model: str | None = None) -> ModelReply:
     """Invoke Together.ai (non-streaming)."""
     try:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for Together.ai client)") from exc
-    client = _get_together_client()
+    model = model or _env("TOGETHER_MODEL", "meta-llama/Llama-3-8b-chat-hf")
+    client = openai.OpenAI(
+        api_key=os.environ["TOGETHER_API_KEY"],
+        base_url="https://api.together.xyz/v1",
+    )
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -251,13 +212,17 @@ def _invoke_together(prompt: str, *, model: str = "meta-llama/Llama-3-8b-chat-hf
     )
 
 
-def _invoke_together_stream(prompt: str, *, model: str = "meta-llama/Llama-3-8b-chat-hf"):
+def _invoke_together_stream(prompt: str, *, model: str | None = None):
     """Invoke Together.ai (streaming)."""
     try:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for Together.ai client)") from exc
-    client = _get_together_client()
+    model = model or _env("TOGETHER_MODEL", "meta-llama/Llama-3-8b-chat-hf")
+    client = openai.OpenAI(
+        api_key=os.environ["TOGETHER_API_KEY"],
+        base_url="https://api.together.xyz/v1",
+    )
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -271,13 +236,17 @@ def _invoke_together_stream(prompt: str, *, model: str = "meta-llama/Llama-3-8b-
 
 # ─── MiniMax backend (OpenAI-compatible) ─────────────────────────────────────
 
-def _invoke_minimax(prompt: str, *, model: str = "minimax-m2.7") -> ModelReply:
+def _invoke_minimax(prompt: str, *, model: str | None = None) -> ModelReply:
     """Invoke MiniMax via its OpenAI-compatible endpoint (non-streaming)."""
     try:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for MiniMax)") from exc
-    client = _get_minimax_client()
+    model = model or _env("MINIMAX_MODEL", "minimax-m2.7")
+    client = openai.OpenAI(
+        api_key=os.environ["MINIMAX_API_KEY"],
+        base_url="https://api.minimax.io/v1",
+    )
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -293,13 +262,17 @@ def _invoke_minimax(prompt: str, *, model: str = "minimax-m2.7") -> ModelReply:
     )
 
 
-def _invoke_minimax_stream(prompt: str, *, model: str = "minimax-m2.7"):
+def _invoke_minimax_stream(prompt: str, *, model: str | None = None):
     """Invoke MiniMax via its OpenAI-compatible endpoint (streaming)."""
     try:
         import openai
     except ImportError as exc:
         raise ModelInvocationError("openai package not installed (needed for MiniMax)") from exc
-    client = _get_minimax_client()
+    model = model or _env("MINIMAX_MODEL", "minimax-m2.7")
+    client = openai.OpenAI(
+        api_key=os.environ["MINIMAX_API_KEY"],
+        base_url="https://api.minimax.io/v1",
+    )
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -322,7 +295,7 @@ def _dispatch(prompt: str, *, provider: str) -> ModelReply:
         return _invoke_minimax(prompt)
     elif provider == "together":
         return _invoke_together(prompt)
-  ***REMOVED***:
+    else:
         raise ModelInvocationError(
             "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
             "MINIMAX_API_KEY, or TOGETHER_API_KEY in your environment."
@@ -338,7 +311,7 @@ def _dispatch_stream(prompt: str, *, provider: str) -> Generator[str, None, None
         yield from _invoke_minimax_stream(prompt)
     elif provider == "together":
         yield from _invoke_together_stream(prompt)
-  ***REMOVED***:
+    else:
         raise ModelInvocationError(
             "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
             "MINIMAX_API_KEY, or TOGETHER_API_KEY in your environment."
@@ -356,15 +329,26 @@ class _ModelInstance:
       model_instance.invoke_llm(prompt=...)
     """
 
-    def __init__(self, provider: str):
-        self._provider = provider
+    def __init__(self, *, tenant_id: str, model_manager: "ModelManager"):
+        self._tenant_id = tenant_id
+        self._model_manager = model_manager
 
     def invoke_llm(self, *, prompt: str) -> str:
-        reply = _dispatch(prompt, provider=self._provider)
+        reply = self._model_manager.invoke_for_task(
+            tenant_id=self._tenant_id,
+            clone_id=None,
+            task=AITask.CHAT,
+            message=prompt,
+        )
         return reply.text if isinstance(reply, ModelReply) else ""
 
     def invoke_llm_stream(self, *, prompt: str) -> Generator[str, None, None]:
-        yield from _dispatch_stream(prompt, provider=self._provider)
+        yield from self._model_manager.invoke_for_task_stream(
+            tenant_id=self._tenant_id,
+            clone_id=None,
+            task=AITask.CHAT,
+            message=prompt,
+        )
 
 
 # ─── Public façade ───────────────────────────────────────────────────────────
@@ -377,6 +361,173 @@ class ModelManager:
     the streaming endpoint for graphon compatibility).
     """
 
+    _ADAPTER_TYPES = {
+        "openai": OpenAIAdapter,
+        "anthropic": AnthropicAdapter,
+        "minimax": MiniMaxAdapter,
+        "together": TogetherAdapter,
+        "openai_compatible": OpenAICompatibleAdapter,
+        "local": LocalAdapter,
+    }
+
+    def __init__(
+        self,
+        *,
+        registry: ModelRegistry | None = None,
+        retry_client: RetryClient | None = None,
+        token_budgeter: TokenBudgeter | None = None,
+    ) -> None:
+        self.registry = registry or ModelRegistry()
+        self.retry_client = retry_client or RetryClient()
+        self.token_budgeter = token_budgeter or TokenBudgeter()
+
+    @staticmethod
+    def _prompt_hash(message: str) -> str:
+        return hashlib.sha256(message.encode("utf-8")).hexdigest()
+
+    def _provider_adapter_for(self, resolved) -> ProviderAdapter:
+        adapter_type = self._ADAPTER_TYPES.get(resolved.provider)
+        if adapter_type is None:
+            raise ModelInvocationError(f"Unsupported provider {resolved.provider!r}.")
+        return adapter_type(resolved)
+
+    def _build_generation_params(self, resolved) -> GenerationParams:
+        override = resolved.override_params or {}
+        return GenerationParams(
+            model=resolved.model_id,
+            temperature=override.get("temperature", resolved.temperature_default),
+            max_tokens=override.get("max_tokens", resolved.max_tokens_default),
+            metadata={"source": resolved.source, "provider": resolved.provider},
+        )
+
+    def _record_invocation(
+        self,
+        *,
+        tenant_id: str,
+        clone_id: str | None,
+        task: AITask,
+        model_name: str,
+        message: str,
+        success: bool,
+        usage: ModelUsage | None = None,
+        latency_ms: int = 0,
+        error_message: str | None = None,
+    ) -> None:
+        row = AIInvocation(
+            tenant_id=tenant_id,
+            clone_id=clone_id,
+            task=task.value,
+            model=model_name,
+            prompt_hash=self._prompt_hash(message),
+            prompt_tokens=usage.prompt_tokens if usage else 0,
+            completion_tokens=usage.completion_tokens if usage else 0,
+            latency_ms=latency_ms,
+            success=success,
+            error_message=error_message,
+        )
+        db.session.add(row)
+        db.session.commit()
+
+    def invoke_for_task(
+        self,
+        *,
+        tenant_id: str,
+        clone_id: str | None,
+        task: AITask,
+        message: str,
+    ) -> ModelReply:
+        try:
+            resolved = self.registry.get_model_for_task(tenant_id=tenant_id, task=task)
+            if task == AITask.EMBEDDING:
+                self.token_budgeter.validate_embedding_model(model=resolved)
+            fitted = self.token_budgeter.fit_text(
+                text=message,
+                model=resolved,
+                task=task,
+                truncate=False,
+            )
+            adapter = self._provider_adapter_for(resolved)
+            params = self._build_generation_params(resolved)
+            candidate = RetryCandidate(
+                provider_name=resolved.provider,
+                model_id=resolved.model_id,
+                priority=resolved.priority,
+                invoke=lambda: adapter.generate(prompt=fitted.text, params=params),
+            )
+            reply = self.retry_client.invoke([candidate])
+            self._record_invocation(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=task,
+                model_name=resolved.model_id,
+                message=fitted.text,
+                success=True,
+                usage=reply.usage,
+                latency_ms=reply.latency_ms or 0,
+            )
+            return reply
+        except (EmbeddingDimensionError, TokenBudgetError, ModelInvocationError) as exc:
+            try:
+                self._record_invocation(
+                    tenant_id=tenant_id,
+                    clone_id=clone_id,
+                    task=task,
+                    model_name=locals().get("resolved").model_id if "resolved" in locals() else "unresolved",
+                    message=message,
+                    success=False,
+                    error_message=str(exc),
+                )
+            except Exception:
+                logger.exception("Failed to persist AIInvocation failure row")
+            raise ModelInvocationError(str(exc)) from exc
+
+    def invoke_for_task_stream(
+        self,
+        *,
+        tenant_id: str,
+        clone_id: str | None,
+        task: AITask,
+        message: str,
+    ) -> Generator[str, None, None]:
+        started = time.monotonic()
+        resolved = self.registry.get_model_for_task(tenant_id=tenant_id, task=task)
+        fitted = self.token_budgeter.fit_text(
+            text=message,
+            model=resolved,
+            task=task,
+            truncate=False,
+        )
+        adapter = self._provider_adapter_for(resolved)
+        params = self._build_generation_params(resolved)
+        chunks: list[str] = []
+        try:
+            for chunk in adapter.generate_stream(prompt=fitted.text, params=params):
+                chunks.append(chunk)
+                yield chunk
+            self._record_invocation(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=task,
+                model_name=resolved.model_id,
+                message=fitted.text,
+                success=True,
+                usage=None,
+                latency_ms=int((time.monotonic() - started) * 1000),
+                error_message="stream_usage_missing",
+            )
+        except Exception as exc:
+            self._record_invocation(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=task,
+                model_name=resolved.model_id,
+                message=fitted.text,
+                success=False,
+                latency_ms=int((time.monotonic() - started) * 1000),
+                error_message=str(exc),
+            )
+            raise ModelInvocationError(str(exc)) from exc
+
     @staticmethod
     def invoke_non_streaming(
         *,
@@ -386,14 +537,13 @@ class ModelManager:
         session_id: str | None = None,
     ) -> ModelReply:
         """Invoke the LLM and return the complete reply (no streaming)."""
-        provider = _detect_provider()
-        if not provider:
-            raise ModelInvocationError(
-                "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
-                "or TOGETHER_API_KEY in .env"
-            )
         try:
-            return _dispatch(message, provider=provider)
+            return ModelManager().invoke_for_task(
+                tenant_id=tenant_id,
+                clone_id=clone_id,
+                task=AITask.CHAT,
+                message=message,
+            )
         except Exception as exc:
             logger.exception("invoke_non_streaming failed for clone=%s", clone_id)
             raise ModelInvocationError(str(exc)) from exc
@@ -414,11 +564,63 @@ class ModelManager:
                 f"Model type {model_type!r} is not supported in standalone mode yet."
             )
 
-        provider = _detect_provider()
-        if not provider:
-            raise ModelInvocationError(
-                "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, "
-                "or TOGETHER_API_KEY in .env"
-            )
+        return _ModelInstance(tenant_id=tenant_id, model_manager=self)
 
-        return _ModelInstance(provider=provider)
+
+# T2.11: Cost tracking en streaming (resuelve Defecto #2 del Sisyphus)
+
+def record_llm_cost(
+    *,
+    tenant_id: str,
+    model: str,
+    provider: str,
+    tokens_in: int,
+    tokens_out: int,
+    cost_cents: int,
+    task: str = "chat",
+    clone_id: str | None = None,
+) -> None:
+    """Registra el coste de una llamada LLM en ai_invocations.
+
+    Llamar desde CADA path de LLM (streaming y no-streaming) para garantizar
+    trazabilidad de costes. Failure modes: si la DB falla, logueamos pero
+    NO rompemos la respuesta al usuario.
+    """
+    try:
+        from api.models.ai_models import AIInvocation
+        from api.extensions.ext_database import db
+
+        invocation = AIInvocation(
+            tenant_id=tenant_id,
+            clone_id=clone_id,
+            task=task,
+            model=model,
+            provider=provider,
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
+            cost_cents=cost_cents,
+            success=True,
+        )
+        db.session.add(invocation)
+        db.session.commit()
+    except Exception as exc:
+        logger.warning("record_llm_cost failed (non-fatal): %s", exc)
+        try:
+            from api.extensions.ext_database import db as _db
+            _db.session.rollback()
+        except Exception:
+            pass
+
+
+def estimate_cost_cents(model: str, provider: str, tokens_in: int, tokens_out: int) -> int:
+    """Estima coste en cents para un modelo/provider conocido (Q2 2026)."""
+    pricing = {
+        ("gpt-4o-mini", "openai"): (15, 60),
+        ("gpt-4o", "openai"): (250, 1000),
+        ("claude-3-haiku-20240307", "anthropic"): (25, 125),
+        ("claude-3-5-sonnet-20241022", "anthropic"): (300, 1500),
+        ("meta-llama/Llama-3-8b-chat-hf", "together"): (18, 18),
+        ("abab6.5s-chat", "minimax"): (10, 10),
+    }
+    in_price, out_price = pricing.get((model, provider), (0, 0))
+    return int((tokens_in * in_price + tokens_out * out_price) / 1_000_000)
