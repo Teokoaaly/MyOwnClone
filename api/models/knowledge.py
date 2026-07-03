@@ -1,6 +1,7 @@
 from typing import Optional
 
 import sqlalchemy as sa
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, Float, Integer, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,7 +28,8 @@ class Chunk(TypeBase):
     id: Mapped[str] = mapped_column(Text, primary_key=True)
     source_id: Mapped[str] = mapped_column(Text, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[Optional[list[float]]] = mapped_column(sa.ARRAY(Float), nullable=True)
+    # Migrado a pgvector (T1.4) — vector(1024) en vez de double precision[]
+    embedding: Mapped[Optional[list[float]]] = mapped_column(Vector(1024), nullable=True)
     token_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     chunk_metadata: Mapped[Optional[dict]] = mapped_column("metadata", sa.JSON, nullable=True)
 
