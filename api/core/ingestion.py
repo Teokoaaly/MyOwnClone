@@ -103,8 +103,7 @@ def _extract_text(source: Source) -> str:
     if source.type == "pdf":
         return _extract_from_pdf(source.url or "")
     if source.type == "youtube":
-        # T2.4 implementara transcripciones
-        return source.url or ""
+        return _extract_from_youtube(source.url or "")
     return ""
 
 
@@ -142,6 +141,42 @@ def _extract_from_pdf(url: str) -> str:
 
     full = "\n\n".join(pages)
     return re.sub(r"\n{3,}", "\n\n", full)
+
+
+def _extract_youtube_id(url: str) -> str | None:
+    """Extrae el ID de un video de una URL de YouTube."""
+    import re as _re
+    patterns = [
+        r"(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})",
+        r"youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})",
+    ]
+    for pat in patterns:
+        m = _re.search(pat, url)
+        if m:
+            return m.group(1)
+    return None
+
+
+def _extract_from_youtube(url: str) -> str:
+    """Descarga la transcripción de un video de YouTube."""
+    video_id = _extract_youtube_id(url)
+    if not video_id:
+        logger.warning("URL de YouTube no reconocida: %s", url)
+        return ""
+
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+    except ImportError:
+        logger.warning("youtube-transcript-api no instalado")
+        return ""
+
+    try:
+        # API moderna (>=0.6.0)
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        return " ".join(entry["text"] for entry in transcript)
+    except Exception as exc:
+        logger.warning("Error extrayendo transcripcion de YouTube %s: %s", video_id, exc)
+        return ""
 
 
 def _extract_from_url(url: str) -> str:

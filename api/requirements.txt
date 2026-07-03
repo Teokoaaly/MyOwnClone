@@ -37,3 +37,6 @@ pgvector>=0.3.0
 
 # T2.3: extracción de PDFs
 PyPDF2>=3.0.0
+
+# T2.4: extracción de transcripciones de YouTube
+youtube-transcript-api>=0.6.0
