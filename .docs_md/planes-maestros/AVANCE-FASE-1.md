@@ -326,3 +326,42 @@ Cuando la tabla tenga >1000 chunks, considerar:
 
 ### Próxima task
 **T1.3** — Eliminar Weaviate del stack
+
+---
+
+## Task T1.3 — Eliminar Weaviate del stack ✅ COMPLETADA (con bonus fix TLS)
+
+**Fecha ejecución**: 2026-07-03
+
+### Verificación de uso
+Búsqueda exhaustiva: 0 imports de `weaviate-client` en `api/*.py`. Solo aparece en `docker-compose.yml` y `requirements.txt` (SDK sin uso).
+
+### Cambios aplicados
+1. **docker-compose.backend.prod.yml**: servicio `weaviate:` eliminado
+2. **api/requirements.txt**: `weaviate-client>=4.4.0` quitado (comentado)
+3. **Variables de entorno**: `WEAVIATE_URL` y `WEAVIATE_API_KEY` eliminadas del api
+
+### Bonus fix: TLS Redis
+Al recrear el contenedor redis, descubrí **dos bugs preexistentes** del release codex:
+1. `_redis_ready()` en `app_factory.py` no usaba TLS (Redis solo escucha en 6380 con TLS)
+2. El contenedor `api` no tenía volumen `./tls/redis:/etc/redis/tls:ro` para acceder a los certs
+
+**Fix aplicado**:
+```python
+client_kwargs["ssl"] = True
+client_kwargs["ssl_certfile"] = "/etc/redis/tls/redis.crt"
+client_kwargs["ssl_keyfile"] = "/etc/redis/tls/redis.key"
+client_kwargs["ssl_ca_certs"] = "/etc/redis/tls/ca.crt"
+client_kwargs["ssl_check_hostname"] = False  # cert fue generado con otro hostname
+```
++ permisos `chmod 644` en certs para que appuser (uid 1001) pueda leerlos.
+
+### Verificación
+- ✅ Contenedor `myownclone_weaviate` parado y eliminado
+- ✅ Volume `ops_weaviate_data` eliminado
+- ✅ Stack actual: postgres + redis + api + ollama (4 contenedores)
+- ✅ Healthcheck: `{database:ok, ollama:ok, redis:ok, status:ready}`
+- ✅ Recursos liberados: ~30 MB RAM + ~115 KB disco
+
+### Próxima task
+**T1.5** — Migraciones automáticas en deploy (entrypoint script)
