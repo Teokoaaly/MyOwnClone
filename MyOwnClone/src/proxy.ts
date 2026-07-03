@@ -73,6 +73,8 @@ const ROUTE_MAP: Record<string, string> = {
   "/api/admin/feedback": "/console/api/myownclone/admin/feedback",
   "/api/admin/courtesy": "/console/api/myownclone/admin/courtesy-account",
   "/api/admin/courtesy-account": "/console/api/myownclone/admin/courtesy-account",
+  // T2.1: sources ahora se sirven desde Flask (ingestion real via pgvector/Ollama)
+  "/api/admin/sources": "/console/api/myownclone/sources",
   "/api/clones": "/console/api/myownclone/clones",
   "/api/plans": "/console/api/myownclone/plans",
   "/api/stripe/checkout": "/console/api/myownclone/stripe/checkout",
@@ -92,9 +94,9 @@ function getTenantFromHost(hostname: string): string | null {
 }
 
 function findBackendPath(pathname: string, request: NextRequest): string | null {
-  // Ignoramos la biblioteca de contenidos (sources), que se resolverá localmente en Next.js
+  // T2.1: sources ya NO se sirven localmente en Next.js — Flask hace ingestion real
   if (pathname === "/api/clone/sources" || pathname.startsWith("/api/clone/sources/")) {
-    return null;
+    return "/console/api/myownclone/sources";
   }
 
   // Si no empieza con /api/clone/ pero está en el ROUTE_MAP original, lo usamos

@@ -17,6 +17,7 @@ from api.core.contracts import normalize_silo, normalize_silo_list
 from api.extensions.ext_database import db
 from api.fields.base import ResponseModel
 from api.libs.login import current_account_with_tenant, login_required
+from api.models.knowledge import Source
 from api.models.myownclone import CloneConfig, CloneModePrompt, CloneSilo
 
 logger = logging.getLogger(__name__)
@@ -287,3 +288,92 @@ DEFAULT_PROMPTS = {
         "basándote en la información de catálogo proporcionada."
     ),
 }
+
+
+# === T2.1: Sources (knowledge base) ===
+
+class SourceCreatePayload(BaseModel):
+    clone_id: str = Field(..., min_length=1)
+    title: str = Field(..., min_length=1, max_length=255)
+    type: str = Field(default="text", pattern=r"^(text|url|pdf|youtube)$")
+    url: str | None = None  # para url/pdf/youtube: la URL; para text: el contenido
+    content: str | None = None  # alias para texto plano (no choca con `url`)
+
+
+class _SourceListItem(ResponseModel):
+    id: str
+    clone_id: str
+    type: str
+    title: str
+    url: str | None
+    status: str
+    metadata: dict | None
+    created_at: int | None
+    updated_at: int | None
+
+
+@console_ns.route("/myownclone/sources")
+class SourceListApi(Resource):
+    @setup_required
+    @login_required
+    @account_initialization_required
+    @console_ns.doc("list_sources")
+    def get(self):
+        """Lista fuentes de conocimiento del tenant."""
+        account, tenant = current_account_with_tenant()
+        clone_id = request.args.get("clone_id")
+        stmt = select(Source).where(Source.clone_id.like(f"{tenant.id}%"))
+        if clone_id:
+            stmt = stmt.where(Source.clone_id == clone_id)
+        sources = db.session.execute(stmt.order_by(Source.created_at.desc())).scalars().all()
+        return {"items": [_serialize_source(s) for s in sources]}
+
+    @setup_required
+    @login_required
+    @account_initialization_required
+    @console_ns.doc("create_source")
+    def post(self):
+        """Crea una fuente de conocimiento y dispara ingestion."""
+        payload = SourceCreatePayload(**request.get_json(force=True))
+        account, tenant = current_account_with_tenant()
+
+        # Texto plano puede venir en `url` (legacy) o `content`
+        if payload.type == "text":
+            text = payload.content or payload.url or ""
+        else:
+            text = payload.url
+
+        source = Source(
+            id=str(uuid4()),
+            clone_id=payload.clone_id,
+            type=payload.type,
+            title=payload.title,
+            url=text,
+            status="processing",
+            chunk_metadata={"content": text} if payload.type == "text" else None,
+        )
+        db.session.add(source)
+        db.session.commit()
+
+        # Ingestion sincrónica (para textos cortos). PDFs grandes iran async en T2.3.
+        from api.core.ingestion import ingest_source
+        ingest_source(source.id)
+
+        # Refrescar tras ingestion
+        db.session.refresh(source)
+        return _serialize_source(source), 201
+
+
+def _serialize_source(source: Source) -> dict:
+    return {
+        "id": str(source.id),
+        "clone_id": source.clone_id,
+        "type": source.type,
+        "title": source.title,
+        "url": source.url if source.type != "text" else None,
+        "content": (source.chunk_metadata or {}).get("content") if source.type == "text" else None,
+        "status": source.status,
+        "metadata": source.chunk_metadata,
+        "created_at": int(source.created_at.timestamp()) if source.created_at else None,
+        "updated_at": int(source.updated_at.timestamp()) if source.updated_at else None,
+    }
