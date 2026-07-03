@@ -365,3 +365,62 @@ client_kwargs["ssl_check_hostname"] = False  # cert fue generado con otro hostna
 
 ### Próxima task
 **T1.5** — Migraciones automáticas en deploy (entrypoint script)
+
+---
+
+## Task T1.5 — Migraciones automáticas en deploy ✅ COMPLETADA
+
+**Fecha ejecución**: 2026-07-03
+
+### Antes
+- `CMD` directo a gunicorn en el Dockerfile
+- Las migraciones no corrían automáticamente
+- Cada deploy manual requería `flask db upgrade` antes de recrear el contenedor
+- Riesgo de drift entre código y schema
+
+### Cambios aplicados
+1. **Nuevo `api/entrypoint.sh`**:
+   ```sh
+   #!/bin/sh
+   set -e
+   echo "[entrypoint] Ejecutando migraciones Alembic..."
+   FLASK_APP=api.app_factory flask db upgrade --directory /app/api/migrations
+   echo "[entrypoint] Migraciones completadas. Arrancando gunicorn..."
+   exec "$@"
+   ```
+2. **Dockerfile actualizado**:
+   - `ENTRYPOINT ["/app/api/entrypoint.sh"]`
+   - `CMD` se pasa al entrypoint como argumentos (gunicorn original)
+
+### Issues encontrados y resueltos
+1. **`flask db upgrade` no encontraba migraciones**: faltaba `cd /app/api` o `--directory`
+2. **Permisos InsufficientPrivilege**: las tablas eran owner=`postgres`, pero la app conecta como `myownclone_app`
+   - Solución: `ALTER TABLE ... OWNER TO myownclone_app` para todas las tablas + sequences
+3. **Versión T1.4 manual**: la migración la hice por SQL directo (no Alembic), así que Alembic no sabía
+   - Solución: al ejecutar el entrypoint, automáticamente detectó la migración pendiente y la aplicó
+   - Resultado: `alembic_version = 2026_07_03_0001` (¡auto-aplicada!)
+
+### Verificación
+- ✅ Healthcheck: `{database:ok, ollama:ok, redis:ok, status:ready}`
+- ✅ Alembic version: `2026_07_03_0001` (auto-aplicada en el primer arranque)
+- ✅ Logs: `[entrypoint] Ejecutando migraciones Alembic...`
+- ✅ Sin downtime (migración es no-op ya estaba aplicada)
+
+### Próxima task
+**FASE 1 COMPLETADA** 🎉
+
+### Resumen final de FASE 1
+| Task | Estado |
+|---|---|
+| T1.1 Backup dual local | ✅ |
+| T1.2 Índice ivfflat | ✅ |
+| T1.3 Eliminar Weaviate + TLS fix | ✅ |
+| T1.4 Migrar chunks.embedding a pgvector | ✅ |
+| T1.5 Migraciones automáticas en deploy | ✅ |
+| T1.6 Healthcheck estricto | ✅ |
+| T1.7 Limpiar imágenes Docker | ✅ |
+| T1.8 Runbook operacional | ✅ |
+
+8/8 tasks completadas en FASE 1.
+Cambios pusheados a `origin/docs/planes-maestros` (rama `f7d02bf` → `386c542`).
+VPS actual: 4 contenedores healthy (postgres, redis, api, ollama), 86 GB libres, schema auto-migrable.
