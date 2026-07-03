@@ -191,32 +191,53 @@ def register_health_routes(app):
 
     @app.get("/healthz")
     def healthz():
-        return jsonify({"status": "ok"}), 200
+        """Chequeo detallado: DB + Redis + Ollama. Devuelve 503 si algo falla."""
+        import os
+        import requests
 
-    @app.get("/readyz")
-    def readyz():
         checks: dict[str, str] = {}
-        status = 200
+        all_ok = True
 
+        # 1. Database
         try:
             from sqlalchemy import text
-
             db.session.execute(text("SELECT 1"))
             checks["database"] = "ok"
         except Exception as exc:
             db.session.rollback()
             checks["database"] = f"error: {exc}"
-            status = 503
+            all_ok = False
 
+        # 2. Redis
         redis_ok, redis_error = _redis_ready()
         if redis_ok:
             checks["redis"] = redis_error or "ok"
-      ***REMOVED***:
+        else:
             checks["redis"] = f"error: {redis_error}"
-            status = 503
+            all_ok = False
 
-        payload_status = "ready" if status == 200 else "not_ready"
-        return jsonify({"status": payload_status, "checks": checks}), status
+        # 3. Ollama (si está configurado como embedding local)
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+        try:
+            resp = requests.get(f"{ollama_url}/api/tags", timeout=2)
+            if resp.status_code == 200:
+                checks["ollama"] = "ok"
+            else:
+                checks["ollama"] = f"error: HTTP {resp.status_code}"
+                all_ok = False
+        except Exception as exc:
+            checks["ollama"] = f"unreachable: {exc}"
+            # Ollama no es crítico si hay fallback, no degrada a 503
+            # pero se reporta para visibilidad
+
+        payload_status = "ready" if all_ok else "degraded"
+        http_status = 200 if all_ok else 503
+        return jsonify({"status": payload_status, "checks": checks}), http_status
+
+    @app.get("/readyz")
+    def readyz():
+        """Liveness simple: solo verifica que la app responde. Para Docker healthcheck."""
+        return jsonify({"status": "ready"}), 200
 
 
 def register_myownclone_blueprints(app):
