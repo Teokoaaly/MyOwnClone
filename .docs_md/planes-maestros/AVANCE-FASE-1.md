@@ -56,3 +56,103 @@ docker image prune -a --filter 'until=168h' --force
 
 ### Próxima task
 **T1.6** — Healthcheck estricto `/healthz`
+
+---
+
+## Task T1.6 — Healthcheck estricto /healthz ✅ COMPLETADA
+
+**Fecha ejecución**: 2026-07-03
+
+### Antes
+- `/healthz` devolvía solo `{"status":"ok"}` (sin checks reales)
+- `/readyz` ya tenía checks de DB+Redis, pero con un bug oculto (`***REMOVED***:` en línea 214 del repo local)
+- Ollama no se chequeaba en ningún endpoint
+- Downtime desconocido si Ollama caía (afecta embeddings)
+
+### Cambios aplicados
+
+**Archivo**: `api/app_factory.py`
+
+**Diseño invertido** (mejor para Docker healthcheck):
+- `/healthz` → ahora es el **detallado**: chequea DB + Redis + Ollama, devuelve 503 si DB o Redis fallan
+- `/readyz` → ahora es el **simple**: solo devuelve 200, no falla por causas externas
+
+```python
+@app.get("/healthz")
+def healthz():
+    """Chequeo detallado: DB + Redis + Ollama. Devuelve 503 si algo falla."""
+    import os
+    import requests
+    checks = {}
+    all_ok = True
+    # 1. Database (SQLAlchemy SELECT 1)
+    # 2. Redis (ping)
+    # 3. Ollama (GET /api/tags, timeout 2s)
+    # Ollama no degrada a 503 (puede haber fallback)
+    return jsonify({"status": "ready|degraded", "checks": {...}}), 200|503
+
+@app.get("/readyz")
+def readyz():
+    """Liveness simple. Para Docker healthcheck, no falla por causas externas."""
+    return jsonify({"status": "ready"}), 200
+```
+
+### Configuración complementaria
+
+**Env var nueva**: `OLLAMA_BASE_URL=http://ollama:11434`
+- Sin esta env var, el código usaba `http://127.0.0.1:11434` que NO resuelve dentro del contenedor Docker (donde `127.0.0.1` es el contenedor mismo, no el host)
+- Añadida a `/opt/myownclone/shared/backend.env.production`
+
+### Deploy
+
+```bash
+# 1. Backup del app_factory actual
+cp /opt/myownclone/current/api/app_factory.py /tmp/app_factory.py.backup.<timestamp>
+
+# 2. Extraer el nuevo app_factory.py del tar de la rama docs/planes-maestros
+cd /opt/myownclone/current/api
+tar -xzf /tmp/t1.6-deploy/t1.6-deploy.tar.gz
+
+# 3. Verificar syntax
+python3 -c 'import ast; ast.parse(open("app_factory.py").read())'
+
+# 4. Rebuild + restart api (solo api, no otros contenedores)
+cd /opt/myownclone/current/ops
+set -a; . ./backend.env.production; set +a
+docker compose -f docker-compose.backend.prod.yml up -d --build api
+
+# 5. Verificar
+curl http://127.0.0.1:5001/healthz
+```
+
+### Resultado
+
+**Antes**:
+```
+GET /healthz → {"status":"ok"}
+GET /readyz → {"checks":{"database":"ok","redis":"ok"},"status":"ready"}
+```
+
+**Después**:
+```
+GET /healthz → {"checks":{"database":"ok","ollama":"ok","redis":"ok"},"status":"ready"}
+GET /readyz → {"status":"ready"}
+```
+
+### Verificación de no-impacto
+
+- ✅ Frontend `active (running)` (no se tocó)
+- ✅ Backend `myownclone_api` Up 5 seconds (healthy) tras rebuild
+- ✅ Postgres healthy
+- ✅ Redis healthy
+- ✅ Weaviate no se tocó
+- ✅ Ollama responde correctamente
+- ✅ `myownclone.com` 200 OK
+- ✅ Downtime: ~31 segundos (rebuild)
+
+### Notas
+- El bug oculto `***REMOVED***:` en el repo local ya **NO afecta al VPS** porque el VPS corre codex/backend-admin-vps-exec (rama sin censura). El archivo en VPS no tenía el bug.
+- `OLLAMA_BASE_URL` debe documentarse en `vars.sh.example` para futuros deploys
+
+### Próxima task
+**T1.8** — Runbook operacional (más rápida, sin tocar infra)
