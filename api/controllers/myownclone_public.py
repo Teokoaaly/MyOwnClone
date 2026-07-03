@@ -402,6 +402,7 @@ Pregunta del usuario: {message}"""
             try:
                 from api.core.model_manager import record_llm_cost, estimate_cost_cents
                 from api.core.model_registry import ModelRegistry
+                from api.core.metrics import LLM_TOKENS, LLM_COST_CENTS, EMBEDDINGS
 
                 reg = ModelRegistry()
                 m = reg.get_model_for_task(tenant_id=clone.tenant_id, task=AITask.CHAT)
@@ -416,6 +417,10 @@ Pregunta del usuario: {message}"""
                     cost_cents=cost,
                     task="chat",
                 )
+                # T3.6: actualizar contadores Prometheus
+                LLM_TOKENS.labels(model=m.model_id, provider=m.provider, direction="in").inc(tokens_in_est)
+                LLM_TOKENS.labels(model=m.model_id, provider=m.provider, direction="out").inc(tokens_out_est)
+                LLM_COST_CENTS.labels(model=m.model_id, provider=m.provider).inc(cost)
             except Exception as exc:
                 logger.warning("T2.11: cost tracking falló (no-fatal): %s", exc)
 

@@ -46,3 +46,6 @@ sentry-sdk[flask]>=2.0.0
 
 # T3.5: Worker asincrono para ingestion de PDFs grandes
 rq>=1.16.0
+
+# T3.6: Prometheus metrics
+prometheus-client>=0.20.0

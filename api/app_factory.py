@@ -233,6 +233,10 @@ def create_app():
     register_myownclone_blueprints(app)
     register_health_routes(app)
 
+    # T3.6: Prometheus metrics endpoint
+    from api.core.metrics import register_metrics_endpoint
+    register_metrics_endpoint(app)
+
     return app
 
 
