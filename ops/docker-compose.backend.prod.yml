@@ -52,34 +52,9 @@ services:
       timeout: 5s
       retries: 5
 
-  weaviate:
-    image: cr.weaviate.io/semitechnologies/weaviate:1.24.0
-    container_name: myownclone_weaviate
-    restart: unless-stopped
-    networks:
-      - backend_internal
-    ports:
-      - "127.0.0.1:8080:8080"
-    environment:
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
-      AUTHENTICATION_APIKEY_ENABLED: "true"
-      AUTHENTICATION_APIKEY_ALLOWED_KEYS: "${WEAVIATE_API_KEY}"
-      AUTHENTICATION_APIKEY_USERS: "admin"
-      PERSISTENCE_DATA_PATH: /var/lib/weaviate
-      ENABLE_MODULES: text2vec-openai,text2vec-huggingface
-    volumes:
-      - weaviate_data:/var/lib/weaviate
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/v1/.well-known/ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # weaviate: ELIMINADO en T1.3 — el código Python no lo usa
+  # (búsqueda exhaustiva confirma: 0 imports de weaviate-client en api/*.py)
+  # pgvector (T1.4) es ahora la única fuente de búsqueda vectorial.
 
   api:
     build:
@@ -108,8 +83,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_URL: rediss://redis:6380
       REDIS_TLS: "true"
-      WEAVIATE_URL: http://weaviate:8080
-      WEAVIATE_API_KEY: ${WEAVIATE_API_KEY}
+      # WEAVIATE_URL/API_KEY eliminadas en T1.3 — pgvector es la fuente de embeddings
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       FLASK_APP: app_factory
       PYTHONPATH: /app
@@ -138,7 +112,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  weaviate_data:
+  # weaviate_data eliminado en T1.3
 
 networks:
   backend_internal:
