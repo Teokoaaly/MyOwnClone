@@ -47,6 +47,9 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels -r /app/requireme
 # Copy application code into /app/api/ so 'import api.*' works
 COPY --chown=appuser:app . /app/api/
 
+# T1.5: entrypoint que ejecuta migraciones antes de arrancar gunicorn
+RUN chmod +x /app/api/entrypoint.sh
+
 USER appuser
 
 # Add /app to PYTHONPATH so 'import api' works regardless of cwd
@@ -63,8 +66,8 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:5001/console/api/ || exit 1
 
-# gunicorn with app at /app/api/app_factory.py → module is api.app_factory
-# Use the path-style import so we don't depend on sys.path manipulation
+# Entrypoint ejecuta migraciones y arranca gunicorn
+ENTRYPOINT ["/app/api/entrypoint.sh"]
 CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "60", \
      "--access-logfile", "-", "--error-logfile", "-", \
      "api.app_factory:app"]
