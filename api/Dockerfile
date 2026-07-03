@@ -67,7 +67,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:5001/console/api/ || exit 1
 
 # Entrypoint ejecuta migraciones y arranca gunicorn
+# T3.1: workers=2 optimizado para 2-core host (formula 2*CPU+1 = 5 saturaría)
 ENTRYPOINT ["/app/api/entrypoint.sh"]
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "60", \
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--threads", "4", \
+     "--worker-class", "gthread", "--timeout", "60", \
+     "--max-requests", "1000", "--max-requests-jitter", "100", \
      "--access-logfile", "-", "--error-logfile", "-", \
      "api.app_factory:app"]
