@@ -65,6 +65,8 @@ services:
     networks:
       - backend_internal
       - redis_network
+    volumes:
+      - ./tls/redis:/etc/redis/tls:ro  # Necesario para TLS con Redis (T1.3 fix)
     ports:
       - "127.0.0.1:5001:5001"
     env_file:

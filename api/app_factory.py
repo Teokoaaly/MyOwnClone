@@ -123,13 +123,29 @@ def _redis_ready() -> tuple[bool, str | None]:
     try:
         import redis
 
-        client = redis.Redis(
-            host=host,
-            port=int(os.getenv("REDIS_PORT", "6379")),
-            password=os.getenv("REDIS_PASSWORD") or None,
-            socket_connect_timeout=1.0,
-            socket_timeout=1.0,
-        )
+        # Soporte TLS: si REDIS_TLS=true, conectar con SSL.
+        # Por defecto asume TLS cuando el puerto es 6380.
+        redis_tls = os.getenv("REDIS_TLS", "false").strip().lower() == "true"
+        redis_port = int(os.getenv("REDIS_PORT", "6379"))
+        if not redis_tls and redis_port == 6380:
+            redis_tls = True  # puerto 6380 implica TLS en este stack
+
+        client_kwargs = {
+            "host": host,
+            "port": redis_port,
+            "password": os.getenv("REDIS_PASSWORD") or None,
+            "socket_connect_timeout": 1.0,
+            "socket_timeout": 1.0,
+        }
+        if redis_tls:
+            client_kwargs["ssl"] = True
+            client_kwargs["ssl_certfile"] = "/etc/redis/tls/redis.crt"
+            client_kwargs["ssl_keyfile"] = "/etc/redis/tls/redis.key"
+            client_kwargs["ssl_ca_certs"] = "/etc/redis/tls/ca.crt"
+            # Cert fue generado con otro hostname; en la red Docker solo usamos 'redis'
+            client_kwargs["ssl_check_hostname"] = False
+
+        client = redis.Redis(**client_kwargs)
         client.ping()
         return True, None
     except Exception as exc:  # pragma: no cover - exact client failures vary
