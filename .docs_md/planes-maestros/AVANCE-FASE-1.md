@@ -286,3 +286,43 @@ El primer rebuild falló porque `requirements.txt` local estaba desactualizado (
 
 ### Próxima task
 **T1.2** — Índice ivfflat (aprovecha la nueva columna vector)
+
+---
+
+## Task T1.2 — Índice ivfflat en chunks.embedding ✅ COMPLETADA
+
+**Fecha ejecución**: 2026-07-03
+
+### Estado actual
+- Solo 3 chunks en la tabla (estado inicial)
+- `embedding` ya es `vector(1024)` (T1.4)
+
+### Comando ejecutado
+```sql
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunks_embedding_ivfflat
+ON chunks USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+ANALYZE chunks;
+```
+
+### Notas de Postgres (esperadas)
+- ⚠️ NOTICE: "ivfflat index created with little data — will cause low recall"
+- Esto es correcto: con 3 filas, el planner prefiere Seq Scan
+- El índice estará disponible automáticamente cuando la tabla crezca
+
+### Verificación
+- ✅ Índice creado: `idx_chunks_embedding_ivfflat`
+- ✅ `ANALYZE chunks` ejecutado para que el planner tenga estadísticas
+- ✅ `EXPLAIN` muestra Seq Scan (correcto para 3 filas)
+- ✅ No bloqueó la tabla durante la creación (usó CONCURRENTLY)
+
+### Tuning futuro
+Cuando la tabla tenga >1000 chunks, considerar:
+- `lists = sqrt(rows)` (regla general)
+- Para 10K rows: `lists = 100` (actual está bien)
+- Para 100K rows: `lists = 316`
+- Para 1M rows: `lists = 1000`
+
+### Próxima task
+**T1.3** — Eliminar Weaviate del stack
