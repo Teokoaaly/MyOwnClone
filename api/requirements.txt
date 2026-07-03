@@ -34,3 +34,6 @@ cryptography>=42.0.0  # para SecretCipher (cifrado API keys de modelos IA)
 
 # pgvector para búsqueda semántica (T1.4)
 pgvector>=0.3.0
+
+# T2.3: extracción de PDFs
+PyPDF2>=3.0.0

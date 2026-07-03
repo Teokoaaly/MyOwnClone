@@ -101,12 +101,47 @@ def _extract_text(source: Source) -> str:
     if source.type == "url":
         return _extract_from_url(source.url or "")
     if source.type == "pdf":
-        # T2.3 implementara extraccion de PDF
-        return source.url or ""
+        return _extract_from_pdf(source.url or "")
     if source.type == "youtube":
         # T2.4 implementara transcripciones
         return source.url or ""
     return ""
+
+
+def _extract_from_pdf(url: str) -> str:
+    """Descarga un PDF y extrae su texto con PyPDF2."""
+    from io import BytesIO
+    import requests
+    from PyPDF2 import PdfReader
+
+    if not url:
+        return ""
+
+    try:
+        resp = requests.get(url, timeout=60, headers={"User-Agent": "MyOwnClone/1.0"})
+        resp.raise_for_status()
+    except Exception as exc:
+        logger.warning("Error descargando PDF %s: %s", url, exc)
+        return ""
+
+    try:
+        reader = PdfReader(BytesIO(resp.content))
+    except Exception as exc:
+        logger.warning("Error parseando PDF %s: %s", url, exc)
+        return ""
+
+    pages: list[str] = []
+    for i, page in enumerate(reader.pages):
+        try:
+            text = page.extract_text() or ""
+        except Exception as exc:
+            logger.warning("Error extrayendo pagina %d del PDF %s: %s", i, url, exc)
+            text = ""
+        if text.strip():
+            pages.append(text)
+
+    full = "\n\n".join(pages)
+    return re.sub(r"\n{3,}", "\n\n", full)
 
 
 def _extract_from_url(url: str) -> str:
