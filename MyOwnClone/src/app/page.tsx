@@ -3,6 +3,7 @@ import LandingBehavior from "@/components/ui/LandingBehavior";
 import PublicPricing from "@/components/ui/PublicPricing";
 import ShaderBackground from "@/components/ui/ShaderBackground";
 import { UseCasesShowcase } from "@/components/landing/UseCasesShowcase";
+import { Testimonials } from "@/components/landing/Testimonials";
 import { Link } from "@/i18n/navigation";
 
 const services = [
@@ -141,6 +142,9 @@ export default function LandingPage() {
 
       {/* T2.6: Demos interactivas — clones con conocimiento pre-cargado */}
       <UseCasesShowcase />
+
+      {/* T2.7: Testimonios — placeholder honesto, sin testimonios falsos */}
+      <Testimonials />
 
       <section className="cta-final" id="cta">
         <h2 className="reveal">
