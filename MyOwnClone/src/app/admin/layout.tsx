@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ADMIN_NAV } from "@/lib/nav-admin";
 import { isPlatformAdminSession } from "@/lib/platform-admin";
-import { Link } from "@/i18n/navigation";
+import { AdminSwitch } from "@/components/dashboard/AdminSwitch";
 
 export default async function AdminLayout({
   children,
@@ -52,12 +52,7 @@ export default async function AdminLayout({
           showSearch={false}
           showFreemiumCard={false}
           footer={
-            <Link
-              href="/resumen"
-              className="hover:text-[var(--text-primary)] transition-colors"
-            >
-              Back to dashboard
-            </Link>
+            <AdminSwitch target="dashboard" />
           }
         />
 

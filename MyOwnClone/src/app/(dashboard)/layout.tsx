@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { CloneIdResolver } from "@/components/dashboard/CloneIdResolver";
+import { AdminSwitch } from "@/components/dashboard/AdminSwitch";
+import { isPlatformAdminSession } from "@/lib/platform-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,8 @@ export default async function DashboardLayout({
     { href: "/reuniones", label: "Team Settings", iconKey: "reuniones", tooltip: "Meetings", section: "management" },
   ];
 
+  const isAdmin = isPlatformAdminSession(session);
+
   return (
     <div className="min-h-screen bg-[var(--bg-page)] px-3 py-3 md:px-8 md:py-8">
       <CloneIdResolver />
@@ -43,7 +47,10 @@ export default async function DashboardLayout({
           showSearch={false}
           showFreemiumCard
           footer={
-            <p className="text-[10px] text-[var(--text-muted)]">© 2026 MyOwnClone</p>
+            <div className="flex flex-col gap-2">
+              {isAdmin && <AdminSwitch target="admin" />}
+              <p className="text-[10px] text-[var(--text-muted)]">© 2026 MyOwnClone</p>
+            </div>
           }
         />
         <main className="min-w-0 flex-1 bg-[var(--surface-1)] p-4 md:p-6">
