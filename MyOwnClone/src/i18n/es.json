@@ -172,5 +172,26 @@
     "manageBilling": "Gestionar facturación",
     "trialDaysLeft": "Te quedan {days} días de prueba gratuita",
     "trialEnded": "Tu prueba gratuita ha terminado"
+  },
+  "legal": {
+    "title": "Legal",
+    "terms": "Términos del Servicio",
+    "privacy": "Política de Privacidad",
+    "lastUpdated": "Última actualización: {date}",
+    "intro": "Estos son los términos y políticas que rigen tu uso de MyOwnClone.",
+    "comingSoon": "Texto completo próximamente.",
+    "legal": {
+      "title": "Legal",
+      "pageTitle": "Términos, privacidad y uso aceptable",
+      "pageDescription": "Esta página es un marcador de producción para los documentos legales que deben revisarse con asesoría jurídica antes del lanzamiento público.",
+      "back": "Volver",
+      "legal": "Legal",
+      "terms_of_service": "Términos del servicio",
+      "terms_of_service_body": "MyOwnClone proporciona herramientas para crear y operar asistentes de IA entrenados con contenido del usuario. Los usuarios son responsables del material que suben, de los resultados que publican y del cumplimiento de las leyes aplicables.",
+      "privacy": "Privacidad",
+      "privacy_body": "El contenido del espacio de trabajo, los datos de la cuenta y los registros operativos se procesan para prestar el servicio, asegurar la plataforma y mejorar la fiabilidad. Los despliegues en producción deben conectar este aviso con la política final de retención de datos, subprocesadores y derechos del usuario.",
+      "acceptable_use": "Uso aceptable",
+      "acceptable_use_body": "No uses el servicio para suplantar personas sin autorización, procesar datos sensibles sin base legal, ni generar contenido dañino, engañoso o ilegal."
+    }
   }
 }

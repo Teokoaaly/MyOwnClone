@@ -172,5 +172,26 @@
     "manageBilling": "Manage billing",
     "trialDaysLeft": "{days} days left in your free trial",
     "trialEnded": "Your free trial has ended"
+  },
+  "legal": {
+    "title": "Legal",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "lastUpdated": "Last updated: {date}",
+    "intro": "These are the terms and policies that govern your use of MyOwnClone.",
+    "comingSoon": "Full text coming soon.",
+    "legal": {
+      "title": "Legal",
+      "pageTitle": "Terms, privacy, and acceptable use",
+      "pageDescription": "This page is a production placeholder for the legal documents that should be reviewed with counsel before a public launch.",
+      "back": "Back",
+      "legal": "Legal",
+      "terms_of_service": "Terms of service",
+      "terms_of_service_body": "MyOwnClone provides tools to create and operate AI assistants trained on user-provided content. Users are responsible for the material they upload, the outputs they publish, and their compliance with applicable laws.",
+      "privacy": "Privacy",
+      "privacy_body": "Workspace content, account data, and operational logs are processed to provide the service, secure the platform, and improve reliability. Production deployments should connect this notice to the final data retention, subprocessors, and user rights policy.",
+      "acceptable_use": "Acceptable use",
+      "acceptable_use_body": "Do not use the service to impersonate people without authorization, process sensitive data without a lawful basis, or generate harmful, deceptive, or illegal content."
+    }
   }
 }
