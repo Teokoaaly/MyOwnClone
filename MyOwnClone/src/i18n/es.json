@@ -247,5 +247,14 @@
       "english": "English",
       "spanish": "Español"
     }
+  },
+  "admin": {
+    "shell": {
+      "homeLabel": "Panel Admin",
+      "backToDashboard": "Volver al panel",
+      "breadcrumbBrand": "MyOwnClone",
+      "breadcrumbAdmin": "Admin Plataforma",
+      "adminBadge": "Admin Plataforma"
+    }
   }
 }
