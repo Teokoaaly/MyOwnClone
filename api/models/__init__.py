@@ -36,3 +36,9 @@ __all__ = [
     "AIModel", "AIModelAssignment", "AIInvocation", "CostDailyRollup",
     "AIProvider", "AICapability", "AITask", "TASK_CAPABILITY",
 ]
+
+# Sisyphus M10-M20 models
+from api.models.embedding_outbox import EmbeddingOutbox, OutboxStatus  # noqa: F401
+from api.models.response_feedback import ResponseFeedback  # noqa: F401
+from api.models.routing_log import RoutingDecision  # noqa: F401
+from api.models.moderation_log import ModerationEvent  # noqa: F401

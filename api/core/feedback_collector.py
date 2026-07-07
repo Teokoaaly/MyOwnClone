@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from api.extensions.ext_database import db
 from api.models import ResponseFeedback
-from api.models.ai_invocation import AIInvocation
+from api.models.ai_models import AIInvocation
 
 logger = logging.getLogger(__name__)
 

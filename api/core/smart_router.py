@@ -14,7 +14,8 @@ from typing import Optional
 from sqlalchemy import select
 
 from api.extensions.ext_database import db
-from api.models import AIModel, AIModelAssignment, RoutingDecision
+from api.models import AIModel, AIModelAssignment
+from api.models.routing_log import RoutingDecision
 from api.core.metrics_collector import MetricsCollector, get_metrics_collector
 
 logger = logging.getLogger(__name__)
