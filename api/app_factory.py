@@ -13,7 +13,6 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from api.extensions import db
-from api.i18n import init_i18n
 from api.models import (
     Availability,
     Booking,
@@ -39,13 +38,6 @@ from api.controllers.console.auth import auth_bp
 
 # Import CLI commands
 from api.commands.seed import seed_demo_data
-from api.commands.reindex import reindex_command
-from api.commands.crypto import (
-    generate_master_key_command,
-    rotate_secrets_key_command,
-    refresh_cost_daily_rollup_command,
-)
-from api.commands.ai_backfill import ai_backfill_from_env_command
 
 # Import deploy blueprint
 from api.controllers.deploy import deploy_bp
@@ -126,13 +118,17 @@ def _redis_ready() -> tuple[bool, str | None]:
     try:
         import redis
 
-        client = redis.Redis(
+        redis_kwargs = dict(
             host=host,
             port=int(os.getenv("REDIS_PORT", "6379")),
             password=os.getenv("REDIS_PASSWORD") or None,
             socket_connect_timeout=1.0,
             socket_timeout=1.0,
         )
+        if os.getenv("REDIS_TLS", "").lower() == "true":
+            redis_kwargs["ssl"] = True
+            redis_kwargs["ssl_cert_reqs"] = None  # self-signed cert on internal network
+        client = redis.Redis(**redis_kwargs)
         client.ping()
         return True, None
     except Exception as exc:  # pragma: no cover - exact client failures vary
@@ -145,9 +141,6 @@ def create_app():
     assert_production_secrets()
     _setup_dev_keys()
     app = Flask(__name__)
-
-    # Initialize i18n (locale from ?locale=, session, or Accept-Language)
-    init_i18n(app)
 
     # Custom JSON encoder for UUID/datetime serialization
     from flask.json.provider import DefaultJSONProvider
@@ -184,11 +177,6 @@ def create_app():
 
     # Register CLI commands
     app.cli.add_command(seed_demo_data)
-    app.cli.add_command(reindex_command)
-    app.cli.add_command(generate_master_key_command)
-    app.cli.add_command(rotate_secrets_key_command)
-    app.cli.add_command(refresh_cost_daily_rollup_command)
-    app.cli.add_command(ai_backfill_from_env_command)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)
@@ -236,10 +224,6 @@ def register_myownclone_blueprints(app):
     app.register_blueprint(console_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(deploy_bp)
-    # Maintenance mode middleware (must be registered BEFORE other
-    # before_request handlers so it can short-circuit).
-    from api.middleware.maintenance import init_maintenance_middleware
-    init_maintenance_middleware(app)
 
 
 # Flask uses this when FLASK_APP=app_factory

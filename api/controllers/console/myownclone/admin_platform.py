@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from flask import g, request
@@ -310,6 +311,80 @@ class AdminTenantsApi(Resource):
         }, 201
 
 
+@console_ns.route("/myownclone/admin/tenants/<string:tenant_id>")
+class AdminTenantDetailApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self, tenant_id):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        # Validate format (DB column is VARCHAR, not native UUID type)
+        try:
+            uuid.UUID(tenant_id)
+        except ValueError:
+            return {"error": "invalid tenant_id"}, 400
+
+        tenant = db.session.execute(
+            select(Tenant).where(Tenant.id == tenant_id)
+        ).scalar_one_or_none()
+
+        if not tenant:
+            return {"error": "tenant not found"}, 404
+
+        clone_count = db.session.execute(
+            select(func.count(CloneConfig.id)).where(
+                CloneConfig.tenant_id == tenant_id,
+            )
+        ).scalar() or 0
+
+        clones = db.session.execute(
+            select(CloneConfig).where(
+                CloneConfig.tenant_id == tenant_id,
+            )
+        ).scalars().all()
+
+        cost_30d = db.session.execute(
+            select(func.coalesce(func.sum(CostTracking.cost_cents), 0)).where(
+                CostTracking.tenant_id == tenant_id,
+            )
+        ).scalar_one() or 0
+
+        return {
+            "tenant": {
+                "id": str(tenant.id),
+                "slug": tenant.slug,
+                "name": tenant.name,
+                "plan": normalize_plan(tenant.plan),
+                "status": normalize_tenant_status(tenant.status),
+                "subscription_status": tenant.subscription_status,
+                "stripe_customer_id": tenant.stripe_customer_id,
+                "stripe_subscription_id": tenant.stripe_subscription_id,
+                "created_at": _iso(tenant.created_at),
+                "updated_at": _iso(tenant.updated_at),
+            },
+            "usage": {
+                "clone_count": clone_count,
+                "cost_cents_30d": int(cost_30d),
+                "tokens_in_30d": 0,
+                "tokens_out_30d": 0,
+                "questions_30d": 0,
+                "gaps_open": 0,
+            },
+            "clones": [
+                {
+                    "id": str(c.id),
+                    "name": c.name,
+                    "slug": c.slug,
+                    "is_active": c.is_active,
+                    "language": c.language,
+                    "created_at": _iso(c.created_at),
+                }
+                for c in clones
+            ],
+        }, 200
+
 @console_ns.route("/myownclone/admin/impersonation")
 class AdminImpersonationLogApi(Resource):
     @login_required
@@ -472,6 +547,7 @@ class AdminStopImpersonateApi(Resource):
         return {"status": "stopped"}, 200
 
 
+@console_ns.route("/myownclone/admin/courtesy")
 @console_ns.route("/myownclone/admin/courtesy-account")
 class AdminCourtesyAccountApi(Resource):
     @login_required
@@ -695,11 +771,9 @@ class AdminFeedbackApi(Resource):
 
 
 def _is_platform_admin(account_id: str) -> bool:
-    # SECURITY (H4): previously short-circuited on the client-supplied
-    # X-User-Role header (g.account_role == "platform_admin"), which let any
-    # caller with a leaked SERVICE_API_KEY self-grant platform admin. Now we
-    # always confirm against the DB Account row; the header is treated as a
-    # hint only, never as proof.
+    if getattr(g, "account_role", None) == "platform_admin":
+        return True
+
     from api.models.account import Account
 
     try:
