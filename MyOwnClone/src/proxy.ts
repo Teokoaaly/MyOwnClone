@@ -223,12 +223,13 @@ export async function proxy(request: NextRequest) {
     ? pathname.slice(localeMatch.length + 1) || "/"
     : pathname;
 
+  const cookieLocale = request.cookies.get("myownclone_locale")?.value;
   // Tenant detection
   const tenantSlug = getTenantFromHost(hostname);
   if (tenantSlug) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-tenant-slug", tenantSlug);
-    requestHeaders.set(LOCALE_HEADER, localeMatch ?? forwardedLocale ?? routing.defaultLocale);
+    requestHeaders.set(LOCALE_HEADER, cookieLocale ?? localeMatch ?? forwardedLocale ?? routing.defaultLocale);
     return NextResponse.next({
       request: { headers: requestHeaders },
     });
@@ -360,7 +361,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set(LOCALE_HEADER, localeMatch ?? forwardedLocale ?? routing.defaultLocale);
+  requestHeaders.set(LOCALE_HEADER, cookieLocale ?? localeMatch ?? forwardedLocale ?? routing.defaultLocale);
 
   if (localeMatch && !LOCALIZED_APP_ROUTES.has(pathname)) {
     const rewriteUrl = request.nextUrl.clone();
