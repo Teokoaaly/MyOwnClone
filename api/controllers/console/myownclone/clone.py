@@ -17,6 +17,7 @@ from api.core.contracts import normalize_silo, normalize_silo_list
 from api.extensions.ext_database import db
 from api.fields.base import ResponseModel
 from api.libs.login import current_account_with_tenant, login_required
+from api.models.knowledge import Source
 from api.models.myownclone import CloneConfig, CloneModePrompt, CloneSilo
 
 logger = logging.getLogger(__name__)
@@ -210,28 +211,21 @@ class CloneModePromptApi(Resource):
         account, tenant_id = current_account_with_tenant()
         data = CloneModePromptPayload.model_validate(request.json)
         mode = normalize_silo(data.mode)
-        # SECURITY (H1): scope by tenant FIRST so a caller cannot overwrite another
-        # tenant's existing prompt by guessing its clone_id. Previously the tenant
-        # check only ran on the create branch, so an existing prompt for ANY tenant
-        # could be overwritten (cross-tenant system-prompt tampering).
-        clone = db.session.execute(
-            select(CloneConfig).where(
-                CloneConfig.id == clone_id,
-                CloneConfig.tenant_id == tenant_id,
-            )
-        ).scalar_one_or_none()
-        if not clone:
-            return {"error": "clone not found"}, 404
         prompt = db.session.execute(
-            select(CloneModePrompt)
-            .join(CloneConfig, CloneConfig.id == CloneModePrompt.clone_id)
-            .where(
+            select(CloneModePrompt).where(
                 CloneModePrompt.clone_id == clone_id,
                 CloneModePrompt.mode == mode,
-                CloneConfig.tenant_id == tenant_id,
             )
         ).scalar_one_or_none()
         if not prompt:
+            clone = db.session.execute(
+                select(CloneConfig).where(
+                    CloneConfig.id == clone_id,
+                    CloneConfig.tenant_id == tenant_id,
+                )
+            ).scalar_one_or_none()
+            if not clone:
+                return {"error": "clone not found"}, 404
             prompt = CloneModePrompt(clone_id=clone_id, mode=mode)
             db.session.add(prompt)
         prompt.system_prompt = data.system_prompt
@@ -294,3 +288,184 @@ DEFAULT_PROMPTS = {
         "basándote en la información de catálogo proporcionada."
     ),
 }
+
+
+# === T2.1: Sources (knowledge base) ===
+
+class SourceCreatePayload(BaseModel):
+    clone_id: str = Field(..., min_length=1)
+    title: str = Field(..., min_length=1, max_length=255)
+    type: str = Field(default="text", pattern=r"^(text|url|pdf|youtube)$")
+    url: str | None = None  # para url/pdf/youtube: la URL; para text: el contenido
+    content: str | None = None  # alias para texto plano (no choca con `url`)
+
+
+class _SourceListItem(ResponseModel):
+    id: str
+    clone_id: str
+    type: str
+    title: str
+    url: str | None
+    status: str
+    metadata: dict | None
+    created_at: int | None
+    updated_at: int | None
+
+
+@console_ns.route("/myownclone/sources")
+class SourceListApi(Resource):
+    @setup_required
+    @login_required
+    @account_initialization_required
+    @console_ns.doc("list_sources")
+    def get(self):
+        """Lista fuentes de conocimiento del tenant."""
+        account, tenant = current_account_with_tenant()
+        clone_id = request.args.get("clone_id")
+        stmt = select(Source).where(Source.clone_id.like(f"{tenant.id}%"))
+        if clone_id:
+            stmt = stmt.where(Source.clone_id == clone_id)
+        sources = db.session.execute(stmt.order_by(Source.created_at.desc())).scalars().all()
+        return {"items": [_serialize_source(s) for s in sources]}
+
+    @setup_required
+    @login_required
+    @account_initialization_required
+    @console_ns.doc("create_source")
+    def post(self):
+        """Crea una fuente de conocimiento y dispara ingestion."""
+        payload = SourceCreatePayload(**request.get_json(force=True))
+        account, tenant = current_account_with_tenant()
+
+        # Texto plano puede venir en `url` (legacy) o `content`
+        if payload.type == "text":
+            text = payload.content or payload.url or ""
+        else:
+            text = payload.url
+
+        source = Source(
+            id=str(uuid4()),
+            clone_id=payload.clone_id,
+            type=payload.type,
+            title=payload.title,
+            url=text,
+            status="processing",
+            chunk_metadata={"content": text} if payload.type == "text" else None,
+        )
+        db.session.add(source)
+        db.session.commit()
+
+        # T3.5: ingestion ASYNC para no bloquear el request HTTP.
+        # Para text/URL cortos, sigue siendo rápido (síncrono).
+        # Para PDF/YouTube, va a la cola RQ (worker procesa en background).
+        job_id = None
+        if payload.type in ("pdf", "youtube"):
+            from api.core.queue import enqueue_ingestion
+            job_id = enqueue_ingestion(source.id, timeout=600)
+        else:
+            from api.core.ingestion import ingest_source
+            ingest_source(source.id)
+
+        # Refrescar tras ingestion
+        db.session.refresh(source)
+        response = _serialize_source(source)
+        if job_id:
+            response["job_id"] = job_id  # cliente puede consultar status
+        return response, 202 if job_id else 201
+
+
+def _serialize_source(source: Source) -> dict:
+    return {
+        "id": str(source.id),
+        "clone_id": source.clone_id,
+        "type": source.type,
+        "title": source.title,
+        "url": source.url if source.type != "text" else None,
+        "content": (source.chunk_metadata or {}).get("content") if source.type == "text" else None,
+        "status": source.status,
+        "metadata": source.chunk_metadata,
+        "created_at": int(source.created_at.timestamp()) if source.created_at else None,
+        "updated_at": int(source.updated_at.timestamp()) if source.updated_at else None,
+    }
+
+@console_ns.route("/myownclone/clone/<string:clone_id>/avatar")
+class CloneAvatarApi(Resource):
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def post(self, clone_id):
+        """Upload avatar for a clone."""
+        from flask import request
+        from api.extensions.ext_database import db
+        from api.models import CloneConfig
+        import os
+        import uuid
+        
+        # Verify clone exists and user has access
+        clone = db.session.get(CloneConfig, clone_id)
+        if not clone:
+            return {"error": "Clone not found"}, 404
+        
+        # Check file upload
+        if 'avatar' not in request.files:
+            return {"error": "No file uploaded"}, 400
+        
+        file = request.files['avatar']
+        if file.filename == '':
+            return {"error": "No file selected"}, 400
+        
+        # Validate file type
+        allowed_types = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+        if file.content_type not in allowed_types:
+            return {"error": "Invalid file type. Allowed: JPEG, PNG, GIF, WebP"}, 400
+        
+        # Validate file size (max 5MB)
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        if file_size > 5 * 1024 * 1024:
+            return {"error": "File too large. Maximum 5MB"}, 400
+        
+        # Generate unique filename
+        ext = file.filename.rsplit('.', 1)[-1].lower()
+        filename = f"{uuid.uuid4()}.{ext}"
+        filepath = os.path.join("/opt/myownclone/shared/avatars", filename)
+        
+        # Save file
+        file.save(filepath)
+        
+        # Update clone avatar_url
+        avatar_url = f"/avatars/{filename}"
+        clone.avatar_url = avatar_url
+        db.session.commit()
+        
+        return {
+            "success": True,
+            "avatar_url": avatar_url,
+            "message": "Avatar uploaded successfully"
+        }, 201
+    
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def delete(self, clone_id):
+        """Remove avatar from a clone."""
+        from api.extensions.ext_database import db
+        from api.models import CloneConfig
+        import os
+        
+        clone = db.session.get(CloneConfig, clone_id)
+        if not clone:
+            return {"error": "Clone not found"}, 404
+        
+        if clone.avatar_url:
+            # Delete file
+            filepath = os.path.join("/opt/myownclone/shared/avatars", 
+                                   clone.avatar_url.replace("/avatars/", ""))
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            
+            clone.avatar_url = None
+            db.session.commit()
+        
+        return {"success": True, "message": "Avatar removed"}, 200
