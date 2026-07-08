@@ -6,7 +6,6 @@ import { MaintenanceBanner } from "@/components/admin/MaintenanceBanner";
 import { ADMIN_NAV } from "@/lib/nav-admin";
 import { isPlatformAdminSession } from "@/lib/platform-admin";
 import { Link } from "@/i18n/navigation";
-import { LanguageSelector } from "@/components/ui/LanguageSelector";
 
 export default async function AdminLayout({
   children,
@@ -55,15 +54,12 @@ export default async function AdminLayout({
           showSearch={false}
           showFreemiumCard={false}
           footer={
-            <div className="flex flex-col items-center gap-2">
-              <LanguageSelector variant="sidebar" />
-              <Link
-                href="/resumen"
-                className="text-center text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                Back to dashboard
-              </Link>
-            </div>
+            <Link
+              href="/resumen"
+              className="hover:text-[var(--text-primary)] transition-colors"
+            >
+              Back to dashboard
+            </Link>
           }
         />
 

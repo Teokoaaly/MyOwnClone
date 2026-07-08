@@ -4,7 +4,6 @@ import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { CloneIdResolver } from "@/components/dashboard/CloneIdResolver";
-import { LanguageSelector } from "@/components/ui/LanguageSelector";
 
 export const dynamic = "force-dynamic";
 
@@ -45,10 +44,7 @@ export default async function DashboardLayout({
           showSearch={false}
           showFreemiumCard
           footer={
-            <div className="flex flex-col items-center gap-2">
-              <LanguageSelector variant="sidebar" />
-              <p className="text-[10px] text-[var(--text-muted)]">© 2026 MyOwnClone</p>
-            </div>
+            <p className="text-[10px] text-[var(--text-muted)]">© 2026 MyOwnClone</p>
           }
         />
         <main className="min-w-0 flex-1 bg-[var(--surface-1)] p-4 md:p-6">
