@@ -26,3 +26,9 @@ anthropic>=0.30.0
 # VPS deployments get STT out of the box without external API keys.
 faster-whisper>=1.0.0
 ctranslate2>=4.0.0
+
+# T3.5: Async task queue (Redis Queue)
+rq>=1.16.0
+
+# T3.6: Prometheus metrics
+prometheus_client>=0.20.0
