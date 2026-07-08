@@ -1,1 +1,115 @@
-"""RetryClient: retries with exponential backoff + circuit breaker per provider.Use:    client = RetryClient()    result = client.call(lambda: adapter.chat(model, messages))Or with full options:    result = client.call(        lambda: adapter.chat(model, messages),        key="openai/gpt-4o-mini",  # circuit breaker scope        max_retries=3,        initial_backoff=1.0,        max_backoff=10.0,    )"""from __future__ import annotationsimport timeimport threadingfrom dataclasses import dataclass, fieldfrom typing import Callable, TypeVar, Optional, Anyfrom api.core.providers.base import ProviderErrorT = TypeVar("T")# Circuit breaker state machineSTATE_CLOSED = "closed"  # normal — calls allowedSTATE_OPEN = "open"      # tripped — calls rejected immediatelySTATE_HALF_OPEN = "half_open"  # testing — one probe call allowed@dataclassclass _BreakerState:    state: str = STATE_CLOSED    failure_count: int = 0    last_failure_at: float = 0.0    last_state_change: float = field(default_factory=time.monotonic)    half_open_probe_in_flight: bool = Falseclass CircuitBreakerOpenError(Exception):    """Raised when the circuit breaker is open and rejects a call."""    def __init__(self, key: str, reset_after: float):        super().__init__(f"Circuit breaker open for {key!r}, resets in {reset_after:.1f}s")        self.key = key        self.reset_after = reset_afterclass RetryClient:    """Retry with exponential backoff + per-key circuit breaker.        Thread-safe.    """        DEFAULT_MAX_RETRIES = 3    DEFAULT_INITIAL_BACKOFF = 1.0    DEFAULT_MAX_BACKOFF = 30.0    DEFAULT_BACKOFF_MULTIPLIER = 2.0    DEFAULT_FAILURE_THRESHOLD = 5       # consecutive failures to open    DEFAULT_RESET_TIMEOUT = 60.0         # seconds before half-open probe    DEFAULT_HALF_OPEN_SUCCESS_THRESHOLD = 2  # consecutive successes to close        def __init__(        self,        *,        max_retries: int = DEFAULT_MAX_RETRIES,        initial_backoff: float = DEFAULT_INITIAL_BACKOFF,        max_backoff: float = DEFAULT_MAX_BACKOFF,        backoff_multiplier: float = DEFAULT_BACKOFF_MULTIPLIER,        failure_threshold: int = DEFAULT_FAILURE_THRESHOLD,        reset_timeout: float = DEFAULT_RESET_TIMEOUT,        half_open_success_threshold: int = DEFAULT_HALF_OPEN_SUCCESS_THRESHOLD,        sleep: Callable[[float], None] = time.sleep,    ):        self.max_retries = max_retries        self.initial_backoff = initial_backoff        self.max_backoff = max_backoff        self.backoff_multiplier = backoff_multiplier        self.failure_threshold = failure_threshold        self.reset_timeout = reset_timeout        self.half_open_success_threshold = half_open_success_threshold        self._sleep = sleep  # injectable for tests        self._breakers: dict[str, _BreakerState] = {}        self._lock = threading.RLock()        def _get_breaker(self, key: str) -> _BreakerState:        with self._lock:            if key not in self._breakers:                self._breakers[key] = _BreakerState()            return self._breakers[key]        def _check_breaker(self, key: str) -> None:        """Raise CircuitBreakerOpenError if breaker rejects this call."""        b = self._get_breaker(key)        with self._lock:            if b.state == STATE_CLOSED:                return            if b.state == STATE_OPEN:                elapsed = time.monotonic() - b.last_state_change                if elapsed >= self.reset_timeout:                    # Transition to half-open, allow one probe                    b.state = STATE_HALF_OPEN                    b.half_open_probe_in_flight = True                    b.last_state_change = time.monotonic()                    return                raise CircuitBreakerOpenError(key, self.reset_timeout - elapsed)            if b.state == STATE_HALF_OPEN:                if b.half_open_probe_in_flight:                    raise CircuitBreakerOpenError(key, 0.5)                # Allow this call as a probe                b.half_open_probe_in_flight = True                return        def _record_success(self, key: str) -> None:        b = self._get_breaker(key)        with self._lock:            if b.state == STATE_HALF_OPEN:                b.half_open_probe_in_flight = False                b.failure_count = 0                b.state = STATE_CLOSED                b.last_state_change = time.monotonic()            elif b.state == STATE_CLOSED:                b.failure_count = 0        def _record_failure(self, key: str) -> None:        b = self._get_breaker(key)        with self._lock:            if b.state == STATE_HALF_OPEN:                b.half_open_probe_in_flight = False                b.state = STATE_OPEN                b.last_state_change = time.monotonic()                return            b.failure_count += 1            b.last_failure_at = time.monotonic()            if b.failure_count >= self.failure_threshold:                b.state = STATE_OPEN                b.last_state_change = time.monotonic()        def call(        self,        func: Callable[[], T],        *,        key: str = "default",        max_retries: Optional[int] = None,    ) -> T:        """Call `func()` with retries and circuit breaking.                Only retries on `ProviderError(retriable=True)`. Non-retriable errors        raise immediately. Circuit breaker is per `key`.        """        max_retries = max_retries if max_retries is not None else self.max_retries        backoff = self.initial_backoff        last_error: Optional[Exception] = None                for attempt in range(max_retries + 1):            self._check_breaker(key)            try:                result = func()            except ProviderError as exc:                last_error = exc                if not exc.retriable:                    self._record_failure(key)                    raise                if attempt < max_retries:                    self._sleep(backoff)                    backoff = min(backoff * self.backoff_multiplier, self.max_backoff)                    continue                # Out of retries                self._record_failure(key)                raise            except Exception:                # Non-provider error (e.g. network) — record and re-raise without retry                self._record_failure(key)                raise            else:                self._record_success(key)                return result                # Should be unreachable        if last_error is not None:            raise last_error        raise RuntimeError("RetryClient.call exited without return or raise")        # --- Inspection helpers (for tests + admin UI) ---        def get_breaker_state(self, key: str) -> dict:        """Get the current state of a circuit breaker for inspection."""        b = self._get_breaker(key)        with self._lock:            elapsed_since_change = time.monotonic() - b.last_state_change            reset_in = max(0.0, self.reset_timeout - elapsed_since_change) if b.state == STATE_OPEN else 0.0            return {                "key": key,                "state": b.state,                "failure_count": b.failure_count,                "reset_in_seconds": reset_in,            }        def reset_breaker(self, key: str) -> None:        """Force-reset a circuit breaker to closed (admin override)."""        with self._lock:            self._breakers[key] = _BreakerState()# Module-level singleton_client: Optional[RetryClient] = Nonedef get_retry_client() -> RetryClient:    """Get the process-wide RetryClient singleton."""    global _client    if _client is None:        _client = RetryClient()    return _clientdef reset_retry_client() -> None:    """Reset the singleton (for tests)."""    global _client    _client = None
+"""Retry, failover, and circuit-breaker logic for provider invocation."""
+
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass
+from typing import Any, Callable, Iterable
+
+from api.core.providers import ModelInvocationError
+
+
+@dataclass(slots=True)
+class RetryCandidate:
+    provider_name: str
+    model_id: str
+    priority: int
+    invoke: Callable[[], Any]
+
+
+@dataclass(slots=True)
+class CircuitStatus:
+    state: str = "closed"
+    consecutive_failures: int = 0
+    opened_at: float | None = None
+
+
+class RetryClient:
+    """Execute provider calls with bounded retries, failover, and breaker state."""
+
+    def __init__(
+        self,
+        *,
+        max_attempts_per_candidate: int = 3,
+        base_backoff_seconds: float = 0.25,
+        circuit_open_after_failures: int = 3,
+        half_open_after_seconds: float = 30.0,
+        sleep_fn: Callable[[float], None] | None = None,
+        time_fn: Callable[[], float] | None = None,
+    ) -> None:
+        self.max_attempts_per_candidate = max_attempts_per_candidate
+        self.base_backoff_seconds = base_backoff_seconds
+        self.circuit_open_after_failures = circuit_open_after_failures
+        self.half_open_after_seconds = half_open_after_seconds
+        self._sleep_fn = sleep_fn or time.sleep
+        self._time_fn = time_fn or time.monotonic
+        self._circuits: dict[tuple[str, str], CircuitStatus] = {}
+
+    def invoke(self, candidates: Iterable[RetryCandidate]) -> Any:
+        ordered = sorted(candidates, key=lambda candidate: candidate.priority)
+        if not ordered:
+            raise ModelInvocationError("RetryClient requires at least one candidate.")
+
+        last_error: Exception | None = None
+        attempted_any = False
+
+        for candidate in ordered:
+            circuit = self._circuit_for(candidate)
+            if self._is_open(circuit):
+                if self._ready_for_half_open(circuit):
+                    circuit.state = "half_open"
+                else:
+                    continue
+
+            attempted_any = True
+            for attempt in range(1, self.max_attempts_per_candidate + 1):
+                try:
+                    result = candidate.invoke()
+                except Exception as exc:
+                    last_error = exc
+                    self._record_failure(circuit)
+                    if circuit.state == "open":
+                        break
+                    if attempt < self.max_attempts_per_candidate:
+                        self._sleep_fn(self._backoff_for(attempt))
+                    continue
+
+                self._record_success(circuit)
+                return result
+
+        if not attempted_any:
+            raise ModelInvocationError("All candidate circuits are open; no invocation attempted.")
+
+        message = "All retry candidates failed."
+        if last_error is not None:
+            raise ModelInvocationError(f"{message} Last error: {last_error}") from last_error
+        raise ModelInvocationError(message)
+
+    def _circuit_for(self, candidate: RetryCandidate) -> CircuitStatus:
+        key = (candidate.provider_name, candidate.model_id)
+        if key not in self._circuits:
+            self._circuits[key] = CircuitStatus()
+        return self._circuits[key]
+
+    def _is_open(self, circuit: CircuitStatus) -> bool:
+        return circuit.state == "open"
+
+    def _ready_for_half_open(self, circuit: CircuitStatus) -> bool:
+        return (
+            circuit.opened_at is not None
+            and (self._time_fn() - circuit.opened_at) >= self.half_open_after_seconds
+        )
+
+    def _record_failure(self, circuit: CircuitStatus) -> None:
+        circuit.consecutive_failures += 1
+        if circuit.state == "half_open" or circuit.consecutive_failures >= self.circuit_open_after_failures:
+            circuit.state = "open"
+            circuit.opened_at = self._time_fn()
+
+    def _record_success(self, circuit: CircuitStatus) -> None:
+        circuit.state = "closed"
+        circuit.consecutive_failures = 0
+        circuit.opened_at = None
+
+    def _backoff_for(self, attempt: int) -> float:
+        return self.base_backoff_seconds * (2 ** (attempt - 1))
