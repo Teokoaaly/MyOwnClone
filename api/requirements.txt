@@ -14,21 +14,14 @@ gunicorn>=21.0.0
 stripe>=5.0.0
 PyJWT>=2.8.0
 bcrypt>=4.1.0
-
-# LLM provider SDKs (required by core.model_manager at import-time
-# for each respective provider)
 openai>=1.30.0
 anthropic>=0.30.0
-
-# Local speech-to-text (in-process faster-whisper / CTranslate2).
-# Optional at install-time: when missing the registry falls back to
-# cloud STT providers. The api Docker image installs it eagerly so
-# VPS deployments get STT out of the box without external API keys.
 faster-whisper>=1.0.0
 ctranslate2>=4.0.0
-
-# T3.5: Async task queue (Redis Queue)
 rq>=1.16.0
-
-# T3.6: Prometheus metrics
 prometheus_client>=0.20.0
+psutil>=5.9.0
+pgvector>=0.3.0
+beautifulsoup4>=4.12.0
+PyPDF2>=3.0.0
+youtube-transcript-api>=0.6.0
