@@ -713,7 +713,7 @@ def _is_platform_admin(account_id: str) -> bool:
     if account and hasattr(account, "is_platform_admin") and account.is_platform_admin:
         return True
 
-    # Explicit platform admin check only - no fallback to tenant ownership
+    return False
 
 @console_ns.route("/myownclone/admin/ingestion-status")
 class IngestionStatusApi(Resource):

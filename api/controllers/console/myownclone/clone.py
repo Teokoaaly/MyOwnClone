@@ -395,16 +395,21 @@ class CloneAvatarApi(Resource):
     @setup_required
     def post(self, clone_id):
         """Upload avatar for a clone."""
-        from flask import request
+        from flask import request, g
         from api.extensions.ext_database import db
         from api.models import CloneConfig
+        from api.libs.login import current_account_with_tenant
         import os
         import uuid
-        
-        # Verify clone exists and user has access
+
+        account, tenant_id = current_account_with_tenant()
+
+        # Verify clone exists and belongs to user's tenant
         clone = db.session.get(CloneConfig, clone_id)
         if not clone:
             return {"error": "Clone not found"}, 404
+        if tenant_id and clone.tenant_id != tenant_id:
+            return {"error": "Access denied"}, 403
         
         # Check file upload
         if 'avatar' not in request.files:
@@ -452,11 +457,16 @@ class CloneAvatarApi(Resource):
         """Remove avatar from a clone."""
         from api.extensions.ext_database import db
         from api.models import CloneConfig
+        from api.libs.login import current_account_with_tenant
         import os
-        
+
+        account, tenant_id = current_account_with_tenant()
+
         clone = db.session.get(CloneConfig, clone_id)
         if not clone:
             return {"error": "Clone not found"}, 404
+        if tenant_id and clone.tenant_id != tenant_id:
+            return {"error": "Access denied"}, 403
         
         if clone.avatar_url:
             # Delete file

@@ -40,9 +40,10 @@ def _is_uuid_like(value: str | None) -> bool:
 
 
 def _allow_dev_service_key() -> bool:
+    # SECURITY: Dev key only allowed when explicitly enabled AND not in production
     return (
-        os.environ.get("FLASK_ENV", "production") != "production"
-        and os.environ.get("ALLOW_DEV_SERVICE_KEY", "true").lower() == "true"
+        os.environ.get("FLASK_ENV", "production") not in ("production", "prod")
+        and os.environ.get("ALLOW_DEV_SERVICE_KEY", "false").lower() == "true"
     )
 
 
