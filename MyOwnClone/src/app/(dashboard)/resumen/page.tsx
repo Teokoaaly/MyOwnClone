@@ -34,6 +34,19 @@ interface AnalyticsOverview {
   clones_count?: number;
 }
 
+interface TenantOverview {
+  total_tenants: number;
+  active_tenants: number;
+  total_clones: number;
+  mrr_cents: number;
+  mrr_display: string;
+  total_costs_cents: number;
+  total_costs_display: string;
+  margin_cents: number;
+  margin_display: string;
+  plan_breakdown: Record<string, number>;
+}
+
 interface InboxListItem {
   id: string;
   subject: string | null;
@@ -48,7 +61,6 @@ interface CloneListItem {
   name: string;
 }
 
-const fallbackBars = [14, 18, 22, 16, 28, 36, 54, 48, 60, 42, 30, 26, 18, 22, 34, 28, 20, 18, 24, 16];
 const COLLAPSED_BOX_HEIGHT = 188;
 const ACTIVE_CHAT_BOX_HEIGHT = 420;
 
@@ -56,6 +68,7 @@ export default function DashboardResumenPage() {
   const { status } = useSession();
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
+  const [tenantOverview, setTenantOverview] = useState<TenantOverview | null>(null);
   const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
   const [clones, setClones] = useState<CloneListItem[]>([]);
   const [activeChatQuery, setActiveChatQuery] = useState("");
@@ -83,9 +96,10 @@ export default function DashboardResumenPage() {
         setCloneIdCookie(resolvedClones[0].id);
       }
 
-      const [overviewRes, inboxRes] = await Promise.allSettled([
+      const [overviewRes, inboxRes, tenantRes] = await Promise.allSettled([
         fetch("/api/clone/analytics/overview"),
         fetch("/api/clone/inbox/list?limit=3"),
+        fetch("/api/admin/overview"),
       ]);
 
       if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
@@ -94,6 +108,9 @@ export default function DashboardResumenPage() {
       if (inboxRes.status === "fulfilled" && inboxRes.value.ok) {
         const data = await inboxRes.value.json();
         setRecentInbox(Array.isArray(data) ? data : data.items ?? []);
+      }
+      if (tenantRes.status === "fulfilled" && tenantRes.value.ok) {
+        setTenantOverview(await tenantRes.value.json());
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error loading data");
@@ -112,12 +129,13 @@ export default function DashboardResumenPage() {
 
   const usageBars = useMemo(() => {
     const conversations = overview?.total_conversations ?? 0;
+    const messages = overview?.total_messages ?? 0;
     const questions = overview?.questions_answered ?? 0;
-    const gaps = overview?.gaps_count ?? 0;
-    if (conversations === 0 && questions === 0 && gaps === 0) return fallbackBars;
-    return fallbackBars.map((bar, index) => {
-      const pulse = index % 3 === 0 ? conversations : index % 3 === 1 ? questions : gaps;
-      return Math.max(10, Math.min(64, bar + pulse * 3));
+    const total = conversations + messages + questions;
+    if (total === 0) return Array(20).fill(0);
+    return Array.from({ length: 20 }, (_, i) => {
+      const base = i < conversations ? 40 : i < conversations + messages ? 25 : 10;
+      return Math.min(64, base + Math.floor(Math.random() * 15));
     });
   }, [overview]);
 
@@ -189,14 +207,16 @@ export default function DashboardResumenPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-[var(--text-primary)]">Usage</p>
-              <p className="text-xs text-[var(--text-muted)]">Past 30 Days</p>
+              <p className="text-xs text-[var(--text-muted)]">
+                {overview ? `${overview.total_conversations} conversations · ${overview.total_messages} messages` : "Past 30 Days"}
+              </p>
             </div>
             <div className="ml-auto flex h-9 items-end gap-1">
               {usageBars.map((bar, index) => (
                 <span
                   key={`${bar}-${index}`}
-                  className={index >= 6 && index <= 9 ? "bg-[#22B8CF]" : "bg-[#E7E5E4]"}
-                  style={{ height: `${bar}%`, width: 4, borderRadius: 3 }}
+                  className={bar > 0 ? "bg-[#22B8CF]" : "bg-[#E7E5E4]"}
+                  style={{ height: `${Math.max(4, bar)}%`, width: 4, borderRadius: 3 }}
                 />
               ))}
             </div>
@@ -216,6 +236,30 @@ export default function DashboardResumenPage() {
           </div>
         </div>
       </section>
+
+      {tenantOverview && (
+        <section className="mb-5 shrink-0">
+          <p className="section-label mb-3">Account Summary</p>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="card p-3">
+              <p className="text-xs text-[var(--text-muted)]">Active Clones</p>
+              <p className="mt-1 text-lg font-semibold">{tenantOverview.total_clones}</p>
+            </div>
+            <div className="card p-3">
+              <p className="text-xs text-[var(--text-muted)]">Conversations</p>
+              <p className="mt-1 text-lg font-semibold">{overview?.total_conversations ?? 0}</p>
+            </div>
+            <div className="card p-3">
+              <p className="text-xs text-[var(--text-muted)]">Questions Answered</p>
+              <p className="mt-1 text-lg font-semibold">{overview?.questions_answered ?? 0}</p>
+            </div>
+            <div className="card p-3">
+              <p className="text-xs text-[var(--text-muted)]">Costs (30d)</p>
+              <p className="mt-1 text-lg font-semibold">{tenantOverview.total_costs_display}</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-5 shadow-sm md:px-8 md:py-6">
         <div className="mx-auto flex max-w-[980px] flex-col overflow-visible pb-3">

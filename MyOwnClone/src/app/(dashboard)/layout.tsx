@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { CloneIdResolver } from "@/components/dashboard/CloneIdResolver";
+import { LanguageSelector } from "@/components/ui/LanguageSelector";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +48,14 @@ export default async function DashboardLayout({
             <p className="text-[10px] text-[var(--text-muted)]">© 2026 MyOwnClone</p>
           }
         />
-        <main className="min-w-0 flex-1 bg-[var(--surface-1)] p-4 md:p-6">
-          {children}
-        </main>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-[48px] shrink-0 items-center justify-end border-b border-[var(--border-soft)] bg-[var(--surface-1)] px-4">
+            <LanguageSelector variant="header" />
+          </header>
+          <main className="min-w-0 flex-1 bg-[var(--surface-1)] p-4 md:p-6">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );
