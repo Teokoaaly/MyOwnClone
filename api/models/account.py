@@ -48,6 +48,14 @@ class AccountStatus(enum.StrEnum):
     CLOSED = "closed"
 
 
+class OnboardingStatus(enum.StrEnum):
+    NOT_STARTED = "not_started"
+    WIZARD_IN_PROGRESS = "wizard_in_progress"
+    WIZARD_COMPLETED = "wizard_completed"
+    TOUR_IN_PROGRESS = "tour_in_progress"
+    COMPLETED = "completed"
+
+
 # ─── Tenant ─────────────────────────────────────────────────────────────────
 
 class Tenant(TypeBase):
@@ -132,6 +140,11 @@ class Account(TypeBase):
         Boolean, server_default=text("false"), default=False
     )
 
+    # Onboarding state
+    onboarding_status: Mapped[str] = mapped_column(
+        String(30), server_default=text("'not_started'"), default="not_started"
+    )
+
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -157,4 +170,5 @@ __all__ = [
     "Account",
     "AccountRole",
     "AccountStatus",
+    "OnboardingStatus",
 ]

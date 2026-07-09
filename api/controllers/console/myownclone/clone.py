@@ -147,6 +147,16 @@ class CloneConfigListApi(Resource):
             logger.exception("Failed to create clone for tenant=%s slug=%s", tenant_id, data.slug)
             return {"error": "failed to create clone"}, 500
 
+        # Update onboarding status when first clone is created
+        try:
+            from api.models.account import Account
+            account_obj = db.session.get(Account, account.id)
+            if account_obj and account_obj.onboarding_status in ("not_started", "wizard_in_progress"):
+                account_obj.onboarding_status = "wizard_completed"
+                db.session.commit()
+        except Exception:
+            logger.warning("Failed to update onboarding status for account=%s", account.id)
+
         return _serialize_clone(clone), 201
 
 

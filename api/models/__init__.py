@@ -20,6 +20,7 @@ from api.models.ai_models import (
     AICapability, AIModel, AIModelAssignment, AIInvocation, CostDailyRollup,
     AIProvider, AITask, TASK_CAPABILITY,
 )
+from api.models.onboarding import OnboardingStep, OnboardingEvent
 
 __all__ = [
     "CloneConfig", "CloneModePrompt", "CloneSilo",
@@ -35,4 +36,6 @@ __all__ = [
     # Sisyphus M1: configurable AI models by task
     "AIModel", "AIModelAssignment", "AIInvocation", "CostDailyRollup",
     "AIProvider", "AICapability", "AITask", "TASK_CAPABILITY",
+    # Onboarding
+    "OnboardingStep", "OnboardingEvent",
 ]
