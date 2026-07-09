@@ -20,6 +20,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
+import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { Link, useRouter } from "@/i18n/navigation";
 import { setCloneIdCookie } from "@/lib/clone-resolver";
 
@@ -219,7 +220,7 @@ export default function DashboardResumenPage() {
       <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-5 shadow-sm md:px-8 md:py-6">
         <div className="mx-auto flex max-w-[980px] flex-col overflow-visible pb-3">
           <div className="flex flex-col items-center text-center">
-            <ReflectiveOrb size={40} />
+            <AnimatedLogoMark size={40} pulseEveryMs={3000} />
             <h2 className="mt-2 text-[26px] font-semibold text-[var(--text-secondary)] md:text-[28px]">
               What do you want to build or query?
             </h2>
