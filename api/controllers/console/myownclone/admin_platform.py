@@ -884,3 +884,97 @@ class SystemStatusApi(Resource):
         monitor = ServerMonitor()
         report = monitor.full_report()
         return report, 200
+
+
+@console_ns.route("/myownclone/admin/email-config")
+class EmailConfigApi(Resource):
+    """Check email service configuration status."""
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        import os
+        resend_key = os.environ.get("RESEND_API_KEY", "").strip()
+        resend_from = os.environ.get("RESEND_FROM_EMAIL", "").strip()
+        sendgrid_secret = os.environ.get("SENDGRID_INBOUND_WEBHOOK_SECRET", "").strip()
+
+        return {
+            "resend": {
+                "configured": bool(resend_key),
+                "from_email": resend_from or None,
+                "api_key_set": bool(resend_key),
+            },
+            "sendgrid": {
+                "inbound_webhook_configured": bool(sendgrid_secret),
+            },
+            "status": "configured" if resend_key else "not_configured",
+            "message": "Add RESEND_API_KEY to backend.env.production to enable email sending" if not resend_key else "Email service configured",
+        }, 200
+
+
+@console_ns.route("/myownclone/admin/cost-tracking")
+class CostTrackingApi(Resource):
+    """Verify cost tracking is working correctly."""
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        from api.models.ai_models import AIInvocation, AIModel, CostDailyRollup
+
+        # Total invocations
+        total_invocations = db.session.execute(
+            select(func.count(AIInvocation.id))
+        ).scalar() or 0
+
+        # Total tokens
+        total_prompt_tokens = db.session.execute(
+            select(func.coalesce(func.sum(AIInvocation.prompt_tokens), 0))
+        ).scalar() or 0
+        total_completion_tokens = db.session.execute(
+            select(func.coalesce(func.sum(AIInvocation.completion_tokens), 0))
+        ).scalar() or 0
+
+        # Cost from daily rollup
+        total_cost = db.session.execute(
+            select(func.coalesce(func.sum(CostDailyRollup.prompt_tokens + CostDailyRollup.completion_tokens), 0))
+        ).scalar() or 0
+
+        # Invocations by model
+        by_model = db.session.execute(
+            select(
+                AIInvocation.model,
+                func.count(AIInvocation.id),
+                func.coalesce(func.sum(AIInvocation.prompt_tokens), 0),
+                func.coalesce(func.sum(AIInvocation.completion_tokens), 0),
+            )
+            .group_by(AIInvocation.model)
+        ).all()
+
+        # Active models with pricing
+        models_with_pricing = db.session.execute(
+            select(AIModel.name, AIModel.input_price_cents_per_mtok, AIModel.output_price_cents_per_mtok, AIModel.is_active)
+            .where(AIModel.is_active.is_(True))
+        ).all()
+
+        return {
+            "total_invocations": total_invocations,
+            "total_prompt_tokens": int(total_prompt_tokens),
+            "total_completion_tokens": int(total_completion_tokens),
+            "total_tokens": int(total_prompt_tokens) + int(total_completion_tokens),
+            "by_model": [
+                {"model": m, "invocations": int(c), "prompt_tokens": int(pt), "completion_tokens": int(ct)}
+                for m, c, pt, ct in by_model
+            ],
+            "active_models": [
+                {"name": n, "input_price": i, "output_price": o, "active": a}
+                for n, i, o, a in models_with_pricing
+            ],
+        }, 200
