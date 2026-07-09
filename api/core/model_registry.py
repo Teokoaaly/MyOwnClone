@@ -189,7 +189,7 @@ class ModelRegistry:
             assignment_id=assignment.id,
             ai_model_id=model.id,
             display_name=model.name,
-            api_key=SecretCipher.decrypt(model.api_key_encrypted),
+            api_key=SecretCipher.decrypt(model.api_key_encrypted) if model.api_key_encrypted and not model.api_key_encrypted.startswith("local:") else None,
             api_key_encrypted=model.api_key_encrypted,
             base_url=model.base_url,
             capabilities=tuple(model.capabilities or ()),

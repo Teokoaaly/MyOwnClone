@@ -222,14 +222,14 @@ class AIModelListApi(Resource):
         tenant_id = _tenant_id()
 
         payload = AIModelPayload.model_validate(request.json)
-        if not payload.api_key:
+        if not payload.api_key and payload.provider not in ("local", "local_whisper"):
             return {"error": "api_key is required"}, 400
         model = AIModel(
             tenant_id=tenant_id,
             name=payload.name,
             provider=payload.provider,
             model_id=payload.model_id,
-            api_key_encrypted=SecretCipher.encrypt(payload.api_key),
+            api_key_encrypted=SecretCipher.encrypt(payload.api_key) if payload.api_key else "local:no-key",
             base_url=payload.base_url,
             capabilities=payload.capabilities,
             input_price_cents_per_mtok=payload.input_price_cents_per_mtok,

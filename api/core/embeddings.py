@@ -56,7 +56,7 @@ class EmbeddingService:
             raise ModelInvocationError(
                 f"Provider {model.provider!r} does not support embeddings in M8."
             )
-        if not model.api_key:
+        if model.provider != "local" and not model.api_key:
             raise ModelInvocationError("Embedding model requires a decrypted api_key.")
         if model.provider == "local":
             return self._embed_batch_local(texts, model=model)
