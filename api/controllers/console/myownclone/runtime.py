@@ -16,17 +16,36 @@ from api.libs.login import current_account_with_tenant, login_required
 logger = logging.getLogger(__name__)
 
 # Defect #6: bound the number of texts accepted in a single embeddings request.
-# Without a cap an unbounded ``texts`` list flows straight into ``embed_texts``,
-# which fans out to the embedding provider and can exhaust memory / provider
-# quota. The frontend batches at 64 (see sources/route.ts); 256 leaves head-room
-# for trusted internal callers while still rejecting abuse.
 _MAX_EMBED_TEXTS = 256
+
+
+def _check_rate_limit(endpoint: str, limit: int = 30, window: int = 60) -> tuple[bool, int | None]:
+    """Check rate limit for console endpoints. Returns (allowed, retry_after)."""
+    try:
+        from api.core.rate_limit import check_rate_limit, RateLimitConfig, RateLimitKeyType
+        from api.libs.login import current_account_with_tenant
+        _, tenant_id = current_account_with_tenant()
+        identifier = tenant_id or request.remote_addr or "unknown"
+        config = RateLimitConfig(limit=limit, window_seconds=window)
+        allowed, remaining, reset_time = check_rate_limit(
+            identifier=identifier,
+            endpoint=endpoint,
+            key_type=RateLimitKeyType.AUTHENTICATED,
+            config=config,
+        )
+        return allowed, reset_time
+    except Exception:
+        return True, None
 
 
 @console_ns.route("/myownclone/embeddings")
 class RuntimeEmbeddingsApi(Resource):
     @login_required
     def post(self):
+        allowed, retry_after = _check_rate_limit("embeddings", limit=20, window=60)
+        if not allowed:
+            return {"error": "rate limit exceeded", "retry_after": retry_after}, 429
+
         _account, tenant_id = current_account_with_tenant()
         payload = request.get_json(silent=True) or {}
         texts = payload.get("texts") or []
@@ -64,6 +83,10 @@ class RuntimeEmbeddingsApi(Resource):
 class RuntimeSpeechToTextApi(Resource):
     @login_required
     def post(self):
+        allowed, retry_after = _check_rate_limit("stt", limit=10, window=60)
+        if not allowed:
+            return {"error": "rate limit exceeded", "retry_after": retry_after}, 429
+
         _account, tenant_id = current_account_with_tenant()
         audio = request.files.get("audio")
         if audio is None:

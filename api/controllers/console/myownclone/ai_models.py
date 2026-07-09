@@ -165,15 +165,29 @@ def _embedding_store_status(*, tenant_id: str | None) -> dict:
     chunks_total = 0
     chunks_embedded = 0
     if chunks_table_present and embedding_column_present:
-        chunks_total = int(
-            db.session.execute(text("SELECT COUNT(*) FROM chunks")).scalar() or 0
-        )
-        chunks_embedded = int(
-            db.session.execute(
-                text("SELECT COUNT(*) FROM chunks WHERE embedding IS NOT NULL")
-            ).scalar()
-            or 0
-        )
+        # Tenant-scoped: only count chunks belonging to sources owned by this tenant
+        if tenant_id:
+            chunks_total = int(
+                db.session.execute(
+                    text("SELECT COUNT(*) FROM chunks c JOIN sources s ON c.source_id = s.id WHERE s.clone_id IN (SELECT id FROM clone_configs WHERE tenant_id = :tid)"),
+                    {"tid": tenant_id},
+                ).scalar() or 0
+            )
+            chunks_embedded = int(
+                db.session.execute(
+                    text("SELECT COUNT(*) FROM chunks c JOIN sources s ON c.source_id = s.id WHERE c.embedding IS NOT NULL AND s.clone_id IN (SELECT id FROM clone_configs WHERE tenant_id = :tid)"),
+                    {"tid": tenant_id},
+                ).scalar() or 0
+            )
+        else:
+            chunks_total = int(
+                db.session.execute(text("SELECT COUNT(*) FROM chunks")).scalar() or 0
+            )
+            chunks_embedded = int(
+                db.session.execute(
+                    text("SELECT COUNT(*) FROM chunks WHERE embedding IS NOT NULL")
+                ).scalar() or 0
+            )
 
     try:
         resolved = ModelRegistry().resolve(tenant_id=tenant_id, task=AITask.EMBEDDING)
