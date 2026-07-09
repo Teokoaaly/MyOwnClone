@@ -311,6 +311,121 @@ class AdminTenantsApi(Resource):
         }, 201
 
 
+@console_ns.route("/myownclone/admin/tenants/<string:tenant_id>")
+class AdminTenantDetailApi(Resource):
+    """Get, update, or soft-delete a specific tenant."""
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def get(self, tenant_id: str):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        tenant = db.session.get(Tenant, tenant_id)
+        if not tenant:
+            return {"error": "tenant not found"}, 404
+
+        clone_counts = _clone_counts_by_tenant([tenant_id])
+        monthly_costs = _monthly_costs_by_tenant([tenant_id])
+
+        return {
+            "id": str(tenant.id),
+            "slug": tenant.slug,
+            "name": tenant.name,
+            "plan": normalize_plan(tenant.plan),
+            "status": normalize_tenant_status(tenant.status),
+            "subscription_status": tenant.subscription_status,
+            "stripe_customer_id": tenant.stripe_customer_id,
+            "stripe_subscription_id": tenant.stripe_subscription_id,
+            "trial_ends_at": _iso(tenant.trial_ends_at),
+            "clone_count": clone_counts.get(tenant_id, 0),
+            "monthly_cost_cents": monthly_costs.get(tenant_id, 0),
+            "created_at": _iso(tenant.created_at),
+            "updated_at": _iso(tenant.updated_at),
+        }, 200
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def put(self, tenant_id: str):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        tenant = db.session.get(Tenant, tenant_id)
+        if not tenant:
+            return {"error": "tenant not found"}, 404
+
+        data = request.get_json(silent=True) or {}
+        updated_fields = []
+
+        if "name" in data:
+            tenant.name = data["name"]
+            updated_fields.append("name")
+        if "slug" in data:
+            new_slug = _slugify(data["slug"])
+            if new_slug != tenant.slug:
+                existing = db.session.execute(
+                    select(Tenant).where(Tenant.slug == new_slug, Tenant.id != tenant_id)
+                ).scalar_one_or_none()
+                if existing:
+                    return {"error": f"slug '{new_slug}' already taken"}, 409
+                tenant.slug = new_slug
+                updated_fields.append("slug")
+        if "plan" in data:
+            plan = normalize_plan(data["plan"])
+            if plan not in PLAN_KEYS:
+                return {"error": "invalid plan"}, 400
+            tenant.plan = plan
+            updated_fields.append("plan")
+        if "status" in data:
+            status = normalize_tenant_status(data["status"])
+            if status not in TENANT_STATUS_KEYS:
+                return {"error": "invalid status"}, 400
+            tenant.status = status
+            updated_fields.append("status")
+        if "subscription_status" in data:
+            tenant.subscription_status = data["subscription_status"]
+            updated_fields.append("subscription_status")
+
+        if not updated_fields:
+            return {"message": "no changes"}, 200
+
+        db.session.commit()
+        logger.info("Admin updated tenant %s: %s", tenant_id, updated_fields)
+
+        return {
+            "message": "tenant updated",
+            "updated_fields": updated_fields,
+            "tenant": {
+                "id": str(tenant.id),
+                "name": tenant.name,
+                "slug": tenant.slug,
+                "plan": normalize_plan(tenant.plan),
+                "status": normalize_tenant_status(tenant.status),
+            },
+        }, 200
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    def delete(self, tenant_id: str):
+        if not _is_platform_admin(g.account_id):
+            return {"error": "platform admin only"}, 403
+
+        tenant = db.session.get(Tenant, tenant_id)
+        if not tenant:
+            return {"error": "tenant not found"}, 404
+
+        # Soft delete: set status to cancelled
+        tenant.status = "cancelled"
+        db.session.commit()
+
+        logger.info("Admin soft-deleted tenant %s (name=%s)", tenant_id, tenant.name)
+
+        return {"message": "tenant soft-deleted", "tenant_id": tenant_id}, 200
+
+
 @console_ns.route("/myownclone/admin/impersonation")
 class AdminImpersonationLogApi(Resource):
     @login_required
