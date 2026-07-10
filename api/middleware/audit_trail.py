@@ -1,0 +1,101 @@
+"""Audit trail middleware — logs admin actions to database."""
+
+import logging
+from datetime import datetime, timezone
+from functools import wraps
+
+from flask import g, request
+
+from api.extensions.ext_database import db
+
+logger = logging.getLogger(__name__)
+
+
+class AuditLog(db.Model):
+    """Audit log entry for admin actions."""
+    __tablename__ = "audit_log"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    user_id = db.Column(db.String(36), nullable=True)
+    tenant_id = db.Column(db.String(36), nullable=True)
+    action = db.Column(db.String(100), nullable=False)
+    resource_type = db.Column(db.String(50), nullable=True)
+    resource_id = db.Column(db.String(36), nullable=True)
+    details = db.Column(db.JSON, nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    user_agent = db.Column(db.String(255), nullable=True)
+
+
+_table_created = False
+
+
+def _ensure_table():
+    """Create audit_log table if it doesn't exist."""
+    global _table_created
+    if _table_created:
+        return
+    try:
+        AuditLog.__table__.create(db.engine, checkfirst=True)
+        _table_created = True
+    except Exception:
+        logger.debug("audit_log table creation skipped (may already exist)")
+        _table_created = True
+
+
+def log_audit_action(
+    action: str,
+    resource_type: str = None,
+    resource_id: str = None,
+    details: dict = None,
+):
+    """Log an audit action to the database."""
+    _ensure_table()
+    try:
+        user_id = getattr(g, "account_id", None)
+        tenant_id = getattr(g, "tenant_id", None)
+
+        entry = AuditLog(
+            user_id=str(user_id) if user_id else None,
+            tenant_id=str(tenant_id) if tenant_id else None,
+            action=action,
+            resource_type=resource_type,
+            resource_id=str(resource_id) if resource_id else None,
+            details=details,
+            ip_address=request.remote_addr,
+            user_agent=str(request.user_agent)[:255] if request.user_agent else None,
+        )
+        db.session.add(entry)
+        db.session.commit()
+    except Exception:
+        logger.exception("Failed to write audit log for action: %s", action)
+        db.session.rollback()
+
+
+def audit_action(action: str, resource_type: str = None):
+    """Decorator that logs an audit action after a successful request."""
+
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            result = f(*args, **kwargs)
+
+            # Only log successful mutations
+            status_code = 200
+            if isinstance(result, tuple) and len(result) >= 2:
+                status_code = result[1] if isinstance(result[1], int) else 200
+
+            if status_code < 300 and request.method in ("POST", "PUT", "PATCH", "DELETE"):
+                resource_id = kwargs.get("id") or kwargs.get("clone_id") or None
+                log_audit_action(
+                    action=action,
+                    resource_type=resource_type,
+                    resource_id=resource_id,
+                    details={"method": request.method, "path": request.path},
+                )
+
+            return result
+
+        return decorated_function
+
+    return decorator
