@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { Sidebar, type SidebarNavItem } from "@/components/dashboard/Sidebar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { CloneIdResolver } from "@/components/dashboard/CloneIdResolver";
-import { LanguageSelector } from "@/components/ui/LanguageSelector";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +29,7 @@ export default async function DashboardLayout({
     { href: "/planes", label: "Plans", iconKey: "facturacion", tooltip: "Plans", section: "management" },
     { href: "/facturacion", label: "Billing", iconKey: "facturacion", tooltip: "Billing", section: "management" },
     { href: "/settings", label: "Settings", iconKey: "configuracion", tooltip: "Settings", section: "management" },
-    { href: "/configuracion", label: "API Keys", iconKey: "apiKeys", tooltip: "API Keys", section: "management" },
+    { href: "/configuracion", label: "Embed", iconKey: "apiKeys", tooltip: "Embed widget", section: "management" },
     { href: "/reuniones", label: "Team Settings", iconKey: "reuniones", tooltip: "Meetings", section: "management" },
   ];
 
@@ -49,8 +49,11 @@ export default async function DashboardLayout({
           }
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-[48px] shrink-0 items-center justify-end border-b border-[var(--border-soft)] bg-[var(--surface-1)] px-4">
-            <LanguageSelector variant="header" />
+          <header
+            className="flex h-[48px] shrink-0 items-center justify-end border-b px-4"
+            style={{ background: "var(--bg-topbar)", borderColor: "var(--border-soft)" }}
+          >
+            <LanguageSwitcher />
           </header>
           <main className="min-w-0 flex-1 bg-[var(--surface-1)] p-4 md:p-6">
             {children}

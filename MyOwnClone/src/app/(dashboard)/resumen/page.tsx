@@ -19,7 +19,6 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { ChatPanel } from "@/components/chat/ChatPanel";
-import ReflectiveOrb from "@/components/ui/ReflectiveOrb";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import { Link, useRouter } from "@/i18n/navigation";
 import { setCloneIdCookie } from "@/lib/clone-resolver";
@@ -32,19 +31,6 @@ interface AnalyticsOverview {
   active_sessions?: number;
   automation_rate?: number;
   clones_count?: number;
-}
-
-interface TenantOverview {
-  total_tenants: number;
-  active_tenants: number;
-  total_clones: number;
-  mrr_cents: number;
-  mrr_display: string;
-  total_costs_cents: number;
-  total_costs_display: string;
-  margin_cents: number;
-  margin_display: string;
-  plan_breakdown: Record<string, number>;
 }
 
 interface InboxListItem {
@@ -61,6 +47,7 @@ interface CloneListItem {
   name: string;
 }
 
+const fallbackBars = [14, 18, 22, 16, 28, 36, 54, 48, 60, 42, 30, 26, 18, 22, 34, 28, 20, 18, 24, 16];
 const COLLAPSED_BOX_HEIGHT = 188;
 const ACTIVE_CHAT_BOX_HEIGHT = 420;
 
@@ -68,11 +55,9 @@ export default function DashboardResumenPage() {
   const { status } = useSession();
   const router = useRouter();
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
-  const [tenantOverview, setTenantOverview] = useState<TenantOverview | null>(null);
   const [recentInbox, setRecentInbox] = useState<InboxListItem[]>([]);
   const [clones, setClones] = useState<CloneListItem[]>([]);
   const [activeChatQuery, setActiveChatQuery] = useState("");
-  const [inlineChatError, setInlineChatError] = useState<string | null>(null);
   const [chatSessionKey, setChatSessionKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,8 +67,6 @@ export default function DashboardResumenPage() {
   }, [status, router]);
 
   const fetchData = useCallback(async () => {
-    if (status !== "authenticated") return;
-
     setLoading(true);
     setError(null);
     try {
@@ -96,10 +79,9 @@ export default function DashboardResumenPage() {
         setCloneIdCookie(resolvedClones[0].id);
       }
 
-      const [overviewRes, inboxRes, tenantRes] = await Promise.allSettled([
+      const [overviewRes, inboxRes] = await Promise.allSettled([
         fetch("/api/clone/analytics/overview"),
         fetch("/api/clone/inbox/list?limit=3"),
-        fetch("/api/admin/overview"),
       ]);
 
       if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
@@ -109,33 +91,27 @@ export default function DashboardResumenPage() {
         const data = await inboxRes.value.json();
         setRecentInbox(Array.isArray(data) ? data : data.items ?? []);
       }
-      if (tenantRes.status === "fulfilled" && tenantRes.value.ok) {
-        setTenantOverview(await tenantRes.value.json());
-      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error loading data");
     } finally {
       setLoading(false);
     }
-  }, [status]);
+  }, []);
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchData();
-    }
-  }, [status, fetchData]);
+    fetchData();
+  }, [fetchData]);
 
   const activeClone = clones[0] ?? null;
 
   const usageBars = useMemo(() => {
     const conversations = overview?.total_conversations ?? 0;
-    const messages = overview?.total_messages ?? 0;
     const questions = overview?.questions_answered ?? 0;
-    const total = conversations + messages + questions;
-    if (total === 0) return Array(20).fill(0);
-    return Array.from({ length: 20 }, (_, i) => {
-      const base = i < conversations ? 40 : i < conversations + messages ? 25 : 10;
-      return Math.min(64, base + Math.floor(Math.random() * 15));
+    const gaps = overview?.gaps_count ?? 0;
+    if (conversations === 0 && questions === 0 && gaps === 0) return fallbackBars;
+    return fallbackBars.map((bar, index) => {
+      const pulse = index % 3 === 0 ? conversations : index % 3 === 1 ? questions : gaps;
+      return Math.max(10, Math.min(64, bar + pulse * 3));
     });
   }, [overview]);
 
@@ -143,13 +119,12 @@ export default function DashboardResumenPage() {
     const trimmed = activeChatQuery.trim();
     if (trimmed.length === 0) return;
     if (!activeClone?.slug) {
-      setInlineChatError("Create your first clone before running a workspace query.");
+      router.push("/onboarding");
       return;
     }
 
-    setInlineChatError(null);
     setChatSessionKey((current) => current + 1);
-  }, [activeChatQuery, activeClone?.slug]);
+  }, [activeChatQuery, activeClone?.slug, router]);
 
   if (status === "loading" || loading) {
     return <LoadingState label="Loading dashboard..." rows={4} />;
@@ -207,16 +182,14 @@ export default function DashboardResumenPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-[var(--text-primary)]">Usage</p>
-              <p className="text-xs text-[var(--text-muted)]">
-                {overview ? `${overview.total_conversations} conversations · ${overview.total_messages} messages` : "Past 30 Days"}
-              </p>
+              <p className="text-xs text-[var(--text-muted)]">Past 30 Days</p>
             </div>
             <div className="ml-auto flex h-9 items-end gap-1">
               {usageBars.map((bar, index) => (
                 <span
                   key={`${bar}-${index}`}
-                  className={bar > 0 ? "bg-[#22B8CF]" : "bg-[#E7E5E4]"}
-                  style={{ height: `${Math.max(4, bar)}%`, width: 4, borderRadius: 3 }}
+                  className={index >= 6 && index <= 9 ? "bg-[#22B8CF]" : "bg-[#E7E5E4]"}
+                  style={{ height: `${bar}%`, width: 4, borderRadius: 3 }}
                 />
               ))}
             </div>
@@ -237,34 +210,10 @@ export default function DashboardResumenPage() {
         </div>
       </section>
 
-      {tenantOverview && (
-        <section className="mb-5 shrink-0">
-          <p className="section-label mb-3">Account Summary</p>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div className="card p-3">
-              <p className="text-xs text-[var(--text-muted)]">Active Clones</p>
-              <p className="mt-1 text-lg font-semibold">{tenantOverview.total_clones}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-xs text-[var(--text-muted)]">Conversations</p>
-              <p className="mt-1 text-lg font-semibold">{overview?.total_conversations ?? 0}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-xs text-[var(--text-muted)]">Questions Answered</p>
-              <p className="mt-1 text-lg font-semibold">{overview?.questions_answered ?? 0}</p>
-            </div>
-            <div className="card p-3">
-              <p className="text-xs text-[var(--text-muted)]">Costs (30d)</p>
-              <p className="mt-1 text-lg font-semibold">{tenantOverview.total_costs_display}</p>
-            </div>
-          </div>
-        </section>
-      )}
-
       <section className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-5 shadow-sm md:px-8 md:py-6">
         <div className="mx-auto flex max-w-[980px] flex-col overflow-visible pb-3">
           <div className="flex flex-col items-center text-center">
-            <AnimatedLogoMark size={40} pulseEveryMs={3000} />
+            <AnimatedLogoMark size={40} />
             <h2 className="mt-2 text-[26px] font-semibold text-[var(--text-secondary)] md:text-[28px]">
               What do you want to build or query?
             </h2>
@@ -303,18 +252,10 @@ export default function DashboardResumenPage() {
                   rows={2}
                   aria-label="AI query"
                   value={activeChatQuery}
-                  onChange={(event) => {
-                    setActiveChatQuery(event.target.value);
-                    if (inlineChatError) setInlineChatError(null);
-                  }}
+                  onChange={(event) => setActiveChatQuery(event.target.value)}
                   placeholder="Ask your clone something from its knowledge base..."
                   className="min-h-[40px] w-full resize-none bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
                 />
-                {inlineChatError ? (
-                  <p className="mt-2 text-xs font-medium text-[#DC2626]" role="alert">
-                    {inlineChatError}
-                  </p>
-                ) : null}
                 <div className="mt-auto flex items-center justify-between pt-1.5">
                   <div className="flex items-center gap-1.5">
                     <button type="button" className="prompt-tool" aria-label="Search">

@@ -337,6 +337,8 @@ def chat_public(slug: str):
     )
 
     system_prompt = _add_memories_to_prompt(clone.id, system_prompt)
+    from api.core.language_service import inject_language_into_prompt
+    system_prompt = inject_language_into_prompt(system_prompt, clone.language)
 
     result = retrieve_from_silo(
         session=db.session,

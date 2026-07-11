@@ -238,3 +238,4 @@ class StripeBillingApi(Resource):
                 "has_stripe": True,
                 "portal_url": None,
             }, 200
+

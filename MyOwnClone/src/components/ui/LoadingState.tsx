@@ -1,7 +1,6 @@
 "use client";
 
 import type { FC, ReactNode } from "react";
-import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 
 interface LoadingStateProps {
   /** Optional label shown beneath the skeleton, e.g. "Loading tenants…". */
@@ -23,7 +22,11 @@ export const LoadingState: FC<LoadingStateProps> = ({
       aria-live="polite"
       className="card flex flex-col items-center justify-center gap-3 py-10"
     >
-      <AnimatedLogoMark size={32} pulseEveryMs={2000} />
+      <div className="flex items-center gap-1">
+        <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:150ms]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-accent-warm)] [animation-delay:300ms]" />
+      </div>
       {label && (
         <p className="text-xs text-[var(--text-muted)]">{label}</p>
       )}
