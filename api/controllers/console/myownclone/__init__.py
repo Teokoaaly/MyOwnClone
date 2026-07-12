@@ -1,5 +1,5 @@
-"""MyOwnClone console controllers — clone, brain, analytics, inbox, stripe, booking, admin, feedback, ai models, runtime, locale."""
+"""MyOwnClone console controllers."""
 
-from . import admin_platform, ai_models, analytics, booking, clone, creator_memory, feedback, inbox, locale, runtime, stripe_ctrl
+from . import admin_platform, ai_models, analytics, booking, clone, creator_memory, feedback, inbox, locale, runtime, stripe_ctrl, stripe_webhook, prompts_ctrl, onboarding, voice
 
-__all__ = ["admin_platform", "ai_models", "analytics", "booking", "clone", "creator_memory", "feedback", "inbox", "locale", "runtime", "stripe_ctrl"]
+__all__ = ["admin_platform", "ai_models", "analytics", "booking", "clone", "creator_memory", "feedback", "inbox", "locale", "runtime", "stripe_ctrl", "stripe_webhook", "prompts_ctrl", "onboarding", "voice"]
