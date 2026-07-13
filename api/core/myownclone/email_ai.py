@@ -152,8 +152,8 @@ def _parse_json_response(text: str) -> dict:
 def _get_clone_context(clone_id: str) -> tuple[str, str]:
     from sqlalchemy import select
 
-    from extensions.ext_database import db
-    from models.myownclone import CreatorMemory, CreatorMemoryType, EmailTemplate
+    from api.extensions.ext_database import db
+    from api.models.myownclone import CreatorMemory, CreatorMemoryType, EmailTemplate
 
     memories = db.session.execute(
         select(CreatorMemory).where(

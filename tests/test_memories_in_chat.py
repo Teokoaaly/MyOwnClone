@@ -44,8 +44,8 @@ class _Session:
 
     def execute(self, stmt):
         # Filtrar por type=MEMORY y order_by priority desc
-      ***REMOVED***ltered = [m for m in self._memories if m.type == CreatorMemoryType.MEMORY]
-      ***REMOVED***ltered.sort(key=lambda m: m.priority, reverse=True)
+        filtered = [m for m in self._memories if m.type == CreatorMemoryType.MEMORY]
+        filtered.sort(key=lambda m: m.priority, reverse=True)
         return _ScalarResult(filtered)
 
 
@@ -193,7 +193,7 @@ def test_prompt_assembly_includes_system_mode_memories_and_context(monkeypatch):
     system_prompt_with_memories = _add_memories_to_prompt("c", system_prompt)
     context_text = "[Fuente 1] (relevancia: 0.85)\nEl ROI promedio es 4.2x."
 
-  ***REMOVED***nal_prompt = f"""{system_prompt_with_memories}
+    final_prompt = f"""{system_prompt_with_memories}
 
 CONTENIDO DE REFERENCIA:
 {context_text}

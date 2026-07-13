@@ -52,9 +52,13 @@ def test_ai_provider_enum_values() -> None:
 
 
 def test_ai_task_enum_values() -> None:
-    """The 5 routed tasks are present."""
+    """The routed tasks are present.
+
+    ``chat_fallback`` is a secondary chat model resolved by ModelManager when
+    the primary CHAT model is unavailable; it shares the LLM capability.
+    """
     mod = importlib.import_module("api.models.ai_models")
-    expected = {"chat", "embedding", "email_classification",
+    expected = {"chat", "chat_fallback", "embedding", "email_classification",
                 "email_draft", "stt"}
     actual = {t.value for t in mod.AITask}
     assert actual == expected, f"tasks drifted: {actual}"

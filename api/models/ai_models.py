@@ -73,9 +73,15 @@ class AICapability(enum.StrEnum):
 
 
 class AITask(enum.StrEnum):
-    """The 5 user-facing tasks we route to a model."""
+    """The user-facing tasks we route to a model.
+
+    CHAT_FALLBACK is a secondary chat model used by ModelManager when the
+    primary CHAT model fails or is unavailable; it is not directly assignable
+    from the admin UI but shares the LLM capability.
+    """
 
     CHAT = "chat"
+    CHAT_FALLBACK = "chat_fallback"
     EMBEDDING = "embedding"
     EMAIL_CLASSIFICATION = "email_classification"
     EMAIL_DRAFT = "email_draft"
@@ -86,6 +92,7 @@ class AITask(enum.StrEnum):
 #: an assigned model is actually capable of serving the task.
 TASK_CAPABILITY: dict[AITask, AICapability] = {
     AITask.CHAT: AICapability.LLM,
+    AITask.CHAT_FALLBACK: AICapability.LLM,
     AITask.EMBEDDING: AICapability.EMBEDDING,
     AITask.EMAIL_CLASSIFICATION: AICapability.LLM,
     AITask.EMAIL_DRAFT: AICapability.LLM,

@@ -77,12 +77,13 @@ def test_backfill_creates_models_and_assignments_from_env():
     # and stt (whisper-1) → 3 distinct models.
     assert result.models_created == 3
     assert result.models_updated == 0
-    # 5 tasks (chat, embedding, email_classification, email_draft, stt) → 5 assignments.
-    assert result.assignments_created == 5
+    # 6 tasks (chat, chat_fallback, embedding, email_classification,
+    # email_draft, stt) → 6 assignments. chat_fallback shares chat's LLM model.
+    assert result.assignments_created == 6
     assert result.assignments_reused == 0
     assert result.skipped_tasks == ()
     assert session.committed is True
-    assert len(session.added) == 8  # 3 models + 5 assignments
+    assert len(session.added) == 9  # 3 models + 6 assignments
 
 
 def test_backfill_is_idempotent_on_rerun():
@@ -92,6 +93,7 @@ def test_backfill_is_idempotent_on_rerun():
     stt = _model("openai", "whisper-1", capabilities=["stt"])
     assignments = [
         _assignment("chat", chat.id),
+        _assignment("chat_fallback", chat.id),
         _assignment("embedding", emb.id),
         _assignment("email_classification", chat.id),
         _assignment("email_draft", chat.id),
@@ -104,7 +106,7 @@ def test_backfill_is_idempotent_on_rerun():
     assert result.models_created == 0
     assert result.models_updated == 0
     assert result.assignments_created == 0
-    assert result.assignments_reused == 5
+    assert result.assignments_reused == 6
     assert session.added == []
 
 
@@ -123,9 +125,9 @@ def test_backfill_reuses_correct_active_assignment_and_creates_missing():
 
     assert result.models_created == 0
     assert result.assignments_reused == 1  # chat
-    assert result.assignments_created == 4  # the other 4 tasks
+    assert result.assignments_created == 5  # the other 5 tasks (incl. chat_fallback)
     added_assignments = [a for a in session.added if isinstance(a, AIModelAssignment)]
-    assert len(added_assignments) == 4
+    assert len(added_assignments) == 5
 
 
 def test_backfill_updates_existing_model_when_key_changed():
@@ -140,7 +142,7 @@ def test_backfill_updates_existing_model_when_key_changed():
     assert result.models_created == 2  # embedding + stt models created
     # The chat row now decrypts to the new key.
     assert SecretCipher.decrypt(chat.api_key_encrypted) == "sk-new"
-    assert result.assignments_created == 5
+    assert result.assignments_created == 6
 
 
 def test_backfill_no_providers_is_noop():
@@ -161,7 +163,7 @@ def test_dry_run_does_not_write():
     )
 
     assert result.models_created == 3
-    assert result.assignments_created == 5
+    assert result.assignments_created == 6
     assert session.added == []
     assert session.committed is False
 
@@ -173,7 +175,9 @@ def test_backfill_minimax_creates_chat_and_embedding_models():
 
     assert result.providers_detected == ("minimax",)
     assert result.models_created == 2
-    assert result.assignments_created == 4
+    # minimax serves LLM tasks (chat, chat_fallback, email_classification,
+    # email_draft) + embedding → 5 assignments; stt skipped (no minimax stt).
+    assert result.assignments_created == 5
     assert result.skipped_tasks == ("stt",)
 
     models = [row for row in session.added if isinstance(row, AIModel)]

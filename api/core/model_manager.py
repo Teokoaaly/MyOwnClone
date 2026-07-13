@@ -601,24 +601,37 @@ def record_llm_cost(
     Llamar desde CADA path de LLM (streaming y no-streaming) para garantizar
     trazabilidad de costes. Failure modes: si la DB falla, logueamos pero
     NO rompemos la respuesta al usuario.
+
+    Nota: ``AIInvocation`` no tiene columnas ``provider``/``tokens_in``/
+    ``tokens_out``/``cost_cents`` (ese era el defecto C-06 que hacia que
+    ninguna fila se persistiera). Mapeamos a las columnas reales
+    ``prompt_tokens``/``completion_tokens`` y conservamos ``provider`` como
+    prefijo en ``model`` (formato ``provider/model_id``) para trazabilidad.
+    El coste estimado se emite al log; el agregado diario vive en
+    ``cost_daily_rollup`` via ``ai_audit.refresh_cost_daily_rollup``.
     """
     try:
         from api.models.ai_models import AIInvocation
         from api.extensions.ext_database import db
 
+        # Combinar provider en model para no perder el dato (no hay columna propia).
+        model_label = f"{provider}/{model}" if provider and provider not in model else model
+
         invocation = AIInvocation(
             tenant_id=tenant_id,
             clone_id=clone_id,
             task=task,
-            model=model,
-            provider=provider,
-            tokens_in=tokens_in,
-            tokens_out=tokens_out,
-            cost_cents=cost_cents,
+            model=model_label,
+            prompt_tokens=int(tokens_in or 0),
+            completion_tokens=int(tokens_out or 0),
             success=True,
         )
         db.session.add(invocation)
         db.session.commit()
+        logger.info(
+            "record_llm_cost: tenant=%s model=%s in=%d out=%d cost_cents=%d",
+            tenant_id, model_label, tokens_in, tokens_out, cost_cents,
+        )
     except Exception as exc:
         logger.warning("record_llm_cost failed (non-fatal): %s", exc)
         try:
