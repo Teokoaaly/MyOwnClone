@@ -5,9 +5,26 @@ Expone /metrics con:
 - Latencia histogram por endpoint
 - DB connection pool stats
 - Custom counters (LLM cost, embeddings)
+
+Seguridad (auditoria 2026-07-13 / P0.5):
+``/metrics`` está protegido. Sin credenciales válidas devuelve 401.
+Se soportan dos modos (configurables por env, mutuamente compatibles):
+
+- **Basic auth**: ``METRICS_USER`` + ``METRICS_PASSWORD`` (recomendado para
+  Prometheus scrape con ``basic_auth``).
+- **Bearer token**: ``METRICS_TOKEN`` (alternativa simple para setups donde
+  solo se quiere un token compartido).
+
+Si ninguno está configurado, el endpoint requiere ``FLASK_ENV != production``
+(escaneo libre solo en dev). En producción sin credenciales configuradas,
+  el endpoint devuelve 404 para evitar exponer métricas por defecto.
 """
+import base64
+import hmac
+import os
+
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
-from flask import Response
+from flask import Response, request
 import time
 
 # Métricas HTTP
@@ -76,4 +93,66 @@ def register_metrics_endpoint(app):
 
     @app.route("/metrics", methods=["GET"])
     def metrics():
+        if not _metrics_authorized(request):
+            # 404 en prod sin creds configuradas (no revelar que existe);
+            # 401 cuando hay creds configuradas para que Prometheus pueda
+            # reintentar con Authorization.
+            if _metrics_has_creds_configured():
+                headers = {"WWW-Authenticate": "Basic realm=\"metrics\""}
+                return Response("Unauthorized", status=401, headers=headers)
+            return Response("Not Found", status=404)
         return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+
+def _metrics_has_creds_configured() -> bool:
+    """True si hay basic-auth o token configurado para /metrics."""
+    return bool(
+        os.environ.get("METRICS_USER")
+        or os.environ.get("METRICS_TOKEN")
+    )
+
+
+def _is_production_env() -> bool:
+    """Mismo criterio que libs.security_checks._is_production (unificado en P0.1)."""
+    return os.environ.get("FLASK_ENV", "development").lower() not in (
+        "development", "dev", "test", "testing",
+    )
+
+
+def _metrics_authorized(req) -> bool:
+    """Verifica credenciales para /metrics.
+
+    - Si hay ``METRICS_USER``+``METRICS_PASSWORD``: valida HTTP Basic.
+    - Si hay ``METRICS_TOKEN``: valida ``Authorization: Bearer <token>``.
+    - Si no hay creds configuradas:
+      * dev/test: permite (escaneo libre local).
+      * production: deniega (defensa por defecto).
+    """
+    user = os.environ.get("METRICS_USER")
+    password = os.environ.get("METRICS_PASSWORD")
+    token = os.environ.get("METRICS_TOKEN")
+
+    if user and password:
+        auth_header = req.headers.get("Authorization", "")
+        if not auth_header.startswith("Basic "):
+            return False
+        try:
+            decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
+        except Exception:
+            return False
+        if ":" not in decoded:
+            return False
+        req_user, _, req_pass = decoded.partition(":")
+        # Timing-safe comparison para evitar username/password oracle.
+        return (
+            hmac.compare_digest(req_user, user)
+            and hmac.compare_digest(req_pass, password)
+        )
+
+    if token:
+        auth_header = req.headers.get("Authorization", "")
+        bearer = auth_header[7:] if auth_header.startswith("Bearer ") else req.headers.get("X-Metrics-Token", "")
+        return bool(bearer) and hmac.compare_digest(bearer, token)
+
+    # Sin creds configuradas: permitido solo fuera de producción.
+    return not _is_production_env()
