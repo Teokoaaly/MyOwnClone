@@ -245,7 +245,15 @@ def register_health_routes(app):
 
     @app.get("/healthz")
     def healthz():
-        """Chequeo detallado: DB + Redis + Ollama. Devuelve 503 si algo falla."""
+        """Chequeo detallado: DB + Redis + Ollama. Devuelve 503 si algo falla.
+
+        Contrato (auditoria 2026-07-13 / P0.6):
+        - ``status``: ``ready`` (200) o ``degraded`` (503).
+        - ``checks``: estado por componente. No expone texto de driver/DSN
+          (info leak): reporta ``ok``/``error`` sin detalles internos que un
+          atacante sin autenticar podría leer.
+        - Ollama no es bloqueante para 503 (hay fallback de embeddings).
+        """
         import os
         import requests
 
@@ -257,17 +265,19 @@ def register_health_routes(app):
             from sqlalchemy import text
             db.session.execute(text("SELECT 1"))
             checks["database"] = "ok"
-        except Exception as exc:
+        except Exception:
             db.session.rollback()
-            checks["database"] = f"error: {exc}"
+            # No exponer el texto de la excepcion (DSN/hostnames) a callers
+            # sin autenticar. Solo reportar el estado booleano.
+            checks["database"] = "error"
             all_ok = False
 
         # 2. Redis
-        redis_ok, redis_error = _redis_ready()
+        redis_ok, _redis_error = _redis_ready()
         if redis_ok:
-            checks["redis"] = redis_error or "ok"
+            checks["redis"] = "ok"
         else:
-            checks["redis"] = f"error: {redis_error}"
+            checks["redis"] = "error"
             all_ok = False
 
         # 3. Ollama (si está configurado como embedding local)
@@ -278,9 +288,9 @@ def register_health_routes(app):
                 checks["ollama"] = "ok"
             else:
                 checks["ollama"] = f"error: HTTP {resp.status_code}"
-                all_ok = False
-        except Exception as exc:
-            checks["ollama"] = f"unreachable: {exc}"
+                # Ollama no es critico: no degrada a 503 (hay fallback).
+        except Exception:
+            checks["ollama"] = "unreachable"
             # Ollama no es crítico si hay fallback, no degrada a 503
             # pero se reporta para visibilidad
 
@@ -290,7 +300,11 @@ def register_health_routes(app):
 
     @app.get("/readyz")
     def readyz():
-        """Liveness simple: solo verifica que la app responde. Para Docker healthcheck."""
+        """Liveness simple: solo verifica que la app responde. Para Docker healthcheck.
+
+        Siempre devuelve 200 ``{"status": "ready"}`` si el proceso atiende la
+        peticion. No chequea dependencias (eso es ``/healthz``).
+        """
         return jsonify({"status": "ready"}), 200
 
 

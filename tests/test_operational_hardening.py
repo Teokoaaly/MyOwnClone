@@ -32,26 +32,53 @@ def test_database_uri_falls_back_to_db_parts(monkeypatch):
     assert _database_uri() == "postgresql://postgres:secret@db_postgres:5432/myownclone"
 
 
-def test_healthz_returns_ok(client):
+def test_healthz_returns_ready_when_dependencies_ok(client, monkeypatch):
+    """P0.6 (C-21): /healthz contrato real = readiness check.
+
+    ``status`` es ``ready`` (no ``ok``) y se incluye ``checks`` por componente.
+    DB, Redis y Ollama se mockean porque la suite CI no garantiza que esten
+    levantados (no hay Postgres/Redis/Ollama reales en el entorno de test).
+    """
+    from api.app_factory import db
+
+    monkeypatch.setattr(db.session, "execute", lambda *_a, **_kw: object())
+    monkeypatch.setattr("api.app_factory._redis_ready", lambda: (True, None))
+    # Stub Ollama probe to avoid real network in CI.
+    monkeypatch.setattr(
+        "requests.get",
+        lambda *a, **k: type("R", (), {"status_code": 200})(),
+    )
+
     response = client.get("/healthz")
 
     assert response.status_code == 200
-    assert response.get_json() == {"status": "ok"}
+    body = response.get_json()
+    assert body["status"] == "ready"
+    assert body["checks"]["database"] == "ok"
+    assert body["checks"]["redis"] == "ok"
+    assert body["checks"]["ollama"] == "ok"
 
 
-def test_readyz_returns_ready_when_dependencies_pass(app, monkeypatch):
-    from api.app_factory import db
+def test_readyz_is_liveness_and_always_ready(app):
+    """P0.6 (C-21): /readyz es liveness, no readiness.
 
-    monkeypatch.setattr(db.session, "execute", lambda *_args, **_kwargs: object())
-    monkeypatch.setattr("api.app_factory._redis_ready", lambda: (True, None))
-
+    Siempre devuelve 200 ``{"status": "ready"}`` si el proceso atiende.
+    No mockea dependencias porque readyz no las chequea.
+    """
     response = app.test_client().get("/readyz")
 
     assert response.status_code == 200
-    assert response.get_json()["status"] == "ready"
+    assert response.get_json() == {"status": "ready"}
 
 
-def test_readyz_returns_503_when_database_fails(app, monkeypatch):
+def test_healthz_returns_503_when_database_fails(app, monkeypatch):
+    """P0.6 (C-21): el 503 por DB caida lo devuelve /healthz, no /readyz.
+
+    Antes este test apuntaba a /readyz (liveness) y afirmaba 503, lo cual
+    era estructuralmente imposible: /readyz siempre devuelve 200. Ahora
+    apunta al endpoint correcto (/healthz, readiness) y verifica ademas
+    que el body no expone texto interno del driver (info leak).
+    """
     from api.app_factory import db
 
     def fail_execute(*_args, **_kwargs):
@@ -60,11 +87,19 @@ def test_readyz_returns_503_when_database_fails(app, monkeypatch):
     monkeypatch.setattr(db.session, "execute", fail_execute)
     monkeypatch.setattr(db.session, "rollback", lambda: None)
     monkeypatch.setattr("api.app_factory._redis_ready", lambda: (True, None))
+    monkeypatch.setattr(
+        "requests.get",
+        lambda *a, **k: type("R", (), {"status_code": 200})(),
+    )
 
-    response = app.test_client().get("/readyz")
+    response = app.test_client().get("/healthz")
 
     assert response.status_code == 503
-    assert response.get_json()["status"] == "not_ready"
+    body = response.get_json()
+    assert body["status"] == "degraded"
+    assert body["checks"]["database"] == "error"
+    # Info leak guard: el texto interno del driver NO debe estar en el body.
+    assert "db unavailable" not in response.get_data(as_text=True)
 
 
 def test_dev_service_key_is_rejected_in_production(monkeypatch):
