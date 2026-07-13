@@ -10,13 +10,33 @@ import logging
 from flask import request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 
 from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
 from api.extensions.ext_database import db
-from api.libs.login import login_required
+from api.libs.login import current_account_with_tenant, login_required
+from api.models.myownclone import CloneConfig
 
 logger = logging.getLogger(__name__)
+
+
+def _clone_owned_by_tenant(clone_id: str | None, tenant_id: str | None) -> bool:
+    """SECURITY (P0.4 / H-04): verify clone belongs to caller's tenant.
+
+    Prompts are scoped via ``clone_id``; without this check any authenticated
+    tenant could read/write every other tenant's prompts (which contain system
+    instructions and business logic). Mirrors the helper in clone.py/feedback.py.
+    """
+    if not clone_id or not tenant_id:
+        return False
+    found = db.session.execute(
+        select(CloneConfig.id).where(
+            CloneConfig.id == clone_id,
+            CloneConfig.tenant_id == tenant_id,
+        )
+    ).scalar_one_or_none()
+    return found is not None
 
 
 class PromptCreatePayload(BaseModel):
@@ -41,8 +61,14 @@ class PromptListApi(Resource):
     @setup_required
     def get(self):
         from api.core.prompts import PromptService
+        account, tenant = current_account_with_tenant()
+        if not tenant or not getattr(tenant, "id", None):
+            return {"error": "tenant not configured for this account"}, 400
         ps = PromptService()
         clone_id = request.args.get("clone_id")
+        # P0.4 (H-04): si se filtra por clone_id, verificar tenancy.
+        if clone_id and not _clone_owned_by_tenant(clone_id, tenant.id):
+            return {"error": "clone not found"}, 404
         prompts = ps.list_prompts(clone_id=clone_id)
         return {"prompts": prompts, "total": len(prompts)}, 200
 
@@ -51,8 +77,14 @@ class PromptListApi(Resource):
     @setup_required
     def post(self):
         from api.core.prompts import PromptService
+        account, tenant = current_account_with_tenant()
+        if not tenant or not getattr(tenant, "id", None):
+            return {"error": "tenant not configured for this account"}, 400
         ps = PromptService()
-        payload = PromptCreatePayload.model_validate(request.json)
+        payload = PromptCreatePayload.model_validate(request.get_json(silent=True) or {})
+        # P0.4 (H-04): el clone_id (si viene) debe pertenecer al tenant.
+        if payload.clone_id and not _clone_owned_by_tenant(payload.clone_id, tenant.id):
+            return {"error": "clone not found"}, 404
         prompt_id = ps.get_or_create_prompt(
             name=payload.name,
             clone_id=payload.clone_id,
@@ -71,10 +103,18 @@ class PromptDetailApi(Resource):
     def get(self, prompt_id: str):
         from api.core.prompts import PromptService
         from api.models.prompt import Prompt
+        account, tenant = current_account_with_tenant()
+        if not tenant or not getattr(tenant, "id", None):
+            return {"error": "tenant not configured for this account"}, 400
 
         ps = PromptService()
         prompt = db.session.get(Prompt, prompt_id)
         if not prompt:
+            return {"error": "prompt not found"}, 404
+
+        # P0.4 (H-04): verificar tenency via clone_id del prompt.
+        if prompt.clone_id and not _clone_owned_by_tenant(prompt.clone_id, tenant.id):
+            # No revelar existencia a quien no es dueno (404, no 403).
             return {"error": "prompt not found"}, 404
 
         versions = ps.list_versions(prompt_id)
@@ -108,8 +148,20 @@ class PromptVersionApi(Resource):
     @setup_required
     def post(self, prompt_id: str):
         from api.core.prompts import PromptService
+        from api.models.prompt import Prompt
+        account, tenant = current_account_with_tenant()
+        if not tenant or not getattr(tenant, "id", None):
+            return {"error": "tenant not configured for this account"}, 400
+
+        # P0.4 (H-04): verificar tenency del prompt antes de versionar.
+        prompt = db.session.get(Prompt, prompt_id)
+        if not prompt:
+            return {"error": "prompt not found"}, 404
+        if prompt.clone_id and not _clone_owned_by_tenant(prompt.clone_id, tenant.id):
+            return {"error": "prompt not found"}, 404
+
         ps = PromptService()
-        payload = PromptVersionPayload.model_validate(request.json)
+        payload = PromptVersionPayload.model_validate(request.get_json(silent=True) or {})
 
         try:
             version = ps.create_version(
@@ -136,9 +188,16 @@ class PromptActiveApi(Resource):
     @setup_required
     def get(self):
         from api.core.prompts import PromptService
+        account, tenant = current_account_with_tenant()
+        if not tenant or not getattr(tenant, "id", None):
+            return {"error": "tenant not configured for this account"}, 400
         ps = PromptService()
         clone_id = request.args.get("clone_id")
         task = request.args.get("task", "chat")
+
+        # P0.4 (H-04): verificar tenency del clone.
+        if clone_id and not _clone_owned_by_tenant(clone_id, tenant.id):
+            return {"error": "clone not found"}, 404
 
         result = ps.get_active_prompt(clone_id=clone_id, task=task)
         if not result:

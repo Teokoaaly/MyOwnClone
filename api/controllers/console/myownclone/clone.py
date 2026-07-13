@@ -24,6 +24,27 @@ logger = logging.getLogger(__name__)
 myownclone_ns = console_ns  # Reuse the console namespace
 
 
+def _clone_owned_by_tenant(clone_id: str | None, tenant_id: str | None) -> bool:
+    """SECURITY (P0.4 / H-03): verify clone belongs to caller's tenant.
+
+    Returns True only when a CloneConfig row exists with the given clone_id
+    scoped to tenant_id. Used by Source CRUD (and reusable by other resources
+    that take a clone_id from the request) to prevent cross-tenant IDOR.
+
+    Mirrors ``feedback._clone_owned_by_tenant``; both should converge into a
+    single shared helper in P0.4.05 (libs/tenant.py).
+    """
+    if not clone_id or not tenant_id:
+        return False
+    found = db.session.execute(
+        select(CloneConfig.id).where(
+            CloneConfig.id == clone_id,
+            CloneConfig.tenant_id == tenant_id,
+        )
+    ).scalar_one_or_none()
+    return found is not None
+
+
 class CloneConfigPayload(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     slug: str = Field(..., min_length=2, max_length=100)
@@ -331,9 +352,21 @@ class SourceListApi(Resource):
     def get(self):
         """Lista fuentes de conocimiento del tenant."""
         account, tenant = current_account_with_tenant()
+        if not tenant or not getattr(tenant, "id", None):
+            return {"error": "tenant not configured for this account"}, 400
         clone_id = request.args.get("clone_id")
-        stmt = select(Source).where(Source.clone_id.like(f"{tenant.id}%"))
+
+        # P0.4 (H-03): scoping por tenant via JOIN a clone_configs, no por
+        # prefix-like sobre clone_id (era IDOR: un tenant podia leer fuentes
+        # de otro pasando su clone_id exacto).
+        clone_ids_subq = select(CloneConfig.id).where(
+            CloneConfig.tenant_id == tenant.id
+        )
+        stmt = select(Source).where(Source.clone_id.in_(clone_ids_subq))
         if clone_id:
+            # Si se filtra por clone_id, verificar que pertenece al tenant.
+            if not _clone_owned_by_tenant(clone_id, tenant.id):
+                return {"error": "clone not found"}, 404
             stmt = stmt.where(Source.clone_id == clone_id)
         sources = db.session.execute(stmt.order_by(Source.created_at.desc())).scalars().all()
         return {"items": [_serialize_source(s) for s in sources]}
@@ -346,6 +379,14 @@ class SourceListApi(Resource):
         """Crea una fuente de conocimiento y dispara ingestion."""
         payload = SourceCreatePayload(**request.get_json(force=True))
         account, tenant = current_account_with_tenant()
+        if not tenant or not getattr(tenant, "id", None):
+            return {"error": "tenant not configured for this account"}, 400
+
+        # P0.4 (H-03): verificar que el clone_id pertenece al tenant antes
+        # de crear la fuente. Sin esto, un tenant podia inyectar fuentes en
+        # el knowledge base de otro tenant (cross-tenant source injection).
+        if not _clone_owned_by_tenant(payload.clone_id, tenant.id):
+            return {"error": "clone not found"}, 404
 
         # Texto plano puede venir en `url` (legacy) o `content`
         if payload.type == "text":
