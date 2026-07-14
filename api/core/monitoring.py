@@ -296,7 +296,15 @@ class ServerMonitor:
             return ServiceHealth(name="redis", status="down", error=str(exc))
 
     def _check_ollama(self) -> ServiceHealth:
-        """Check Ollama model server health."""
+        """Check Ollama model server health.
+
+        P1.10.06 (auditoria 2026-07-13, MEDIUM): the previous implementation
+        fired a real embedding request (``/api/embed`` with
+        ``mxbai-embed-large``) on every health probe. That wasted GPU/CPU
+        on every poll (typically every 5-30s). The embedding test has been
+        removed; ``/api/tags`` is sufficient to know whether Ollama is
+        reachable and what models are loaded.
+        """
         details = {}
         try:
             import urllib.request
@@ -321,20 +329,6 @@ class ServerMonitor:
                 for m in models
             ]
             details["latency_ms"] = latency
-
-            # Embedding test
-            embed_start = time.monotonic()
-            embed_req = urllib.request.Request(
-                f"{ollama_url}/api/embed",
-                method="POST",
-                headers={"Content-Type": "application/json"},
-                data=json.dumps({"model": "mxbai-embed-large", "input": "test"}).encode(),
-            )
-            embed_resp = urllib.request.urlopen(embed_req, timeout=30)
-            embed_data = json.loads(embed_resp.read())
-            embed_latency = round((time.monotonic() - embed_start) * 1000, 1)
-            details["embedding_latency_ms"] = embed_latency
-            details["embedding_dimensions"] = len(embed_data.get("embeddings", [[]])[0]) if embed_data.get("embeddings") else 0
 
             status = "healthy"
             if details["loaded_models"] == 0:
@@ -434,7 +428,10 @@ class ServerMonitor:
             proc = psutil.Process(os.getpid())
             details["pid"] = os.getpid()
             details["memory_mb"] = round(proc.memory_info().rss / (1024**2), 1)
-            details["cpu_percent"] = proc.cpu_percent(interval=0.1)
+            # P1.10.06 / P2.3.16: non-blocking cpu_percent. ``interval=None``
+            # returns the value since the previous call (0.0 on the first
+            # call). Avoids a 100ms blocking sleep per health probe.
+            details["cpu_percent"] = proc.cpu_percent(interval=None)
             details["threads"] = proc.num_threads()
             details["open_fds"] = proc.num_fds() if hasattr(proc, "num_fds") else None
 
