@@ -2,11 +2,40 @@
 
 import logging
 import os
+from string import Formatter
 from typing import Optional
 
 import requests
 
 logger = logging.getLogger(__name__)
+
+# SECURITY (P1.10.01 / H-08): protect against str.format(**kwargs)
+# format-string injection. ``str.format`` resolves attribute access and
+# item access on kwargs values, so a value like ``{0.__class__}`` would
+# leak internals. We pre-escape ``{`` and ``}`` in untrusted values so
+# they cannot be re-interpreted as format specifiers. The known safe
+# keys (``app_url``, ``token``) are passed through unchanged.
+_SAFE_EMAIL_TEMPLATE_KEYS = frozenset({
+    "app_url",
+    "token",
+    "reset_url",
+    "first_name",
+    "clone_name",
+    "lead_name",
+    "lead_email",
+    "sender_name",
+    "team_name",
+    "from_name",
+})
+
+
+def _escape_format_injection(value):
+    """Escape ``{`` and ``}`` so a user-supplied value cannot be interpreted
+    as a format specifier when fed to ``str.format``. Other types (int, etc.)
+    pass through unchanged via ``str(value)``."""
+    if not isinstance(value, str):
+        return value
+    return value.replace("{", "{{").replace("}", "}}")
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "noreply@myownclone.com")
@@ -106,8 +135,26 @@ def send_email(
         logger.warning("Unknown email template: %s", template_key)
         return False
 
-    subject = subject_tpl.format(**kwargs) if kwargs else subject_tpl
-    html_body = body_tpl.format(app_url=APP_URL, **kwargs) if kwargs else body_tpl.format(app_url=APP_URL)
+    # P1.10.01 (H-08): escape braces in caller-supplied values so an
+    # attacker-controlled string like ``{0.__class__}`` cannot escape into
+    # str.format spec resolution. ``app_url`` is a server-controlled
+    # constant, so it does not need escaping.
+    safe_kwargs = {k: _escape_format_injection(v) for k, v in kwargs.items()}
+    # Surface unexpected keys for visibility (mitigate typos like
+    # ``leadEmail`` vs ``lead_email`` that would silently render empty).
+    unexpected = set(safe_kwargs) - _SAFE_EMAIL_TEMPLATE_KEYS
+    if unexpected:
+        logger.warning(
+            "Email template %s received unexpected keys: %s",
+            template_key, sorted(unexpected),
+        )
+
+    subject = subject_tpl.format(**safe_kwargs) if safe_kwargs else subject_tpl
+    html_body = (
+        body_tpl.format(app_url=APP_URL, **safe_kwargs)
+        if safe_kwargs
+        else body_tpl.format(app_url=APP_URL)
+    )
 
     try:
         resp = requests.post(
