@@ -15,7 +15,7 @@ REMOTE_RELEASES_DIR="${REMOTE_ROOT}/releases"
 REMOTE_SHARED_DIR="${REMOTE_ROOT}/shared"
 RELEASE_ID="${RELEASE_ID:-$(date +%Y%m%d%H%M%S)}"
 REMOTE_RELEASE_DIR="${REMOTE_RELEASES_DIR}/${RELEASE_ID}"
-REMOTE_CURRENT_LINK="${REMOTE_ROOT}/current"
+REMOTE_CURRENT_LINK="${REMOTE_CURRENT_LINK:-${REMOTE_ROOT}/current}"
 LOCAL_REPO="${LOCAL_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 BACKEND_ENV_FILE="${BACKEND_ENV_FILE:-}"
 BASE_SSH_OPTS=(-p "$SSH_PORT" -o StrictHostKeyChecking=strict)
@@ -24,8 +24,7 @@ log() {
   printf '[deploy-backend] %s\n' "$*"
 }
 
-# Rollback state
-PREV_RELEASE_LINK=""
+PREV_RELEASE_LINK="${PREV_RELEASE_LINK:-}"
 
 capture_previous_release() {
   PREV_RELEASE_LINK="$("${SSH_CMD[@]}" "${SSH_USER}@${HOST}" \
@@ -43,18 +42,24 @@ rollback_backend() {
     log "ROLLBACK ABORTED: No previous release to restore"
     return 1
   fi
-  "${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash <<'ROLLBACK_EOF'
+  "${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash -s -- \
+    "$PREV_RELEASE_LINK" "$REMOTE_CURRENT_LINK" <<'ROLLBACK_EOF'
 set -Eeuo pipefail
-ln -sfn '${PREV_RELEASE_LINK}' '${REMOTE_CURRENT_LINK}'
-cd '${REMOTE_CURRENT_LINK}/ops'
+previous_release=$1
+current_link=$2
+ln -sfn -- "$previous_release" "$current_link"
+cd -- "$current_link/ops"
 if docker compose version >/dev/null 2>&1; then
-  COMPOSE_CMD='docker compose'
+  compose=(docker compose)
 elif command -v docker-compose >/dev/null 2>&1; then
-  COMPOSE_CMD='docker-compose'
+  compose=(docker-compose)
+else
+  printf 'No se encontró docker compose ni docker-compose\n' >&2
+  exit 1
 fi
-eval "${COMPOSE_CMD} -f docker-compose.backend.prod.yml down"
-eval "${COMPOSE_CMD} -f docker-compose.backend.prod.yml up -d --build"
-eval "${COMPOSE_CMD} -f docker-compose.backend.prod.yml ps"
+"${compose[@]}" -f docker-compose.backend.prod.yml down
+"${compose[@]}" -f docker-compose.backend.prod.yml up -d --build
+"${compose[@]}" -f docker-compose.backend.prod.yml ps
 ROLLBACK_EOF
   log "ROLLBACK: Completed - restored ${PREV_RELEASE_LINK}"
 }
@@ -75,11 +80,19 @@ require_cmd() {
   }
 }
 
-SSH_CMD=(ssh "${BASE_SSH_OPTS[@]}")
+SSH_BIN="${SSH_BIN:-ssh}"
+SSH_CMD=("$SSH_BIN" "${BASE_SSH_OPTS[@]}")
 RSYNC_RSH="ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new"
+
+if [[ "${DEPLOY_BACKEND_ROLLBACK_ONLY:-0}" == "1" ]]; then
+  rollback_backend
+  exit 0
+fi
 
 require_cmd ssh
 require_cmd rsync
+require_cmd python3
+require_cmd git
 
 if [[ ! -f "${LOCAL_REPO}/ops/docker-compose.backend.prod.yml" ]]; then
   printf 'No existe %s\n' "${LOCAL_REPO}/ops/docker-compose.backend.prod.yml" >&2
@@ -90,6 +103,19 @@ if [[ -n "$BACKEND_ENV_FILE" && ! -f "$BACKEND_ENV_FILE" ]]; then
   printf 'No existe BACKEND_ENV_FILE=%s\n' "$BACKEND_ENV_FILE" >&2
   exit 1
 fi
+
+SOURCE_COMMIT="$(git -C "$LOCAL_REPO" rev-parse HEAD)"
+git -C "$LOCAL_REPO" diff --quiet -- api ops .github/workflows
+git -C "$LOCAL_REPO" diff --cached --quiet -- api ops .github/workflows
+RELEASE_MANIFEST_FILE="$(mktemp)"
+cleanup_manifest() {
+  rm -f -- "$RELEASE_MANIFEST_FILE"
+}
+trap cleanup_manifest EXIT
+python3 "$LOCAL_REPO/ops/release_manifest.py" --root "$LOCAL_REPO" create \
+  --source-commit "$SOURCE_COMMIT" --output "$RELEASE_MANIFEST_FILE"
+python3 "$LOCAL_REPO/ops/release_manifest.py" --root "$LOCAL_REPO" verify \
+  --manifest "$RELEASE_MANIFEST_FILE"
 
 # Capture previous release for rollback before making any changes
 capture_previous_release
@@ -127,9 +153,23 @@ RSYNC_RSH="$RSYNC_RSH" rsync -az --delete \
   --exclude 'instance/*' \
   --include '/api/***' \
   --include '/ops/***' \
+  --include '/.github/' \
+  --include '/.github/workflows/***' \
   --include '/.dockerignore' \
   --exclude '*' \
   "${LOCAL_REPO}/" "${SSH_USER}@${HOST}:${REMOTE_RELEASE_DIR}/"
+
+RSYNC_RSH="$RSYNC_RSH" rsync -az --chmod=F444 \
+  "$RELEASE_MANIFEST_FILE" \
+  "${SSH_USER}@${HOST}:${REMOTE_RELEASE_DIR}/release-manifest.json"
+
+"${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash -s -- \
+  "$REMOTE_RELEASE_DIR" <<'VERIFY_EOF'
+set -Eeuo pipefail
+release_dir=$1
+python3 "$release_dir/ops/release_manifest.py" --root "$release_dir" verify \
+  --manifest "$release_dir/release-manifest.json" --no-head-check
+VERIFY_EOF
 
 log "Activando release ${RELEASE_ID} y levantando backend Docker"
 "${SSH_CMD[@]}" "${SSH_USER}@${HOST}" bash <<EOF

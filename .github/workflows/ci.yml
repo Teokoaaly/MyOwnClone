@@ -5,6 +5,21 @@ on:
   pull_request:
 
 jobs:
+  release-manifest:
+    name: Backend release manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Generate and verify manifest
+        run: |
+          manifest="$(mktemp)"
+          trap 'rm -f -- "$manifest"' EXIT
+          python ops/release_manifest.py --root . create \
+            --source-commit "$(git rev-parse HEAD)" --output "$manifest"
+          python ops/release_manifest.py --root . verify --manifest "$manifest"
+
   secret-scanning:
     name: Secret scanning
     runs-on: ubuntu-latest
