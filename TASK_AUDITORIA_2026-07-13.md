@@ -441,22 +441,37 @@
 | Fase | Ítems | Hechos | En progreso | Bloqueados |
 |------|-------|--------|-------------|------------|
 | P0 | ~21  | 18     | 0           | 3 (voice C-12, rotación VPS, redact .sisyphus) |
-| P1 | ~32  | 0      | 0           | 0          |
-| P2 | ~52  | 0      | 0           | 0          |
+| P1 | ~32  | 7      | 0           | 0 (subset contained: H-13, H-08, H-09, H-10, H-12) |
+| P2 | ~52  | 8      | 0           | 0 (subset contained: H-02, MEDIUM varios) |
 | P3 | ~29  | 0      | 0           | 0          |
-| **Total** | **~134** | **18** | **0** | **3** |
+| **Total** | **~134** | **33** | **0** | **3** |
 
-> **P0 IMPLEMENTADO (rama `fix/p0-backend-crashes-and-idor`, 6 commits, sin push):**
-> - P0.3 Backend crashes ✅ (`ca3a43c`) — C-05, C-06, C-07, C-08, C-09, C-14 + redact bonus
-> - P0.6 Health tests ✅ (`0efa39c`) — C-21×2 + info-leak
-> - P0.5 SSRF + metrics ✅ (`683e79d`) — C-10, C-13
-> - P0.4 Sources + Prompts IDOR ✅ (`32b5964` + `acec67d`) — H-03, H-04 (+ residual verifier)
-> - P0.1 Auth lockdown ✅ (`ca18c59`) — C-01, C-02, H-01
+> **P0 + P1.10 + P1.6 + P2 IMPLEMENTADO (ramas `fix/p0-backend-crashes-and-idor` + `fix/p1-backend-robustez-infra`, 13 commits locales, sin push):**
+> - P0.3 ✅ Backend crashes — C-05, C-06, C-07, C-08, C-09, C-14
+> - P0.6 ✅ Health tests honestos — C-21×2 + info-leak
+> - P0.5 ✅ SSRF allowlist + /metrics auth — C-10, C-13
+> - P0.4 ✅ Sources + Prompts IDOR (+ residual) — H-03, H-04
+> - P0.1 ✅ Auth header lockdown + leaked key removal — C-01, C-02, H-01
+> - P1.10.04 ✅ CLI commands (H-13)
+> - P1.10.01 ✅ Email format-string injection (H-08)
+> - P1.10.02 ✅ Platform guard monitoring (H-09)
+> - P1.6 ✅ Booking unique constraint (H-12, TOCTOU)
+> - P1.10 ✅ Auth sin psycopg2 crudo (H-10)
+> - P2.4 ✅ datetime.utcnow deprecated
+> - P2 ✅ Rate-limit memory leak + XFF spoofing (H-02)
+> - P2.8.07 ✅ Avatar makedirs + ext sanitization
 >
-> **Suite:** 381 passed, 14 failed (todos pre-existentes), **0 regresiones**.
-> **Verifier independiente:** APPROVE WITH NOTES → residual cerrado.
-> **Evidencia:** `.omo/evidence/p0-auditoria-2026-07-13.md`
-> **Pendiente humano:** (1) revisión + decisión push/deploy; (2) voice C-12 (cambio contrato o nuevo modelo); (3) rotación física VPS (runbook en evidencia); (4) redact `.sisyphus/evidence` (requiere aprobar excepción AGENTS.md).
+> **Suite:** 403 passed, 13 failed (todos pre-existentes), **0 regresiones**.
+> **Evidencias:**
+> - `.omo/evidence/p0-auditoria-2026-07-13.md`
+> - `.omo/evidence/p1-p2-auditoria-2026-07-13.md`
+>
+> **Pendiente humano:**
+> 1. Revisión + decisión push/deploy acumulado de P0+P1+P2 (13 commits).
+> 2. Voice C-12 (cambio contrato o nuevo modelo).
+> 3. Rotación física SERVICE_API_KEY en VPS (runbook en evidencia P0).
+> 4. Redact `.sisyphus/evidence` (excepción AGENTS.md).
+> 5. Siguientes bloques P1: P1.4 FKs, P1.5 vector search, P1.2 middlewares cableados, P1.3 Redis rate-limit, P1.1 metadata unificada.
 >
 > Actualizar esta tabla al cierre de cada bloque. Mantener `STATE.md` sincronizado.
 
