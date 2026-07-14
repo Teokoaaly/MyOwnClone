@@ -19,7 +19,7 @@ Fecha: 2026-07-14. Worktree: `codex/integration-recovery-v1`.
 
 ## Matriz completa de 59 rutas origin-only
 
-Resumen: excluded-frontend=14, retain-current=42, port-origin=3.
+Resumen: excluded-frontend=13, deferred-security-test=1, retain-current=42, port-origin=3.
 
 | Ruta | Decisión | Evidencia/racional |
 | --- | --- | --- |
@@ -81,7 +81,7 @@ Resumen: excluded-frontend=14, retain-current=42, port-origin=3.
 | `docs/ROLLBACK_PROCEDURES.md` | port-origin | Artefacto autónomo de recuperación o seguridad copiado desde el SHA fijado. |
 | `ops/test_docker_security.sh` | port-origin | Artefacto autónomo de recuperación o seguridad copiado desde el SHA fijado. |
 | `ops/test_infra_security.sh` | port-origin | Artefacto autónomo de recuperación o seguridad copiado desde el SHA fijado. |
-| `tests/security/helpers.ts` | excluded-frontend | Frontend congelado por instrucción explícita; no se importa ni ejecuta. |
+| `tests/security/helpers.ts` | deferred-security-test | Helper de pruebas de seguridad diferido; no es código frontend de producto y requiere su suite contractual. |
 
 ## Cambios
 
@@ -109,3 +109,13 @@ Resumen: excluded-frontend=14, retain-current=42, port-origin=3.
 - Manifiesto CLI sobre árbol limpio: PASS (201 archivos).
 - Copia temporal mutada en `api/app_factory.py`: FAIL esperado por digest; temporal eliminado.
 - `git diff f0b1418..HEAD -- MyOwnClone`: vacío.
+
+## Corrección tras verificación independiente
+
+- `7224de7`: valida SHA/digests hexadecimales minúsculos y rechaza rutas extra no manifestadas.
+- `996ef75`: pasa rollback por argumentos posicionales citados, integra manifiesto local/remoto y añade gate CI.
+- Harness Bash con rutas que contienen espacios y `;`: PASS sin SSH/VPS.
+- Suite final: 121 passed, 2 warnings preexistentes.
+- Manifiesto limpio: PASS; archivo extra: exit 1; archivo mutado: exit 1; SHA `z...`: exit 2.
+- Limpieza temporal con `.git/objects` read-only en Windows: `cleanup=True`.
+- Clasificación corregida: 13 rutas `MyOwnClone` excluidas y `tests/security/helpers.ts` diferida como security-test.
