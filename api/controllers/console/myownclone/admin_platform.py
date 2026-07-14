@@ -58,8 +58,18 @@ register_schema_models(console_ns, ImpersonatePayload, CourtesyPayload, CreateTe
 
 
 def _pagination_args(default_limit: int = 20, max_limit: int = 50) -> tuple[int, int]:
-    page = max(int(request.args.get("page", 1)), 1)
-    limit = min(max(int(request.args.get("limit", default_limit)), 1), max_limit)
+    # P2.8.08 (auditoria 2026-07-13, LOW): guard against non-numeric ``?page=``
+    # or ``?limit=`` (e.g. ``?page=abc`` previously raised ValueError -> 500).
+    def _safe_int(name: str, default: int, lo: int, hi: int) -> int:
+        raw = request.args.get(name, str(default))
+        try:
+            n = int(raw)
+        except (TypeError, ValueError):
+            n = default
+        return max(lo, min(n, hi))
+
+    page = _safe_int("page", default=1, lo=1, hi=10_000_000)
+    limit = _safe_int("limit", default=default_limit, lo=1, hi=max_limit)
     return page, limit
 
 
