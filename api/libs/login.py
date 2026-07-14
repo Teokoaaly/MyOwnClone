@@ -1,11 +1,20 @@
 """MyOwnClone authentication primitives — JWT-based."""
-import hmac
+import logging
 import os
 from functools import wraps
 from flask import g, request
 from typing import Callable, Any
 
 from api.libs.jwt_utils import _verify_token
+from api.libs.security_checks import _is_production
+
+logger = logging.getLogger(__name__)
+
+# Roles privilegiados que NUNCA se aceptan solo por header X-User-Role en el
+# path X-API-Key (service-to-service). Requieren confirmacion contra DB para
+# prevenir escalada de privilegios si SERVICE_API_KEY se filtra.
+# (auditoria 2026-07-13 / P0.1 / defecto C-02)
+_PRIVILEGED_ROLES = frozenset({"platform_admin", "superadmin", "root"})
 
 
 class _AccountProxy:
@@ -40,11 +49,72 @@ def _is_uuid_like(value: str | None) -> bool:
 
 
 def _allow_dev_service_key() -> bool:
-    # SECURITY: Dev key only allowed when explicitly enabled AND not in production
+    """SECURITY (P0.1 / H-01): dev key only allowed when explicitly enabled
+    AND outside production.
+
+    Usa el mismo criterio estricto que ``security_checks._is_production()``:
+    cualquier FLASK_ENV que no sea {development, dev, test, testing} cuenta
+    como produccion (incluye staging). Antes habia divergencia de politica:
+    ``staging`` activaba la dev-key aqui pero security_checks lo trataba
+    como produccion.
+    """
     return (
-        os.environ.get("FLASK_ENV", "production") not in ("production", "prod")
+        not _is_production()
         and os.environ.get("ALLOW_DEV_SERVICE_KEY", "false").lower() == "true"
     )
+
+
+def _confirm_privileged_role(account_id: str, claimed_role: str) -> str:
+    """P0.1 (C-02): confirm a privileged role against the DB before honoring it.
+
+    In the service-to-service path (X-API-Key), the backend used to trust the
+    ``X-User-Role`` header verbatim. If ``SERVICE_API_KEY`` ever leaks, any
+    caller could impersonate a platform_admin by setting that header.
+
+    Now: if the forwarded role claims to be privileged
+    (``platform_admin``/``superadmin``/``root``), we confirm against the
+    ``accounts`` table that the account actually holds that role. On any
+    mismatch, lookup failure, or DB unavailability, the role is downgraded to
+    a non-privileged default so the request can still proceed as a normal
+    user (defense in depth — fail closed on privilege, fail open on access).
+
+    Returns the (possibly downgraded) role string to set on ``g``.
+    """
+    if claimed_role not in _PRIVILEGED_ROLES:
+        return claimed_role
+
+    try:
+        from api.extensions.ext_database import db
+        from api.models.account import Account
+        from sqlalchemy import select
+
+        row = db.session.execute(
+            select(Account.role, Account.is_platform_admin).where(
+                Account.id == account_id
+            )
+        ).first()
+        if row is None:
+            logger.warning(
+                "Privileged role %r claimed for unknown account %s; downgrading.",
+                claimed_role, account_id,
+            )
+            return "user"
+        db_role, is_platform_admin = row
+        # Accept only if the DB agrees the account is platform_admin.
+        if is_platform_admin is True or (db_role or "").lower() in _PRIVILEGED_ROLES:
+            return claimed_role
+        logger.warning(
+            "Account %s claimed privileged role %r but DB role=%r is_platform_admin=%r; downgrading.",
+            account_id, claimed_role, db_role, is_platform_admin,
+        )
+        return db_role or "user"
+    except Exception as exc:
+        # Never grant privilege on DB error. Downgrade and log loudly.
+        logger.warning(
+            "Could not confirm privileged role %r for account %s (%s); downgrading.",
+            claimed_role, account_id, exc,
+        )
+        return "user"
 
 
 def login_required(f: Callable) -> Callable:
@@ -80,9 +150,13 @@ def login_required(f: Callable) -> Callable:
             if not forwarded_user_id or not forwarded_role:
                 return {'error': 'Unauthorized — missing forwarded identity'}, 401
 
+            # P0.1 (C-02): no confiar en X-User-Role para roles privilegiados
+            # sin confirmacion DB (defensa si SERVICE_API_KEY se filtra).
+            confirmed_role = _confirm_privileged_role(forwarded_user_id, forwarded_role)
+
             g.account_id = forwarded_user_id
             g.tenant_id = forwarded_tenant_id if _is_uuid_like(forwarded_tenant_id) else None
-            g.account_role = forwarded_role
+            g.account_role = confirmed_role
             g.account_email = forwarded_email or ''
             return f(*args, **kwargs)
 
