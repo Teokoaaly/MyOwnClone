@@ -7,7 +7,7 @@
 # Cron example (ejecutar como root):
 #   0 3 * * * /opt/myownclone/current/ops/backup_postgres.sh 7 >> /var/log/myownclone-backup.log 2>&1
 
-***REMOVED***
+set -euo pipefail
 
 KEEP_DAYS="${1:-7}"
 BACKUP_DIR="/opt/myownclone/backups"
