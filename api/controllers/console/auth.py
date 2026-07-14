@@ -5,11 +5,14 @@ from collections import defaultdict
 from flask import Blueprint, request, jsonify
 import jwt
 import bcrypt
-import psycopg2
 import os
 from datetime import datetime, timedelta, timezone
+from sqlalchemy import select, text
+from sqlalchemy.exc import ProgrammingError
 
+from api.extensions.ext_database import db
 from api.libs.jwt_utils import _get_secret_key, _verify_token
+from api.models.account import Account
 
 logger = logging.getLogger(__name__)
 
@@ -114,14 +117,64 @@ def _reset_rate_limit(ip: str) -> None:
     _memory_fallback.pop(ip, None)
 
 
-def _get_db_conn():
-    return psycopg2.connect(
-        host=os.environ.get("DB_HOST", "myownclone_postgres"),
-        port=os.environ.get("DB_PORT", "5432"),
-        user=os.environ.get("DB_USER") or os.environ.get("DB_USERNAME", "postgres"),
-        password=os.environ.get("DB_PASSWORD", ""),
-        dbname=os.environ.get("DB_NAME") or os.environ.get("DB_DATABASE", "myownclone"),
-    )
+def _lookup_account_via_sqlalchemy(email: str):
+    """Look up an account row using the Flask-SQLAlchemy session.
+
+    P1.10 (H-10): the previous implementation opened a raw psycopg2
+    connection per login attempt, bypassing the Flask-SQLAlchemy pool and
+    connection reuse. Under brute-force this is a DoS amplifier (one
+    fresh TCP connection per attempt) and prevents the application from
+    using the session lifecycle (transactions, rollback on error, etc.).
+
+    This helper returns a dict-like row with the canonical field names
+    (``password_hash`` aliasing ``Account.password``), or ``None`` if the
+    row is missing or the lookup fails. The legacy ``users`` table is
+    still consulted as a fallback for tenants not yet migrated.
+    """
+    # 1. Canonical: accounts (Alembic-managed).
+    try:
+        acct = db.session.execute(
+            select(Account).where(Account.email == email)
+        ).scalar_one_or_none()
+        if acct is not None:
+            return {
+                "id": str(acct.id),
+                "email": acct.email,
+                "password_hash": acct.password,
+                "name": acct.name,
+                "role": acct.role,
+                "tenant_id": str(acct.tenant_id) if acct.tenant_id else None,
+            }
+    except ProgrammingError:
+        logger.info("'accounts' lookup failed - will try legacy 'users'")
+    except Exception:
+        logger.exception("'accounts' lookup failed - will try legacy 'users'")
+
+    # 2. Legacy fallback: users (Drizzle/NextAuth schema).
+    try:
+        row = db.session.execute(
+            text(
+                "SELECT id, email, password_hash, name, role, tenant_id "
+                "FROM users WHERE email = :email"
+            ),
+            {"email": email},
+        ).first()
+        if row is None:
+            return None
+        return {
+            "id": str(row[0]),
+            "email": row[1],
+            "password_hash": row[2],
+            "name": row[3],
+            "role": row[4],
+            "tenant_id": str(row[5]) if row[5] else None,
+        }
+    except ProgrammingError:
+        # 'users' table missing too — treat as no account.
+        return None
+    except Exception:
+        logger.exception("Legacy 'users' fallback failed")
+        return None
 
 
 @auth_bp.route("/login", methods=["POST"])
@@ -142,78 +195,59 @@ def login():
             "retry_after_seconds": retry_after,
         }), 429
 
-    conn = _get_db_conn()
+    # P1.10 (H-10): use the Flask-SQLAlchemy session instead of a raw
+    # psycopg2 connection. The session is connection-pooled, transaction-
+    # safe, and avoids the per-login TCP handshake DoS amplifier.
+    row = _lookup_account_via_sqlalchemy(email)
+
+    if not row:
+        _record_attempt(client_ip)
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    account_id = row["id"]
+    db_email = row["email"]
+    db_password_hash = row["password_hash"]
+    name = row["name"]
+    role = row["role"]
+    tenant_id = row["tenant_id"]
+
+    if not db_password_hash:
+        _record_attempt(client_ip)
+        return jsonify({"error": "Account has no password set"}), 401
+
     try:
-        cur = conn.cursor()
-        # 'accounts' (Alembic) es la tabla canonica de usuarios.
-        # 'users' (Drizzle/NextAuth) es legacy y se conserva como fallback
-        # para tenants que aun no han migrado.
-        try:
-            cur.execute(
-                "SELECT id, email, password AS password_hash, name, role, tenant_id "
-                "FROM accounts WHERE email = %s",
-                (email,),
-            )
-            row = cur.fetchone()
-        except psycopg2.errors.UndefinedTable:
-            logger.info("'accounts' table missing - will try legacy 'users'")
-            row = None
-        except Exception:
-            logger.exception("'accounts' lookup failed - will try legacy 'users'")
-            row = None
-
-        if not row:
-            # Fallback: legacy 'users' table (Drizzle/NextAuth).
-            try:
-                cur.execute(
-                    "SELECT id, email, password_hash, name, role, tenant_id FROM users WHERE email = %s",
-                    (email,),
-                )
-                row = cur.fetchone()
-            except psycopg2.errors.UndefinedTable:
-                row = None
-            except Exception:
-                logger.exception("Legacy 'users' fallback failed")
-                row = None
-
-        cur.close()
-
-        if not row:
-            _record_attempt(client_ip)
-            return jsonify({"error": "Invalid credentials"}), 401
-
-        account_id, db_email, db_password_hash, name, role, tenant_id = row
-
-        if not db_password_hash:
-            _record_attempt(client_ip)
-            return jsonify({"error": "Account has no password set"}), 401
-
         if not bcrypt.checkpw(password.encode("utf-8"), db_password_hash.encode("utf-8")):
             _record_attempt(client_ip)
             return jsonify({"error": "Invalid credentials"}), 401
+    except ValueError:
+        # bcrypt.checkpw raises ValueError if the stored hash is not a valid
+        # bcrypt string (legacy md5 / argon2 / plain text). Treat as bad
+        # credentials instead of leaking the exception as a 500.
+        logger.warning(
+            "Stored password hash for %s is not a valid bcrypt hash", email,
+        )
+        _record_attempt(client_ip)
+        return jsonify({"error": "Invalid credentials"}), 401
 
-        # Successful login — reset rate limit for this IP
-        _reset_rate_limit(client_ip)
+    # Successful login — reset rate limit for this IP
+    _reset_rate_limit(client_ip)
 
-        now = datetime.now(timezone.utc)
-        payload = {
-            "sub": account_id,
-            "tenant_id": str(tenant_id) if tenant_id else "default",
-            "role": role or "admin",
-            "email": db_email,
-            "iat": now,
-            "exp": now + timedelta(hours=24),
-        }
-        token = jwt.encode(payload, _get_secret_key(), algorithm="HS256")
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": account_id,
+        "tenant_id": tenant_id or "default",
+        "role": role or "admin",
+        "email": db_email,
+        "iat": now,
+        "exp": now + timedelta(hours=24),
+    }
+    token = jwt.encode(payload, _get_secret_key(), algorithm="HS256")
 
-        return jsonify({
-            "token": token,
-            "expires_in": 86400,
-            "user": {"email": db_email, "name": name, "role": role},
-        }), 200
-
-    finally:
-        conn.close()
+    return jsonify({
+        "token": token,
+        "expires_in": 86400,
+        "user": {"email": db_email, "name": name, "role": role},
+    }), 200
 
 
 @auth_bp.route("/verify", methods=["GET"])
