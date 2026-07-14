@@ -19,6 +19,9 @@ is claimed.
   `686774cbbc688a67f7d4b17825265c26e322fcbe`
 - Nested snapshot `686774cbbc.../`: excluded.
 - Wholesale unrelated-history merges: none.
+- Corrected live `feature/standard-rag-pipeline` head:
+  `d783cb960f5a28c2463aaacc8af5043ffcabf754`; verified by
+  `git ls-remote --heads origin` and `git cat-file -e <sha>^{commit}`.
 - VPS access or mutation: none.
 
 The main checkout remained on `master` at
@@ -97,7 +100,7 @@ They occur in historical plans, audit/evidence documents, HTML manuals and
 | Manifest tamper check | SHA-256 original versus modified temporary copy | PASS, mismatch rejected, exit 0 |
 
 Manifest SHA-256 before this evidence/commit step:
-`736EC49DF81F11B53A3C96C3D1FA81C3FC1A8EA8E1FEDCA68AE103F5260B9C57`.
+`1CF9C35E21F02B2A6F6C9A09161DBEB8903A6BBDD4F9F22CE1FFB096ED9DBBF0`.
 
 ## Adversarial classes
 

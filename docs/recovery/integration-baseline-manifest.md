@@ -36,7 +36,7 @@ worktree. Live heads at the cut-off were:
 | `docs/vps-deployment-errors` | `bc2f4408e3a1eab78af39db281f55e4cbe5469b4` |
 | `evidence/vps-costs-fix-2026-06-26` | `25cd134c4aac072ac3ccbb3a319c9e146b63ef3c` |
 | `feature/sisyphus-m1-data-layer` | `afed3331d00498cea5ae4904df5a6ef463abdf4d` |
-| `feature/standard-rag-pipeline` | `d783cb960f5a28feb84e827763a7db113a582c3a7c` |
+| `feature/standard-rag-pipeline` | `d783cb960f5a28c2463aaacc8af5043ffcabf754` |
 | `fix/ai-costs-missing-rollup-table` | `ac5906fe3b28feb84e827763a7db113a582c3a7c` |
 | `i18n/exec-en-es` | `bb143802d93e523f862615f96d8ed7ecdf4d2453` |
 | `master` | `b1b3fa06fd73431e61dafe1d08a45acd07d64da6` |
