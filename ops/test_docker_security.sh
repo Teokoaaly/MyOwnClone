@@ -325,4 +325,3 @@ elif [[ "$1" == "--dockerfile" ]] && [[ -n "${2:-}" ]]; then
 else
     usage
 fi
-

@@ -287,4 +287,3 @@ After any rollback:
 - **Document every rollback** in the incident log with timestamp, reason, and who authorized it.
 - **Test the re-fix** in staging before deploying after a rollback.
 - **Consider feature flags** for future fixes to enable faster rollbacks without code changes.
-
