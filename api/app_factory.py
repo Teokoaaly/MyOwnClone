@@ -226,8 +226,24 @@ def create_app():
         max_age=600,
     )
 
-    # Register CLI commands
+    # Register CLI commands (P1.10.04 / H-13).
+    # Antes solo se registraba seed_demo_data; los demas comandos
+    # (@click.command) estaban definidos pero inalcanzables via `flask ...`.
     app.cli.add_command(seed_demo_data)
+    # Lazy imports to avoid loading heavy modules at app import time.
+    from api.commands.crypto import (
+        generate_master_key_command,
+        refresh_cost_daily_rollup_command,
+        rotate_secrets_key_command,
+    )
+    from api.commands.ai_backfill import ai_backfill_from_env_command
+    from api.commands.reindex import reindex_command
+
+    app.cli.add_command(generate_master_key_command)
+    app.cli.add_command(rotate_secrets_key_command)
+    app.cli.add_command(refresh_cost_daily_rollup_command)
+    app.cli.add_command(ai_backfill_from_env_command)
+    app.cli.add_command(reindex_command)
 
     # Register MyOwnClone blueprints
     register_myownclone_blueprints(app)
