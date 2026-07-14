@@ -32,6 +32,82 @@ _memory_fallback: dict[str, list[float]] = defaultdict(list)
 _redis_client = None
 _redis_checked = False
 
+# P2 (H-02): list of trusted proxy IPs/CIDRs that may set X-Forwarded-For.
+# Empty by default (operator must opt-in via TRUSTED_PROXIES env var, comma-separated).
+# This prevents client-side header spoofing of X-Forwarded-For for rate-limit bucketing.
+import ipaddress as _ipaddress
+_TRUSTED_PROXIES: list = []
+_trusted_proxies_loaded = False
+
+
+def _load_trusted_proxies() -> None:
+    global _TRUSTED_PROXIES, _trusted_proxies_loaded
+    if _trusted_proxies_loaded:
+        return
+    _trusted_proxies_loaded = True
+    raw = os.environ.get("TRUSTED_PROXIES", "")
+    for token in raw.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        try:
+            _TRUSTED_PROXIES.append(_ipaddress.ip_network(token, strict=False))
+        except ValueError:
+            # Allow bare IPs in addition to CIDRs.
+            try:
+                _TRUSTED_PROXIES.append(_ipaddress.ip_address(token))
+            except ValueError:
+                logger.warning("TRUSTED_PROXIES: ignoring invalid entry %r", token)
+
+
+def _client_ip(req) -> str:
+    """Best-effort client IP extraction.
+
+    P2 (H-02): prefer ``X-Forwarded-For`` ONLY if the immediate peer
+    (request.remote_addr) is in TRUSTED_PROXIES. Otherwise fall back to
+    remote_addr to prevent attackers from spoofing a different bucket per
+    attempt (bypassing the per-IP rate limit).
+    """
+    _load_trusted_proxies()
+    remote = req.remote_addr or "unknown"
+    if _TRUSTED_PROXIES:
+        try:
+            remote_ip = _ipaddress.ip_address(remote)
+        except ValueError:
+            return remote
+        trusted = any(
+            remote_ip in net for net in _TRUSTED_PROXIES
+        )
+        if trusted:
+            xff = req.headers.get("X-Forwarded-For", "")
+            if xff:
+                # First entry is the original client.
+                client = xff.split(",", 1)[0].strip()
+                if client:
+                    return client
+    return remote
+
+
+def _prune_memory_fallback(now: float) -> None:
+    """P2 (H-02): periodically evict IPs whose entire window has expired.
+
+    Without this, an attacker that spams distinct IPs would grow
+    ``_memory_fallback`` unbounded (memory leak). Called opportunistically
+    from ``_check_rate_limit`` at most once every 60s.
+    """
+    global _last_memory_prune
+    if now - _last_memory_prune < _MEMORY_PRUNE_INTERVAL:
+        return
+    _last_memory_prune = now
+    cutoff = now - _RATE_LIMIT_WINDOW_SECONDS
+    stale = [ip for ip, ts_list in _memory_fallback.items() if not ts_list or max(ts_list) < cutoff]
+    for ip in stale:
+        _memory_fallback.pop(ip, None)
+
+
+_last_memory_prune = 0.0
+_MEMORY_PRUNE_INTERVAL = 60.0
+
 
 def _get_redis():
     """Lazy-init a Redis client. Returns None if Redis is not configured or
@@ -86,6 +162,7 @@ def _check_rate_limit(ip: str) -> bool:
     now = time.time()
     attempts = _memory_fallback[ip]
     _memory_fallback[ip] = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SECONDS]
+    _prune_memory_fallback(now)
     return len(_memory_fallback[ip]) < _RATE_LIMIT_MAX_ATTEMPTS
 
 
@@ -187,7 +264,7 @@ def login():
         return jsonify({"error": "Email and password required"}), 400
 
     # ── Rate limiting by IP ──────────────────────────────────────────────────
-    client_ip = request.remote_addr or "unknown"
+    client_ip = _client_ip(request)
     if not _check_rate_limit(client_ip):
         retry_after = _RATE_LIMIT_BAN_SECONDS
         return jsonify({
