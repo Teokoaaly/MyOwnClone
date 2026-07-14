@@ -1,5 +1,15 @@
-"""Audit trail middleware — logs admin actions to database."""
+"""Audit trail middleware — logs admin actions to database.
 
+P1.2 (auditoria 2026-07-13, C-16): the runtime ``_ensure_table`` DDL
+call was removed. The ``audit_log`` table is now created via the
+Alembic migration ``2026_07_14_0002_add_audit_log_table``. This
+eliminates the cold-start race between workers and brings DDL into
+the migration lineage so drift is detectable.
+
+The decorator ``audit_action`` is the only public entry point for
+state-changing endpoints; see ``api/controllers/console/myownclone/admin_platform.py``
+for example usage.
+"""
 import logging
 from datetime import datetime, timezone
 from functools import wraps
@@ -16,7 +26,12 @@ class AuditLog(db.Model):
     __tablename__ = "audit_log"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    timestamp = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
     user_id = db.Column(db.String(36), nullable=True)
     tenant_id = db.Column(db.String(36), nullable=True)
     action = db.Column(db.String(100), nullable=False)
@@ -27,30 +42,17 @@ class AuditLog(db.Model):
     user_agent = db.Column(db.String(255), nullable=True)
 
 
-_table_created = False
-
-
-def _ensure_table():
-    """Create audit_log table if it doesn't exist."""
-    global _table_created
-    if _table_created:
-        return
-    try:
-        AuditLog.__table__.create(db.engine, checkfirst=True)
-        _table_created = True
-    except Exception:
-        logger.debug("audit_log table creation skipped (may already exist)")
-        _table_created = True
-
-
 def log_audit_action(
     action: str,
-    resource_type: str = None,
-    resource_id: str = None,
-    details: dict = None,
+    resource_type: str | None = None,
+    resource_id: str | None = None,
+    details: dict | None = None,
 ):
-    """Log an audit action to the database."""
-    _ensure_table()
+    """Log an audit action to the database.
+
+    P1.2: the table is created by Alembic migration; this function
+    only inserts. Failures are logged and never break the request.
+    """
     try:
         user_id = getattr(g, "account_id", None)
         tenant_id = getattr(g, "tenant_id", None)
@@ -72,8 +74,17 @@ def log_audit_action(
         db.session.rollback()
 
 
-def audit_action(action: str, resource_type: str = None):
-    """Decorator that logs an audit action after a successful request."""
+def audit_action(action: str, resource_type: str | None = None):
+    """Decorator that logs an audit action after a successful (2xx) request.
+
+    Usage::
+
+        @console_ns.route(...)
+        class MyEndpoint(Resource):
+            @audit_action("tenant.create", resource_type="tenant")
+            def post(self):
+                ...
+    """
 
     def decorator(f):
         @wraps(f)

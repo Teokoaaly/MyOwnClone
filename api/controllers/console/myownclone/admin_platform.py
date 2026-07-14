@@ -28,6 +28,7 @@ from api.core.contracts import (
 )
 from api.extensions.ext_database import db
 from api.libs.login import login_required
+from api.middleware.audit_trail import audit_action
 from api.models.account import Account, Tenant
 from api.models.myownclone import CloneConfig, CostTracking, Feedback, ImpersonationLog, ImpersonationToken
 
@@ -261,12 +262,12 @@ class AdminTenantsApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
+    @audit_action("admin.tenant.create", resource_type="tenant")
     def post(self):
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
         data = CreateTenantPayload.model_validate(request.json)
-
         slug = _slugify(data.slug)
         existing = db.session.execute(
             select(Tenant).where(Tenant.slug == slug)
@@ -348,6 +349,7 @@ class AdminTenantDetailApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
+    @audit_action("admin.tenant.update", resource_type="tenant")
     def put(self, tenant_id: str):
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
@@ -409,6 +411,7 @@ class AdminTenantDetailApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
+    @audit_action("admin.tenant.delete", resource_type="tenant")
     def delete(self, tenant_id: str):
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
@@ -492,6 +495,7 @@ class AdminImpersonateApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
+    @audit_action("admin.impersonate.start", resource_type="impersonation")
     def post(self):
         from datetime import timedelta, timezone
 
@@ -555,6 +559,7 @@ class AdminStopImpersonateApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
+    @audit_action("admin.impersonate.stop", resource_type="impersonation")
     def post(self):
         token_str = request.headers.get("X-Impersonate-Token", "")
         if not token_str:
