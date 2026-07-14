@@ -20,6 +20,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import platform
+import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -86,7 +88,21 @@ class ServerMonitor:
         }
 
     def _check_os(self) -> ServiceHealth:
-        """Collect OS-level metrics from /proc."""
+        """Collect OS-level metrics from /proc.
+
+        SECURITY (P1.10.02 / H-09): guard de plataforma. Los siguientes
+        ``/proc`` reads solo existen en Linux; en win32 (donde corre el
+        auditor) o macOS, el ``open()`` lanzaria OSError. Devolvemos un
+        ServiceHealth vacio y registrado, no un 500.
+        """
+        # P1.10.02: guard explicito para evitar OSError en plataformas no-Linux.
+        if platform.system() != "Linux" or not os.path.exists("/proc/stat"):
+            return ServiceHealth(
+                name="os",
+                status="unknown",
+                details={"platform": platform.system(), "python": sys.version.split()[0]},
+                error=f"OS-level metrics not available on {platform.system()}",
+            )
         details = {}
         try:
             # CPU usage from /proc/stat
