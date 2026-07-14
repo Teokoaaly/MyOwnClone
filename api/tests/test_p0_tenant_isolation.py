@@ -137,3 +137,32 @@ def test_source_create_verifies_clone_ownership():
     assert "_clone_owned_by_tenant" in source, (
         "SourceListApi.post must verify clone ownership before insert (H-03)"
     )
+
+
+def test_prompts_list_without_clone_id_is_tenant_scoped():
+    """H-04 residual (found by verifier): PromptListApi.get WITHOUT a clone_id
+    query param must scope by the tenant's clone set, not return all prompts
+    across tenants. Before, list_prompts(clone_id=None) ran select(Prompt)
+    with no tenant filter — cross-tenant read of system instructions."""
+    import inspect
+    from api.controllers.console.myownclone import prompts_ctrl
+
+    source = inspect.getsource(prompts_ctrl.PromptListApi.get)
+    # The handler must build a tenant clone set and pass it to list_prompts
+    # when no clone_id is supplied (the unfiltered path).
+    assert "tenant_clone_ids" in source or "clone_ids=" in source, (
+        "PromptListApi.get must scope the unfiltered list by tenant clone set "
+        "(H-04 residual: cross-tenant prompt read)"
+    )
+
+
+def test_prompts_service_list_prompts_accepts_clone_ids():
+    """H-04 residual: list_prompts must accept a clone_ids set for tenant
+    scoping (not just a single clone_id)."""
+    import inspect
+    from api.core.prompts import PromptService
+
+    sig = inspect.signature(PromptService.list_prompts)
+    assert "clone_ids" in sig.parameters, (
+        "PromptService.list_prompts must accept clone_ids for tenant scoping (H-04)"
+    )

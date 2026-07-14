@@ -17,7 +17,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, false as sa_false
 
 from api.extensions.ext_database import db
 
@@ -171,13 +171,29 @@ class PromptService:
             for r in rows
         ]
 
-    def list_prompts(self, clone_id: str | None = None) -> list[dict]:
-        """List all prompts, optionally filtered by clone."""
+    def list_prompts(
+        self,
+        clone_id: str | None = None,
+        clone_ids: set[str] | None = None,
+    ) -> list[dict]:
+        """List prompts, optionally filtered by a single clone or a clone set.
+
+        SECURITY (P0.4 / H-04): when ``clone_ids`` is provided, results are
+        restricted to prompts whose ``clone_id`` belongs to that set. Callers
+        MUST pass the caller's tenant clone set here to avoid cross-tenant
+        reads (prompts contain system instructions / business logic).
+        """
         from api.models.prompt import Prompt, PromptVersion as PromptVersionModel
 
         stmt = select(Prompt)
         if clone_id:
             stmt = stmt.where(Prompt.clone_id == clone_id)
+        elif clone_ids is not None:
+            # Tenant scoping: restrict to prompts owned by clones in the set.
+            # Includes None clone_id prompts (global) only if the set is empty
+            # is NOT the case here — globals are tenant-agnostic and excluded
+            # from a tenant-scoped list by design.
+            stmt = stmt.where(Prompt.clone_id.in_(tuple(clone_ids)) if clone_ids else sa_false())
         stmt = stmt.order_by(Prompt.name)
         rows = db.session.execute(stmt).scalars().all()
 

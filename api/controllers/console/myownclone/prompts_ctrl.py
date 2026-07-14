@@ -66,10 +66,25 @@ class PromptListApi(Resource):
             return {"error": "tenant not configured for this account"}, 400
         ps = PromptService()
         clone_id = request.args.get("clone_id")
+
         # P0.4 (H-04): si se filtra por clone_id, verificar tenancy.
         if clone_id and not _clone_owned_by_tenant(clone_id, tenant.id):
             return {"error": "clone not found"}, 404
-        prompts = ps.list_prompts(clone_id=clone_id)
+
+        # P0.4 (H-04, residual cerrado por verifier): cuando NO hay clone_id,
+        # scope por el set de clones del tenant para evitar cross-tenant read
+        # de prompts (system instructions / business logic). Antes,
+        # list_prompts(clone_id=None) devolvia TODOS los prompts de TODOS los
+        # tenants.
+        if clone_id:
+            prompts = ps.list_prompts(clone_id=clone_id)
+        else:
+            tenant_clone_ids = {
+                row[0] for row in db.session.execute(
+                    select(CloneConfig.id).where(CloneConfig.tenant_id == tenant.id)
+                ).all()
+            }
+            prompts = ps.list_prompts(clone_ids=tenant_clone_ids)
         return {"prompts": prompts, "total": len(prompts)}, 200
 
     @login_required
