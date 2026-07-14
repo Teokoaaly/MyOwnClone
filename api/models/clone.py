@@ -3,7 +3,7 @@ from typing import Optional
 
 import sqlalchemy as sa
 from sqlalchemy import String, func, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.libs.datetime_utils import naive_utc_now
 from api.libs.uuid_utils import uuidv7
@@ -31,6 +31,16 @@ class CloneConfig(DefaultFieldsDCMixin, TypeBase):
     custom_domain: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, default=None)
     active_modes: Mapped[Optional[str]] = mapped_column(sa.ARRAY(String(20)), nullable=True, default=None)
     is_active: Mapped[bool] = mapped_column(sa.Boolean, server_default=text("true"), default=True)
+
+    # P2.8 (auditoria 2026-07-13, MEDIUM): relationship to CloneModePrompt so
+    # callers can do ``selectinload(CloneConfig.mode_prompts)`` and avoid the
+    # N+1 SELECT-per-clone in the list endpoint. Backref defined on
+    # CloneModePrompt.clone.
+    mode_prompts: Mapped[list["CloneModePrompt"]] = relationship(
+        "CloneModePrompt",
+        primaryjoin="CloneConfig.id == foreign(CloneModePrompt.clone_id)",
+        viewonly=True,
+    )
 
 
 class CloneModePrompt(DefaultFieldsDCMixin, TypeBase):

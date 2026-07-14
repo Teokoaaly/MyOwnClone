@@ -109,9 +109,14 @@ class CloneConfigListApi(Resource):
     @console_ns.response(200, "Success", [CloneConfigResponse])
     def get(self):
         account, tenant_id = current_account_with_tenant()
+        # P2.8 (auditoria 2026-07-13, MEDIUM): eager-load the prompts
+        # relationship to avoid the N+1 in ``_serialize_clone`` (one
+        # SELECT per clone for CloneModePrompt).
+        from sqlalchemy.orm import selectinload
         stmt = (
             select(CloneConfig)
             .where(CloneConfig.tenant_id == tenant_id)
+            .options(selectinload(CloneConfig.mode_prompts))
             .order_by(CloneConfig.created_at.desc())
         )
         clones = db.session.execute(stmt).scalars().all()
