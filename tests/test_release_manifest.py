@@ -55,3 +55,34 @@ def test_load_rejects_parent_traversal(tmp_path: Path) -> None:
     manifest.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(ManifestError, match="invalid manifest entry"):
         load_manifest(manifest)
+
+
+@pytest.mark.parametrize("source_commit", ["z" * 40, "A" * 40])
+def test_load_rejects_non_lowercase_hex_commit(
+    tmp_path: Path, source_commit: str
+) -> None:
+    manifest = _manifest(tmp_path)
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    payload["source_commit"] = source_commit
+    manifest.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ManifestError, match="source_commit"):
+        load_manifest(manifest)
+
+
+@pytest.mark.parametrize("digest", ["z" * 64, "A" * 64])
+def test_load_rejects_non_lowercase_hex_digest(tmp_path: Path, digest: str) -> None:
+    manifest = _manifest(tmp_path)
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    payload["files"]["api/service.py"] = digest
+    manifest.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ManifestError, match="invalid manifest entry"):
+        load_manifest(manifest)
+
+
+def test_verify_rejects_extra_release_file(tmp_path: Path) -> None:
+    manifest = _manifest(tmp_path)
+    extra = tmp_path / "api" / "unmanifested.py"
+    extra.write_text("unexpected\n", encoding="utf-8")
+    assert verify_manifest(tmp_path, manifest, check_head=False) == [
+        "unexpected: api/unmanifested.py"
+    ]

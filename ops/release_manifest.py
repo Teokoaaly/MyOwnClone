@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -15,6 +16,8 @@ EXCLUDED_NAMES: Final = {
     "frontend.env.production",
     "release-manifest.json",
 }
+COMMIT_PATTERN: Final = re.compile(r"[0-9a-f]{40}")
+DIGEST_PATTERN: Final = re.compile(r"[0-9a-f]{64}")
 
 
 class ManifestError(ValueError):
@@ -46,6 +49,24 @@ def _tracked_release_files(root: Path) -> list[str]:
     )
 
 
+def _release_files_on_disk(root: Path) -> list[str]:
+    paths: list[str] = []
+    for prefix in INCLUDED_PREFIXES:
+        directory = root / prefix
+        if not directory.is_dir():
+            continue
+        for path in directory.rglob("*"):
+            relative = path.relative_to(root)
+            if (
+                path.is_file()
+                and path.name not in EXCLUDED_NAMES
+                and "__pycache__" not in relative.parts
+                and not path.name.startswith(".env")
+            ):
+                paths.append(relative.as_posix())
+    return sorted(paths)
+
+
 def _digest(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -55,7 +76,7 @@ def _digest(path: Path) -> str:
 
 
 def build_manifest(root: Path, source_commit: str) -> dict[str, object]:
-    if len(source_commit) != 40 or any(c not in "0123456789abcdef" for c in source_commit):
+    if COMMIT_PATTERN.fullmatch(source_commit) is None:
         raise ManifestError("source_commit must be a full lowercase Git SHA")
     files = {path: _digest(root / path) for path in _tracked_release_files(root)}
     if not files:
@@ -82,7 +103,7 @@ def load_manifest(path: Path) -> dict[str, object]:
         raise ManifestError("unsupported manifest schema")
     source_commit = payload["source_commit"]
     files = payload["files"]
-    if not isinstance(source_commit, str) or len(source_commit) != 40:
+    if not isinstance(source_commit, str) or COMMIT_PATTERN.fullmatch(source_commit) is None:
         raise ManifestError("manifest source_commit is invalid")
     if not isinstance(files, dict) or not files:
         raise ManifestError("manifest files must be a non-empty object")
@@ -93,7 +114,7 @@ def load_manifest(path: Path) -> dict[str, object]:
             or Path(relative).is_absolute()
             or ".." in Path(relative).parts
             or not isinstance(digest, str)
-            or len(digest) != 64
+            or DIGEST_PATTERN.fullmatch(digest) is None
         ):
             raise ManifestError(f"invalid manifest entry: {relative!r}")
     return payload
@@ -112,11 +133,16 @@ def verify_manifest(root: Path, manifest_path: Path, check_head: bool = True) ->
                 failures.append(f"HEAD mismatch: expected {payload['source_commit']}, got {head}")
     files = payload["files"]
     assert isinstance(files, dict)
-    for relative, expected in sorted(files.items()):
+    expected_paths = set(files)
+    actual_paths = set(_release_files_on_disk(root))
+    for relative in sorted(expected_paths - actual_paths):
+        failures.append(f"missing: {relative}")
+    for relative in sorted(actual_paths - expected_paths):
+        failures.append(f"unexpected: {relative}")
+    for relative in sorted(expected_paths & actual_paths):
+        expected = files[relative]
         path = root / relative
-        if not path.is_file():
-            failures.append(f"missing: {relative}")
-        elif _digest(path) != expected:
+        if _digest(path) != expected:
             failures.append(f"digest mismatch: {relative}")
     return failures
 
