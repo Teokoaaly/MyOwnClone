@@ -4,12 +4,18 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import delete, select
 
 from api.extensions.ext_database import db
 from api.models.ai_models import AIInvocation, CostDailyRollup
+
+
+def _naive_utc_now():
+    """P2.4: replacement for datetime.utcnow (deprecated in Py 3.12+).
+    Returns a naive datetime in UTC, consistent with naive DateTime columns."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 @dataclass(slots=True)
@@ -55,7 +61,7 @@ def build_cost_daily_rollup_rows(
 
 
 def refresh_cost_daily_rollup(*, days: int = 30) -> int:
-    since = datetime.utcnow() - timedelta(days=days)
+    since = _naive_utc_now() - timedelta(days=days)
     invocations = db.session.execute(
         select(AIInvocation).where(AIInvocation.created_at >= since)
     ).scalars().all()

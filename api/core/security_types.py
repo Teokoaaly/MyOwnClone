@@ -7,9 +7,15 @@ audit logging, and tenant isolation checks across the MyOwnClone API.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
+
+
+def _naive_utc_now():
+    """P2.4: replacement for datetime.utcnow (deprecated in Py 3.12+).
+    Returns a naive datetime in UTC, consistent with naive DateTime columns."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # Rate limiting key schema constants
 RATE_LIMIT_KEY_PREFIX = "ratelimit"
@@ -90,7 +96,7 @@ class SecurityEvent:
     """
 
     event_type: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=_naive_utc_now)
     tenant_id: Optional[str] = None
     ip_address: Optional[str] = None
     endpoint: Optional[str] = None
@@ -152,7 +158,7 @@ class AuditLogEntry:
     """
 
     entry_id: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=_naive_utc_now)
     tenant_id: Optional[str] = None
     user_id: Optional[str] = None
     action: Optional[str] = None
@@ -195,7 +201,7 @@ class TenantResource:
     resource_id: str
     resource_type: str
     tenant_id: str
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=_naive_utc_now)
 
 
 @dataclass

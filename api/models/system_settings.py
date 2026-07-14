@@ -1,7 +1,12 @@
 """System-wide settings table for runtime configuration."""
-from datetime import datetime
+from datetime import datetime, timezone
 
 from api.extensions.ext_database import db
+
+
+def _naive_utc_now():
+    """P2.4: replacement for datetime.utcnow (deprecated in Py 3.12+)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class SystemSetting(db.Model):
@@ -16,8 +21,8 @@ class SystemSetting(db.Model):
     value = db.Column(db.Text, nullable=True)
     updated_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=_naive_utc_now,
+        onupdate=_naive_utc_now,
     )
 
     def __repr__(self) -> str:
