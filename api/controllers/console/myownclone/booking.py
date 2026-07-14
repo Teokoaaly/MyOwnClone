@@ -7,6 +7,7 @@ from flask import request
 from flask_restx import Resource
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 
 from api.controllers.common.schema import register_response_schema_models, register_schema_models
@@ -386,7 +387,14 @@ class BookingsApi(Resource):
             status="confirmed",
         )
         db.session.add(booking)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # P1.6 (H-12): concurrent POST that beat us to the slot.
+            # The DB-level partial unique index ``uq_bookings_meeting_slot``
+            # raised IntegrityError; rollback and return 409 instead of 500.
+            db.session.rollback()
+            return {"error": "Time slot already booked for this meeting type"}, 409
         return _booking_to_dict(booking), 201
 
 

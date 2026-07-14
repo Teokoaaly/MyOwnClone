@@ -22,6 +22,7 @@ from hashlib import sha256
 
 from flask import Blueprint, request, jsonify
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from api.core.myownclone.email_ai import _get_clone_context, classify_email, generate_draft_reply
 from api.core.myownclone.email_processor import parse_inbound_email, resolve_clone_by_domain
@@ -657,6 +658,11 @@ def create_booking_public(slug: str):
             pass
 
     if bd and st:
+        # P1.6 (H-12): the application-level check above has a TOCTOU race.
+        # The DB-level partial unique index ``uq_bookings_meeting_slot`` on
+        # (meeting_type_id, date, start_time) WHERE both NOT NULL is the
+        # real guarantee; the IntegrityError catch below turns the race
+        # into a 409 instead of a 500.
         conflict = db.session.execute(
             select(Booking).where(
                 Booking.meeting_type_id == meeting_type_id,
@@ -677,7 +683,12 @@ def create_booking_public(slug: str):
         status="confirmed",
     )
     db.session.add(booking)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        # P1.6 (H-12): concurrent POST that beat us to the slot.
+        return jsonify({"error": "Time slot already booked"}), 409
 
     return jsonify({
         "id": booking.id,
