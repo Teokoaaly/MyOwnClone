@@ -474,19 +474,35 @@ class CloneAvatarApi(Resource):
         allowed_types = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
         if file.content_type not in allowed_types:
             return {"error": "Invalid file type. Allowed: JPEG, PNG, GIF, WebP"}, 400
-        
+
         # Validate file size (max 5MB)
         file.seek(0, os.SEEK_END)
         file_size = file.tell()
         file.seek(0)
         if file_size > 5 * 1024 * 1024:
             return {"error": "File too large. Maximum 5MB"}, 400
-        
-        # Generate unique filename
-        ext = file.filename.rsplit('.', 1)[-1].lower()
+
+        # P2.8.07: sanitize extension from user-supplied filename.
+        # Without an allowlist, ``shellcode.php`` (rsplit('.')[-1] -> "php")
+        # would let the extension pass through. Map the content_type to a
+        # known-good extension and ignore whatever the client sent.
+        content_type_to_ext = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/gif": "gif",
+            "image/webp": "webp",
+        }
+        ext = content_type_to_ext[file.content_type]
         filename = f"{uuid.uuid4()}.{ext}"
-        filepath = os.path.join("/opt/myownclone/shared/avatars", filename)
-        
+
+        # P2.8.07: ensure parent directory exists (fresh deploys would
+        # otherwise raise FileNotFoundError on file.save).
+        avatars_dir = os.environ.get(
+            "AVATARS_DIR", "/opt/myownclone/shared/avatars"
+        )
+        os.makedirs(avatars_dir, exist_ok=True)
+        filepath = os.path.join(avatars_dir, filename)
+
         # Save file
         file.save(filepath)
         
