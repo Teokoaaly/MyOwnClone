@@ -1,6 +1,7 @@
 from io import BytesIO
 from types import SimpleNamespace
 
+from api.libs.login import AuthenticatedIdentity
 from api.models.ai_models import AITask
 from api.models.email import EmailInbound
 
@@ -9,13 +10,25 @@ def _auth_headers():
     return {"Authorization": "Bearer test-token"}
 
 
+def _mock_auth(monkeypatch) -> None:
+    monkeypatch.setattr("api.libs.login._verify_token", lambda token: {"sub": "user-1"})
+    monkeypatch.setattr(
+        "api.libs.login._load_authoritative_identity",
+        lambda account_id: AuthenticatedIdentity(
+            account_id="user-1",
+            tenant_id="tenant-1",
+            role="admin",
+            email="user@example.com",
+        ),
+    )
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.runtime._check_rate_limit",
+        lambda endpoint, limit, window: (True, None),
+    )
+
+
 def test_embeddings_endpoint_uses_embedding_service(app, monkeypatch):
-    monkeypatch.setattr("api.libs.login._verify_token", lambda token: {
-        "sub": "user-1",
-        "tenant_id": "tenant-1",
-        "role": "admin",
-        "email": "user@example.com",
-    })
+    _mock_auth(monkeypatch)
     captured = {}
 
     def fake_embed(self, texts, tenant_id=None, model=None):
@@ -41,12 +54,7 @@ def test_embeddings_endpoint_uses_embedding_service(app, monkeypatch):
 
 
 def test_stt_endpoint_uses_registry_service(app, monkeypatch):
-    monkeypatch.setattr("api.libs.login._verify_token", lambda token: {
-        "sub": "user-1",
-        "tenant_id": "tenant-1",
-        "role": "admin",
-        "email": "user@example.com",
-    })
+    _mock_auth(monkeypatch)
     captured = {}
 
     def fake_transcribe(self, **kwargs):

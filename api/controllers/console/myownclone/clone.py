@@ -1,7 +1,6 @@
 """MyOwnClone clone configuration API — CRUD for clone identity, personality, and mode prompts."""
 
 import logging
-from datetime import datetime
 from uuid import uuid4
 
 from flask import request
@@ -244,7 +243,9 @@ class CloneModePromptApi(Resource):
     @account_initialization_required
     @setup_required
     def put(self, clone_id: str):
-        account, tenant_id = current_account_with_tenant()
+        _account, tenant_id = current_account_with_tenant()
+        if not _clone_owned_by_tenant(clone_id, tenant_id):
+            return {"error": "clone not found"}, 404
         data = CloneModePromptPayload.model_validate(request.json)
         mode = normalize_silo(data.mode)
         prompt = db.session.execute(
@@ -254,14 +255,6 @@ class CloneModePromptApi(Resource):
             )
         ).scalar_one_or_none()
         if not prompt:
-            clone = db.session.execute(
-                select(CloneConfig).where(
-                    CloneConfig.id == clone_id,
-                    CloneConfig.tenant_id == tenant_id,
-                )
-            ).scalar_one_or_none()
-            if not clone:
-                return {"error": "clone not found"}, 404
             prompt = CloneModePrompt(clone_id=clone_id, mode=mode)
             db.session.add(prompt)
         prompt.system_prompt = data.system_prompt
@@ -356,8 +349,8 @@ class SourceListApi(Resource):
     @console_ns.doc("list_sources")
     def get(self):
         """Lista fuentes de conocimiento del tenant."""
-        account, tenant = current_account_with_tenant()
-        if not tenant or not getattr(tenant, "id", None):
+        _account, tenant_id = current_account_with_tenant()
+        if not tenant_id:
             return {"error": "tenant not configured for this account"}, 400
         clone_id = request.args.get("clone_id")
 
@@ -365,12 +358,12 @@ class SourceListApi(Resource):
         # prefix-like sobre clone_id (era IDOR: un tenant podia leer fuentes
         # de otro pasando su clone_id exacto).
         clone_ids_subq = select(CloneConfig.id).where(
-            CloneConfig.tenant_id == tenant.id
+            CloneConfig.tenant_id == tenant_id
         )
         stmt = select(Source).where(Source.clone_id.in_(clone_ids_subq))
         if clone_id:
             # Si se filtra por clone_id, verificar que pertenece al tenant.
-            if not _clone_owned_by_tenant(clone_id, tenant.id):
+            if not _clone_owned_by_tenant(clone_id, tenant_id):
                 return {"error": "clone not found"}, 404
             stmt = stmt.where(Source.clone_id == clone_id)
         sources = db.session.execute(stmt.order_by(Source.created_at.desc())).scalars().all()
@@ -383,14 +376,14 @@ class SourceListApi(Resource):
     def post(self):
         """Crea una fuente de conocimiento y dispara ingestion."""
         payload = SourceCreatePayload(**request.get_json(force=True))
-        account, tenant = current_account_with_tenant()
-        if not tenant or not getattr(tenant, "id", None):
+        _account, tenant_id = current_account_with_tenant()
+        if not tenant_id:
             return {"error": "tenant not configured for this account"}, 400
 
         # P0.4 (H-03): verificar que el clone_id pertenece al tenant antes
         # de crear la fuente. Sin esto, un tenant podia inyectar fuentes en
         # el knowledge base de otro tenant (cross-tenant source injection).
-        if not _clone_owned_by_tenant(payload.clone_id, tenant.id):
+        if not _clone_owned_by_tenant(payload.clone_id, tenant_id):
             return {"error": "clone not found"}, 404
 
         # Texto plano puede venir en `url` (legacy) o `content`
@@ -451,7 +444,7 @@ class CloneAvatarApi(Resource):
     @setup_required
     def post(self, clone_id):
         """Upload avatar for a clone."""
-        from flask import request, g
+        from flask import request
         from api.extensions.ext_database import db
         from api.models import CloneConfig
         from api.libs.login import current_account_with_tenant
@@ -461,11 +454,14 @@ class CloneAvatarApi(Resource):
         account, tenant_id = current_account_with_tenant()
 
         # Verify clone exists and belongs to user's tenant
-        clone = db.session.get(CloneConfig, clone_id)
+        clone = db.session.execute(
+            select(CloneConfig).where(
+                CloneConfig.id == clone_id,
+                CloneConfig.tenant_id == tenant_id,
+            )
+        ).scalar_one_or_none()
         if not clone:
             return {"error": "Clone not found"}, 404
-        if tenant_id and clone.tenant_id != tenant_id:
-            return {"error": "Access denied"}, 403
         
         # Check file upload
         if 'avatar' not in request.files:
@@ -534,11 +530,14 @@ class CloneAvatarApi(Resource):
 
         account, tenant_id = current_account_with_tenant()
 
-        clone = db.session.get(CloneConfig, clone_id)
+        clone = db.session.execute(
+            select(CloneConfig).where(
+                CloneConfig.id == clone_id,
+                CloneConfig.tenant_id == tenant_id,
+            )
+        ).scalar_one_or_none()
         if not clone:
             return {"error": "Clone not found"}, 404
-        if tenant_id and clone.tenant_id != tenant_id:
-            return {"error": "Access denied"}, 403
         
         if clone.avatar_url:
             # Delete file

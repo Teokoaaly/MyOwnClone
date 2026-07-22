@@ -97,7 +97,18 @@ def audit_action(action: str, resource_type: str | None = None):
                 status_code = result[1] if isinstance(result[1], int) else 200
 
             if status_code < 300 and request.method in ("POST", "PUT", "PATCH", "DELETE"):
-                resource_id = kwargs.get("id") or kwargs.get("clone_id") or None
+                resource_id = (
+                    kwargs.get("id")
+                    or kwargs.get("tenant_id")
+                    or kwargs.get("clone_id")
+                    or None
+                )
+                body = result[0] if isinstance(result, tuple) else result
+                if resource_id is None and isinstance(body, dict):
+                    resource_id = body.get("tenant_id") or body.get("id")
+                    tenant = body.get("tenant")
+                    if resource_id is None and isinstance(tenant, dict):
+                        resource_id = tenant.get("id")
                 log_audit_action(
                     action=action,
                     resource_type=resource_type,

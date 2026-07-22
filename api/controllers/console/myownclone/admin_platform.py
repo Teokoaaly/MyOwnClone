@@ -4,7 +4,6 @@ Requires platform_admin role. Used by the platform admin panel.
 """
 
 import hashlib
-import json
 import logging
 import os
 import re
@@ -15,9 +14,10 @@ from typing import TypedDict
 from flask import g, request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
-from sqlalchemy import false, func, or_, select
+from sqlalchemy import func, or_, select
+from sqlalchemy.exc import SQLAlchemyError
 
-from api.controllers.common.schema import register_response_schema_models, register_schema_models
+from api.controllers.common.schema import register_schema_models
 from api.controllers.console import console_ns
 from api.controllers.console.wraps import account_initialization_required, setup_required
 from api.core.contracts import (
@@ -29,7 +29,7 @@ from api.core.contracts import (
 )
 from api.extensions.ext_database import db
 from api.libs.login import login_required
-from api.middleware.audit_trail import audit_action
+from api.middleware.audit_trail import AuditLog, audit_action
 from api.models.account import Account, Tenant
 from api.models.myownclone import (
     AnalyticsGap,
@@ -771,6 +771,7 @@ class AdminCourtesyAccountApi(Resource):
     @login_required
     @account_initialization_required
     @setup_required
+    @audit_action("admin.courtesy.create", resource_type="tenant")
     def post(self):
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
@@ -825,40 +826,38 @@ class AdminAuditLogApi(Resource):
 
         filters = []
         if actor_id:
-            filters.append(ImpersonationLog.admin_id == actor_id)
+            filters.append(AuditLog.user_id == actor_id)
         if target_id:
-            filters.append(ImpersonationLog.tenant_id == target_id)
-        if action == "impersonation_stopped":
-            filters.append(ImpersonationLog.ended_at.is_not(None))
-        elif action and action != "impersonation_started":
-            filters.append(false())
+            filters.append(AuditLog.resource_id == target_id)
+        if action:
+            filters.append(AuditLog.action == action)
 
         total = db.session.execute(
-            select(func.count(ImpersonationLog.id)).where(*filters)
+            select(func.count(AuditLog.id)).where(*filters)
         ).scalar() or 0
         rows = db.session.execute(
-            select(ImpersonationLog)
+            select(AuditLog)
             .where(*filters)
-            .order_by(ImpersonationLog.started_at.desc())
+            .order_by(AuditLog.timestamp.desc())
             .offset((page - 1) * limit)
             .limit(limit)
         ).scalars().all()
 
-        items = []
-        for log in rows:
-            stopped = action == "impersonation_stopped" and log.ended_at is not None
-            items.append({
+        items = [
+            {
                 "id": str(log.id),
-                "actor_id": str(log.admin_id),
-                "action": "impersonation_stopped" if stopped else "impersonation_started",
-                "target_type": "tenant",
-                "target_id": str(log.tenant_id),
-                "reason": log.reason,
-                "metadata": {"ended_at": _iso(log.ended_at)} if log.ended_at else None,
-                "ip_address": None,
-                "user_agent": None,
-                "created_at": _iso(log.ended_at if stopped else log.started_at),
-            })
+                "actor_id": str(log.user_id) if log.user_id else None,
+                "action": log.action,
+                "target_type": log.resource_type,
+                "target_id": str(log.resource_id) if log.resource_id else None,
+                "reason": (log.details or {}).get("reason"),
+                "metadata": log.details,
+                "ip_address": log.ip_address,
+                "user_agent": log.user_agent,
+                "created_at": _iso(log.timestamp),
+            }
+            for log in rows
+        ]
 
         return {
             "items": items,
@@ -945,7 +944,7 @@ def _is_platform_admin(account_id: str) -> bool:
         account = db.session.execute(
             select(Account).where(Account.id == account_id)
         ).scalar_one_or_none()
-    except Exception:
+    except SQLAlchemyError:
         return False
 
     if account and hasattr(account, "is_platform_admin") and account.is_platform_admin:
@@ -1050,7 +1049,7 @@ class CostTrackingApi(Resource):
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
-        from api.models.ai_models import AIInvocation, AIModel, CostDailyRollup
+        from api.models.ai_models import AIInvocation, AIModel
 
         # Total invocations
         total_invocations = db.session.execute(
@@ -1063,11 +1062,6 @@ class CostTrackingApi(Resource):
         ).scalar() or 0
         total_completion_tokens = db.session.execute(
             select(func.coalesce(func.sum(AIInvocation.completion_tokens), 0))
-        ).scalar() or 0
-
-        # Cost from daily rollup
-        total_cost = db.session.execute(
-            select(func.coalesce(func.sum(CostDailyRollup.prompt_tokens + CostDailyRollup.completion_tokens), 0))
         ).scalar() or 0
 
         # Invocations by model

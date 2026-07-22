@@ -1,20 +1,27 @@
 """MyOwnClone authentication primitives — JWT-based."""
+from __future__ import annotations
+
+import hmac
 import logging
 import os
+from dataclasses import dataclass
 from functools import wraps
+from typing import Any, Callable
+
 from flask import g, request
-from typing import Callable, Any
+from sqlalchemy.exc import SQLAlchemyError
 
 from api.libs.jwt_utils import _verify_token
 from api.libs.security_checks import _is_production
 
 logger = logging.getLogger(__name__)
 
-# Roles privilegiados que NUNCA se aceptan solo por header X-User-Role en el
-# path X-API-Key (service-to-service). Requieren confirmacion contra DB para
-# prevenir escalada de privilegios si SERVICE_API_KEY se filtra.
-# (auditoria 2026-07-13 / P0.1 / defecto C-02)
-_PRIVILEGED_ROLES = frozenset({"platform_admin", "superadmin", "root"})
+@dataclass(frozen=True, slots=True)
+class AuthenticatedIdentity:
+    account_id: str
+    tenant_id: str
+    role: str
+    email: str
 
 
 class _AccountProxy:
@@ -64,57 +71,35 @@ def _allow_dev_service_key() -> bool:
     )
 
 
-def _confirm_privileged_role(account_id: str, claimed_role: str) -> str:
-    """P0.1 (C-02): confirm a privileged role against the DB before honoring it.
-
-    In the service-to-service path (X-API-Key), the backend used to trust the
-    ``X-User-Role`` header verbatim. If ``SERVICE_API_KEY`` ever leaks, any
-    caller could impersonate a platform_admin by setting that header.
-
-    Now: if the forwarded role claims to be privileged
-    (``platform_admin``/``superadmin``/``root``), we confirm against the
-    ``accounts`` table that the account actually holds that role. On any
-    mismatch, lookup failure, or DB unavailability, the role is downgraded to
-    a non-privileged default so the request can still proceed as a normal
-    user (defense in depth — fail closed on privilege, fail open on access).
-
-    Returns the (possibly downgraded) role string to set on ``g``.
-    """
-    if claimed_role not in _PRIVILEGED_ROLES:
-        return claimed_role
-
+def _load_authoritative_identity(account_id: str | None) -> AuthenticatedIdentity | None:
+    normalized_id = str(account_id or "").strip()
+    if not _is_uuid_like(normalized_id):
+        return None
     try:
         from api.extensions.ext_database import db
         from api.models.account import Account
-        from sqlalchemy import select
+        account = db.session.get(Account, normalized_id)
+    except SQLAlchemyError:
+        logger.exception("Could not resolve authenticated account %s", normalized_id)
+        return None
 
-        row = db.session.execute(
-            select(Account.role, Account.is_platform_admin).where(
-                Account.id == account_id
-            )
-        ).first()
-        if row is None:
-            logger.warning(
-                "Privileged role %r claimed for unknown account %s; downgrading.",
-                claimed_role, account_id,
-            )
-            return "user"
-        db_role, is_platform_admin = row
-        # Accept only if the DB agrees the account is platform_admin.
-        if is_platform_admin is True or (db_role or "").lower() in _PRIVILEGED_ROLES:
-            return claimed_role
-        logger.warning(
-            "Account %s claimed privileged role %r but DB role=%r is_platform_admin=%r; downgrading.",
-            account_id, claimed_role, db_role, is_platform_admin,
-        )
-        return db_role or "user"
-    except Exception as exc:
-        # Never grant privilege on DB error. Downgrade and log loudly.
-        logger.warning(
-            "Could not confirm privileged role %r for account %s (%s); downgrading.",
-            claimed_role, account_id, exc,
-        )
-        return "user"
+    if account is None or str(account.status).lower() != "active":
+        return None
+
+    role = "platform_admin" if account.is_platform_admin else str(account.role or "member")
+    return AuthenticatedIdentity(
+        account_id=str(account.id),
+        tenant_id=str(account.tenant_id),
+        role=role,
+        email=str(account.email),
+    )
+
+
+def _apply_identity(identity: AuthenticatedIdentity) -> None:
+    g.account_id = identity.account_id
+    g.tenant_id = identity.tenant_id
+    g.account_role = identity.role
+    g.account_email = identity.email
 
 
 def login_required(f: Callable) -> Callable:
@@ -126,10 +111,10 @@ def login_required(f: Callable) -> Callable:
             token = auth_header[7:]
             payload = _verify_token(token)
             if payload is not None:
-                g.account_id = payload.get('sub')
-                g.tenant_id = payload.get('tenant_id')
-                g.account_role = payload.get('role')
-                g.account_email = payload.get('email')
+                identity = _load_authoritative_identity(payload.get('sub'))
+                if identity is None:
+                    return {'error': 'Unauthorized — account not active'}, 401
+                _apply_identity(identity)
                 return f(*args, **kwargs)
 
         # Second try: X-API-Key header (service-to-service via Next.js proxy)
@@ -143,21 +128,12 @@ def login_required(f: Callable) -> Callable:
 
         if api_key and any(_check_service_token(api_key, key) for key in valid_keys):
             forwarded_user_id = request.headers.get('X-User-Id', '').strip()
-            forwarded_tenant_id = request.headers.get('X-Tenant-Id', '').strip()
-            forwarded_role = request.headers.get('X-User-Role', '').strip()
-            forwarded_email = request.headers.get('X-User-Email', '').strip()
-
-            if not forwarded_user_id or not forwarded_role:
+            if not forwarded_user_id:
                 return {'error': 'Unauthorized — missing forwarded identity'}, 401
-
-            # P0.1 (C-02): no confiar en X-User-Role para roles privilegiados
-            # sin confirmacion DB (defensa si SERVICE_API_KEY se filtra).
-            confirmed_role = _confirm_privileged_role(forwarded_user_id, forwarded_role)
-
-            g.account_id = forwarded_user_id
-            g.tenant_id = forwarded_tenant_id if _is_uuid_like(forwarded_tenant_id) else None
-            g.account_role = confirmed_role
-            g.account_email = forwarded_email or ''
+            identity = _load_authoritative_identity(forwarded_user_id)
+            if identity is None:
+                return {'error': 'Unauthorized — account not active'}, 401
+            _apply_identity(identity)
             return f(*args, **kwargs)
 
         return {'error': 'Unauthorized — missing or invalid authentication'}, 401

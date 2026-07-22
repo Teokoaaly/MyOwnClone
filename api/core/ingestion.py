@@ -15,110 +15,19 @@ Pipeline:
 """
 from __future__ import annotations
 
-import ipaddress
 import logging
 import re
-import socket
-from urllib.parse import urlparse
 
+import requests
+
+from api.core.secure_http import UnsafeURLError, _is_safe_url, _request_public_url
 from api.extensions.ext_database import db
 from api.models.knowledge import Chunk, Source
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["UnsafeURLError", "_is_safe_url", "ingest_source"]
 
-# Hostnames que sirven metadata cloud a cualquier caller interno.
-# Cubren AWS, GCP, Azure, DigitalOcean, Alibaba, Oracle.
-_CLOUD_METADATA_HOSTS = frozenset({
-    "169.254.169.254",       # AWS / Azure / DigitalOcean / OCI link-local
-    "metadata.google.internal",  # GCP
-    "metadata",              # alias GCP
-    "169.254.170.2",         # AWS ECS task metadata (v2)
-    "fd00:ec2::254",         # AWS IPv6 metadata
-})
-
-
-class UnsafeURLError(ValueError):
-    """Raised when a URL is rejected by the SSRF allowlist."""
-
-
-def _is_safe_url(url: str) -> None:
-    """SSRF allowlist (auditoria 2026-07-13 / P0.5, defecto C-10).
-
-    Rechaza URLs que apunten a infraestructura interna antes de hacer el
-    fetch. Bloquea:
-
-    - Esquemas distintos de ``http``/``https`` (evita ``file://``, ``gopher``,
-      ``ftp``...).
-    - Hosts que resuelvan (o sean literalmente) IPs privadas, loopback,
-      link-local, reservadas o multicast.
-    - Hosts conocidos de metadata cloud (AWS/GCP/Azure/DO/OCI).
-    - URLs sin host o con userinfo sospechoso.
-
-    Resuelve el hostname a sus IPs (getaddrinfo) y valida TODAS las
-    resoluciones, para que un DNS rebinding no escape del check.
-    """
-    if not url or not isinstance(url, str):
-        raise UnsafeURLError("empty url")
-
-    parsed = urlparse(url)
-    if parsed.scheme.lower() not in ("http", "https"):
-        raise UnsafeURLError(f"scheme not allowed: {parsed.scheme!r}")
-
-    host = parsed.hostname
-    if not host:
-        raise UnsafeURLError("missing host")
-
-    if host.lower() in _CLOUD_METADATA_HOSTS:
-        raise UnsafeURLError(f"cloud metadata host blocked: {host}")
-
-    # Primero, si el host es ya una IP literal, validarla directamente.
-    try:
-        ip = ipaddress.ip_address(host)
-    except ValueError:
-        ip = None
-    if ip is not None:
-        if _is_blocked_ip(ip):
-            raise UnsafeURLError(f"ip address blocked: {ip}")
-        return
-
-    # Si es un hostname, resolverlo y validar todas las IPs resultantes
-    # (DNS rebinding defense).
-    try:
-        infos = socket.getaddrinfo(host, None)
-    except socket.gaierror as exc:
-        raise UnsafeURLError(f"unable to resolve host {host!r}: {exc}") from exc
-
-    resolved = set()
-    for family, _stype, _proto, _canon, sockaddr in infos:
-        ip_str = sockaddr[0]
-        # Normalizar IPv6 con scope id (fe80::1%eth0 -> fe80::1).
-        ip_str = ip_str.split("%", 1)[0]
-        try:
-            resolved.add(ipaddress.ip_address(ip_str))
-        except ValueError:
-            continue
-
-    if not resolved:
-        raise UnsafeURLError(f"host {host!r} did not resolve to any IP")
-
-    for resolved_ip in resolved:
-        if _is_blocked_ip(resolved_ip):
-            raise UnsafeURLError(
-                f"host {host!r} resolves to blocked ip {resolved_ip}"
-            )
-
-
-def _is_blocked_ip(ip: ipaddress._BaseAddress) -> bool:
-    """True si la IP apunta a infraestructura interna/prohibida."""
-    return (
-        ip.is_private
-        or ip.is_loopback
-        or ip.is_link_local
-        or ip.is_reserved
-        or ip.is_multicast
-        or ip.is_unspecified
-    )
 
 _CHUNK_SIZE = 350
 _CHUNK_OVERLAP = 40
@@ -193,21 +102,16 @@ def _extract_text(source: Source) -> str:
 
 def _extract_from_pdf(url: str) -> str:
     from io import BytesIO
-    import requests
     from PyPDF2 import PdfReader
 
     if not url:
         return ""
-    # P0.5 (C-10): bloquear SSRF antes del fetch.
     try:
-        _is_safe_url(url)
+        resp = _request_public_url(url, timeout=60)
     except UnsafeURLError as exc:
         logger.warning("SSRF blocked (pdf): %s", exc)
         return ""
-    try:
-        resp = requests.get(url, timeout=60, headers={"User-Agent": "MyOwnClone/1.0"})
-        resp.raise_for_status()
-    except Exception as exc:
+    except requests.RequestException as exc:
         logger.warning("Error descargando PDF %s: %s", url, exc)
         return ""
     try:
@@ -251,18 +155,13 @@ def _extract_from_youtube(url: str) -> str:
 
 
 def _extract_from_url(url: str) -> str:
-    import requests
     from bs4 import BeautifulSoup
-    # P0.5 (C-10): bloquear SSRF antes del fetch.
     try:
-        _is_safe_url(url)
+        resp = _request_public_url(url, timeout=30)
     except UnsafeURLError as exc:
         logger.warning("SSRF blocked (url): %s", exc)
         return ""
-    try:
-        resp = requests.get(url, timeout=30, headers={"User-Agent": "MyOwnClone/1.0"})
-        resp.raise_for_status()
-    except Exception as exc:
+    except requests.RequestException as exc:
         logger.warning("Error descargando %s: %s", url, exc)
         return ""
     soup = BeautifulSoup(resp.text, "html.parser")

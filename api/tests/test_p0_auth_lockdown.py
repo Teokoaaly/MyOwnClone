@@ -12,7 +12,6 @@ Covers:
 """
 from __future__ import annotations
 
-import os
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -20,8 +19,7 @@ import pytest
 
 from api.libs.login import (
     _allow_dev_service_key,
-    _confirm_privileged_role,
-    _PRIVILEGED_ROLES,
+    _load_authoritative_identity,
 )
 
 
@@ -62,59 +60,49 @@ class TestProductionEnvUnification:
             _get_secret_key()
 
 
-# ── C-02: privileged role confirmation ─────────────────────────────────
+class TestAuthoritativeIdentity:
+    ACCOUNT_ID = "11111111-1111-1111-1111-111111111111"
 
-class TestPrivilegedRoleConfirmation:
-    """C-02: forwarded privileged roles must be confirmed against the DB."""
-
-    def test_non_privileged_role_passes_through_unchanged(self):
-        """A normal user role is trusted from the proxy (it validated the JWT)."""
-        assert _confirm_privileged_role("acc-1", "owner") == "owner"
-        assert _confirm_privileged_role("acc-1", "user") == "user"
-        assert _confirm_privileged_role("acc-1", "") == ""
-
-    def test_privileged_role_confirmed_when_db_agrees(self, monkeypatch):
-        """If the DB says the account IS platform_admin, the role is honored."""
-        fake_row = ("platform_admin", True)
-        fake_session = SimpleNamespace(
-            execute=lambda _stmt: SimpleNamespace(first=lambda: fake_row)
+    def test_platform_role_comes_from_database(self):
+        account = SimpleNamespace(
+            id=self.ACCOUNT_ID,
+            tenant_id="22222222-2222-2222-2222-222222222222",
+            role="member",
+            status="active",
+            is_platform_admin=True,
+            email="admin@example.com",
         )
         with patch("api.extensions.ext_database.db") as fake_db:
-            fake_db.session = fake_session
-            for role in _PRIVILEGED_ROLES:
-                assert _confirm_privileged_role("acc-1", role) == role
+            fake_db.session.get.return_value = account
+            identity = _load_authoritative_identity(self.ACCOUNT_ID)
 
-    def test_privileged_role_downgraded_when_db_disagrees(self, monkeypatch):
-        """C-02 core: if X-User-Role claims platform_admin but the DB says the
-        account is a normal user, downgrade to prevent escalation."""
-        fake_row = ("user", False)
-        fake_session = SimpleNamespace(
-            execute=lambda _stmt: SimpleNamespace(first=lambda: fake_row)
+        assert identity is not None
+        assert identity.role == "platform_admin"
+
+    def test_normal_role_and_tenant_come_from_database(self):
+        account = SimpleNamespace(
+            id=self.ACCOUNT_ID,
+            tenant_id="22222222-2222-2222-2222-222222222222",
+            role="owner",
+            status="active",
+            is_platform_admin=False,
+            email="owner@example.com",
         )
         with patch("api.extensions.ext_database.db") as fake_db:
-            fake_db.session = fake_session
-            assert _confirm_privileged_role("acc-1", "platform_admin") == "user"
+            fake_db.session.get.return_value = account
+            identity = _load_authoritative_identity(self.ACCOUNT_ID)
 
-    def test_privileged_role_downgraded_when_account_unknown(self, monkeypatch):
-        """Unknown account claiming platform_admin -> downgrade (no privilege grant)."""
-        fake_session = SimpleNamespace(
-            execute=lambda _stmt: SimpleNamespace(first=lambda: None)
-        )
-        with patch("api.extensions.ext_database.db") as fake_db:
-            fake_db.session = fake_session
-            assert _confirm_privileged_role("ghost-account", "platform_admin") == "user"
+        assert identity is not None
+        assert identity.tenant_id == account.tenant_id
+        assert identity.role == "owner"
 
-    def test_privileged_role_downgraded_on_db_failure(self, monkeypatch):
-        """C-02: DB error during role check must NOT grant privilege (fail closed)."""
-        fake_session = SimpleNamespace(
-            execute=lambda _stmt: (_ for _ in ()).throw(RuntimeError("db down"))
-        )
+    def test_unknown_or_inactive_account_is_rejected(self):
         with patch("api.extensions.ext_database.db") as fake_db:
-            fake_db.session = fake_session
-            # Must NOT return platform_admin; falls back to "user".
-            result = _confirm_privileged_role("acc-1", "platform_admin")
-            assert result != "platform_admin"
-            assert result == "user"
+            fake_db.session.get.return_value = None
+            assert _load_authoritative_identity(self.ACCOUNT_ID) is None
+
+            fake_db.session.get.return_value = SimpleNamespace(status="banned")
+            assert _load_authoritative_identity(self.ACCOUNT_ID) is None
 
 
 # ── C-01: nginx config no longer contains the leaked key ───────────────

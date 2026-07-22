@@ -5,6 +5,8 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy.sql.elements import TextClause
 
+from api.libs.login import AuthenticatedIdentity
+
 @pytest.fixture
 def ai_client(app, monkeypatch):
     monkeypatch.setattr("api.controllers.console.myownclone.ai_models.SecretCipher.encrypt", lambda value: f"enc:{value}")
@@ -15,6 +17,15 @@ def ai_client(app, monkeypatch):
         "role": "admin",
         "email": "u@example.com",
     })
+    monkeypatch.setattr(
+        "api.libs.login._load_authoritative_identity",
+        lambda account_id: AuthenticatedIdentity(
+            account_id="user-1",
+            tenant_id="tenant-1",
+            role="admin",
+            email="u@example.com",
+        ),
+    )
     app.config["TESTING"] = True
     return app.test_client()
 
@@ -374,7 +385,7 @@ def test_embedding_status_reports_real_storage_state(ai_client, monkeypatch):
             embedding_dimensions=1536,
         )
 
-    def fake_execute(stmt):
+    def fake_execute(stmt, params=None):
         if isinstance(stmt, TextClause):
             sql = str(stmt)
             if "information_schema.tables" in sql:
@@ -383,9 +394,9 @@ def test_embedding_status_reports_real_storage_state(ai_client, monkeypatch):
                 return SimpleNamespace(scalar=lambda: 1)
             if "pg_extension" in sql:
                 return SimpleNamespace(scalar=lambda: 1)
-            if "COUNT(*) FROM chunks WHERE embedding IS NOT NULL" in sql:
+            if "c.embedding IS NOT NULL" in sql:
                 return SimpleNamespace(scalar=lambda: 2)
-            if "COUNT(*) FROM chunks" in sql:
+            if "COUNT(*) FROM chunks c" in sql:
                 return SimpleNamespace(scalar=lambda: 5)
         raise AssertionError(f"unexpected stmt: {stmt!r}")
 
@@ -424,7 +435,7 @@ def test_embedding_status_handles_unresolved_model(ai_client, monkeypatch):
     def fake_resolve(self, *, tenant_id, task):
         raise ModelRegistryError("no embedding model")
 
-    def fake_execute(stmt):
+    def fake_execute(stmt, params=None):
         if isinstance(stmt, TextClause):
             sql = str(stmt)
             if "information_schema.tables" in sql:
@@ -433,9 +444,9 @@ def test_embedding_status_handles_unresolved_model(ai_client, monkeypatch):
                 return SimpleNamespace(scalar=lambda: 1)
             if "pg_extension" in sql:
                 return SimpleNamespace(scalar=lambda: 1)
-            if "COUNT(*) FROM chunks WHERE embedding IS NOT NULL" in sql:
+            if "c.embedding IS NOT NULL" in sql:
                 return SimpleNamespace(scalar=lambda: 0)
-            if "COUNT(*) FROM chunks" in sql:
+            if "COUNT(*) FROM chunks c" in sql:
                 return SimpleNamespace(scalar=lambda: 0)
         raise AssertionError(f"unexpected stmt: {stmt!r}")
 

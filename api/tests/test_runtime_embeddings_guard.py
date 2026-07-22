@@ -2,20 +2,27 @@
 
 from __future__ import annotations
 
-import pytest
-
 from api.controllers.console.myownclone.runtime import _MAX_EMBED_TEXTS
+from api.libs.login import AuthenticatedIdentity
 
 
 def _auth(monkeypatch):
     monkeypatch.setattr(
         "api.libs.login._verify_token",
-        lambda token: {
-            "sub": "user-1",
-            "tenant_id": "tenant-1",
-            "role": "admin",
-            "email": "user@example.com",
-        },
+        lambda token: {"sub": "user-1"},
+    )
+    monkeypatch.setattr(
+        "api.libs.login._load_authoritative_identity",
+        lambda account_id: AuthenticatedIdentity(
+            account_id="user-1",
+            tenant_id="tenant-1",
+            role="admin",
+            email="user@example.com",
+        ),
+    )
+    monkeypatch.setattr(
+        "api.controllers.console.myownclone.runtime._check_rate_limit",
+        lambda endpoint, limit, window: (True, None),
     )
 
 
