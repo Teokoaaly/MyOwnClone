@@ -1,17 +1,100 @@
-name: CI
+name: Backend CI
+
 on:
   push:
-    branches: [master, main]
+    branches: [master, main, "codex/**"]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
+  secret-scanning:
+    name: Binary-aware secret scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan tracked bytes including UTF-16 files
+        run: bash ops/scan_tracked_secrets.sh .
+      - name: TruffleHog filesystem scan
+        uses: trufflesecurity/trufflehog@v3.90.8
+        with:
+          path: ./
+          extra_args: --results=verified,unknown --fail
+
+  backend-quality:
+    name: Pytest, Alembic and Ruff
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: myownclone
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d myownclone"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      FLASK_ENV: testing
+      ALLOWED_ORIGINS: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/myownclone
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: myownclone
+      DB_DATABASE: myownclone
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+      REDIS_TLS: "false"
+      JWT_SECRET_KEY: ci-test-key-must-be-at-least-32-chars-long
+      IMPERSONATION_TOKEN_PEPPER: ci-test-pepper-must-be-long-enough
+      SERVICE_API_KEY: ci-test-service-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: api/requirements.txt
+      - name: Install backend tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt ruff pytest
+      - name: Mandatory Ruff correctness gate
+        run: ruff check api ops tests --select=E9,F63,F7,F82
+      - name: Deployment and rollback shell gates
+        run: |
+          bash -n ops/backup_postgres.sh ops/deploy-backend.sh \
+            ops/scan_tracked_secrets.sh ops/verify_postgres_backup.sh
+          bash ops/test_deploy_backend_rollback.sh
+      - name: Alembic single-head and upgrade gate
+        working-directory: api
+        run: |
+          test "$(flask db heads | wc -l)" -eq 1
+          flask db heads
+          flask db upgrade
+          flask db current
+          flask db check
+      - name: Pytest
+        run: pytest -q tests api/tests --tb=short
+
   release-manifest:
     name: Backend release manifest
+    needs: [secret-scanning, backend-quality]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
+        with:
+          python-version: "3.11"
       - name: Generate and verify manifest
         run: |
           manifest="$(mktemp)"
@@ -19,120 +102,3 @@ jobs:
           python ops/release_manifest.py --root . create \
             --source-commit "$(git rev-parse HEAD)" --output "$manifest"
           python ops/release_manifest.py --root . verify --manifest "$manifest"
-
-  secret-scanning:
-    name: Secret scanning
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install TruffleHog
-        uses: trufflesecurity/trufflehog@v3.90.8
-        with:
-          extra_args: --results=verified,unknown
-
-  contract-tests:
-    name: Contract tests (root tests/)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - name: Install
-        run: pip install pytest
-      - name: Run root tests
-        env:
-          FLASK_ENV: testing
-          JWT_SECRET_KEY: ci-test-key-must-be-at-least-32-chars-long
-          DB_PASSWORD: ci-test-db-password
-          REDIS_PASSWORD: ci-test-redis-password
-        run: pytest -q --tb=short
-
-  backend:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd pg_isready --health-interval 10s
-          --health-timeout 5s --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - working-directory: api
-        run: |
-          pip install -r requirements.txt
-          pip install ruff pytest
-      - working-directory: api
-        run: ruff check . --select=E,F,W --exit-zero
-      - working-directory: api
-        env:
-          FLASK_ENV: testing
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: postgres
-          REDIS_PASSWORD: ci-test-redis-password
-          JWT_SECRET_KEY: ci-test-key-must-be-at-least-32-chars-long
-          IMPERSONATION_TOKEN_PEPPER: ci-test-pepper-must-be-long-enough
-        run: |
-          flask db upgrade
-          pytest --tb=short
-
-  frontend:
-    runs-on: ubuntu-latest
-    needs: [contract-tests, backend]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: "npm", cache-dependency-path: MyOwnClone/package-lock.json }
-      - working-directory: MyOwnClone
-        run: |
-          npm ci
-          npm run lint
-          npm run typecheck
-          npm run build
-          npx vitest run --coverage --reporter=verbose 2>&1 | tail -20
-
-  e2e:
-    runs-on: ubuntu-latest
-    needs: [frontend]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: "npm", cache-dependency-path: MyOwnClone/package-lock.json }
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - name: Install Playwright browsers
-        working-directory: MyOwnClone
-        run: npx playwright install --with-deps chromium
-      - name: Start backend
-        working-directory: api
-        env:
-          FLASK_ENV: testing
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: postgres
-          REDIS_PASSWORD: ci-test-redis-password
-          JWT_SECRET_KEY: ci-test-key-must-be-at-least-32-chars-long
-          IMPERSONATION_TOKEN_PEPPER: ci-test-pepper-must-be-long-enough
-          SERVICE_API_KEY: ci-test-service-key
-        run: |
-          pip install -r requirements.txt
-          flask db upgrade
-          flask run --port 5001 &
-      - name: Run E2E tests
-        working-directory: MyOwnClone
-        env:
-          CI: true
-        run: npx playwright test

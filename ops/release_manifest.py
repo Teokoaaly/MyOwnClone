@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import re
 import subprocess
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Final
+from typing import Final, TypedDict
 
-SCHEMA_VERSION: Final = 1
+SCHEMA_VERSION: Final = 2
 INCLUDED_PREFIXES: Final = ("api/", "ops/", ".github/workflows/")
 EXCLUDED_NAMES: Final = {
     "backend.env.production",
@@ -18,6 +20,15 @@ EXCLUDED_NAMES: Final = {
 }
 COMMIT_PATTERN: Final = re.compile(r"[0-9a-f]{40}")
 DIGEST_PATTERN: Final = re.compile(r"[0-9a-f]{64}")
+TIMESTAMP_PATTERN: Final = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+
+
+class ManifestPayload(TypedDict):
+    schema_version: int
+    source_commit: str
+    created_at: str
+    alembic_head: str
+    files: dict[str, str]
 
 
 class ManifestError(ValueError):
@@ -75,20 +86,63 @@ def _digest(path: Path) -> str:
     return digest.hexdigest()
 
 
-def build_manifest(root: Path, source_commit: str) -> dict[str, object]:
+def _single_alembic_head(root: Path) -> str:
+    revisions: dict[str, str | tuple[str, ...] | None] = {}
+    versions = root / "api" / "migrations" / "versions"
+    for path in versions.glob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        values: dict[str, str | tuple[str, ...] | None] = {}
+        for node in tree.body:
+            if (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id in {"revision", "down_revision"}
+            ):
+                values[node.targets[0].id] = ast.literal_eval(node.value)
+        revision = values.get("revision")
+        if not isinstance(revision, str):
+            raise ManifestError(f"migration has no revision: {path.name}")
+        revisions[revision] = values.get("down_revision")
+    parents = {
+        parent
+        for value in revisions.values()
+        if value is not None
+        for parent in (value if isinstance(value, tuple) else (value,))
+    }
+    missing = parents - revisions.keys()
+    if missing:
+        raise ManifestError(f"missing Alembic parents: {', '.join(sorted(missing))}")
+    heads = revisions.keys() - parents
+    if len(heads) != 1:
+        raise ManifestError(f"expected one Alembic head, found {len(heads)}")
+    return next(iter(heads))
+
+
+def build_manifest(
+    root: Path,
+    source_commit: str,
+    *,
+    created_at: str | None = None,
+) -> ManifestPayload:
     if COMMIT_PATTERN.fullmatch(source_commit) is None:
         raise ManifestError("source_commit must be a full lowercase Git SHA")
     files = {path: _digest(root / path) for path in _tracked_release_files(root)}
     if not files:
         raise ManifestError("no tracked backend release files found")
+    timestamp = created_at or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if TIMESTAMP_PATTERN.fullmatch(timestamp) is None:
+        raise ManifestError("created_at must be an RFC3339 UTC timestamp")
     return {
         "schema_version": SCHEMA_VERSION,
         "source_commit": source_commit,
+        "created_at": timestamp,
+        "alembic_head": _single_alembic_head(root),
         "files": files,
     }
 
 
-def load_manifest(path: Path) -> dict[str, object]:
+def load_manifest(path: Path) -> ManifestPayload:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -96,15 +150,23 @@ def load_manifest(path: Path) -> dict[str, object]:
     if not isinstance(payload, dict) or set(payload) != {
         "schema_version",
         "source_commit",
+        "created_at",
+        "alembic_head",
         "files",
     }:
         raise ManifestError("manifest has an invalid top-level shape")
     if payload["schema_version"] != SCHEMA_VERSION:
         raise ManifestError("unsupported manifest schema")
     source_commit = payload["source_commit"]
+    created_at = payload["created_at"]
+    alembic_head = payload["alembic_head"]
     files = payload["files"]
     if not isinstance(source_commit, str) or COMMIT_PATTERN.fullmatch(source_commit) is None:
         raise ManifestError("manifest source_commit is invalid")
+    if not isinstance(created_at, str) or TIMESTAMP_PATTERN.fullmatch(created_at) is None:
+        raise ManifestError("manifest created_at is invalid")
+    if not isinstance(alembic_head, str) or not alembic_head:
+        raise ManifestError("manifest alembic_head is invalid")
     if not isinstance(files, dict) or not files:
         raise ManifestError("manifest files must be a non-empty object")
     for relative, digest in files.items():
@@ -117,7 +179,13 @@ def load_manifest(path: Path) -> dict[str, object]:
             or DIGEST_PATTERN.fullmatch(digest) is None
         ):
             raise ManifestError(f"invalid manifest entry: {relative!r}")
-    return payload
+    return ManifestPayload(
+        schema_version=SCHEMA_VERSION,
+        source_commit=source_commit,
+        created_at=created_at,
+        alembic_head=alembic_head,
+        files=files,
+    )
 
 
 def verify_manifest(root: Path, manifest_path: Path, check_head: bool = True) -> list[str]:

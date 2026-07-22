@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from ops.release_manifest import ManifestError, load_manifest, verify_manifest
+from ops.release_manifest import ManifestError, build_manifest, load_manifest, verify_manifest
 
 
 def _manifest(tmp_path: Path, content: bytes = b"healthy\n") -> Path:
@@ -18,8 +18,10 @@ def _manifest(tmp_path: Path, content: bytes = b"healthy\n") -> Path:
     manifest.write_text(
         json.dumps(
             {
-                "schema_version": 1,
+                "schema_version": 2,
                 "source_commit": "a" * 40,
+                "created_at": "2026-07-22T10:00:00Z",
+                "alembic_head": "2026_07_14_0002",
                 "files": {"api/service.py": hashlib.sha256(content).hexdigest()},
             }
         ),
@@ -86,3 +88,17 @@ def test_verify_rejects_extra_release_file(tmp_path: Path) -> None:
     assert verify_manifest(tmp_path, manifest, check_head=False) == [
         "unexpected: api/unmanifested.py"
     ]
+
+
+def test_build_manifest_records_time_and_single_alembic_head() -> None:
+    root = Path(__file__).resolve().parents[1]
+
+    manifest = build_manifest(
+        root,
+        "a" * 40,
+        created_at="2026-07-22T10:00:00Z",
+    )
+
+    assert manifest["schema_version"] == 2
+    assert manifest["created_at"] == "2026-07-22T10:00:00Z"
+    assert manifest["alembic_head"] == "2026_07_14_0002"
