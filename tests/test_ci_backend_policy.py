@@ -21,7 +21,9 @@ def test_ci_enforces_backend_quality_gates_without_building_frontend() -> None:
     assert "ruff check" in source
     assert "--exit-zero" not in source
     assert "scan_tracked_secrets.sh" in source
-    assert "--results=verified --fail" in source
+    assert "base: 0481c6c4874bb8f35e37af563ad7439848c71f2e" in source
+    assert "head: ${{ github.sha }}" in source
+    assert "--results=verified,unknown" in source
     assert "test_deploy_backend_rollback.sh" in source
     assert "ALLOWED_ORIGINS: http://localhost:3000" in source
     assert "working-directory: MyOwnClone" not in source
