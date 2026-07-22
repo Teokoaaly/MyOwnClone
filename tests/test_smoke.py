@@ -219,7 +219,21 @@ class TestRoutes:
         )
         assert r.status_code in (401, 403, 404)
 
-    def test_protected_endpoint_accepts_valid_token(self, app, auth_headers):
+    def test_protected_endpoint_accepts_valid_token(
+        self, app, auth_headers, monkeypatch
+    ):
+        from api.libs import login
+
+        monkeypatch.setattr(
+            login,
+            "_load_authoritative_identity",
+            lambda _account_id: login.AuthenticatedIdentity(
+                account_id="00000000-0000-0000-0000-000000000001",
+                tenant_id="00000000-0000-0000-0000-000000000002",
+                role="platform_admin",
+                email="admin@test.local",
+            ),
+        )
         # Use raw test_client (not pytest-flask's client) to avoid
         # JSON encoder patching issues with flask-restx responses
         client = app.test_client()
@@ -232,5 +246,4 @@ class TestRoutes:
         #   (account_initialization_required returns 404 because
         #    login_required only sets g.account_id, not g.account)
         # 200 means auth passed and the endpoint returned data
-        # All of these prove the JWT was accepted — the test passes.
         assert r.status_code != 401, f"JWT rejected: {r.status_code}"

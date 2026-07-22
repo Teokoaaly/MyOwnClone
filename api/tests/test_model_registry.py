@@ -208,7 +208,7 @@ def test_model_registry_legacy_env_uses_task_specific_provider(monkeypatch):
     assert stt.model_id == "whisper-1"
 
 
-def test_model_registry_legacy_env_rejects_unsupported_task_provider(monkeypatch):
+def test_model_registry_legacy_env_uses_local_whisper_for_stt(monkeypatch):
     registry = ModelRegistry()
     monkeypatch.setattr(registry, "_resolve_from_db", lambda **_: None)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -226,5 +226,6 @@ def test_model_registry_legacy_env_rejects_unsupported_task_provider(monkeypatch
     assert embedding.model_id == "embo-01"
     assert embedding.embedding_dimensions == 1536
 
-    with pytest.raises(ModelRegistryError):
-        registry.resolve(tenant_id="tenant-1", task=AITask.STT)
+    stt = registry.resolve(tenant_id="tenant-1", task=AITask.STT)
+    assert stt.provider == "local_whisper"
+    assert stt.model_id == "tiny"
