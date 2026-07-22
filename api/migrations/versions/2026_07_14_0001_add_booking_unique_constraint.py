@@ -1,7 +1,7 @@
 """add unique constraint on bookings (meeting_type_id, date, start_time)
 
 Revision ID: 2026_07_14_0001
-Revises: 2026_07_09_0001
+Revises: 2026_07_03_0001, 2026_07_09_0001_onboarding
 Create Date: 2026-07-14
 
 SECURITY (auditoria 2026-07-13 / P1.6 / H-12): the booking POST endpoints
@@ -26,7 +26,7 @@ from alembic import op
 
 
 revision = "2026_07_14_0001"
-down_revision = "2026_07_09_0001"
+down_revision = ("2026_07_03_0001", "2026_07_09_0001_onboarding")
 branch_labels = None
 depends_on = None
 

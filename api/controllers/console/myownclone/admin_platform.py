@@ -10,6 +10,7 @@ import os
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
+from typing import TypedDict
 
 from flask import g, request
 from flask_restx import Resource
@@ -30,7 +31,15 @@ from api.extensions.ext_database import db
 from api.libs.login import login_required
 from api.middleware.audit_trail import audit_action
 from api.models.account import Account, Tenant
-from api.models.myownclone import CloneConfig, CostTracking, Feedback, ImpersonationLog, ImpersonationToken
+from api.models.myownclone import (
+    AnalyticsGap,
+    AnalyticsQuestion,
+    CloneConfig,
+    CostTracking,
+    Feedback,
+    ImpersonationLog,
+    ImpersonationToken,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +61,44 @@ class CreateTenantPayload(BaseModel):
     slug: str = Field(..., min_length=1, description="Unique slug for the tenant")
     plan: str = Field(default="trial", description="Plan: trial, basic, pro, scale, enterprise")
     status: str = Field(default="trial", description="Status: active, trial, suspended, cancelled")
+
+
+class TenantPayload(TypedDict):
+    id: str
+    slug: str | None
+    name: str
+    plan: str
+    status: str
+    subscription_status: str | None
+    stripe_customer_id: str | None
+    stripe_subscription_id: str | None
+    trial_ends_at: str | None
+    created_at: str | None
+    updated_at: str | None
+
+
+class TenantUsagePayload(TypedDict):
+    clone_count: int
+    cost_cents_30d: int
+    tokens_in_30d: int
+    tokens_out_30d: int
+    questions_30d: int
+    gaps_open: int
+
+
+class TenantClonePayload(TypedDict):
+    id: str
+    name: str
+    slug: str
+    is_active: bool
+    language: str | None
+    created_at: str | None
+
+
+class TenantDetailPayload(TypedDict):
+    tenant: TenantPayload
+    usage: TenantUsagePayload
+    clones: list[TenantClonePayload]
 
 
 register_schema_models(console_ns, ImpersonatePayload, CourtesyPayload, CreateTenantPayload)
@@ -161,6 +208,79 @@ def _ensure_admin_account(tenant_id_hint: str | None = None) -> str:
     return str(account.id)
 
 
+def _tenant_payload(tenant: Tenant) -> TenantPayload:
+    return {
+        "id": str(tenant.id),
+        "slug": tenant.slug,
+        "name": tenant.name,
+        "plan": normalize_plan(tenant.plan),
+        "status": normalize_tenant_status(tenant.status),
+        "subscription_status": tenant.subscription_status,
+        "stripe_customer_id": tenant.stripe_customer_id,
+        "stripe_subscription_id": tenant.stripe_subscription_id,
+        "trial_ends_at": _iso(tenant.trial_ends_at),
+        "created_at": _iso(tenant.created_at),
+        "updated_at": _iso(tenant.updated_at),
+    }
+
+
+def _tenant_detail_payload(tenant: Tenant) -> TenantDetailPayload:
+    tenant_id = str(tenant.id)
+    clones = db.session.execute(
+        select(CloneConfig)
+        .where(CloneConfig.tenant_id == tenant_id)
+        .order_by(CloneConfig.created_at.desc())
+    ).scalars().all()
+    clone_ids = [str(clone.id) for clone in clones]
+    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=30)
+
+    cost_stmt = select(
+        func.coalesce(func.sum(CostTracking.cost_cents), 0),
+        func.coalesce(func.sum(CostTracking.tokens_in), 0),
+        func.coalesce(func.sum(CostTracking.tokens_out), 0),
+    ).where(CostTracking.tenant_id == tenant_id, CostTracking.created_at >= since)
+    cost_cents, tokens_in, tokens_out = db.session.execute(cost_stmt).one()
+
+    questions = 0
+    gaps_open = 0
+    if clone_ids:
+        questions = db.session.execute(
+            select(func.count(AnalyticsQuestion.id)).where(
+                AnalyticsQuestion.clone_id.in_(clone_ids),
+                AnalyticsQuestion.last_asked_at >= since,
+            )
+        ).scalar() or 0
+        gaps_open = db.session.execute(
+            select(func.count(AnalyticsGap.id)).where(
+                AnalyticsGap.clone_id.in_(clone_ids),
+                AnalyticsGap.status == "open",
+            )
+        ).scalar() or 0
+
+    return {
+        "tenant": _tenant_payload(tenant),
+        "usage": {
+            "clone_count": len(clones),
+            "cost_cents_30d": int(cost_cents or 0),
+            "tokens_in_30d": int(tokens_in or 0),
+            "tokens_out_30d": int(tokens_out or 0),
+            "questions_30d": int(questions),
+            "gaps_open": int(gaps_open),
+        },
+        "clones": [
+            {
+                "id": str(clone.id),
+                "name": clone.name,
+                "slug": clone.slug,
+                "is_active": bool(clone.is_active),
+                "language": clone.language,
+                "created_at": _iso(clone.created_at),
+            }
+            for clone in clones
+        ],
+    }
+
+
 @console_ns.route("/myownclone/admin/overview")
 class AdminOverviewApi(Resource):
     @login_required
@@ -205,6 +325,7 @@ class AdminOverviewApi(Resource):
             "margin_cents": mrr_cents - cost_data,
             "margin_display": f"{((mrr_cents - cost_data) / 100):.2f}€",
             "plan_breakdown": plan_counts,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }, 200
 
 
@@ -337,30 +458,23 @@ class AdminTenantDetailApi(Resource):
         if not tenant:
             return {"error": "tenant not found"}, 404
 
-        clone_counts = _clone_counts_by_tenant([tenant_id])
-        monthly_costs = _monthly_costs_by_tenant([tenant_id])
-
-        return {
-            "id": str(tenant.id),
-            "slug": tenant.slug,
-            "name": tenant.name,
-            "plan": normalize_plan(tenant.plan),
-            "status": normalize_tenant_status(tenant.status),
-            "subscription_status": tenant.subscription_status,
-            "stripe_customer_id": tenant.stripe_customer_id,
-            "stripe_subscription_id": tenant.stripe_subscription_id,
-            "trial_ends_at": _iso(tenant.trial_ends_at),
-            "clone_count": clone_counts.get(tenant_id, 0),
-            "monthly_cost_cents": monthly_costs.get(tenant_id, 0),
-            "created_at": _iso(tenant.created_at),
-            "updated_at": _iso(tenant.updated_at),
-        }, 200
+        return _tenant_detail_payload(tenant), 200
 
     @login_required
     @account_initialization_required
     @setup_required
     @audit_action("admin.tenant.update", resource_type="tenant")
     def put(self, tenant_id: str):
+        return self._update(tenant_id)
+
+    @login_required
+    @account_initialization_required
+    @setup_required
+    @audit_action("admin.tenant.update", resource_type="tenant")
+    def patch(self, tenant_id: str):
+        return self._update(tenant_id)
+
+    def _update(self, tenant_id: str):
         if not _is_platform_admin(g.account_id):
             return {"error": "platform admin only"}, 403
 
@@ -409,13 +523,7 @@ class AdminTenantDetailApi(Resource):
         return {
             "message": "tenant updated",
             "updated_fields": updated_fields,
-            "tenant": {
-                "id": str(tenant.id),
-                "name": tenant.name,
-                "slug": tenant.slug,
-                "plan": normalize_plan(tenant.plan),
-                "status": normalize_tenant_status(tenant.status),
-            },
+            "tenant": _tenant_payload(tenant),
         }, 200
 
     @login_required
