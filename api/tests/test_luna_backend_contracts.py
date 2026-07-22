@@ -36,6 +36,14 @@ def test_alembic_graph_has_one_head_and_no_missing_parent() -> None:
     assert revisions.keys() - parents == {"2026_07_14_0002"}
 
 
+def test_alembic_tracks_flask_and_typebase_metadata() -> None:
+    env_path = Path(__file__).resolve().parents[1] / "migrations" / "env.py"
+    source = env_path.read_text(encoding="utf-8")
+
+    assert "from api.base import TypeBase" in source
+    assert "TypeBase.metadata" in source
+
+
 def test_admin_tenant_detail_exposes_canonical_methods_and_shape() -> None:
     from api.controllers.console.myownclone import admin_platform
     from api.controllers.console.myownclone.admin_platform import AdminTenantDetailApi

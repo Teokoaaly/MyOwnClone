@@ -20,12 +20,16 @@ except ImportError:
     pass  # python-dotenv not installed; rely on environment variables
 
 from api.app_factory import create_app
+from api.base import TypeBase
 
 app = create_app()
 config = context.config
 config.set_main_option("sqlalchemy.url", app.config["SQLALCHEMY_DATABASE_URI"])
 
-target_metadata = app.extensions["sqlalchemy"].metadata
+target_metadata = (
+    app.extensions["sqlalchemy"].metadata,
+    TypeBase.metadata,
+)
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
