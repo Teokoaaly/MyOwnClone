@@ -42,3 +42,10 @@ def test_backend_deploy_only_recreates_api_and_worker() -> None:
 
     assert "--no-deps api api_worker" in source
     assert "docker compose" in source
+
+
+def test_backend_deploy_uses_container_import_path_for_migrations() -> None:
+    source = SCRIPT.read_text(encoding="utf-8")
+
+    assert "api flask --app api.app_factory db upgrade" in source
+    assert "api flask --app api.app_factory db current" in source

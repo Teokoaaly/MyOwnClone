@@ -161,9 +161,9 @@ set -a
 set +a
 docker compose --project-name ops -f docker-compose.backend.prod.yml build api api_worker
 docker compose --project-name ops -f docker-compose.backend.prod.yml \
-  run --rm --no-deps api flask db upgrade
+  run --rm --no-deps api flask --app api.app_factory db upgrade
 docker compose --project-name ops -f docker-compose.backend.prod.yml \
-  run --rm --no-deps api flask db current
+  run --rm --no-deps api flask --app api.app_factory db current
 ln -sfn -- "$release_dir" "$backend_link"
 docker compose --project-name ops -f docker-compose.backend.prod.yml \
   up -d --build --no-deps api api_worker
