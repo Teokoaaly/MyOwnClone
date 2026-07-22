@@ -17,7 +17,9 @@ def test_ci_enforces_backend_quality_gates_without_building_frontend() -> None:
 
     assert "pytest -q tests api/tests" in source
     assert "flask db heads" in source
-    assert "flask db check" in source
+    assert 'expected_head="$(flask db heads --verbose' in source
+    assert 'current_head="$(flask db current --verbose' in source
+    assert 'test "$current_head" = "$expected_head"' in source
     assert "ruff check" in source
     assert "--exit-zero" not in source
     assert "scan_tracked_secrets.sh" in source

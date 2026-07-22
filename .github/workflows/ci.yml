@@ -81,10 +81,11 @@ jobs:
         working-directory: api
         run: |
           test "$(flask db heads | wc -l)" -eq 1
-          flask db heads
+          expected_head="$(flask db heads --verbose | sed -n 's/^Rev: \([^ ]*\).*/\1/p')"
+          test -n "$expected_head"
           flask db upgrade
-          flask db current
-          flask db check
+          current_head="$(flask db current --verbose | sed -n 's/^Rev: \([^ ]*\).*/\1/p')"
+          test "$current_head" = "$expected_head"
       - name: Pytest
         run: pytest -q tests api/tests --tb=short
 
