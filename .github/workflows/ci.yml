@@ -20,7 +20,7 @@ jobs:
         uses: trufflesecurity/trufflehog@v3.90.8
         with:
           path: ./
-          extra_args: --results=verified,unknown --fail
+          extra_args: --results=verified --fail
 
   backend-quality:
     name: Pytest, Alembic and Ruff

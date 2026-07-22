@@ -22,6 +22,7 @@ Partial index rationale:
   ``WHERE date IS NOT NULL AND start_time IS NOT NULL`` enforces the
   invariant for the only path that matters (the booking flow).
 """
+import sqlalchemy as sa
 from alembic import op
 
 
@@ -37,7 +38,7 @@ def upgrade() -> None:
         "bookings",
         ["meeting_type_id", "date", "start_time"],
         unique=True,
-        postgresql_where=op.inline_literal(
+        postgresql_where=sa.text(
             "date IS NOT NULL AND start_time IS NOT NULL"
         ),
     )

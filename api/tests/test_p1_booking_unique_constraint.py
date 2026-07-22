@@ -35,6 +35,8 @@ def test_migration_file_creates_partial_unique_index():
     assert "date IS NOT NULL AND start_time IS NOT NULL" in src, (
         "Index must be partial on date/start_time NOT NULL"
     )
+    assert "import sqlalchemy as sa" in src
+    assert "postgresql_where=sa.text(" in src
     # And must be on the right column set.
     m = re.search(r"create_index\(\s*[\"']uq_bookings_meeting_slot[\"']", src)
     assert m, "Index name not found in create_index call"
