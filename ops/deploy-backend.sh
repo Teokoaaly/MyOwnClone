@@ -98,9 +98,14 @@ if [[ "${DEPLOY_BACKEND_ROLLBACK_ONLY:-0}" == "1" ]]; then
 fi
 
 [[ -f "${LOCAL_REPO}/ops/docker-compose.backend.prod.yml" ]]
+[[ -f "${LOCAL_REPO}/ops/docker-compose.schema-migrator.yml" ]]
 [[ -z "$BACKEND_ENV_FILE" || -f "$BACKEND_ENV_FILE" ]]
-git -C "$LOCAL_REPO" diff --quiet -- api ops .github/workflows tests
-git -C "$LOCAL_REPO" diff --cached --quiet -- api ops .github/workflows tests
+git -C "$LOCAL_REPO" diff --quiet -- api ops .github/workflows MyOwnClone/drizzle MyOwnClone/drizzle.config.ts MyOwnClone/package.json MyOwnClone/package-lock.json MyOwnClone/src/lib/db/schema tests
+git -C "$LOCAL_REPO" diff --cached --quiet -- api ops .github/workflows MyOwnClone/drizzle MyOwnClone/drizzle.config.ts MyOwnClone/package.json MyOwnClone/package-lock.json MyOwnClone/src/lib/db/schema tests
+if [[ -n "$(git -C "$LOCAL_REPO" status --porcelain -- api ops .github/workflows MyOwnClone/drizzle MyOwnClone/drizzle.config.ts MyOwnClone/package.json MyOwnClone/package-lock.json MyOwnClone/src/lib/db/schema tests)" ]]; then
+  printf 'Release inputs must not contain untracked files or local changes\n' >&2
+  exit 1
+fi
 bash "$LOCAL_REPO/ops/scan_tracked_secrets.sh" "$LOCAL_REPO"
 
 SOURCE_COMMIT="$(git -C "$LOCAL_REPO" rev-parse HEAD)"
@@ -130,6 +135,11 @@ RSYNC_RSH="$RSYNC_RSH" rsync -az --delete \
   --exclude '__pycache__' --exclude '.ruff_cache' --exclude '.env*' \
   --include '/api/***' --include '/ops/***' \
   --include '/.github/' --include '/.github/workflows/***' \
+  --include '/MyOwnClone/' --include '/MyOwnClone/drizzle/***' \
+  --include '/MyOwnClone/drizzle.config.ts' --include '/MyOwnClone/package.json' \
+  --include '/MyOwnClone/package-lock.json' --include '/MyOwnClone/src/' \
+  --include '/MyOwnClone/src/lib/' --include '/MyOwnClone/src/lib/db/' \
+  --include '/MyOwnClone/src/lib/db/schema/***' \
   --include '/.dockerignore' --exclude '*' \
   "${LOCAL_REPO}/" "${SSH_USER}@${HOST}:${REMOTE_RELEASE_DIR}/"
 RSYNC_RSH="$RSYNC_RSH" rsync -az --chmod=F444 "$RELEASE_MANIFEST_FILE" \
@@ -159,6 +169,8 @@ cd -- "$release_dir/ops"
 set -a
 . ./backend.env.production
 set +a
+docker compose --project-name ops -f docker-compose.schema-migrator.yml \
+  run --rm --no-deps schema_migrator
 docker compose --project-name ops -f docker-compose.backend.prod.yml build api api_worker
 docker compose --project-name ops -f docker-compose.backend.prod.yml \
   run --rm --no-deps api flask --app api.app_factory db --directory /app/api/migrations upgrade

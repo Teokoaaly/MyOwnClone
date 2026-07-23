@@ -12,7 +12,18 @@ from pathlib import Path
 from typing import Final, TypedDict
 
 SCHEMA_VERSION: Final = 2
-INCLUDED_PREFIXES: Final = ("api/", "ops/", ".github/workflows/")
+INCLUDED_PREFIXES: Final = (
+    "api/",
+    "ops/",
+    ".github/workflows/",
+    "MyOwnClone/drizzle/",
+    "MyOwnClone/src/lib/db/schema/",
+)
+INCLUDED_FILES: Final = (
+    "MyOwnClone/drizzle.config.ts",
+    "MyOwnClone/package.json",
+    "MyOwnClone/package-lock.json",
+)
 EXCLUDED_NAMES: Final = {
     "backend.env.production",
     "frontend.env.production",
@@ -49,7 +60,7 @@ def _git(root: Path, *args: str) -> str:
 
 
 def _tracked_release_files(root: Path) -> list[str]:
-    output = _git(root, "ls-files", "-z", "--", *INCLUDED_PREFIXES)
+    output = _git(root, "ls-files", "-z", "--", *INCLUDED_PREFIXES, *INCLUDED_FILES)
     paths = [item for item in output.split("\0") if item]
     return sorted(
         path
@@ -61,7 +72,7 @@ def _tracked_release_files(root: Path) -> list[str]:
 
 
 def _release_files_on_disk(root: Path) -> list[str]:
-    paths: list[str] = []
+    paths: set[str] = set()
     for prefix in INCLUDED_PREFIXES:
         directory = root / prefix
         if not directory.is_dir():
@@ -74,8 +85,16 @@ def _release_files_on_disk(root: Path) -> list[str]:
                 and "__pycache__" not in relative.parts
                 and not path.name.startswith(".env")
             ):
-                paths.append(relative.as_posix())
+                paths.add(relative.as_posix())
+    for relative in INCLUDED_FILES:
+        path = root / relative
+        if path.is_file():
+            paths.add(relative)
     return sorted(paths)
+
+
+def _is_included_release_path(relative: str) -> bool:
+    return relative in INCLUDED_FILES or relative.startswith(INCLUDED_PREFIXES)
 
 
 def _digest(path: Path) -> str:
@@ -172,7 +191,7 @@ def load_manifest(path: Path) -> ManifestPayload:
     for relative, digest in files.items():
         if (
             not isinstance(relative, str)
-            or not relative.startswith(INCLUDED_PREFIXES)
+            or not _is_included_release_path(relative)
             or Path(relative).is_absolute()
             or ".." in Path(relative).parts
             or not isinstance(digest, str)

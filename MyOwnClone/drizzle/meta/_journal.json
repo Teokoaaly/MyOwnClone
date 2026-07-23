@@ -36,6 +36,13 @@
       "when": 1781098066229,
       "tag": "0004_align_drizzle_field_names",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784764800000,
+      "tag": "0005_repair_users_email_verified",
+      "breakpoints": true
     }
   ]
 }

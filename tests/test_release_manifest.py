@@ -102,3 +102,22 @@ def test_build_manifest_records_time_and_single_alembic_head() -> None:
     assert manifest["schema_version"] == 2
     assert manifest["created_at"] == "2026-07-22T10:00:00Z"
     assert manifest["alembic_head"] == "2026_07_23_0001"
+
+
+def test_build_manifest_includes_only_required_nonvisual_drizzle_inputs() -> None:
+    root = Path(__file__).resolve().parents[1]
+
+    manifest = build_manifest(
+        root,
+        "a" * 40,
+        created_at="2026-07-22T10:00:00Z",
+    )
+
+    paths = set(manifest["files"])
+    assert "MyOwnClone/drizzle/0004_align_drizzle_field_names.sql" in paths
+    assert "MyOwnClone/drizzle/meta/_journal.json" in paths
+    assert "MyOwnClone/drizzle.config.ts" in paths
+    assert "MyOwnClone/package.json" in paths
+    assert "MyOwnClone/package-lock.json" in paths
+    assert "MyOwnClone/src/lib/db/schema/users.ts" in paths
+    assert not any(path.startswith("MyOwnClone/src/app/") for path in paths)
