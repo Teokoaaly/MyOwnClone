@@ -59,6 +59,10 @@ def test_backup_contract_is_atomic_and_fail_closed() -> None:
     assert "setsid bash -o pipefail" in backup_source
     assert "trap cancel INT TERM HUP" in backup_source
     assert 'kill -- "-$pipeline_pid"' in backup_source
+    assert "publication_started=1" in backup_source
+    assert 'rm -f -- "$file" "$checksum_file" "$manifest_file"' in backup_source
+    assert backup_source.index("publication_started=1") < backup_source.index('mv -- "$tmp_dump"')
+    assert backup_source.index("backup_complete=1") > backup_source.rindex('mv -- "$tmp_manifest"')
 
 
 def test_offsite_upload_is_opt_in_root_only_and_never_deletes_remote() -> None:

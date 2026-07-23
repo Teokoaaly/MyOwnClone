@@ -27,11 +27,16 @@ tmp_checksum="$(mktemp "$BACKUP_DIR/.${DB_NAME}_${TIMESTAMP}.XXXXXX.sha256")"
 tmp_manifest="$(mktemp "$BACKUP_DIR/.${DB_NAME}_${TIMESTAMP}.XXXXXX.manifest")"
 
 pipeline_pid=""
-cleanup() { rm -f -- "$tmp_dump" "$tmp_checksum" "$tmp_manifest"; }
+publication_started=0
+backup_complete=0
+cleanup() {
+  rm -f -- "$tmp_dump" "$tmp_checksum" "$tmp_manifest"
+  if [[ "$publication_started" -eq 1 && "$backup_complete" -eq 0 ]]; then
+    rm -f -- "$file" "$checksum_file" "$manifest_file"
+  fi
+}
 cancel() {
   [[ -z "$pipeline_pid" ]] || kill -- "-$pipeline_pid" 2>/dev/null || true
-  cleanup
-  trap - EXIT INT TERM HUP
   exit 143
 }
 trap cleanup EXIT
@@ -60,9 +65,11 @@ printf '%s  %s\n' "$(sha256sum -- "$tmp_dump" | cut -d' ' -f1)" "$(basename -- "
   printf 'backup artifact already exists for timestamp %s\n' "$TIMESTAMP" >&2
   exit 1
 }
+publication_started=1
 mv -- "$tmp_dump" "$file"
 mv -- "$tmp_checksum" "$checksum_file"
 mv -- "$tmp_manifest" "$manifest_file"
+backup_complete=1
 
 if [[ -r "$BACKUP_B2_ENV_FILE" ]]; then
   . "$BACKUP_B2_ENV_FILE"

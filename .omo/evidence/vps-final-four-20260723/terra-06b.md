@@ -31,3 +31,9 @@ and exit 143 before artifact publication.
 | `bash -n ops/backup_postgres.sh ops/verify_postgres_backup.sh ops/install-postgres-backup-systemd.sh` | PASS |
 | `git diff --check` | PASS |
 | `bash ops/scan_tracked_secrets.sh .` | PASS |
+
+The publication-cleanup harness is `tests/test_postgres_backup_publish_cleanup.sh`.
+It injects `TERM` from a fake `mv` immediately after the first final move and
+asserts no artifact remains. This Windows Git-Bash host lacks `setsid`, so the
+process-group-specific harness reported `SKIP`; the production Linux dependency
+is deliberately fail-closed when `setsid` is unavailable.
