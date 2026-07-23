@@ -17,7 +17,7 @@ datos, restauración a un punto en el tiempo, o migración a otro host.
 ls -t /opt/myownclone/backups/*.sql.gz | head -3
 
 # 2. Verifica checksum, manifest, gzip y restore aislado (debe terminar PASS)
-/opt/myownclone/backend-current/ops/verify_postgres_backup.sh \
+bash /opt/myownclone/backend-current/ops/verify_postgres_backup.sh \
   /opt/myownclone/backups/myownclone_YYYYMMDD_HHMMSS.sql.gz
 
 # 3. Restaurar (reemplaza DB actual; detener antes los writers de la aplicación)
@@ -48,7 +48,7 @@ Instalación o migración, únicamente durante una ventana de mantenimiento:
 ```bash
 install -m 0600 /dev/null /etc/myownclone/backup-b2.env
 # editar como root: B2_REMOTE=remote:bucket/myownclone/postgres
-/opt/myownclone/backend-current/ops/install-postgres-backup-systemd.sh
+bash /opt/myownclone/backend-current/ops/install-postgres-backup-systemd.sh
 systemctl list-timers myownclone-postgres-backup.timer
 systemctl start myownclone-postgres-backup.service
 journalctl -u myownclone-postgres-backup.service -n 50 --no-pager

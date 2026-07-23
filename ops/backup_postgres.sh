@@ -26,13 +26,25 @@ tmp_dump="$(mktemp "$BACKUP_DIR/.${DB_NAME}_${TIMESTAMP}.XXXXXX.sql.gz")"
 tmp_checksum="$(mktemp "$BACKUP_DIR/.${DB_NAME}_${TIMESTAMP}.XXXXXX.sha256")"
 tmp_manifest="$(mktemp "$BACKUP_DIR/.${DB_NAME}_${TIMESTAMP}.XXXXXX.manifest")"
 
+pipeline_pid=""
 cleanup() { rm -f -- "$tmp_dump" "$tmp_checksum" "$tmp_manifest"; }
-trap cleanup EXIT INT TERM HUP
+cancel() {
+  [[ -z "$pipeline_pid" ]] || kill -- "-$pipeline_pid" 2>/dev/null || true
+  cleanup
+  trap - EXIT INT TERM HUP
+  exit 143
+}
+trap cleanup EXIT
+trap cancel INT TERM HUP
 
 printf '[%s] backup release=%s db=%s\n' "$(date -Iseconds)" "$release_dir" "$DB_NAME" >&2
-timeout "$BACKUP_TIMEOUT_SECONDS" docker exec "$CONTAINER" \
-  pg_dump -U postgres -d "$DB_NAME" --format=plain --no-owner --no-privileges \
-  | timeout "$BACKUP_TIMEOUT_SECONDS" gzip -c > "$tmp_dump"
+setsid bash -o pipefail -c '
+  timeout "$1" docker exec "$2" pg_dump -U postgres -d "$3" --format=plain --no-owner --no-privileges \
+    | timeout "$1" gzip -c
+' bash "$BACKUP_TIMEOUT_SECONDS" "$CONTAINER" "$DB_NAME" > "$tmp_dump" &
+pipeline_pid=$!
+wait "$pipeline_pid"
+pipeline_pid=""
 gzip -t -- "$tmp_dump"
 printf '%s  %s\n' "$(sha256sum -- "$tmp_dump" | cut -d' ' -f1)" "$(basename -- "$file")" > "$tmp_checksum"
 {

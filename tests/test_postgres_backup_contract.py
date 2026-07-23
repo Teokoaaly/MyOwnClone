@@ -22,6 +22,22 @@ def test_backup_uses_backend_current_and_is_unix_executable() -> None:
     assert b"readlink -f" in source
 
 
+def test_scripts_invoked_directly_are_executable() -> None:
+    # Given: scripts referenced directly by systemd or the recovery runbook
+    service = (ROOT / "ops" / "myownclone-postgres-backup.service").read_text(
+        encoding="utf-8"
+    )
+    runbook = (ROOT / ".omo" / "runbooks" / "restore-from-backup.md").read_text(
+        encoding="utf-8"
+    )
+
+    # When: their owner-mode bits are inspected
+    # Then: every direct operational invocation selects Bash explicitly.
+    assert "ExecStart=/usr/bin/env bash /opt/myownclone/backend-current/ops/backup_postgres.sh" in service
+    assert "bash /opt/myownclone/backend-current/ops/verify_postgres_backup.sh" in runbook
+    assert "bash /opt/myownclone/backend-current/ops/install-postgres-backup-systemd.sh" in runbook
+
+
 def test_backup_contract_is_atomic_and_fail_closed() -> None:
     # Given: backup and verification scripts
     backup_source = BACKUP.read_text(encoding="utf-8")
@@ -40,6 +56,9 @@ def test_backup_contract_is_atomic_and_fail_closed() -> None:
     assert "ON_ERROR_STOP=1" in verify_source
     assert "timeout" in backup_source
     assert "timeout" in verify_source
+    assert "setsid bash -o pipefail" in backup_source
+    assert "trap cancel INT TERM HUP" in backup_source
+    assert 'kill -- "-$pipeline_pid"' in backup_source
 
 
 def test_offsite_upload_is_opt_in_root_only_and_never_deletes_remote() -> None:
