@@ -21,7 +21,7 @@ def _manifest(tmp_path: Path, content: bytes = b"healthy\n") -> Path:
                 "schema_version": 2,
                 "source_commit": "a" * 40,
                 "created_at": "2026-07-22T10:00:00Z",
-                "alembic_head": "2026_07_14_0002",
+                "alembic_head": "2026_07_23_0001",
                 "files": {"api/service.py": hashlib.sha256(content).hexdigest()},
             }
         ),
@@ -101,4 +101,4 @@ def test_build_manifest_records_time_and_single_alembic_head() -> None:
 
     assert manifest["schema_version"] == 2
     assert manifest["created_at"] == "2026-07-22T10:00:00Z"
-    assert manifest["alembic_head"] == "2026_07_14_0002"
+    assert manifest["alembic_head"] == "2026_07_23_0001"

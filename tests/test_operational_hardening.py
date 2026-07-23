@@ -1,4 +1,6 @@
 """Operational hardening tests for production readiness."""
+from types import SimpleNamespace
+
 import pytest
 
 
@@ -42,7 +44,11 @@ def test_healthz_returns_ready_when_dependencies_ok(client, monkeypatch):
     from api.app_factory import db
 
     monkeypatch.setattr(db.session, "execute", lambda *_a, **_kw: object())
-    monkeypatch.setattr("api.app_factory._redis_ready", lambda: (True, None))
+    monkeypatch.setattr("api.core.readiness._redis_ready", lambda: (True, None))
+    monkeypatch.setattr(
+        "api.core.readiness.ModelRegistry.resolve",
+        lambda *_a, **_kw: SimpleNamespace(provider="openai"),
+    )
     # Stub Ollama probe to avoid real network in CI.
     monkeypatch.setattr(
         "requests.get",
@@ -86,7 +92,11 @@ def test_healthz_returns_503_when_database_fails(app, monkeypatch):
 
     monkeypatch.setattr(db.session, "execute", fail_execute)
     monkeypatch.setattr(db.session, "rollback", lambda: None)
-    monkeypatch.setattr("api.app_factory._redis_ready", lambda: (True, None))
+    monkeypatch.setattr("api.core.readiness._redis_ready", lambda: (True, None))
+    monkeypatch.setattr(
+        "api.core.readiness.ModelRegistry.resolve",
+        lambda *_a, **_kw: SimpleNamespace(provider="openai"),
+    )
     monkeypatch.setattr(
         "requests.get",
         lambda *a, **k: type("R", (), {"status_code": 200})(),
