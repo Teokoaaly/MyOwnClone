@@ -16,10 +16,11 @@ datos, restauración a un punto en el tiempo, o migración a otro host.
 # 1. Localiza el backup más reciente
 ls -t /opt/myownclone/backups/*.sql.gz | head -3
 
-# 2. Verifica integridad (debe terminar sin error)
-zcat /opt/myownclone/backups/myownclone_YYYYMMDD_HHMMSS.sql.gz | head -50
+# 2. Verifica checksum, manifest, gzip y restore aislado (debe terminar PASS)
+/opt/myownclone/backend-current/ops/verify_postgres_backup.sh \
+  /opt/myownclone/backups/myownclone_YYYYMMDD_HHMMSS.sql.gz
 
-# 3. Restaurar (reemplaza DB actual)
+# 3. Restaurar (reemplaza DB actual; detener antes los writers de la aplicación)
 zcat /opt/myownclone/backups/myownclone_YYYYMMDD_HHMMSS.sql.gz | \
   docker exec -i myownclone_postgres psql -U postgres -d myownclone
 
@@ -28,6 +29,34 @@ docker exec myownclone_postgres psql -U postgres -d myownclone -c "SELECT COUNT(
 ```
 
 **Tiempo estimado**: 2-5 min (DB pequeña, ~10MB).
+
+## 1.1 Programación, retención y copia B2
+
+El backup se ejecuta desde la release resuelta por
+`/opt/myownclone/backend-current`; no usar un path de release antiguo ni un
+cron paralelo. La unidad `myownclone-postgres-backup.timer` corre diariamente,
+incluye retraso aleatorio y no pierde una ejecución tras una caída (`Persistent=true`).
+
+La retención es únicamente local y conserva siempre el dump más reciente.
+Si existe `/etc/myownclone/backup-b2.env`, el servicio root carga
+`B2_REMOTE=remote:bucket/prefix` en runtime y sube el dump, checksum y manifest
+con nombres inmutables. Ese archivo y cualquier configuración/credencial rclone
+son root-only, nunca se versionan. El proceso no borra objetos remotos.
+
+Instalación o migración, únicamente durante una ventana de mantenimiento:
+
+```bash
+install -m 0600 /dev/null /etc/myownclone/backup-b2.env
+# editar como root: B2_REMOTE=remote:bucket/myownclone/postgres
+/opt/myownclone/backend-current/ops/install-postgres-backup-systemd.sh
+systemctl list-timers myownclone-postgres-backup.timer
+systemctl start myownclone-postgres-backup.service
+journalctl -u myownclone-postgres-backup.service -n 50 --no-pager
+```
+
+El instalador activa y comprueba el timer antes de eliminar sólo una línea cron
+legacy que invoque `backup_postgres.sh`. Para rollback de la migración, deshabilitar
+el timer antes de restaurar explícitamente el cron aprobado; no ejecutar ambos.
 
 ## 2. Reconstruir Weaviate
 

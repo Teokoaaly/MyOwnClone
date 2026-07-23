@@ -1,0 +1,19 @@
+[Unit]
+Description=MyOwnClone PostgreSQL backup (release-pinned backend)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+Environment=BACKEND_CURRENT=/opt/myownclone/backend-current
+Environment=BACKUP_B2_ENV_FILE=/etc/myownclone/backup-b2.env
+ExecStart=/opt/myownclone/backend-current/ops/backup_postgres.sh 14
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/myownclone/backups
