@@ -33,7 +33,19 @@ def test_alembic_graph_has_one_head_and_no_missing_parent() -> None:
     }
 
     assert parents <= revisions.keys()
-    assert revisions.keys() - parents == {"2026_07_14_0002"}
+    assert revisions.keys() - parents == {"2026_07_23_0001"}
+
+
+def test_global_active_assignment_migration_enforces_null_scope_cardinality() -> None:
+    path = Path(__file__).resolve().parents[1] / "migrations" / "versions" / (
+        "2026_07_23_0001_harden_global_ai_assignments.py"
+    )
+    source = path.read_text(encoding="utf-8")
+
+    assert "uq_active_global_assignment_per_task" in source
+    assert "WHERE tenant_id IS NULL AND is_active = true" in source
+    assert "ROW_NUMBER() OVER" in source
+    assert "WHERE assignment.tenant_id IS NULL" in source
 
 
 def test_alembic_tracks_flask_and_typebase_metadata() -> None:

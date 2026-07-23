@@ -5,11 +5,11 @@ Register all MyOwnClone blueprints here.
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from api.libs.security_checks import assert_production_secrets
 
-from flask import Flask, jsonify
+from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 
@@ -39,6 +39,8 @@ from api.controllers.console.auth import auth_bp
 
 # Import CLI commands
 from api.commands.seed import seed_demo_data
+
+from api.core.readiness import register_health_routes
 
 # Import deploy blueprint
 from api.controllers.deploy import deploy_bp
@@ -114,43 +116,6 @@ def _database_uri() -> str:
         f"{os.getenv('DB_PORT', '5432')}/"
         f"{os.getenv('DB_NAME', 'myownclone')}"
     )
-
-
-def _redis_ready() -> tuple[bool, str | None]:
-    host = os.getenv("REDIS_HOST", "").strip()
-    if not host:
-        return True, "not_configured"
-
-    try:
-        import redis
-
-        # Soporte TLS: si REDIS_TLS=true, conectar con SSL.
-        # Por defecto asume TLS cuando el puerto es 6380.
-        redis_tls = os.getenv("REDIS_TLS", "false").strip().lower() == "true"
-        redis_port = int(os.getenv("REDIS_PORT", "6379"))
-        if not redis_tls and redis_port == 6380:
-            redis_tls = True  # puerto 6380 implica TLS en este stack
-
-        client_kwargs = {
-            "host": host,
-            "port": redis_port,
-            "password": os.getenv("REDIS_PASSWORD") or None,
-            "socket_connect_timeout": 1.0,
-            "socket_timeout": 1.0,
-        }
-        if redis_tls:
-            client_kwargs["ssl"] = True
-            client_kwargs["ssl_certfile"] = "/etc/redis/tls/redis.crt"
-            client_kwargs["ssl_keyfile"] = "/etc/redis/tls/redis.key"
-            client_kwargs["ssl_ca_certs"] = "/etc/redis/tls/ca.crt"
-            # Cert fue generado con otro hostname; en la red Docker solo usamos 'redis'
-            client_kwargs["ssl_check_hostname"] = False
-
-        client = redis.Redis(**client_kwargs)
-        client.ping()
-        return True, None
-    except Exception as exc:  # pragma: no cover - exact client failures vary
-        return False, str(exc)
 
 
 def create_app():
@@ -254,74 +219,6 @@ def create_app():
     register_metrics_endpoint(app)
 
     return app
-
-
-def register_health_routes(app):
-    """Register liveness/readiness endpoints used by Docker and probes."""
-
-    @app.get("/healthz")
-    def healthz():
-        """Chequeo detallado: DB + Redis + Ollama. Devuelve 503 si algo falla.
-
-        Contrato (auditoria 2026-07-13 / P0.6):
-        - ``status``: ``ready`` (200) o ``degraded`` (503).
-        - ``checks``: estado por componente. No expone texto de driver/DSN
-          (info leak): reporta ``ok``/``error`` sin detalles internos que un
-          atacante sin autenticar podría leer.
-        - Ollama no es bloqueante para 503 (hay fallback de embeddings).
-        """
-        import os
-        import requests
-
-        checks: dict[str, str] = {}
-        all_ok = True
-
-        # 1. Database
-        try:
-            from sqlalchemy import text
-            db.session.execute(text("SELECT 1"))
-            checks["database"] = "ok"
-        except Exception:
-            db.session.rollback()
-            # No exponer el texto de la excepcion (DSN/hostnames) a callers
-            # sin autenticar. Solo reportar el estado booleano.
-            checks["database"] = "error"
-            all_ok = False
-
-        # 2. Redis
-        redis_ok, _redis_error = _redis_ready()
-        if redis_ok:
-            checks["redis"] = "ok"
-        else:
-            checks["redis"] = "error"
-            all_ok = False
-
-        # 3. Ollama (si está configurado como embedding local)
-        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-        try:
-            resp = requests.get(f"{ollama_url}/api/tags", timeout=2)
-            if resp.status_code == 200:
-                checks["ollama"] = "ok"
-            else:
-                checks["ollama"] = f"error: HTTP {resp.status_code}"
-                # Ollama no es critico: no degrada a 503 (hay fallback).
-        except Exception:
-            checks["ollama"] = "unreachable"
-            # Ollama no es crítico si hay fallback, no degrada a 503
-            # pero se reporta para visibilidad
-
-        payload_status = "ready" if all_ok else "degraded"
-        http_status = 200 if all_ok else 503
-        return jsonify({"status": payload_status, "checks": checks}), http_status
-
-    @app.get("/readyz")
-    def readyz():
-        """Liveness simple: solo verifica que la app responde. Para Docker healthcheck.
-
-        Siempre devuelve 200 ``{"status": "ready"}`` si el proceso atiende la
-        peticion. No chequea dependencias (eso es ``/healthz``).
-        """
-        return jsonify({"status": "ready"}), 200
 
 
 def register_myownclone_blueprints(app):

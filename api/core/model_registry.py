@@ -156,7 +156,11 @@ class ModelRegistry:
                 AIModelAssignment.is_active.is_(True),
                 AIModel.is_active.is_(True),
             )
-            .order_by(AIModel.priority.asc(), AIModelAssignment.created_at.asc())
+            .order_by(
+                AIModel.priority.asc(),
+                AIModelAssignment.created_at.asc(),
+                AIModelAssignment.id.asc(),
+            )
         )
         if tenant_id is None:
             stmt = stmt.where(AIModelAssignment.tenant_id.is_(None))

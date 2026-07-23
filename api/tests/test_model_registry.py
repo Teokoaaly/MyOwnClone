@@ -98,6 +98,25 @@ def test_model_registry_falls_back_to_global_assignment(monkeypatch):
     assert calls == ["tenant-1", None]
 
 
+def test_model_registry_selection_has_a_stable_assignment_id_tiebreaker(monkeypatch):
+    registry = ModelRegistry()
+    captured = []
+
+    class _Result:
+        def first(self):
+            return None
+
+    monkeypatch.setattr(
+        "api.core.model_registry.db.session.execute",
+        lambda stmt: captured.append(stmt) or _Result(),
+    )
+
+    assert registry._select_assignment_row(tenant_id=None, task=AITask.EMBEDDING) is None
+
+    compiled = str(captured[0].compile(compile_kwargs={"literal_binds": True}))
+    assert "ai_model_assignments.id ASC" in compiled
+
+
 def test_model_registry_uses_cache_until_invalidated(monkeypatch):
     now = [100.0]
     registry = ModelRegistry(ttl_seconds=60, time_fn=lambda: now[0])
