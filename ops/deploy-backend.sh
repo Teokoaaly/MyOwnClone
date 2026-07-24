@@ -169,6 +169,9 @@ cd -- "$release_dir/ops"
 set -a
 . ./backend.env.production
 set +a
+# Ensure the `myownclone_app` role can create the `drizzle` bookkeeping
+# schema before invoking the schema_migrator service. Idempotent.
+bash "$release_dir/ops/bootstrap-drizzle-migrator.sh"
 docker compose --project-name ops -f docker-compose.schema-migrator.yml \
   run --rm --no-deps schema_migrator
 docker compose --project-name ops -f docker-compose.backend.prod.yml build api api_worker

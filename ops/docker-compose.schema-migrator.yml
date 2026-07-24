@@ -2,6 +2,12 @@ services:
   schema_migrator:
     image: node:22.16.0-bookworm-slim
     working_dir: /workspace
+    # Attach to the same internal network where `db_postgres` is reachable.
+    # Without this, the service lands on the default compose network and the
+    # `db_postgres` alias cannot be resolved, which makes `drizzle-kit migrate`
+    # fail with a silent RC=1 (the spinner hides the connection error).
+    networks:
+      - backend_internal
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
     volumes:
@@ -21,6 +27,11 @@ services:
         node -e 'const value = process.env.DATABASE_URL; if (!value) process.exit(64); const parsed = new URL(value); if (!parsed.hostname || !["postgres:", "postgresql:"].includes(parsed.protocol)) process.exit(64)'
         npm ci --ignore-scripts --no-audit --no-fund
         npx drizzle-kit migrate --config drizzle.config.ts
+
+networks:
+  backend_internal:
+    external: true
+    name: ops_backend_internal
 
 volumes:
   schema_migrator_node_modules:
