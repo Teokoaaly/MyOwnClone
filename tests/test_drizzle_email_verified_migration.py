@@ -53,7 +53,7 @@ def postgres_container() -> Iterator[str]:
             container,
             "sh",
             "-ec",
-            "until pg_isready -U postgres -d luna03; do sleep 1; done",
+            "until psql -U postgres -d luna03 -v ON_ERROR_STOP=1 -c 'SELECT 1' >/dev/null 2>&1; do sleep 1; done",
         )
         yield container
     finally:
@@ -74,6 +74,16 @@ def _psql(container: str, sql: str) -> str:
         "--command",
         sql,
     ).stdout.strip()
+
+
+def test_postgres_fixture_waits_for_a_real_luna03_query() -> None:
+    fixture_source = Path(__file__).read_text(encoding="utf-8").partition(
+        "def test_postgres_fixture_waits_for_a_real_luna03_query"
+    )[0]
+
+    assert "until psql -U postgres -d luna03" in fixture_source
+    assert "SELECT 1" in fixture_source
+    assert "pg_isready" not in fixture_source
 
 
 def test_email_verified_migration_is_a_noop_on_an_empty_database(
