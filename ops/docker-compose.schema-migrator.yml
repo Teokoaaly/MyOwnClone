@@ -11,6 +11,12 @@ services:
       - /bin/sh
       - -ec
       - |
+        case "$DATABASE_URL" in
+          postgresql+psycopg://*) DATABASE_URL="postgresql://${DATABASE_URL#postgresql+psycopg://}" ;;
+          postgres://*|postgresql://*) ;;
+          *) exit 64 ;;
+        esac
+        export DATABASE_URL
         cp -a /source/. /workspace/
         node -e 'const value = process.env.DATABASE_URL; if (!value) process.exit(64); const parsed = new URL(value); if (!parsed.hostname || !["postgres:", "postgresql:"].includes(parsed.protocol)) process.exit(64)'
         npm ci --ignore-scripts --no-audit --no-fund
