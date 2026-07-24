@@ -96,8 +96,8 @@ def test_schema_migrator_keeps_dependency_volume_outside_read_only_source_mount(
 def test_schema_migrator_normalizes_sqlalchemy_psycopg_database_urls() -> None:
     source = SCHEMA_MIGRATOR_COMPOSE.read_text(encoding="utf-8")
 
-    assert 'case "$DATABASE_URL" in' in source
+    assert 'case "$$DATABASE_URL" in' in source
     assert "postgresql+psycopg://*)" in source
-    assert 'DATABASE_URL="postgresql://${DATABASE_URL#postgresql+psycopg://}"' in source
+    assert 'DATABASE_URL="postgresql://$${DATABASE_URL#postgresql+psycopg://}"' in source
     assert "postgres://*|postgresql://*)" in source
     assert "*) exit 64 ;;" in source

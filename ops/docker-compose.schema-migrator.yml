@@ -11,8 +11,8 @@ services:
       - /bin/sh
       - -ec
       - |
-        case "$DATABASE_URL" in
-          postgresql+psycopg://*) DATABASE_URL="postgresql://${DATABASE_URL#postgresql+psycopg://}" ;;
+        case "$$DATABASE_URL" in
+          postgresql+psycopg://*) DATABASE_URL="postgresql://$${DATABASE_URL#postgresql+psycopg://}" ;;
           postgres://*|postgresql://*) ;;
           *) exit 64 ;;
         esac
