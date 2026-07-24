@@ -82,3 +82,12 @@ def test_schema_migrator_uses_node_22_for_drizzle_without_a_frontend_runtime() -
     assert "npx drizzle-kit migrate --config drizzle.config.ts" in source
     assert "next build" not in source
     assert "next start" not in source
+
+
+def test_schema_migrator_keeps_dependency_volume_outside_read_only_source_mount() -> None:
+    source = SCHEMA_MIGRATOR_COMPOSE.read_text(encoding="utf-8")
+
+    assert "../MyOwnClone:/source:ro" in source
+    assert "schema_migrator_node_modules:/workspace/node_modules" in source
+    assert "cp -a /source/. /workspace/" in source
+    assert "../MyOwnClone:/workspace:ro" not in source

@@ -5,12 +5,13 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
     volumes:
-      - ../MyOwnClone:/workspace:ro
+      - ../MyOwnClone:/source:ro
       - schema_migrator_node_modules:/workspace/node_modules
     command:
       - /bin/sh
       - -ec
       - |
+        cp -a /source/. /workspace/
         node -e 'const value = process.env.DATABASE_URL; if (!value) process.exit(64); const parsed = new URL(value); if (!parsed.hostname || !["postgres:", "postgresql:"].includes(parsed.protocol)) process.exit(64)'
         npm ci --ignore-scripts --no-audit --no-fund
         npx drizzle-kit migrate --config drizzle.config.ts
