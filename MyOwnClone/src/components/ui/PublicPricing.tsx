@@ -8,16 +8,55 @@ import {
   normalizePublicPlanId,
   PUBLIC_PRICING_COMPARISON,
   PUBLIC_PRICING_PLANS,
+  type PublicPlan,
   type PublicPlanId,
 } from "@/lib/public-pricing";
+
+export interface PublicPricingCopy {
+  readonly annual: string;
+  readonly annualEquivalent: string;
+  readonly compareFeatures: string;
+  readonly current: string;
+  readonly dashboardPrices: string;
+  readonly feature: string;
+  readonly monthly: string;
+  readonly pricing: string;
+  readonly toggleAnnual: string;
+  readonly year: string;
+  readonly month: string;
+}
+
+const defaultCopy: PublicPricingCopy = {
+  annual: "Annual",
+  annualEquivalent: "Annual equivalent",
+  compareFeatures: "Compare features",
+  current: "Current",
+  dashboardPrices: "Dashboard prices",
+  feature: "Feature",
+  monthly: "Monthly",
+  pricing: "Pricing",
+  toggleAnnual: "Toggle annual billing",
+  year: "/year",
+  month: "/month",
+};
 
 interface PublicPricingProps {
   mode: "landing" | "dashboard";
   currentPlanId?: string | null;
   onSelectPlan?: (planId: PublicPlanId) => void;
+  plans?: readonly PublicPlan[];
+  comparison?: readonly (readonly string[])[];
+  copy?: PublicPricingCopy;
 }
 
-export default function PublicPricing({ mode, currentPlanId, onSelectPlan }: PublicPricingProps) {
+export default function PublicPricing({
+  mode,
+  currentPlanId,
+  onSelectPlan,
+  plans = PUBLIC_PRICING_PLANS,
+  comparison = PUBLIC_PRICING_COMPARISON,
+  copy = defaultCopy,
+}: PublicPricingProps) {
   const [annual, setAnnual] = useState(false);
   const [view, setView] = useState<"cards" | "comparison">("cards");
   const normalizedCurrentPlan = normalizePublicPlanId(currentPlanId);
@@ -33,7 +72,7 @@ export default function PublicPricing({ mode, currentPlanId, onSelectPlan }: Pub
             aria-selected={view === "cards"}
             onClick={() => setView("cards")}
           >
-            Pricing
+            {copy.pricing}
           </button>
           <button
             className={`shared-pricing-tab ${view === "comparison" ? "is-active" : ""}`}
@@ -42,29 +81,29 @@ export default function PublicPricing({ mode, currentPlanId, onSelectPlan }: Pub
             aria-selected={view === "comparison"}
             onClick={() => setView("comparison")}
           >
-            Compare features
+            {copy.compareFeatures}
           </button>
         </div>
 
         <button
           className="shared-billing-toggle"
           type="button"
-          aria-label="Toggle annual billing"
+          aria-label={copy.toggleAnnual}
           onClick={() => setAnnual((value) => !value)}
         >
-          <span>Monthly</span>
+          <span>{copy.monthly}</span>
           <span className={`shared-billing-switch ${annual ? "is-on" : ""}`} aria-hidden="true" />
-          <span>Annual</span>
+          <span>{copy.annual}</span>
         </button>
 
         <span className="shared-pricing-note">
-          {annual ? "Annual equivalent" : "Dashboard prices"}
+          {annual ? copy.annualEquivalent : copy.dashboardPrices}
         </span>
       </div>
 
       {view === "cards" ? (
         <div className="shared-pricing-grid" id={`${mode}PricingCards`}>
-          {PUBLIC_PRICING_PLANS.map((plan) => {
+          {plans.map((plan) => {
             const isCurrent = normalizedCurrentPlan === plan.id;
 
             return (
@@ -75,14 +114,14 @@ export default function PublicPricing({ mode, currentPlanId, onSelectPlan }: Pub
                 <div className="shared-plan-top">
                   <span className="shared-plan-badge">{plan.badge}</span>
                   {mode === "dashboard" && isCurrent ? (
-                    <span className="shared-plan-current">Current</span>
+                    <span className="shared-plan-current">{copy.current}</span>
                   ) : null}
                 </div>
 
                 <h3 className="shared-plan-name">{plan.name}</h3>
                 <p className="shared-plan-price">
                   <strong>{formatPublicPlanPrice(annual ? plan.annual : plan.monthly)}</strong>
-                  {plan.monthly !== null ? <span>{annual ? "/year" : "/month"}</span> : null}
+                  {plan.monthly !== null ? <span>{annual ? copy.year : copy.month}</span> : null}
                 </p>
                 <p className="shared-plan-billing">{getPublicBillingLabel(plan, annual)}</p>
                 <p className="shared-plan-desc">{plan.description}</p>
@@ -124,14 +163,14 @@ export default function PublicPricing({ mode, currentPlanId, onSelectPlan }: Pub
           <table>
             <thead>
               <tr>
-                <th>Feature</th>
+                <th>{copy.feature}</th>
                 <th>Free</th>
                 <th>Pro</th>
                 <th>Enterprise</th>
               </tr>
             </thead>
             <tbody>
-              {PUBLIC_PRICING_COMPARISON.map(([feature, free, pro, enterprise]) => (
+              {comparison.map(([feature, free, pro, enterprise]) => (
                 <tr key={feature}>
                   <td>{feature}</td>
                   {[free, pro, enterprise].map((value, index) => (
