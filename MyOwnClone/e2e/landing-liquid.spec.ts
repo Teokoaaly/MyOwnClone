@@ -44,7 +44,7 @@ test.describe("landing liquid", () => {
     });
   }
 
-  test("uses canonical pricing and owned visual assets", async ({ page }) => {
+  test("uses owned visual assets and capability cards without prices", async ({ page }) => {
     const externalOrbRequests: string[] = [];
     page.on("request", (request) => {
       if (/future\.co|\.webm(?:$|\?)/i.test(request.url())) {
@@ -53,11 +53,9 @@ test.describe("landing liquid", () => {
     });
 
     await page.goto("/landing-liquid");
-    await expect(page.getByRole("heading", { name: "Precios claros para empezar" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Free" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Pro" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Enterprise" })).toBeVisible();
-    await expect(page.getByText("$64.90")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Conecta conocimiento, acción y contexto" })).toBeVisible();
+    await expect(page.getByTestId("capability-detail-card")).toHaveCount(3);
+    await expect(page.getByText(/\$\d/)).toHaveCount(0);
     await expect(page.getByTestId("liquid-orb")).toHaveAttribute("aria-hidden", "true");
     expect(externalOrbRequests).toEqual([]);
   });
