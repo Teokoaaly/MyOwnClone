@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { ArrowUpRight, CheckCircle, Sparkle, StackSimple } from "@phosphor-icons/react/dist/ssr";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
+import PublicPricing from "@/components/ui/PublicPricing";
 import { Link } from "@/i18n/navigation";
 import { LiquidOrb } from "./_components/LiquidOrb";
+import { liquidPricingComparison, liquidPricingCopy, liquidPricingPlans } from "./content";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -25,12 +27,6 @@ const processSteps = [
 
 const technologies = ["Next.js", "Flask", "PostgreSQL", "Redis", "Ollama"] as const;
 
-const capabilityDetails = [
-  ["Conocimiento conectado", "Convierte fuentes y contexto en respuestas útiles con RAG y embeddings locales."],
-  ["Clones con criterio", "Configura la voz, el idioma y las reglas de cada clon para cada equipo o cliente."],
-  ["Automatización operativa", "Lleva conversaciones, productos y tareas repetitivas a flujos que tu equipo puede supervisar."],
-] as const;
-
 export default function LiquidLandingPage() {
   return (
     <main className={styles.page} lang="es">
@@ -41,10 +37,9 @@ export default function LiquidLandingPage() {
           <span>MyOwnClone</span>
         </Link>
         <div className={styles.navLinks}>
-          <a href="#inicio">Home</a>
-          <a href="#capacidades">Features</a>
-          <a href="#proceso">Company</a>
-          <a href="#detalle">Platform</a>
+          <a href="#capacidades">Capacidades</a>
+          <a href="#proceso">Proceso</a>
+          <a href="#precios">Precios</a>
         </div>
         <div className={styles.navActions}>
           <Link className={styles.signIn} href="/login">Entrar</Link>
@@ -55,10 +50,10 @@ export default function LiquidLandingPage() {
       <section className={styles.hero} id="inicio">
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}><Sparkle aria-hidden="true" size={16} weight="fill" /> Clones digitales que conservan tu criterio</p>
-          <h1>Work smarter, achieve faster</h1>
+          <h1>Trabaja con más inteligencia, avanza más rápido.</h1>
           <p className={styles.heroLead}>Convierte conocimiento, conversaciones y procesos en un clon digital que acompaña a tu equipo cada día.</p>
           <div className={styles.heroActions}>
-            <Link className={styles.primaryCta} href="/registro">Get Started Now <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
+            <Link className={styles.primaryCta} href="/registro">Empezar ahora <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
             <Link className={styles.secondaryCta} href="/login">Ver mi espacio</Link>
           </div>
         </div>
@@ -103,19 +98,19 @@ export default function LiquidLandingPage() {
         </ol>
       </section>
 
-      <section className={`${styles.section} ${styles.detailSection}`} id="detalle">
+      <section className={`${styles.section} ${styles.pricingSection}`} id="precios">
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>Plataforma</p>
-          <h2>Conecta conocimiento, acción y contexto.</h2>
-          <p>Todo lo que ves responde a capacidades reales de MyOwnClone. No mostramos precios en esta landing alternativa.</p>
+          <p className={styles.eyebrow}>Planes</p>
+          <h2>Precios claros para empezar.</h2>
+          <p>Los mismos planes y rutas que ya están disponibles en MyOwnClone.</p>
         </div>
-        <div className={styles.detailGrid}>
-          {capabilityDetails.map(([title, description]) => (
-            <article className={styles.detailCard} data-testid="capability-detail-card" key={title}>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </article>
-          ))}
+        <div className={styles.pricingWrap}>
+          <PublicPricing
+            comparison={liquidPricingComparison}
+            copy={liquidPricingCopy}
+            mode="landing"
+            plans={liquidPricingPlans}
+          />
         </div>
       </section>
 
