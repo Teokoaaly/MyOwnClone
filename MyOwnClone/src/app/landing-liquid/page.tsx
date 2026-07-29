@@ -4,7 +4,6 @@ import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import PublicPricing from "@/components/ui/PublicPricing";
 import { Link } from "@/i18n/navigation";
 import { LiquidOrb } from "./_components/LiquidOrb";
-import { liquidPricingComparison, liquidPricingCopy, liquidPricingPlans } from "./content";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -13,23 +12,23 @@ export const metadata: Metadata = {
 };
 
 const capabilities = [
-  ["Visión completa", "Controla actividad, conversaciones, uso y señales comerciales desde un solo espacio."],
-  ["Conocimiento que responde", "Organiza documentos y contexto para que cada respuesta mantenga tu criterio."],
-  ["Automatización con voz propia", "Coordina bandeja, productos y reservas con flujos repetibles y humanos."],
+  ["Overview", "See your whole clone operation at a glance.", "Track activity, recent conversations, usage and commercial signals from one dashboard."],
+  ["Knowledge", "Upload your content and teach the clone your way.", "Documents, creator memories and business context stay organized for richer answers."],
+  ["Automation", "Handle inbox, products and bookings in one flow.", "Turn common support and sales work into repeatable actions without losing your tone."],
 ] as const;
 
 const processSteps = [
-  ["01", "Crea tu espacio", "Abre tu cuenta y elige el punto de partida que mejor encaja contigo."],
-  ["02", "Define tu clon", "Configura nombre, idioma, tono y las reglas que sostienen cada respuesta."],
-  ["03", "Enséñale contexto", "Carga conocimiento y memoria para que responda con precisión."],
-  ["04", "Ponlo a trabajar", "Publica tu clon para acompañar soporte, ventas o formación todo el día."],
+  ["01", "Sign up", "Create your account and start with the same public pricing shown in the dashboard."],
+  ["02", "Configure", "Set name, language, tone and the core behavior of your digital clone."],
+  ["03", "Train", "Upload knowledge and memories so responses stay accurate and aligned with you."],
+  ["04", "Deploy", "Publish the clone and keep it available around the clock for support, sales or education."],
 ] as const;
 
 const technologies = ["Next.js", "Flask", "PostgreSQL", "Redis", "Ollama"] as const;
 
 export default function LiquidLandingPage() {
   return (
-    <main className={styles.page} lang="es">
+    <main className={styles.page} lang="en">
       <div className={styles.ambient} aria-hidden="true" />
       <nav aria-label="Navegación principal" className={styles.nav}>
         <Link aria-label="Inicio de MyOwnClone" className={styles.brand} href="/">
@@ -37,44 +36,44 @@ export default function LiquidLandingPage() {
           <span>MyOwnClone</span>
         </Link>
         <div className={styles.navLinks}>
-          <a href="#capacidades">Capacidades</a>
-          <a href="#proceso">Proceso</a>
-          <a href="#precios">Precios</a>
+          <a href="#capacidades">Services</a>
+          <a href="#proceso">Process</a>
+          <a href="#precios">Plans</a>
         </div>
         <div className={styles.navActions}>
-          <Link className={styles.signIn} href="/login">Entrar</Link>
-          <Link className={styles.navCta} href="/registro">Crear clon <ArrowUpRight aria-hidden="true" size={16} weight="bold" /></Link>
+          <Link className={styles.signIn} href="/login">Sign in</Link>
+          <Link className={styles.navCta} href="/registro">Get started <ArrowUpRight aria-hidden="true" size={16} weight="bold" /></Link>
         </div>
       </nav>
 
       <section className={styles.hero} id="inicio">
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}><Sparkle aria-hidden="true" size={16} weight="fill" /> Clones digitales que conservan tu criterio</p>
-          <h1>Trabaja con más inteligencia, avanza más rápido.</h1>
-          <p className={styles.heroLead}>Convierte conocimiento, conversaciones y procesos en un clon digital que acompaña a tu equipo cada día.</p>
+          <p className={styles.eyebrow}><Sparkle aria-hidden="true" size={16} weight="fill" /> AI-Powered Digital Clone</p>
+          <h1>Create an AI clone that works for you.</h1>
+          <p className={styles.heroLead}>Train an AI assistant with your knowledge, personality and business data. Answer customers, guide leads and automate daily work without losing your voice.</p>
           <div className={styles.heroActions}>
-            <Link className={styles.primaryCta} href="/registro">Empezar ahora <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
-            <Link className={styles.secondaryCta} href="/login">Ver mi espacio</Link>
+            <Link className={styles.primaryCta} href="/registro">Get started free <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
+            <Link className={styles.secondaryCta} href="/login">Sign in</Link>
           </div>
         </div>
         <div className={styles.orbFrame}>
           <LiquidOrb />
-          <div className={styles.orbCaption}><StackSimple aria-hidden="true" size={18} weight="duotone" /><span>RAG, embeddings locales y automatización en una sola capa.</span></div>
+          <div className={styles.orbCaption}><StackSimple aria-hidden="true" size={18} weight="duotone" /><span>Knowledge, conversations and automation in one workspace.</span></div>
         </div>
       </section>
 
       <section aria-label="Tecnología de MyOwnClone" className={styles.techStrip}>
-        <p>Tecnología que ya impulsa MyOwnClone</p>
+        <p>Technology powering MyOwnClone</p>
         <div>{technologies.map((technology) => <span data-testid="technology-wordmark" key={technology}>{technology}</span>)}</div>
       </section>
 
       <section className={styles.section} id="capacidades">
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>Capacidades</p>
-          <h2>Un clon que entiende el trabajo que ya haces.</h2>
+          <p className={styles.eyebrow}>What it does</p>
+          <h2>Everything your clone can handle.</h2>
         </div>
         <div className={styles.capabilityGrid}>
-          {capabilities.map(([title, description], index) => (
+          {capabilities.map(([, title, description], index) => (
             <article className={styles.capability} data-testid="capability-card" key={title}>
               <span>{String(index + 1).padStart(2, "0")}</span>
               <h3>{title}</h3>
@@ -86,8 +85,8 @@ export default function LiquidLandingPage() {
 
       <section className={`${styles.section} ${styles.process}`} id="proceso">
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>Proceso</p>
-          <h2>De tu experiencia a una conversación útil en cuatro pasos.</h2>
+          <p className={styles.eyebrow}>How it works</p>
+          <h2>Four steps to your clone.</h2>
         </div>
         <ol className={styles.processGrid}>
           {processSteps.map(([number, title, description]) => (
@@ -100,23 +99,16 @@ export default function LiquidLandingPage() {
 
       <section className={`${styles.section} ${styles.pricingSection}`} id="precios">
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>Planes</p>
-          <h2>Precios claros para empezar.</h2>
-          <p>Los mismos planes y rutas que ya están disponibles en MyOwnClone.</p>
+          <p className={styles.eyebrow}>Pricing</p>
+          <h2>The same pricing inside and outside.</h2>
+          <p>Landing and dashboard use the same public pricing model, tabs, toggle and comparison view.</p>
         </div>
-        <div className={styles.pricingWrap}>
-          <PublicPricing
-            comparison={liquidPricingComparison}
-            copy={liquidPricingCopy}
-            mode="landing"
-            plans={liquidPricingPlans}
-          />
-        </div>
+        <div className={styles.pricingWrap}><PublicPricing mode="landing" /></div>
       </section>
 
       <section className={styles.finalCta}>
-        <div><CheckCircle aria-hidden="true" size={28} weight="fill" /><h2>Tu conocimiento ya hace el trabajo difícil.</h2><p>Haz que tu clon lo convierta en respuestas y acciones consistentes.</p></div>
-        <Link className={styles.primaryCta} href="/registro">Crear mi clon <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
+        <div><CheckCircle aria-hidden="true" size={28} weight="fill" /><h2>Ready to clone yourself?</h2><p>Start publicly, continue in the dashboard and keep one consistent story from the first visit to billing.</p></div>
+        <Link className={styles.primaryCta} href="/registro">Start building your clone <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
       </section>
 
       <footer className={styles.footer}>

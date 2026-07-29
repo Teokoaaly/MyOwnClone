@@ -13,7 +13,7 @@ const inter = Inter({
 
 export default function LiquidLandingLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <div lang="es" className={`${fustat.variable} ${inter.variable}`}>
+    <div lang="en" className={`${fustat.variable} ${inter.variable}`}>
       {children}
     </div>
   );
