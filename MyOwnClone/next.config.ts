@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     const nonce = process.env.__NEXT_CSP_NONCE || "";
     return [
       {
-        source: "/:path*",
+        source: "/((?!landing-alternative$|$).*)",
         headers: [
           {
             key: "Content-Security-Policy",

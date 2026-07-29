@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyOwnClone — AI-Powered Digital Clone | Multiply Yourself</title>
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fustat:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            fustat: ['Fustat', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            'electric-blue': 'rgba(0, 132, 255, 0.8)',
+            'electric-blue-hover': 'rgba(0, 115, 225, 0.95)',
+            'star-orange': '#FF801E',
+            'glow-blue-1': '#60B1FF',
+            'glow-blue-2': '#319AFF',
+          },
+          boxShadow: {
+            'glass-navbar': 'inset 0px 4px 4px 0px rgba(255, 255, 255, 0.25), 0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+            'cta-inner': 'inset 0px 4px 4px 0px rgba(255, 255, 255, 0.35), 0 12px 24px -8px rgba(0, 132, 255, 0.4)',
+            'card-glass': 'inset 0px 2px 4px 0px rgba(255, 255, 255, 0.6), 0 10px 30px -10px rgba(0, 0, 0, 0.06)',
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'spin-slow': 'spin 18s linear infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-12px)' },
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Antialiased crisp typography */
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-family: 'Inter', sans-serif;
+    }
+
+    h1, h2, h3, .font-fustat {
+      font-family: 'Fustat', sans-serif;
+    }
+
+    /* Exact Color Grade CSS Filter for Purple WebM Orb -> Vibrant Electric Brand Blue */
+    .orb-color-grade {
+      filter: hue-rotate(-55deg) saturate(250%) brightness(1.2) contrast(1.1);
+    }
+
+    /* Glass Navbar Specifics */
+    .liquid-glass-navbar {
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: inset 0px 4px 4px 0px rgba(255, 255, 255, 0.25);
+    }
+
+    /* Glass Card Base */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: inset 0px 2px 4px 0px rgba(255, 255, 255, 0.8), 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Primary Liquid CTA Button */
+    .primary-liquid-cta {
+      background-color: rgba(0, 132, 255, 0.85);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      box-shadow: inset 0px 4px 4px 0px rgba(255, 255, 255, 0.35), 0 10px 25px -5px rgba(0, 132, 255, 0.3);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .primary-liquid-cta:hover {
+      transform: scale(1.02);
+      background-color: rgba(0, 132, 255, 0.95);
+      box-shadow: inset 0px 4px 6px 0px rgba(255, 255, 255, 0.45), 0 15px 30px -5px rgba(0, 132, 255, 0.45);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Staggered Flickering & Pulsing ("Parpadeo") Logo Animation */
+    .logo-container {
+      perspective: 800px;
+    }
+
+    .moc-logo {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+    }
+
+    .moc-logo-piece {
+      position: absolute;
+      width: 40%;
+      height: 40%;
+      background: #000;
+      animation: moc-logo-breathe 5s ease-in-out infinite;
+    }
+
+    .moc-logo-tl { top: 4%; left: 4%; border-radius: 40% 70% 40% 70%; }
+    .moc-logo-tr { top: 4%; right: 4%; border-radius: 70% 40% 70% 40%; animation-delay: .08s; }
+    .moc-logo-bl { bottom: 4%; left: 4%; border-radius: 70% 40% 70% 40%; animation-delay: .16s; }
+    .moc-logo-br { right: 4%; bottom: 4%; border-radius: 40% 70% 40% 70%; animation-delay: .24s; }
+
+    @keyframes moc-logo-breathe {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-1px) scale(1.035); }
+    }
+
+    .quadrant-1 {
+      animation: blinkPulseQ1 2.4s ease-in-out infinite;
+      transform-origin: 33px 31px;
+    }
+    .quadrant-2 {
+      animation: blinkPulseQ2 2.4s ease-in-out infinite 0.6s;
+      transform-origin: 67px 31px;
+    }
+    .quadrant-4 {
+      animation: blinkPulseQ4 2.4s ease-in-out infinite 1.2s;
+      transform-origin: 67px 69px;
+    }
+    .quadrant-3 {
+      animation: blinkPulseQ3 2.4s ease-in-out infinite 1.8s;
+      transform-origin: 33px 69px;
+    }
+
+    @keyframes blinkPulseQ1 {
+      0%, 100% { opacity: 0.3; transform: rotate(-28deg) scale(0.92); }
+      50% { opacity: 1; transform: rotate(-28deg) scale(1.08); filter: drop-shadow(0 0 6px rgba(0, 132, 255, 0.6)); }
+    }
+    @keyframes blinkPulseQ2 {
+      0%, 100% { opacity: 0.3; transform: rotate(28deg) scale(0.92); }
+      50% { opacity: 1; transform: rotate(28deg) scale(1.08); filter: drop-shadow(0 0 6px rgba(49, 154, 255, 0.6)); }
+    }
+    @keyframes blinkPulseQ4 {
+      0%, 100% { opacity: 0.3; transform: rotate(-28deg) scale(0.92); }
+      50% { opacity: 1; transform: rotate(-28deg) scale(1.08); filter: drop-shadow(0 0 6px rgba(96, 177, 255, 0.6)); }
+    }
+    @keyframes blinkPulseQ3 {
+      0%, 100% { opacity: 0.3; transform: rotate(28deg) scale(0.92); }
+      50% { opacity: 1; transform: rotate(28deg) scale(1.08); filter: drop-shadow(0 0 6px rgba(0, 85, 196, 0.6)); }
+    }
+
+    .group:hover .quadrant-1,
+    .group:hover .quadrant-2,
+    .group:hover .quadrant-3,
+    .group:hover .quadrant-4 {
+      animation-duration: 1.2s;
+    }
+  </style>
+</head>
+<body class="bg-white text-slate-900 selection:bg-blue-500 selection:text-white min-h-screen relative overflow-x-hidden">
+
+
+  <div class="absolute top-0 left-0 w-full overflow-hidden pointer-events-none z-0 h-[1000px]">
+
+    <div class="absolute -top-[120px] -left-[100px] w-[650px] h-[650px] rounded-full bg-[#60B1FF] opacity-35 blur-[120px] animate-pulse-slow"></div>
+
+    <div class="absolute top-[80px] left-[180px] w-[450px] h-[450px] rounded-full bg-[#319AFF] opacity-25 blur-[100px]"></div>
+
+    <div class="absolute top-[350px] left-[5%] w-[300px] h-[300px] rounded-full bg-blue-200 opacity-20 blur-[90px]"></div>
+  </div>
+
+
+  <header class="sticky top-[30px] z-50 flex justify-center px-4 w-full">
+    <nav class="liquid-glass-navbar w-full max-w-[1150px] rounded-[16px] px-5 py-3.5 flex items-center justify-between transition-all duration-300">
+
+
+      <a href="/" class="font-fustat text-2xl font-bold tracking-tight text-slate-900 group flex items-center gap-2.5">
+        <span class="moc-logo" aria-label="MyOwnClone logo">
+          <span class="moc-logo-piece moc-logo-tl"></span>
+          <span class="moc-logo-piece moc-logo-tr"></span>
+          <span class="moc-logo-piece moc-logo-bl"></span>
+          <span class="moc-logo-piece moc-logo-br"></span>
+        </span>
+        <span>MyOwnClone</span>
+      </a>
+
+
+      <div class="hidden md:flex items-center gap-3 text-sm font-medium text-slate-700">
+        <a href="#services" data-i18n="nav_what_it_does" class="px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-white/40 transition-colors">Services</a>
+        <a href="#process" data-i18n="nav_how_it_works" class="px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-white/40 transition-colors">Process</a>
+        <a href="#plans" data-i18n="nav_pricing" class="px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-white/40 transition-colors">Plans</a>
+      </div>
+
+
+      <div class="flex items-center gap-3">
+
+        <div class="flex items-center bg-slate-100/80 border border-slate-200 rounded-xl p-0.5 text-xs font-semibold text-slate-600 shadow-inner">
+          <button onclick="setLanguage('en')" id="lang-en" class="px-2.5 py-1 rounded-lg transition-all bg-white text-blue-600 shadow-xs">EN</button>
+          <button onclick="setLanguage('es')" id="lang-es" class="px-2.5 py-1 rounded-lg transition-all hover:text-slate-900">ES</button>
+        </div>
+
+        <button id="mobileMenuBtn" class="md:hidden p-2 text-slate-700 hover:text-blue-600 focus:outline-none" aria-label="Toggle Navigation Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+        <a href="/login" class="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-800 bg-white/40 hover:bg-white/70 border border-slate-300/50 rounded-[12px] backdrop-blur-md shadow-sm hover:shadow transition-all duration-200">
+          <span data-i18n="nav_signin">Sign in</span>
+        </a>
+
+        <a href="/registro" class="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-[12px] shadow-sm hover:shadow transition-all duration-200">
+          <span data-i18n="nav_cta">Get started</span>
+        </a>
+      </div>
+    </nav>
+
+
+    <div id="mobileMenu" class="hidden absolute top-[80px] w-[90%] max-w-[400px] bg-white/90 backdrop-blur-2xl border border-slate-200 rounded-2xl p-5 shadow-2xl z-50 flex-col gap-4 text-center font-medium text-slate-800">
+      <a href="#services" onclick="toggleMobileMenu()" data-i18n="nav_what_it_does" class="px-3 py-2.5 hover:text-blue-600 border-b border-slate-100">Services</a>
+      <a href="#process" onclick="toggleMobileMenu()" data-i18n="nav_how_it_works" class="px-3 py-2.5 hover:text-blue-600 border-b border-slate-100">Process</a>
+      <a href="#plans" onclick="toggleMobileMenu()" data-i18n="nav_pricing" class="px-3 py-2.5 hover:text-blue-600 border-b border-slate-100">Plans</a>
+      <a href="/registro" data-i18n="nav_cta" class="mt-2 w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow-lg">Get started</a>
+    </div>
+  </header>
+
+
+  <main class="relative z-10 max-w-[1600px] mx-auto px-6 pt-16 lg:pt-20 pb-16">
+    <div class="flex flex-col items-center text-center gap-10">
+
+
+      <div class="flex flex-col items-center text-center gap-8 z-20 max-w-4xl mx-auto">
+
+
+        <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-50/80 border border-slate-200/80 backdrop-blur-md shadow-xs transition-transform hover:scale-[1.01] mx-auto">
+          <span class="text-xs sm:text-sm font-semibold text-blue-600 uppercase tracking-wider" data-i18n="hero_badge">AI-Powered Digital Clone</span>
+        </div>
+
+
+        <h1 class="font-fustat text-5xl sm:text-6xl lg:text-[75px] font-bold text-slate-900 leading-[1.05] tracking-[-2px] max-w-4xl" data-i18n="hero_headline">
+          Create an AI clone that <br class="hidden sm:inline"/><span class="text-blue-600">works for you.</span>
+        </h1>
+
+
+        <p class="text-[18px] sm:text-[20px] text-slate-600 tracking-[-1px] max-w-2xl leading-relaxed mx-auto" data-i18n="hero_subheadline">
+          Train an AI assistant with your knowledge, personality and business data. Handle emails, recommend products and answer customers 24/7.
+        </p>
+
+
+        <div class="flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto">
+
+          <a href="/registro" class="primary-liquid-cta group flex items-center justify-center gap-3 px-8 py-4 rounded-[16px] text-white font-semibold text-lg cursor-pointer">
+            <span data-i18n="hero_cta_primary">Request access</span>
+
+            <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center text-blue-600 shadow-sm transition-transform group-hover:translate-x-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </div>
+          </a>
+
+
+          <a href="/login" class="px-6 py-4 rounded-[16px] bg-white/60 hover:bg-white/90 border border-slate-300/70 text-slate-800 font-semibold text-lg backdrop-blur-md shadow-xs hover:shadow transition-all duration-200 flex items-center gap-2">
+            <span data-i18n="hero_cta_secondary">Sign in</span>
+          </a>
+        </div>
+
+      </div>
+
+
+          <div class="relative flex items-center justify-center w-full min-h-[480px] sm:min-h-[620px] pt-4 -mt-8 sm:-mt-16">
+
+
+        <div class="relative w-full aspect-square max-w-[750px] flex items-center justify-center mx-auto">
+
+
+          <video
+            id="liquidOrbVideo"
+            autoplay
+            loop
+            muted
+            playsinline
+            class="w-full h-full object-cover mix-blend-screen scale-140 orb-color-grade pointer-events-none transition-opacity duration-700"
+            onerror="handleVideoError()"
+          >
+            <source src="https://future.co/images/homepage/glassy-orb/orb-purple.webm" type="video/webm">
+          </video>
+
+
+          <canvas id="fallbackOrbCanvas" class="hidden absolute inset-0 w-full h-full mix-blend-screen scale-125 pointer-events-none rounded-full"></canvas>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <section id="services" class="mt-16 pt-10">
+      <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <span class="px-3.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider" data-i18n="features_pill">What it does</span>
+        <h2 class="font-fustat text-3xl sm:text-4xl font-bold text-slate-900" data-i18n="features_title">Everything your clone can handle.</h2>
+        <p class="text-slate-600 text-base" data-i18n="features_subtitle">Three modules working together so your AI clone manages knowledge, communications and sales in one workspace.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-[1300px] mx-auto">
+
+        <div class="glass-card rounded-2xl p-8 border border-white/80 hover:shadow-xl transition-all flex flex-col justify-start">
+          <span class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-3 inline-block bg-blue-50/80 px-3.5 py-1 rounded-full w-fit border border-blue-100/80" data-i18n="mod1_label">Overview</span>
+          <h3 class="font-fustat text-2xl font-bold text-slate-900 mb-3" data-i18n="mod1_title">Real-time dashboard</h3>
+          <p class="text-slate-600 text-base leading-relaxed" data-i18n="mod1_desc">Monitor clone activity, recent interactions and key metrics at a glance.</p>
+        </div>
+
+
+        <div class="glass-card rounded-2xl p-8 border border-white/80 hover:shadow-xl transition-all flex flex-col justify-start">
+          <span class="text-xs font-bold uppercase tracking-wider text-purple-600 mb-3 inline-block bg-purple-50/80 px-3.5 py-1 rounded-full w-fit border border-purple-100/80" data-i18n="mod2_label">Library & Memory</span>
+          <h3 class="font-fustat text-2xl font-bold text-slate-900 mb-3" data-i18n="mod2_title">Structured knowledge</h3>
+          <p class="text-slate-600 text-base leading-relaxed" data-i18n="mod2_desc">Upload documents, build knowledge bases and store creator memories for richer responses.</p>
+        </div>
+
+
+        <div class="glass-card rounded-2xl p-8 border border-white/80 hover:shadow-xl transition-all flex flex-col justify-start">
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-3 inline-block bg-emerald-50/80 px-3.5 py-1 rounded-full w-fit border border-emerald-100/80" data-i18n="mod3_label">Inbox & Sales</span>
+          <h3 class="font-fustat text-2xl font-bold text-slate-900 mb-3" data-i18n="mod3_title">AI-powered inbox</h3>
+          <p class="text-slate-600 text-base leading-relaxed" data-i18n="mod3_desc">AI triage for incoming emails, classify intent, suggest replies and recommend products.</p>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="interactive-demo" class="hidden" aria-hidden="true">
+      <div class="glass-card rounded-3xl p-6 md:p-10 border border-white/80 max-w-[1300px] mx-auto shadow-xl relative overflow-hidden">
+
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-200/60">
+          <div>
+            <div class="inline-block px-3 py-1 rounded-md bg-blue-100 text-blue-700 text-xs font-semibold mb-2">MYOWNCLONE SIMULATOR</div>
+            <h2 class="font-fustat text-2xl md:text-3xl font-bold text-slate-900" data-i18n="demo_title">Test Your AI Clone Capabilities Live</h2>
+          </div>
+
+
+          <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+            <button onclick="switchTab('inbox')" id="tab-inbox" data-i18n="demo_tab_inbox" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-blue-600 text-white shadow-sm">
+              Inbox & Sales Triage
+            </button>
+            <button onclick="switchTab('memory')" id="tab-memory" data-i18n="demo_tab_memory" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white/70 text-slate-700 hover:bg-white">
+              Library & Memory
+            </button>
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" data-i18n="demo_tab_dashboard" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white/70 text-slate-700 hover:bg-white">
+              Real-time Dashboard
+            </button>
+          </div>
+        </div>
+
+
+        <div id="demo-inbox" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <div class="bg-slate-50/80 backdrop-blur-md rounded-2xl p-4 border border-slate-200/60">
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-fustat font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> <span data-i18n="demo_col1_header">Incoming Queries (3)</span>
+              </span>
+              <button onclick="addQuery()" data-i18n="demo_simulate_btn" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded-md font-medium text-slate-700">+ Simulate Email</button>
+            </div>
+            <div id="query-tasks" class="space-y-3">
+              <div class="bg-white p-3.5 rounded-xl shadow-xs border border-slate-100 hover:shadow-md transition-all">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>alex@enterprise.io</span>
+                  <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium" data-i18n="demo_sales_intent">Sales Intent</span>
+                </div>
+                <h4 class="font-semibold text-slate-800 text-sm" data-i18n="demo_q1">Do you offer API access and dedicated support?</h4>
+                <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+                  <span data-i18n="demo_q1_time">Received 2m ago</span>
+                  <span class="text-blue-600 font-semibold" data-i18n="demo_q1_status">Ready for triage</span>
+                </div>
+              </div>
+
+              <div class="bg-white p-3.5 rounded-xl shadow-xs border border-slate-100 hover:shadow-md transition-all">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>support@brand.com</span>
+                  <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium" data-i18n="demo_prod_inquiry">Product Inquiry</span>
+                </div>
+                <h4 class="font-semibold text-slate-800 text-sm" data-i18n="demo_q2">How long does clone training take?</h4>
+                <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+                  <span data-i18n="demo_q2_time">Received 8m ago</span>
+                  <span class="text-blue-600 font-semibold" data-i18n="demo_q2_status">Triage active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="bg-slate-50/80 backdrop-blur-md rounded-2xl p-4 border border-slate-200/60">
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-fustat font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span> <span data-i18n="demo_col2_header">AI Clone Generating Reply</span>
+              </span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-blue-200/80 shadow-xs space-y-3">
+              <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
+                <span data-i18n="demo_tone">Clone Tone: Professional & Direct</span>
+                <span class="text-emerald-600 font-bold">99.4% Match</span>
+              </div>
+              <p class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 italic" data-i18n="demo_reply_text">
+                "Hello Alex! Yes, our Enterprise plan includes full API access, custom integrations, and dedicated support to tailor the clone to your team's needs."
+              </p>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400" data-i18n="demo_attached">Attached Product: Enterprise Specs PDF</span>
+                <button class="px-3 py-1 bg-blue-600 text-white rounded-md font-semibold text-xs shadow-xs" data-i18n="demo_autosend">Auto-Send Reply</button>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="bg-slate-50/80 backdrop-blur-md rounded-2xl p-4 border border-slate-200/60">
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-fustat font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> <span data-i18n="demo_col3_header">24/7 Automated Activity</span>
+              </span>
+              <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md font-bold" data-i18n="demo_handled_count">142 Handled Today</span>
+            </div>
+            <div class="space-y-3">
+              <div class="bg-white/70 p-3.5 rounded-xl border border-slate-100">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span data-i18n="demo_act1_tag">Product Recommended</span>
+                  <span class="text-emerald-600 font-bold" data-i18n="demo_sent">✓ Sent</span>
+                </div>
+                <h4 class="font-medium text-slate-700 text-sm" data-i18n="demo_act1_title">Recommended Pro Plan to Creator Lead</h4>
+              </div>
+              <div class="bg-white/70 p-3.5 rounded-xl border border-slate-100">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span data-i18n="demo_act2_tag">FAQ Handled</span>
+                  <span class="text-emerald-600 font-bold" data-i18n="demo_sent">✓ Sent</span>
+                </div>
+                <h4 class="font-medium text-slate-700 text-sm" data-i18n="demo_act2_title">Answered custom integration questions</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="demo-memory" class="tab-content hidden space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
+              <p class="text-xs text-slate-500 font-medium" data-i18n="mem_files_lbl">Uploaded Documents</p>
+              <p class="font-fustat text-3xl font-bold text-slate-900 mt-1">28 Files</p>
+              <div class="mt-2 text-xs text-emerald-600 font-semibold" data-i18n="mem_files_sub">PDFs, Notion & Web Data Indexed</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
+              <p class="text-xs text-slate-500 font-medium" data-i18n="mem_snip_lbl">Creator Memories Stored</p>
+              <p class="font-fustat text-3xl font-bold text-slate-900 mt-1">154 Snippets</p>
+              <div class="mt-2 text-xs text-blue-600 font-semibold" data-i18n="mem_snip_sub">Personal voice & rules tuned</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
+              <p class="text-xs text-slate-500 font-medium" data-i18n="mem_acc_lbl">Knowledge Accuracy Score</p>
+              <p class="font-fustat text-3xl font-bold text-emerald-600 mt-1">99.2%</p>
+              <div class="mt-2 text-xs text-slate-500 font-semibold" data-i18n="mem_acc_sub">Verified against ground truth</div>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="demo-dashboard" class="tab-content hidden">
+          <div class="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
+            <h4 class="font-fustat font-bold text-lg text-slate-800" data-i18n="dash_header">Clone Activity & Metrics</h4>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">AI</div>
+                  <div>
+                    <p class="text-sm font-semibold text-slate-800" data-i18n="dash_item1_title">Email Triage & Auto-Reply</p>
+                    <p class="text-xs text-slate-500" data-i18n="dash_item1_sub">Connected to Gmail / Outlook workspace</p>
+                  </div>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-md" data-i18n="dash_active">Active 24/7</span>
+              </div>
+              <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-xs">CT</div>
+                  <div>
+                    <p class="text-sm font-semibold text-slate-800" data-i18n="dash_item2_title">Public Chat Assistant Link</p>
+                    <p class="text-xs text-slate-500">myownclone.com/chat/your-name</p>
+                  </div>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md" data-i18n="dash_shareable">Live & Shareable</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <section id="process" class="mt-24 pt-6">
+      <div class="text-center max-w-2xl mx-auto mb-14 space-y-3">
+        <span class="px-3.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider" data-i18n="steps_pill">How it works</span>
+        <h2 class="font-fustat text-3xl sm:text-4xl font-bold text-slate-900" data-i18n="steps_title">Four steps to your clone.</h2>
+        <p class="text-slate-600 text-base" data-i18n="steps_subtitle">From sign-up to a live assistant, the whole process takes minutes, not weeks.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1300px] mx-auto">
+
+        <div class="glass-card rounded-2xl p-6 border border-white/80 relative">
+          <span class="font-fustat text-4xl font-extrabold text-blue-500/30 block mb-2">01</span>
+          <h4 class="font-fustat text-xl font-bold text-slate-900 mb-2" data-i18n="step1_title">Sign up</h4>
+          <p class="text-slate-600 text-sm" data-i18n="step1_desc">Create your account and pick a plan. Free to start.</p>
+        </div>
+
+
+        <div class="glass-card rounded-2xl p-6 border border-white/80 relative">
+          <span class="font-fustat text-4xl font-extrabold text-blue-500/30 block mb-2">02</span>
+          <h4 class="font-fustat text-xl font-bold text-slate-900 mb-2" data-i18n="step2_title">Configure</h4>
+          <p class="text-slate-600 text-sm" data-i18n="step2_desc">Name your clone, set personality, tone and language.</p>
+        </div>
+
+
+        <div class="glass-card rounded-2xl p-6 border border-white/80 relative">
+          <span class="font-fustat text-4xl font-extrabold text-blue-500/30 block mb-2">03</span>
+          <h4 class="font-fustat text-xl font-bold text-slate-900 mb-2" data-i18n="step3_title">Train</h4>
+          <p class="text-slate-600 text-sm" data-i18n="step3_desc">Upload documents and add creator memories.</p>
+        </div>
+
+
+        <div class="glass-card rounded-2xl p-6 border border-white/80 relative">
+          <span class="font-fustat text-4xl font-extrabold text-blue-500/30 block mb-2">04</span>
+          <h4 class="font-fustat text-xl font-bold text-slate-900 mb-2" data-i18n="step4_title">Deploy</h4>
+          <p class="text-slate-600 text-sm" data-i18n="step4_desc">Publish and share the public chat link. It runs 24/7.</p>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="plans" class="mt-24 pt-6">
+      <div class="text-center max-w-2xl mx-auto mb-10 space-y-3">
+        <span class="px-3.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider" data-i18n="pricing_pill">Pricing</span>
+        <h2 class="font-fustat text-3xl sm:text-4xl font-bold text-slate-900" data-i18n="pricing_title">Pick your plan.</h2>
+        <p class="text-slate-600 text-base" data-i18n="pricing_subtitle">Start free, scale as your clone grows. All plans include the core AI assistant.</p>
+      </div>
+
+
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-12">
+        <div class="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600">
+          <button class="px-3.5 py-1.5 rounded-lg bg-white shadow-xs text-blue-600" data-i18n="pricing_view_pricing">Pricing</button>
+          <button class="px-3.5 py-1.5 rounded-lg hover:text-slate-900" data-i18n="pricing_view_compare">Compare features</button>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+          <span data-i18n="billing_monthly">Monthly</span>
+          <span class="w-8 h-4 bg-blue-600 rounded-full inline-block relative cursor-pointer"><span class="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-all"></span></span>
+          <span data-i18n="billing_annual">Annual</span>
+        </div>
+        <span class="text-xs text-slate-400 font-medium" data-i18n="pricing_note">Dashboard prices</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-[1200px] mx-auto items-stretch">
+
+        <div class="glass-card rounded-3xl p-8 border border-slate-200/80 flex flex-col justify-between">
+          <div>
+            <div class="mb-2"><span class="text-xs font-bold uppercase px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Starter</span></div>
+            <h3 class="font-fustat text-3xl font-bold text-slate-900">Free</h3>
+            <p class="text-xs text-slate-400 font-medium mt-1 mb-2" data-i18n="plan_starter_billing">Apply for access</p>
+            <p class="text-xs text-slate-500 mb-6" data-i18n="plan_starter_desc">Perfect to explore and prototype.</p>
+            <ul class="space-y-3 text-sm text-slate-700 mb-8">
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_starter_f1">1 AI clone</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_starter_f2">Basic knowledge base</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_starter_f3">Public chat</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_starter_f4">Community support</span></li>
+            </ul>
+          </div>
+          <a href="/registro" class="block w-full py-3 rounded-xl bg-slate-900 text-white text-center font-semibold hover:bg-slate-800 transition-colors text-sm" data-i18n="plan_starter_btn">Request access</a>
+        </div>
+
+
+        <div class="glass-card rounded-3xl p-8 border-2 border-blue-500 relative flex flex-col justify-between shadow-2xl scale-105 bg-white/70">
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-600 text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-md" data-i18n="plan_pro_badge">
+            Most popular
+          </div>
+          <div>
+            <div class="mb-2"><span class="text-xs font-bold uppercase px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md">Pro</span></div>
+            <h3 class="font-fustat text-3xl font-bold text-slate-900">Pro</h3>
+            <p class="text-xs text-slate-400 font-medium mt-1 mb-2" data-i18n="plan_pro_billing">Apply for access</p>
+            <p class="text-xs text-slate-500 mb-6" data-i18n="plan_pro_desc">For creators and growing businesses.</p>
+            <ul class="space-y-3 text-sm text-slate-700 mb-8">
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_pro_f1">5 AI clones</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_pro_f2">Unlimited knowledge</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_pro_f3">Inbox AI triage</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_pro_f4">Product catalog</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_pro_f5">Full analytics</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_pro_f6">Priority support</span></li>
+            </ul>
+          </div>
+          <a href="/registro" class="block w-full py-3 rounded-xl bg-blue-600 text-white text-center font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all text-sm" data-i18n="plan_pro_btn">Request access</a>
+        </div>
+
+
+        <div class="glass-card rounded-3xl p-8 border border-slate-200/80 flex flex-col justify-between">
+          <div>
+            <div class="mb-2"><span class="text-xs font-bold uppercase px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Scale</span></div>
+            <h3 class="font-fustat text-3xl font-bold text-slate-900">Enterprise</h3>
+            <p class="text-xs text-slate-400 font-medium mt-1 mb-2" data-i18n="plan_scale_billing">Tailored contract</p>
+            <p class="text-xs text-slate-500 mb-6" data-i18n="plan_scale_desc">For teams with advanced needs.</p>
+            <ul class="space-y-3 text-sm text-slate-700 mb-8">
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_scale_f1">Unlimited clones</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_scale_f2">API access</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_scale_f3">Team management</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_scale_f4">Custom integrations</span></li>
+              <li class="flex items-center gap-2.5"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> <span data-i18n="plan_scale_f5">Dedicated support</span></li>
+            </ul>
+          </div>
+          <a href="/contacto" class="w-full text-center block py-3 rounded-xl bg-slate-100 text-slate-800 font-semibold hover:bg-slate-200 transition-colors text-sm" data-i18n="plan_scale_btn">Contact sales</a>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="cta" class="mt-24 pt-10 text-center max-w-3xl mx-auto">
+      <div class="glass-card rounded-3xl p-10 md:p-14 border border-white/80 shadow-2xl relative overflow-hidden space-y-6">
+        <h2 class="font-fustat text-4xl sm:text-5xl font-bold text-slate-900 leading-tight" data-i18n="cta_title">
+          Ready to clone <br/><span class="text-blue-600">yourself?</span>
+        </h2>
+        <p class="text-slate-600 text-base sm:text-lg max-w-xl mx-auto leading-relaxed" data-i18n="cta_sub">
+          Join creators and businesses already using AI clones to scale their knowledge and automate conversations.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <a href="/registro" class="primary-liquid-cta px-8 py-4 rounded-[16px] text-white font-semibold text-lg shadow-lg" data-i18n="cta_primary">
+            Start building your clone →
+          </a>
+          <a href="/login" class="px-6 py-4 rounded-[16px] bg-white/70 hover:bg-white border border-slate-200 text-slate-800 font-semibold text-lg backdrop-blur-md" data-i18n="cta_secondary">
+            Sign in
+          </a>
+        </div>
+      </div>
+    </section>
+
+
+    <footer class="mt-24 pt-10 pb-8 border-t border-slate-200/60 flex items-center justify-center text-xs text-slate-400">
+      <span>© 2026 MyOwnClone. • <a href="/legal" class="hover:underline" data-i18n="footer_legal">Legal</a> • <a href="/contacto" class="hover:underline" data-i18n="footer_contact">Contact</a></span>
+    </footer>
+
+  </main>
+
+  <script>
+    // Translation Dictionaries extracted directly from myownclone.com source JSON
+    const translations = {
+      en: {
+        nav_what_it_does: "Services",
+        nav_how_it_works: "Process",
+        nav_pricing: "Plans",
+        nav_demo: "Live Demo",
+        nav_signin: "Sign in",
+        nav_cta: "Get started",
+        hero_badge: "AI-Powered Digital Clone",
+        hero_headline: 'Create an AI clone that <br class="hidden sm:inline"/><span class="text-blue-600">works for you.</span>',
+        hero_subheadline: "Train an AI assistant with your knowledge, personality and business data. Handle emails, recommend products and answer customers 24/7.",
+        hero_cta_primary: "Request access",
+        hero_cta_secondary: "Sign in",
+        features_pill: "What it does",
+        features_title: "Everything your clone can handle.",
+        features_subtitle: "Three modules working together so your AI clone manages knowledge, communications and sales in one workspace.",
+        mod1_label: "Overview",
+        mod1_title: "Real-time dashboard",
+        mod1_desc: "Monitor clone activity, recent interactions and key metrics at a glance.",
+        mod2_label: "Library & Memory",
+        mod2_title: "Structured knowledge",
+        mod2_desc: "Upload documents, build knowledge bases and store creator memories for richer responses.",
+        mod3_label: "Inbox & Sales",
+        mod3_title: "AI-powered inbox",
+        mod3_desc: "AI triage for incoming emails, classify intent, suggest replies and recommend products.",
+        demo_title: "Test Your AI Clone Capabilities Live",
+        demo_tab_inbox: "Inbox & Sales Triage",
+        demo_tab_memory: "Library & Memory",
+        demo_tab_dashboard: "Real-time Dashboard",
+        demo_col1_header: "Incoming Queries (3)",
+        demo_simulate_btn: "+ Simulate Email",
+        demo_sales_intent: "Sales Intent",
+        demo_prod_inquiry: "Product Inquiry",
+        demo_q1: "Do you offer API access and dedicated support?",
+        demo_q1_time: "Received 2m ago",
+        demo_q1_status: "Ready for triage",
+        demo_q2: "How long does clone training take?",
+        demo_q2_time: "Received 8m ago",
+        demo_q2_status: "Triage active",
+        demo_col2_header: "AI Clone Generating Reply",
+        demo_tone: "Clone Tone: Professional & Direct",
+        demo_reply_text: '"Hello Alex! Yes, our Enterprise plan includes full API access, custom integrations, and dedicated support to tailor the clone to your team\'s needs."',
+        demo_attached: "Attached Product: Enterprise Specs PDF",
+        demo_autosend: "Auto-Send Reply",
+        demo_col3_header: "24/7 Automated Activity",
+        demo_handled_count: "142 Handled Today",
+        demo_act1_tag: "Product Recommended",
+        demo_act1_title: "Recommended Pro Plan to Creator Lead",
+        demo_act2_tag: "FAQ Handled",
+        demo_act2_title: "Answered custom integration questions",
+        demo_sent: "✓ Sent",
+        mem_files_lbl: "Uploaded Documents",
+        mem_files_sub: "PDFs, Notion & Web Data Indexed",
+        mem_snip_lbl: "Creator Memories Stored",
+        mem_snip_sub: "Personal voice & rules tuned",
+        mem_acc_lbl: "Knowledge Accuracy Score",
+        mem_acc_sub: "Verified against ground truth",
+        dash_header: "Clone Activity & Metrics",
+        dash_item1_title: "Email Triage & Auto-Reply",
+        dash_item1_sub: "Connected to Gmail / Outlook workspace",
+        dash_active: "Active 24/7",
+        dash_item2_title: "Public Chat Assistant Link",
+        dash_shareable: "Live & Shareable",
+        steps_pill: "How it works",
+        steps_title: "Four steps to your clone.",
+        steps_subtitle: "From sign-up to a live assistant, the whole process takes minutes, not weeks.",
+        step1_title: "Sign up",
+        step1_desc: "Create your account and pick a plan. Free to start.",
+        step2_title: "Configure",
+        step2_desc: "Name your clone, set personality, tone and language.",
+        step3_title: "Train",
+        step3_desc: "Upload documents and add creator memories.",
+        step4_title: "Deploy",
+        step4_desc: "Publish and share the public chat link. It runs 24/7.",
+        pricing_pill: "Pricing",
+        pricing_title: "Pick your plan.",
+        pricing_subtitle: "Start free, scale as your clone grows. All plans include the core AI assistant.",
+        pricing_view_pricing: "Pricing",
+        pricing_view_compare: "Compare features",
+        billing_monthly: "Monthly",
+        billing_annual: "Annual",
+        pricing_note: "Dashboard prices",
+        plan_starter_billing: "Apply for access",
+        plan_starter_desc: "Perfect to explore and prototype.",
+        plan_starter_f1: "1 AI clone",
+        plan_starter_f2: "Basic knowledge base",
+        plan_starter_f3: "Public chat",
+        plan_starter_f4: "Community support",
+        plan_starter_btn: "Request access",
+        plan_pro_badge: "Most popular",
+        plan_pro_billing: "Apply for access",
+        plan_pro_desc: "For creators and growing businesses.",
+        plan_pro_f1: "5 AI clones",
+        plan_pro_f2: "Unlimited knowledge",
+        plan_pro_f3: "Inbox AI triage",
+        plan_pro_f4: "Product catalog",
+        plan_pro_f5: "Full analytics",
+        plan_pro_f6: "Priority support",
+        plan_pro_btn: "Request access",
+        plan_scale_billing: "Tailored contract",
+        plan_scale_desc: "For teams with advanced needs.",
+        plan_scale_f1: "Unlimited clones",
+        plan_scale_f2: "API access",
+        plan_scale_f3: "Team management",
+        plan_scale_f4: "Custom integrations",
+        plan_scale_f5: "Dedicated support",
+        plan_scale_btn: "Contact sales",
+        cta_title: 'Ready to clone <br/><span class="text-blue-600">yourself?</span>',
+        cta_sub: "Join creators and businesses already using AI clones to scale their knowledge and automate conversations.",
+        cta_primary: "Start building your clone →",
+        cta_secondary: "Sign in",
+        footer_trusted: "Trusted by creators, founders & innovative businesses",
+        footer_legal: "Legal",
+        footer_contact: "Contact",
+        modal_title: "Build Your AI Digital Clone",
+        modal_subtitle: "Enter your email to configure your knowledge base and digital assistant.",
+        modal_email_lbl: "Work Email",
+        modal_goal_lbl: "Clone Goal",
+        modal_opt1: "Automate Email & Sales Triage",
+        modal_opt2: "Public Knowledge Chat Assistant",
+        modal_opt3: "Creator Persona & Product Recommendation",
+        modal_submit_btn: "Create AI Clone →",
+        modal_success: "🎉 Setup link sent! Check your email to configure your AI clone."
+      },
+      es: {
+        nav_what_it_does: "Servicios",
+        nav_how_it_works: "Proceso",
+        nav_pricing: "Planes",
+        nav_signin: "Iniciar sesión",
+        nav_cta: "Empezar",
+        hero_badge: "Clon Digital con Inteligencia Artificial",
+        hero_headline: 'Crea un clon de IA que <br class="hidden sm:inline"/><span class="text-blue-600">trabaje para ti.</span>',
+        hero_subheadline: "Entrena un asistente de IA con tu conocimiento, personalidad y datos de negocio. Gestiona emails, recomienda productos y atiende clientes 24/7.",
+        hero_cta_primary: "Solicitar acceso",
+        hero_cta_secondary: "Iniciar sesión",
+        features_pill: "Qué hace",
+        features_title: "Todo lo que tu clon puede gestionar.",
+        features_subtitle: "Tres módulos trabajando juntos para que tu clon gestione conocimientos, comunicaciones y ventas en un solo espacio.",
+        mod1_label: "Resumen",
+        mod1_title: "Panel en tiempo real",
+        mod1_desc: "Supervisa la actividad del clon, interacciones recientes y métricas clave de un vistazo.",
+        mod2_label: "Biblioteca y Memoria",
+        mod2_title: "Conocimiento estructurado",
+        mod2_desc: "Sube documentos, crea bases de conocimiento y guarda memorias del creador para respuestas más ricas.",
+        mod3_label: "Buzón y Ventas",
+        mod3_title: "Buzón impulsado por IA",
+        mod3_desc: "Triaje por IA para correos entrantes, clasifica intención, sugiere respuestas y recomienda productos.",
+        demo_title: "Prueba las capacidades de tu clon de IA en vivo",
+        demo_tab_inbox: "Triaje de Buzón y Ventas",
+        demo_tab_memory: "Biblioteca y Memoria",
+        demo_tab_dashboard: "Panel en tiempo real",
+        demo_col1_header: "Consultas Entrantes (3)",
+        demo_simulate_btn: "+ Simular Email",
+        demo_sales_intent: "Intención de Venta",
+        demo_prod_inquiry: "Consulta de Producto",
+        demo_q1: "¿Ofrecen acceso a la API y soporte dedicado?",
+        demo_q1_time: "Recibido hace 2m",
+        demo_q1_status: "Listo para triaje",
+        demo_q2: "¿Cuánto tiempo toma el entrenamiento del clon?",
+        demo_q2_time: "Recibido hace 8m",
+        demo_q2_status: "Triaje activo",
+        demo_col2_header: "Clon IA Generando Respuesta",
+        demo_tone: "Tono del Clon: Profesional y Directo",
+        demo_reply_text: '"¡Hola Alex! Sí, nuestro plan Enterprise incluye acceso completo a la API, integraciones personalizadas y soporte dedicado para adaptar el clon a las necesidades de tu equipo."',
+        demo_attached: "Producto Adjunto: PDF Especificaciones Enterprise",
+        demo_autosend: "Auto-Enviar Respuesta",
+        demo_col3_header: "Actividad Automatizada 24/7",
+        demo_handled_count: "142 Atendidos Hoy",
+        demo_act1_tag: "Producto Recomendado",
+        demo_act1_title: "Recomendado Plan Pro a Cliente Potencial",
+        demo_act2_tag: "FAQ Resuelta",
+        demo_act2_title: "Respondidas preguntas sobre integración personalizada",
+        demo_sent: "✓ Enviado",
+        mem_files_lbl: "Documentos Subidos",
+        mem_files_sub: "PDFs, Notion y Datos Web Indizados",
+        mem_snip_lbl: "Memorias de Creador Almacenadas",
+        mem_snip_sub: "Voz personal y reglas calibradas",
+        mem_acc_lbl: "Puntuación de Precisión de Conocimiento",
+        mem_acc_sub: "Verificado contra la fuente oficial",
+        dash_header: "Actividad y Métricas del Clon",
+        dash_item1_title: "Triaje de Email y Respuesta Automática",
+        dash_item1_sub: "Conectado a espacio de trabajo Gmail / Outlook",
+        dash_active: "Activo 24/7",
+        dash_item2_title: "Enlace Público de Chat de Asistente",
+        dash_shareable: "En vivo y Compartible",
+        steps_pill: "Cómo funciona",
+        steps_title: "Cuatro pasos para tu clon.",
+        steps_subtitle: "Desde el registro hasta un asistente en vivo, todo el proceso toma minutos, no semanas.",
+        step1_title: "Regístrate",
+        step1_desc: "Crea tu cuenta y elige un plan. Gratis para empezar.",
+        step2_title: "Configura",
+        step2_desc: "Nombra tu clon, establece su personalidad, tono e idioma.",
+        step3_title: "Entrena",
+        step3_desc: "Sube documentos y añade memorias del creador.",
+        step4_title: "Despliega",
+        step4_desc: "Publica y comparte el enlace de chat público. Funciona 24/7.",
+        pricing_pill: "Precios",
+        pricing_title: "Elige tu plan.",
+        pricing_subtitle: "Empieza gratis, escala a medida que tu clon crezca. Todos los planes incluyen el asistente de IA central.",
+        pricing_view_pricing: "Precios",
+        pricing_view_compare: "Comparar características",
+        billing_monthly: "Mensual",
+        billing_annual: "Anual",
+        pricing_note: "Precios de panel",
+        plan_starter_billing: "Solicitar acceso",
+        plan_starter_desc: "Perfecto para explorar y crear prototipos.",
+        plan_starter_f1: "1 clon de IA",
+        plan_starter_f2: "Base de conocimientos básica",
+        plan_starter_f3: "Chat público",
+        plan_starter_f4: "Soporte comunitario",
+        plan_starter_btn: "Solicitar acceso",
+        plan_pro_badge: "Más popular",
+        plan_pro_billing: "Solicitar acceso",
+        plan_pro_desc: "Para creadores y empresas en crecimiento.",
+        plan_pro_f1: "5 clones de IA",
+        plan_pro_f2: "Conocimiento ilimitado",
+        plan_pro_f3: "Triaje por IA en buzón",
+        plan_pro_f4: "Catálogo de productos",
+        plan_pro_f5: "Analítica completa",
+        plan_pro_f6: "Soporte prioritario",
+        plan_pro_btn: "Solicitar acceso",
+        plan_scale_billing: "Contrato a medida",
+        plan_scale_desc: "Para equipos con necesidades avanzadas.",
+        plan_scale_f1: "Clones ilimitados",
+        plan_scale_f2: "Acceso a API",
+        plan_scale_f3: "Gestión de equipos",
+        plan_scale_f4: "Integraciones personalizadas",
+        plan_scale_f5: "Soporte dedicado",
+        plan_scale_btn: "Contactar ventas",
+        cta_title: '¿Listo para clonarte <br/><span class="text-blue-600">a ti mismo?</span>',
+        cta_sub: "Únete a creadores y empresas que ya usan clones de IA para escalar su conocimiento y automatizar conversaciones.",
+        cta_primary: "Empieza a construir tu clon →",
+        cta_secondary: "Iniciar sesión",
+        footer_trusted: "Confianza de creadores, fundadores y empresas innovadoras",
+        footer_legal: "Legal",
+        footer_contact: "Contacto",
+        modal_title: "Crea tu Clon Digital con IA",
+        modal_subtitle: "Ingresa tu email para configurar tu base de conocimiento y asistente digital.",
+        modal_email_lbl: "Email corporativo",
+        modal_goal_lbl: "Objetivo del clon",
+        modal_opt1: "Automatizar Triaje de Email y Ventas",
+        modal_opt2: "Asistente de Chat de Conocimiento Público",
+        modal_opt3: "Persona Creadora y Recomendación de Productos",
+        modal_submit_btn: "Crear Clon de IA →",
+        modal_success: "🎉 ¡Enlace de configuración enviado! Revisa tu email para configurar tu clon."
+      }
+    };
+
+    // Remaining logic
+    let currentLang = 'en';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+
+      const btnEn = document.getElementById('lang-en');
+      const btnEs = document.getElementById('lang-es');
+
+      if (lang === 'en') {
+        btnEn.className = "px-2.5 py-1 rounded-lg transition-all bg-white text-blue-600 shadow-xs font-bold";
+        btnEs.className = "px-2.5 py-1 rounded-lg transition-all hover:text-slate-900 font-semibold";
+      } else {
+        btnEs.className = "px-2.5 py-1 rounded-lg transition-all bg-white text-blue-600 shadow-xs font-bold";
+        btnEn.className = "px-2.5 py-1 rounded-lg transition-all hover:text-slate-900 font-semibold";
+      }
+
+      const dict = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.innerHTML = dict[key];
+        }
+      });
+
+      const select = document.getElementById('modal-goal-select');
+      if (select) {
+        select.options[0].text = dict.modal_opt1;
+        select.options[1].text = dict.modal_opt2;
+        select.options[2].text = dict.modal_opt3;
+      }
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+      menu.classList.toggle('flex');
+    }
+
+    document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+
+    function openDemoModal() {
+      const modal = document.getElementById('demoModal');
+      const modalBox = modal.querySelector('.id-modal-box');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modalBox.classList.remove('scale-95');
+      modalBox.classList.add('scale-100');
+    }
+
+    function closeDemoModal() {
+      const modal = document.getElementById('demoModal');
+      const modalBox = modal.querySelector('.id-modal-box');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modalBox.classList.remove('scale-100');
+      modalBox.classList.add('scale-95');
+      document.getElementById('modalSuccess').classList.add('hidden');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      document.getElementById('modalSuccess').classList.remove('hidden');
+      setTimeout(() => {
+        closeDemoModal();
+      }, 2000);
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+        el.classList.add('bg-white/70', 'text-slate-700');
+      });
+
+      const selectedTab = document.getElementById('demo-' + tabName);
+      const selectedBtn = document.getElementById('tab-' + tabName);
+
+      if (selectedTab) selectedTab.classList.remove('hidden');
+      if (selectedBtn) {
+        selectedBtn.classList.remove('bg-white/70', 'text-slate-700');
+        selectedBtn.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+      }
+    }
+
+    function addQuery() {
+      const queries = {
+        en: [
+          "Can the clone connect with my custom CRM?",
+          "What file formats are supported in Library & Memory?",
+          "Can I train the clone with audio or podcasts?",
+          "How does the AI triage incoming sales leads?"
+        ],
+        es: [
+          "¿Puede el clon conectarse con mi CRM personalizado?",
+          "¿Qué formatos de archivo soporta la Biblioteca y Memoria?",
+          "¿Puedo entrenar al clon con audio o pódcasts?",
+          "¿Cómo realiza la IA el triaje de clientes potenciales de ventas?"
+        ]
+      };
+
+      const currentList = queries[currentLang] || queries.en;
+      const randomQuery = currentList[Math.floor(Math.random() * currentList.length)];
+      const badgeText = currentLang === 'es' ? 'Nueva Consulta' : 'New Query';
+      const timeText = currentLang === 'es' ? 'Recién recibido' : 'Just received';
+      const statusText = currentLang === 'es' ? 'Realizando triaje...' : 'Triaging...';
+
+      const container = document.getElementById('query-tasks');
+      if (!container) return;
+
+      const newCard = document.createElement('div');
+      newCard.className = 'bg-white p-3.5 rounded-xl shadow-xs border border-slate-100 hover:shadow-md transition-all animate-bounce';
+      newCard.innerHTML = `
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>lead@client.com</span>
+          <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">${badgeText}</span>
+        </div>
+        <h4 class="font-semibold text-slate-800 text-sm">${randomQuery}</h4>
+        <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+          <span>${timeText}</span>
+          <span class="text-blue-600 font-semibold">${statusText}</span>
+        </div>
+      `;
+
+      container.prepend(newCard);
+      setTimeout(() => newCard.classList.remove('animate-bounce'), 1000);
+    }
+
+    function handleVideoError() {
+      const video = document.getElementById('liquidOrbVideo');
+      const canvas = document.getElementById('fallbackOrbCanvas');
+      if (video) video.classList.add('hidden');
+      if (canvas) {
+        canvas.classList.remove('hidden');
+        initCanvasOrb(canvas);
+      }
+    }
+
+    function initCanvasOrb(canvas) {
+      const ctx = canvas.getContext('2d');
+      let width = (canvas.width = 600);
+      let height = (canvas.height = 600);
+      let time = 0;
+
+      function render() {
+        ctx.clearRect(0, 0, width, height);
+        time += 0.03;
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = 200;
+
+        const grad = ctx.createRadialGradient(
+          centerX - 40, centerY - 40, 15,
+          centerX, centerY, radius + 30
+        );
+        grad.addColorStop(0, '#60B1FF');
+        grad.addColorStop(0.5, '#0084FF');
+        grad.addColorStop(1, 'rgba(0, 100, 220, 0.1)');
+
+        ctx.beginPath();
+        for (let a = 0; a < Math.PI * 2; a += 0.05) {
+          const offset = Math.sin(a * 5 + time) * 12 + Math.cos(a * 3 - time) * 10;
+          const r = radius + offset;
+          const x = centerX + Math.cos(a) * r;
+          const y = centerY + Math.sin(a) * r;
+          if (a === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.stroke();
+
+        requestAnimationFrame(render);
+      }
+
+      render();
+    }
+
+    const video = document.getElementById('liquidOrbVideo');
+    if (video) {
+      video.addEventListener('error', handleVideoError);
+      setTimeout(() => {
+        if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+          handleVideoError();
+        }
+      }, 3000);
+    }
+
+    setLanguage('en');
+  </script>
+</body>
+</html>

@@ -4,6 +4,29 @@ import { expect, test } from "@playwright/test";
 const forbiddenClaims = [/4\.9\/5/i, /2700/i, /trusted by/i, /customers/i];
 
 test.describe("landing liquid", () => {
+  test("alternative URL uses canonical content, logo and real routes", async ({ page }) => {
+    await page.goto("/landing-alternative", { waitUntil: "domcontentloaded" });
+
+    await expect(
+      page.getByRole("heading", { level: 1, name: /Create an AI clone that works for you/i }),
+    ).toBeVisible();
+    await expect(page.locator("[aria-label='MyOwnClone logo']")).toHaveCount(1);
+    await expect(page.locator("a[href='/login']")).toHaveCount(3);
+    await expect(page.getByRole("link", { name: "Request access" }).first()).toHaveAttribute(
+      "href",
+      "/registro",
+    );
+    await expect(page.getByRole("link", { name: "Legal" })).toHaveAttribute("href", "/legal");
+    await expect(page.getByRole("link", { name: "Contact", exact: true })).toHaveAttribute(
+      "href",
+      "/contacto",
+    );
+    await expect(page.getByRole("link", { name: "Docs" })).toHaveCount(0);
+    await expect(page.locator("a[href='#login'], a[href='#beta'], a[href='#legal'], a[href='#docs']")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Live Demo" })).toHaveCount(0);
+    await expect(page.locator("#interactive-demo")).toHaveCount(0);
+  });
+
   for (const viewport of [
     { name: "375", width: 375, height: 812 },
     { name: "768", width: 768, height: 1024 },

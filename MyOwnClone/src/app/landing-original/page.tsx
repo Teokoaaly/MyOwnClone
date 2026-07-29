@@ -29,7 +29,7 @@ const steps = [
   ["04", "Deploy", "Publish the clone and keep it available around the clock for support, sales or education."],
 ] as const;
 
-export default function LandingPage() {
+export default function OriginalLandingPage() {
   return (
     <main className="moc-local-landing">
       <LandingBehavior />
