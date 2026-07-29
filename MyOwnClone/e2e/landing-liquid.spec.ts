@@ -14,9 +14,9 @@ test.describe("landing liquid", () => {
       await page.goto("/landing-liquid");
 
       await expect(page).toHaveTitle(/MyOwnClone.*clon digital/i);
-      await expect(page.locator("main[lang='en']")).toBeVisible();
+      await expect(page.locator("main[lang='es']")).toBeVisible();
       await expect(
-        page.getByRole("heading", { level: 1, name: /Create an AI clone that works for you/i }),
+        page.getByRole("heading", { level: 1, name: /Crea un clon de IA que trabaje para ti/i }),
       ).toBeVisible();
       await expect(page.getByTestId("capability-card")).toHaveCount(3);
       await expect(page.getByTestId("process-step")).toHaveCount(4);
@@ -53,7 +53,7 @@ test.describe("landing liquid", () => {
     });
 
     await page.goto("/landing-liquid");
-    await expect(page.getByRole("heading", { name: "The same pricing inside and outside" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Elige tu plan." })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Free" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Pro" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Enterprise" })).toBeVisible();
