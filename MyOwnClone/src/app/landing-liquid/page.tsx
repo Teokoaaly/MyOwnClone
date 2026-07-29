@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, CheckCircle, Sparkle, StackSimple } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight, CheckCircle, StackSimple, Star } from "@phosphor-icons/react/dist/ssr";
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import PublicPricing from "@/components/ui/PublicPricing";
 import { Link } from "@/i18n/navigation";
@@ -37,24 +37,27 @@ export default function LiquidLandingPage() {
           <span>MyOwnClone</span>
         </Link>
         <div className={styles.navLinks}>
-          <a href="#capacidades">Capacidades</a>
-          <a href="#proceso">Proceso</a>
-          <a href="#precios">Precios</a>
+          <a href="#inicio">Home</a>
+          <a href="#capacidades">Features</a>
+          <a href="#proceso">Company</a>
+          <a href="#precios">Pricing</a>
         </div>
         <div className={styles.navActions}>
-          <Link className={styles.signIn} href="/login">Entrar</Link>
-          <Link className={styles.navCta} href="/registro">Crear clon <ArrowUpRight aria-hidden="true" size={16} weight="bold" /></Link>
+          <Link className={styles.signIn} href="/login">Sign in</Link>
+          <Link className={styles.navCta} href="/registro">Sign up <ArrowUpRight aria-hidden="true" size={16} weight="bold" /></Link>
         </div>
       </nav>
 
       <section className={styles.hero} id="inicio">
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}><Sparkle aria-hidden="true" size={16} weight="fill" /> Clones digitales que conservan tu criterio</p>
-          <h1>Trabaja con más inteligencia, avanza más rápido.</h1>
-          <p className={styles.heroLead}>Convierte conocimiento, conversaciones y procesos en un clon digital que acompaña a tu equipo cada día.</p>
+          <p className={styles.socialProof}>
+            <span aria-hidden="true" className={styles.stars}>{[0, 1, 2, 3, 4].map((star) => <Star key={star} size={15} weight="fill" />)}</span>
+            Rated 4.9/5 by 2700+ customers
+          </p>
+          <h1>Work smarter, achieve faster</h1>
+          <p className={styles.heroLead}>Effortlessly manage your projects, collaborate with your team, and achieve your goals with our intuitive task management tool.</p>
           <div className={styles.heroActions}>
-            <Link className={styles.primaryCta} href="/registro">Empezar ahora <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
-            <Link className={styles.secondaryCta} href="/login">Ver mi espacio</Link>
+            <Link className={styles.primaryCta} href="/registro">Get Started Now <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link>
           </div>
         </div>
         <div className={styles.orbFrame}>
