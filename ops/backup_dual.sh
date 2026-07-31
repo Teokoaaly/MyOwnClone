@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Backup dual: copia backups a /var/backups/myownclone (local secundario)
-# Cuando se añadan credenciales de B2/S3, descomentar la sección rclone.
+# Espejo local secundario; la publicación B2 cifrada pertenece a backup_postgres.sh.
 
 set -euo pipefail
 
@@ -28,12 +27,5 @@ find "$SECONDARY" -name "pre-maintenance-*.sql.gz" -mtime +$RETENTION -delete 2>
 # 4. Verificar
 COUNT=$(find "$SECONDARY" -name "*.sql.gz" | wc -l)
 log "Backups en secundario: $COUNT"
-
-# 5. (Futuro) Subir a B2/S3 con rclone
-# if command -v rclone >/dev/null 2>&1 && [[ -f "$HOME/.config/rclone/rclone.conf" ]]; then
-#   log "Subiendo a B2/S3"
-#   rclone copy "$SECONDARY/" myownclone:myownclone-backups/db/ --progress
-#   rclone delete myownclone:myownclone-backups/db/ --min-age ${RETENTION}d
-# fi
 
 log "Backup dual completado"

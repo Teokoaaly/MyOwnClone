@@ -8,7 +8,8 @@ Type=oneshot
 User=root
 Environment=BACKEND_CURRENT=/opt/myownclone/backend-current
 Environment=BACKUP_B2_ENV_FILE=/etc/myownclone/backup-b2.env
-ExecStart=/usr/bin/env bash /opt/myownclone/backend-current/ops/backup_postgres.sh 14
+Environment=BACKUP_OFFSITE_REQUIRED=1
+ExecStart=/usr/bin/env bash /opt/myownclone/backend-current/ops/backup_postgres.sh 30
 Nice=10
 IOSchedulingClass=best-effort
 IOSchedulingPriority=7

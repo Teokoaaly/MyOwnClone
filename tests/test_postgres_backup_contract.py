@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BACKUP = ROOT / "ops" / "backup_postgres.sh"
 VERIFY = ROOT / "ops" / "verify_postgres_backup.sh"
+VERIFY_B2 = ROOT / "ops" / "verify_b2_backup.sh"
 
 
 def test_backup_uses_backend_current_and_is_unix_executable() -> None:
@@ -65,15 +66,23 @@ def test_backup_contract_is_atomic_and_fail_closed() -> None:
     assert backup_source.index("backup_complete=1") > backup_source.rindex('mv -- "$tmp_manifest"')
 
 
-def test_offsite_upload_is_opt_in_root_only_and_never_deletes_remote() -> None:
+def test_offsite_upload_is_required_encrypted_and_never_deletes_remote() -> None:
     # Given: the backup runner source
     source = BACKUP.read_text(encoding="utf-8")
 
     # When: the B2 upload integration is inspected
-    # Then: credentials come from the root-only runtime file and uploads are immutable.
+    # Then: credentials come from the root-only runtime file and only age-encrypted
+    # backup bytes are uploaded immutably.
     assert "/etc/myownclone/backup-b2.env" in source
-    assert "rclone copyto" in source
+    assert "BACKUP_OFFSITE_REQUIRED" in source
+    assert "BACKUP_AGE_RECIPIENT" in source
+    assert "RCLONE_CONFIG" in source
+    assert 'rclone --config "$RCLONE_CONFIG"' in source
+    assert "age --encrypt" in source
+    assert 'rclone --config "$RCLONE_CONFIG" copyto' in source
     assert "--immutable" in source
+    assert 'rclone --config "$RCLONE_CONFIG" copyto --immutable "$encrypted_file"' in source
+    assert 'rclone --config "$RCLONE_CONFIG" copyto --immutable "$file"' not in source
     assert "rclone delete" not in source
     assert "rclone purge" not in source
     assert "rclone sync" not in source
@@ -107,5 +116,54 @@ def test_retention_and_upload_contract_preserve_latest_and_avoid_deletion() -> N
     # When: retention and upload operations are inspected
     # Then: retention starts after the newest entry and uploads use copyto only.
     assert "for ((index = KEEP_DAYS" in source
-    assert 'rm -f -- "$old" "$old.sha256" "$old.manifest"' in source
-    assert source.count("rclone copyto --immutable") == 3
+    assert 'rm -f -- "$old" "$old.sha256" "$old.manifest" "$old.age" "$old.age.sha256"' in source
+    assert source.count('rclone --config "$RCLONE_CONFIG" copyto --immutable') == 3
+
+
+def test_restore_uses_disposable_pgvector_container_not_production_postgres() -> None:
+    source = VERIFY.read_text(encoding="utf-8")
+
+    assert "moc-task04-" in source
+    assert "pgvector/pgvector:pg15@" in source
+    assert "docker network create" in source
+    assert "docker volume create" in source
+    assert "docker run" in source
+    assert "docker rm --force" in source
+    assert "docker network rm" in source
+    assert "docker volume rm" in source
+    assert "POSTGRES_CONTAINER" not in source
+    assert "myownclone_postgres" not in source
+    assert "--publish" not in source
+    assert " -p " not in source
+
+
+def test_b2_verifier_downloads_checks_decrypts_and_calls_isolated_restore() -> None:
+    source = VERIFY_B2.read_text(encoding="utf-8")
+
+    assert "/etc/myownclone/backup-b2.env" in source
+    assert "/etc/myownclone/backup-age.key" in source
+    assert 'rclone --config "$RCLONE_CONFIG"' in source
+    assert "age identity must be owned by root" in source
+    assert "age identity must not be accessible by group or others" in source
+    assert source.count('rclone --config "$RCLONE_CONFIG" copyto') == 3
+    assert "sha256sum -c" in source
+    assert "age --decrypt" in source
+    assert "verify_postgres_backup.sh" in source
+    assert "mktemp -d" in source
+    assert "trap cleanup" in source
+
+
+def test_installer_gates_activation_on_b2_and_age_readiness() -> None:
+    installer = (ROOT / "ops" / "install-postgres-backup-systemd.sh").read_text(
+        encoding="utf-8"
+    )
+
+    gate = installer.index('rclone --config "$RCLONE_CONFIG" lsf')
+    activate = installer.index("systemctl enable --now")
+    assert "command -v rclone" in installer
+    assert "command -v age" in installer
+    assert "/etc/myownclone/backup-b2.env" in installer
+    assert "/etc/myownclone/rclone.conf" in installer
+    assert 'rclone --config "$RCLONE_CONFIG"' in installer
+    assert "BACKUP_AGE_RECIPIENT" in installer
+    assert gate < activate

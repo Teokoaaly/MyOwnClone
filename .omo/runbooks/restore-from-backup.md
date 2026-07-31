@@ -37,17 +37,21 @@ El backup se ejecuta desde la release resuelta por
 cron paralelo. La unidad `myownclone-postgres-backup.timer` corre diariamente,
 incluye retraso aleatorio y no pierde una ejecución tras una caída (`Persistent=true`).
 
-La retención es únicamente local y conserva siempre el dump más reciente.
-Si existe `/etc/myownclone/backup-b2.env`, el servicio root carga
-`B2_REMOTE=remote:bucket/prefix` en runtime y sube el dump, checksum y manifest
-con nombres inmutables. Ese archivo y cualquier configuración/credencial rclone
-son root-only, nunca se versionan. El proceso no borra objetos remotos.
+La retención local es de 30 días y conserva siempre el dump más reciente.
+El servicio exige `/etc/myownclone/backup-b2.env`, una clave pública `age` y
+`/etc/myownclone/rclone.conf`, ambos root-only. La identidad privada `age` debe
+custodiarse fuera del VPS y aportarse únicamente durante una restauración. El dump
+local se cifra con `age`; únicamente el `.sql.gz.age`, su checksum y el manifest se
+suben con nombres inmutables. El `.sql.gz` en claro nunca se publica en B2. El
+proceso no borra objetos remotos; la retención B2 de 30 días debe configurarse
+como lifecycle del bucket y documentarse fuera del repositorio.
 
 Instalación o migración, únicamente durante una ventana de mantenimiento:
 
 ```bash
 install -m 0600 /dev/null /etc/myownclone/backup-b2.env
-# editar como root: B2_REMOTE=remote:bucket/myownclone/postgres
+install -m 0600 /dev/null /etc/myownclone/rclone.conf
+# editar como root: B2_REMOTE, BACKUP_AGE_RECIPIENT y RCLONE_CONFIG
 bash /opt/myownclone/backend-current/ops/install-postgres-backup-systemd.sh
 systemctl list-timers myownclone-postgres-backup.timer
 systemctl start myownclone-postgres-backup.service
@@ -57,6 +61,19 @@ journalctl -u myownclone-postgres-backup.service -n 50 --no-pager
 El instalador activa y comprueba el timer antes de eliminar sólo una línea cron
 legacy que invoque `backup_postgres.sh`. Para rollback de la migración, deshabilitar
 el timer antes de restaurar explícitamente el cron aprobado; no ejecutar ambos.
+
+Descarga, descifrado, checksum y restore aislado del backup B2:
+
+```bash
+bash /opt/myownclone/backend-current/ops/verify_b2_backup.sh \
+  myownclone_YYYYMMDD_HHMMSS.sql.gz
+```
+
+El verificador crea exclusivamente recursos Docker `moc-task04-*`, no publica
+puertos, valida conteos sanitizados y retira contenedor, red y volumen al salir.
+Para este comando, instalar temporalmente la identidad offline con modo `0600` en
+`/etc/myownclone/backup-age.key` o indicar otra ruta mediante
+`BACKUP_AGE_IDENTITY_FILE`; retirarla de nuevo tras verificar el restore.
 
 ## 2. Reconstruir Weaviate
 

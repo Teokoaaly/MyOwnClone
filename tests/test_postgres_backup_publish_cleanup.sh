@@ -24,6 +24,7 @@ chmod +x "$tmp/bin/docker" "$tmp/bin/mv"
 set +e
 PATH="$tmp/bin:$PATH" BACKUP_DIR="$tmp/backups" BACKEND_CURRENT="$root" \
   BACKUP_TIMESTAMP=20260723_130000 BACKUP_B2_ENV_FILE="$tmp/absent" \
+  BACKUP_OFFSITE_REQUIRED=0 \
   "$root/ops/backup_postgres.sh" 7
 status=$?
 set -e
