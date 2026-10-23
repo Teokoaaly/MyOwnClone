@@ -1,0 +1,25 @@
+---
+id: 2026-1023-herosms-sobre-la-infraestructura-de-sms-activate
+type: atom
+certainty: solid
+sources: [sources/2026-10-22-hero-sms-home.md, sources/2026-10-22-sms-activate-closed.md]
+links: ["[[2026-1023-herosms-catalogo-cinco-servicios-visibles]]", "[[2026-1023-herosms-claims-700-servicios-180-paises-500k-numeros]]", "[[2026-1023-5sim-catalogo-servicios-precios-y-stock]]", "[[2026-1023-sms-activate-cierra-total-el-22-de-diciembre]]"]
+---
+
+## Claim
+HeroSMS **no es un proveedor de infraestructura propio**: su propia página lo declara dos veces. En las bullet points de la home: "Market-leading activation software (powered by **SMS-Activate** technical infrastructure)". Y en el FAQ, respondiendo a "Why is choosing HeroSMS a great option?": "**HeroSMS is a new service built on the foundation of SMS-Activate**, widely known market leader. The project is based on the best technical features of SMS-Activate, but stands out with more modern technologies and more profitable terms." Es decir, es una **fachada comercial (white-label) sobre SMS-Activate**, que aporta la interfaz, el catálogo y la tabla de stock. La inferencia razonable (no declarada por el proveedor) es que el pool de números y la cobertura de país **heredan** del operador de origen. Las cinco tarjetas del selector y sus precios quedan igualmente determinados por el proveedor de infraestructura ([[2026-1023-herosms-catalogo-cinco-servicios-visibles]], [[2026-1023-herosms-claims-700-servicios-180-paises-500k-numeros]]), igual que el selector de 5sim publica sus propias cifras ([[2026-1023-5sim-catalogo-servicios-precios-y-stock]]).
+
+## Why It Matters
+Cambia cómo se lee todo el resto de la captura: los `from $…` y los contadores de stock de las tarjetas son **datos de un proveedor presentados en la web de otro**. HeroSMS es el mismo tipo de actor que 5sim pero con el respaldo de un operador mayor, lo que explica por qué puede declarar cosas que 5sim no puede (700+ servicios, 180+ países) sin que su catálogo visible las respalde: el inventario es heredado.
+Consecuencia práctica para el vault: **dos de los proveedores que se comparan no son independientes**. Si un plan de aprovisionamiento de SMS compara "oferta de HeroSMS" contra "oferta de 5sim" como dos mercados, está comparando una fachada y un operador autónomo, no dos proveedores. La comparación de precio y stock solo es informativa si se sabe cuál de los dos es el dueño del número.
+
+## [FRICTION]
+> [[2026-1023-5sim-catalogo-servicios-precios-y-stock]] (escrita hoy, desde la home de 5sim) trata las cifras del selector de 5sim como **datos propios del proveedor** y discute su consistencia interna (mismo bloque replicado en tres URL, precios distintos para el mismo servicio en selector y ficha de producto) como un problema de renderizado y de sincronización de catálogo.
+> Este átomo presiona esa creencia porque ofrece una **explicación alternativa y más simple** para el mismo tipo de anomalía: si HeroSMS es una fachada sobre SMS-Activate, es plausible que sectorialmente varios sitios de números publiciten las mismas cifras de marketing heredadas de un mismo operador ("500.000 números", "180+ países"), y que los contadores por servicio de cada web se calculen sobre inventarios agregados distintos. Es decir, la inconsistencia observada en 5sim podría no ser un fallo de su catálogo sino una propiedad del sector.
+> Ambas no pueden ser completamente correctas como explicación: o las cifras de 5sim son propias y la coincidencia con HeroSMS es casual, o ambas son marketing heredado de un operador común. Marcado para juicio humano, no auto-resuelto.
+
+## Extensión (aviso de cierre de SMS-Activate, 2026-10-22)
+La fuente del **propio operador cerrado** confirma el traspaso desde el lado de SMS-Activate: "Свои технологии мы передали команде сервиса HeroSMS. Это мощный новичок на рынке, который уже получает отличный фидбэк. Рекомендуем попробовать его" — *transferimos nuestras tecnologías al equipo del servicio HeroSMS; es un novato potente en el mercado que ya recibe feedback excelente; recomendamos probarlo*. Esto **confirma** que la relación es de traspaso de tecnología al cierre del operador, no solo marketing white-label, y añade dos datos propios del emisor: HeroSMS es **"un novato potente"** (es decir, no es un proveedor maduro de 10 años como lo era SMS-Activate) y **recibe feedback excelente** según el operador saliente. El cierre total y la cronología completa están en [[2026-1023-sms-activate-cierra-total-el-22-de-diciembre]].
+
+## Nota de verificación
+Ambas citas están transcritas literalmente de la captura del 2026-10-22. Lo que **no** puede verificarse desde esta fuente es la relación societaria real ni si el stock mostrado en las tarjetas es stock propio de HeroSMS o inventario agregado de SMS-Activate; la página no lo distingue. El aviso de cierre añade que el traspaso fue de **tecnologías** —no dice explícitamente "números", "stock" ni "catálogo"—, por lo que la herencia del pool queda inferida, no declarada.

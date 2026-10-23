@@ -1,0 +1,14 @@
+---
+id: 2026-1023-5sim-dos-listas-una-curada-y-una-cola-alphabetica
+type: atom
+certainty: solid
+sources: [sources/2026-10-22-5sim-products-catalog.md]
+links: ["[[2026-1023-5sim-catalogo-1221-servicios-nombres-unicos]]", "[[2026-1023-5sim-catalogo-servicios-precios-y-stock]]", "[[2026-1023-5sim-catalogo-28-servicios-ia]]"]
+---
+
+## Claim
+El catálogo de 5sim no es una lista única sino **dos listas con plantillas de título distintas y sin un solo nombre en común** (ni siquiera normalizando mayúsculas y espacios). La primera, de **245 entradas** con la plantilla `Temporary Phone Number for X`, va de `1688` a `Zoho` y está **curada**: aunque siga el orden alfabético en lo grueso, tiene diez rupturas deliberadas (`1688` → `163.com`, `Tata 1mg` → `23red`, `99acres` → `99 App`, `Çek Kazan` → `Chispa`, `JioHotstar` → `Domino's Pizza`, `OpenSooq` → `Elante`…). La segunda, de **975 entradas** con la plantilla `Get a Temporary Phone Number for X`, va de `4411` a `Zuscoffee` y es **alfabética estricta** (una sola ruptura: `4411` → `115com`, por el prefijo numérico). Los ocho servicios del selector de la página (Amazon, Facebook, Telegram, WhatsApp, Microsoft, Google, Instagram, `OpenAI / ChatGPT`) están **todos en la lista curada de 245**, ninguno en la de 975. Además, los nombres del selector y los del catálogo no coinciden literalmente: el selector muestra `Google/YouTube`, `Instagram/Threads` y `OpenAI/ChatGPT`, mientras que la lista contiene `Google`, `Instagram` y `OpenAI / ChatGPT`.
+
+## Why It Matters
+La lista de 245 es la que el proveedor considera **top-tier** y es la única que el selector de compra usa como referencia de precio y stock ([[2026-1023-5sim-catalogo-servicios-precios-y-stock]]); los 975 restantes son cola larga, sin precio visible y sin prominence. Para un flujo que depende de un servicio concreto ([[2026-1023-5sim-catalogo-28-servicios-ia]]) la consecuencia práctica es doble: el mismo servicio puede aparecer con dos denominaciones entre el selector y el catálogo (no hay identificador estable, solo etiquetas SEO), y la presencia de un nombre en el catálogo no implica que sea comprable ni que tenga stock.
+La separación curada/cola larga no sigue el criterio "importancia del caso de uso": de los 28 servicios de IA del catálogo ([[2026-1023-5sim-catalogo-28-servicios-ia]]), solo 5 están en el bloque curado (`Claude AI`, `DeepSeek`, `Factory AI`, `Manus`, `OpenAI / ChatGPT`) y 23 en la cola larga (`Perplexity`, `Kimi`, `Suno`, `Firecrawl`, `Doubao`…). El bloque curado está formado por los servicios que el selector de compra destaca (Amazon, Facebook, Telegram, WhatsApp, Google, Instagram, Microsoft, OpenAI/ChatGPT) más un puñado de marcas regionales; la cola larga, por tanto, no es "lo menor" sino todo lo que no tiene precio de escaparate visible ([[2026-1023-5sim-catalogo-1221-servicios-nombres-unicos]]).

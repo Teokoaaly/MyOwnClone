@@ -1,0 +1,23 @@
+---
+id: 2026-1023-midjourney-proxy-ecosistema-de-aplicaciones-que-lo-consumen
+type: atom
+certainty: solid
+sources: [sources/2026-10-22-midjourney-proxy-github.md]
+links: ["[[2026-1023-midjourney-proxy-convierte-discord-en-api-rest]]", "[[2026-1022-superficie-legal-publica-dpa-clon-terms]]", "[[2026-1023-midjourney-proxy-oferta-comercial-de-api-no-oficial]]"]
+---
+
+## Claim
+La sección **"应用项目"** (proyectos de aplicación) del README lista siete proyectos que consumen esta API, con su descripción literal: **`wechat-midjourney`** — "代理微信客户端，接入MidJourney，仅示例应用场景，不再更新" (proxy del cliente de WeChat, conecta Midjourney, solo escenario de ejemplo, ya no se actualiza); **`chatgpt-web-midjourney-proxy`** — "chatgpt web, midjourney, gpts, tts, whisper 一套ui全搞定" (un solo UI para chatgpt web, midjourney, gpts, tts y whisper); **`chatnio`** — "下一代 AI 一站式 B/C 端解决方案, 集成精美 UI y强大功能的聚合模型平台" (solución AI integral de nueva generación, plataforma de modelos agregados); **`new-api`** — "接入MidJourney Proxy的接口管理 & 分发系统" (sistema de gestión y distribución de interfaces que se conecta a MidJourney Proxy); **`stable-diffusion-mobileui`** — "SDUI，基于本接口和SD，可一键打包生成H5和小程序" (SDUI, basado en esta interfaz y en SD, empaqueta H5 y mini-programas con un clic); **`MidJourney-Web`** — "🍎 Supercharged Experience For MidJourney On Web UI"; y **`midjourney-captcha-bot`** — "绕过Midjourney验证码" (eludir el captcha de Midjourney). El README cierra: "依赖此项目且开源的，欢迎联系作者，加到此处展示".
+
+## Why It Matters
+El valor de un proxy no está en el proxy: está en **la capa de producto que se construye encima** sobre un puente que solo expone el dibujo por API ([[2026-1023-midjourney-proxy-convierte-discord-en-api-rest]]). La lista muestra tres arquetipos de producto derivados de un mismo puente: (a) **integración en otro chat** (WeChat, ChatGPT web), (b) **plataformas de agregación y distribución de interfaces** (new-api, chatnio) que ya hacen lo que PriceAI hace como catálogo ([[2026-1023-priceai-cuatro-modulos-y-home-solo-desvia]]), y (c) **empaquetado para móvil/web** (SDUI, MidJourney-Web).
+Para el vault, que construye productos de clon, esto es un mapa de **dónde se puede aplicar un mismo backend a varios fronts**: una interfaz única, muchos clientes.
+el caso `midjourney-captcha-bot` es la nota más incómoda: la lista de "aplicaciones" del propio README incluye una herramienta para **eludir el captcha de Midjourney**, es decir, el proyecto que documenta un proxy legítimo incluye en su ecosistema la pieza que incumple el control anti-bot del proveedor. Y el propio README monetiza la API por la vía comercial ([[2026-1023-midjourney-proxy-oferta-comercial-de-api-no-oficial]]), lo que cierra el circuito: código abierto, productos derivados y venta de API no oficial conviven bajo la misma marca.
+
+## [FRICTION]
+> [[2026-1022-superficie-legal-publica-dpa-clon-terms]] afirma que el producto del vault expone seis documentos legales públicos (Aviso Legal, Privacidad, Cookies, Términos, DPA y "Clone Terms") y que esa superficie es coherente con vender a empresas que procesan datos de clientes finales.
+> Este átomo presiona esa creencia en un punto: el ecosistema que el README documenta como "aplicaciones del proyecto" incluye **eludir el captcha del proveedor**, es decir, un producto cuyo valor está en el incumplimiento del control anti-abuso. El vault asume por defecto que una superficie legal completa es condición para operar; este caso muestra que hay un volumen de demanda real servido sin esa condición.
+> Ambas no pueden ser completamente correctas como criterio general: o la superficie legal es un coste inescapable y estos proyectos son ejemplos de riesgo que el vault debe evitar, o es un coste evitable y el vault está pagando un premium de cumplimiento que el mercado no exige. Marcado para juicio humano, no auto-resuelto: el vault no ha verificado estos repositorios más allá de la descripción que el propio README hace de ellos.
+
+## Nota de verificación
+Las siete descripciones son literales del README. El vault **no** ha capturado ninguno de esos repositorios: no se verifica que la integración siga viva, ni sus licencias, ni sus usuarios.

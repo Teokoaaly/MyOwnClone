@@ -37,6 +37,19 @@ El handoff de junio documenta que nuestro producto son **dos repos independiente
 
 Ver [[2026-1022-myownclone-dos-repos-flask-nextjs]], [[2026-1022-auth-flask-nextauth-desconectados]], [[2026-1022-drift-schema-drizzle-sqlalchemy]], [[2026-1022-bug-enum-modos-teach-vs-pedagogy]].
 
+## Lo que ya tenemos y no se está comparando
+
+La tabla de ejes arrima a MyClone.is en casi todo. Pero el material atomizado hoy contiene capacidades propias de MyOwnClone que la comparación no captura, porque no tienen equivalente en la API del competidor:
+
+- **Inbox triage con propuestas de IA** — [[2026-1022-inbox-triage-propuestas-ia]]: el "Triage Mode" no envía correos, genera *propuestas* que el humano acepta (borrador de respuesta, propuestas de memoria, plantilla reutilizable, label de auto-clasificación por intención), con historial de hilo, notas de voz transcritas y salida "procesar sin respuesta". Es una postura explícita: la IA propone, el humano manda.
+- **Memorias y firmas del creator** — [[2026-1022-modulo-brain-cerebro-memorias-plantillas]]: CRUD de memorias + firma de email + plantillas + dominios de spam + dominio inbound. El competidor no expone nada equivalente.
+- **Reuniones completas** — [[2026-1022-modulo-reuniones-booking-video]]: booking público con timezone automático, videollamada, grabación con transcripción, ICS para Google/Outlook/Office 365/Apple y burbuja del clon en las páginas de grabación.
+- **Desglose de costes pagador explícito** — [[2026-1022-costes-por-categoria-tenant]]: `categoryCloneResponses` y `categoryIngestion` al tenant, `categoryPlatformOps` a la plataforma. Frente a la "transparencia de uso" del competidor, esto es una política de costes, no un contador.
+- **Soporte escalable a humano** — [[2026-1022-soporte-al-cliente-separado-y-escalado]], con retrieval por silo separado y auto-email del ticket.
+- **Aviso de gaps al creador** — [[2026-1022-clon-avisar-al-creador-de-gaps]] y [[2026-1022-dashboard-de-insights]]: el clon no solo admite lo que no sabe, lo reporta a quien puede rellenarlo.
+
+El eje honesto del gap no es "MyClone.is tiene más endpoints". Es que **su API es la superficie del competidor, y la nuestra es cero** — así que cualquier comparación por superficie siempre va a perder. La comparación honesta es por capacidad de producto, y en varios ejes vamos por delante. Ver [[myownclone-platform-architecture]] para la anatomía de esa ausencia de API y [[myownclone-strategy-and-vision]] para qué capabilities existen en la visión del founder.
+
 ## Fricciones que quedan para juicio humano
 
 1. **Mapa de competencia desactualizado** — [[2026-1022-solo-personify-compite-de-verdad]] vs [[2026-1022-myclone-verticalizacion-y-transparencia]]: el mapa de `comparisons/myownclone-competitors.md` no menciona a MyClone.is.

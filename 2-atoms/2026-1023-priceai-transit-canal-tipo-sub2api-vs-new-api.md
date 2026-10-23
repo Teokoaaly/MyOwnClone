@@ -1,0 +1,19 @@
+---
+id: 2026-1023-priceai-transit-canal-tipo-sub2api-vs-new-api
+type: atom
+certainty: solid
+sources: [sources/2026-10-22-priceai-api-transit.md, sources/2026-10-22-new-api-github.md]
+links: ["[[2026-1023-priceai-transit-cobertura-parcial-y-criterio-de-ranking]]", "[[2026-1023-priceai-sponsors-vps-chinos-para-auto-hospedar-relay]]", "[[2026-1023-priceai-transit-dispersion-de-multiplicadores]]", "[[2026-1023-new-api-gateway-unificado-de-modelos]]", "[[2026-1023-new-api-grupos-como-eje-de-precio-del-relay]]"]
+---
+
+## Claim
+Cada fila de la tabla lleva un campo **来源渠道 (canal de origen)** que identifica el software del relay: **Sub2API** en 22 de las 30 filas y **New API** en 8 (Dragon API, Top-API, 天机阁, 合聚API, 悟空api, WC AI, 悠米AI中转, 远桥云 API). Los canales de la tabla se autofirman con su nombre de producto seguido del tipo de plataforma: por ejemplo "皓悦 APISub2API", "RelayCoreSub2API", "Sub Callai OneSub2API" frente a "DragonAPINew API", "天机阁New API".
+
+## Why It Matters
+Es el dato estructural más útil de la tabla y no estaba en el material anterior: **los relays de precio bajo no son un ecosistema diverso, son en su mayoría la misma plataforma** (Sub2API, ~73% de las filas). Eso reduce el espacio de comparación: comparar "30 relays" es comparar, en su mayor parte, **30 despliegues del mismo stack open source con distinta marca, distinto 号池 y distinto multiplicador**.
+Y conecta directamente con el bloque de patrocinadores VPS del vault: los sponsors chinos (Aliyun, Tencent) se anuncian como aptos para "搭建sub2api自用中转" ([[2026-1023-priceai-sponsors-vps-chinos-para-auto-hospedar-relay]]). Es decir, **la tecnología de auto-hospedaje que los sponsors promocionan es la misma que el 73% del ranking de precio bajo** — la barrera de entrada a operar un relay de 0.05x es un VPS, no un contrato con un proveedor de inferencia.
+Consecuencia para el vault: si el coste del infra es casi el mismo para todos (VPS barato) y el multiplicador es una decisión comercial del operador, entonces el multiplicador **no es un indicador de calidad técnica sino de margen sobre cuentas reutilizadas** — hipótesis que encaja con la dispersión 0.04x–7.00x ([[2026-1023-priceai-transit-dispersion-de-multiplicadores]]).
+
+## Extensión (captura del README de QuantumNous/new-api, 2026-10-23)
+La etiqueta "New API" de la tabla tiene ahora **identidad de software verificada**: se refiere al proyecto **`QuantumNous/new-api`**, un gateway de IA autoalojado, fork AGPLv3 de One API, que expone una API unificada OpenAI/Anthropic/Gemini y gestiona routing, cuotas, grupos y costes ([[2026-1023-new-api-gateway-unificado-de-modelos]]). Los 8 canales de la tabla no son entonces implementaciones mystery sino **despliegues de un software con estructura de canal→grupo→key y con motor de precios propio** ([[2026-1023-new-api-grupos-como-eje-de-precio-del-relay]]).
+Lo que esto cambia en la lectura de la tabla: la dispersión 0.04x–7.00x entre filas "New API" **no puede atribuirse a diferencias de software** (mismo core), sino al ** 号池, al grupo asignado y a la política comercial** del operador. Es decir, la varianza está concentrada exactamente en las variables que el vault ya había marcado como "distinto 号池 y distinto multiplicador" — confirmado ahora por el lado del software.

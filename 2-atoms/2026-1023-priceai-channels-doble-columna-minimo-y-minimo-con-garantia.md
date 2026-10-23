@@ -1,0 +1,15 @@
+---
+id: 2026-1023-priceai-channels-doble-columna-minimo-y-minimo-con-garantia
+type: atom
+certainty: solid
+sources: [sources/2026-10-22-priceai-channels.md]
+links: ["[[2026-1023-priceai-channels-53-productos-y-minimo-con-stock]]", "[[2026-1023-priceai-faq-antifraude-y-prueba-pequena]]", "[[2026-1023-priceai-descargo-de-responsabilidad-sin-sla]]"]
+---
+
+## Claim
+La tabla de 卡网 no publica **una** columna de precio sino **dos**: `最低价` y `质保最低价` (el mínimo con garantía/质保). La diferencia entre ambas es enorme y no uniforme. Los multiplicadores más extremos: **ChatGPT 普号** ¥0.05 → **¥66.82** (**×1.336**), **Codex / ChatGPT 周边与自助服务** ¥0.18 → **¥136.72** (**×760**), **Cursor 账号** ¥0.65 → **¥1,078.37** (**×1.659**), **Dreamina / 即梦** ¥19.45 → ¥306.34 (**×15,8**), **Grok Ultra** ¥71.75 → **¥759.69** (**×10,6**), **Gmail / Google 邮箱** ¥0.30 → ¥2 (**×6,7**), **iCloud 邮箱** ¥0.02 → ¥0.10 (**×5**) y **ChatGPT Team / Business** ¥5.14 → ¥61.68 (**×12**). En cambio, en varios productos la garantía no encarece nada: **Google AI Ultra 5x** ¥150 con garantía ¥150, **Grok Super** ¥435.63 con garantía ¥435.63, **ChatGPT Go** ¥29.87 con garantía ¥29.87, **ChatGPT Plus 正价代充** ¥112.04 con garantía ¥112.04 y **Claude Max 5x** ¥750.44 con garantía ¥812.12 (×1,1). **26 de las 53 filas** tienen precio garantizado publicable; las otras 27 muestran **"-"**.
+
+## Why It Matters
+Es el dato más accionable de la captura y no aparece en ninguna otra página de esta fuente: **el precio de lista barato y el precio con respaldo son dos mercados distintos**, con multiplicadores que van de ×1,1 a ×1.659. La cabecera solo define la regla del mínimo ("主价格优先取有货最低价"), así que **la columna que el sitio pone por defecto es la del producto sin garantía**, que es exactamente la que la FAQ desaconseja ("长期未更新的低价不应直接当成可买价", [[2026-1023-priceai-limite-de-verificacion-y-responsabilidad]]). Y la captura lo hace explícito en su propio descargo: "本站不卖货、不担保，价格仅供参考" ([[2026-1023-priceai-channels-53-productos-y-minimo-con-stock]]) — el sitio avisa de que no garantiza, y aun así su tabla por defecto enseña el precio sin respaldo.
+Para el vault esto invalida cualquier comparación hecha sobre `最低价` sin mirar la segunda columna: un plan de Dreamina "barato" a ¥19,45 y su equivalente garantizado a ¥306,34 son dos productos distintos en coste y en riesgo. El multiplicador es un **indicador de riesgo implícito**: cuando la garantía es gratis, el canal asume el riesgo; cuando multiplica ×15, el riesgo lo asume el comprador. Y la dispersion de la tabla completa confirma que no hay un único "precio de referencia" ([[2026-1023-priceai-channels-dispersion-de-precios-cuatro-ordenes]]).
+Y encaja con el descargo global: el agregador no garantiza nada, pero sí publica qué canales ofrecen garantía y cuánto cuesta ([[2026-1023-priceai-descargo-de-responsabilidad-sin-sla]]). Es la única columna de toda la tabla que acerca algo a un SLA, y por eso mismo es la que hay que leer antes que el precio ([[2026-1023-priceai-faq-antifraude-y-prueba-pequena]]).

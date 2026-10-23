@@ -1,0 +1,8 @@
+{
+  "ts_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "hub_local":     {"status":"UP","http":"200","proc":"hermes dashboard pid=1062"},
+  "vps_worker":    {"status":"DOWN","http":"000","note":"connection timeout, ping 100% loss at 100.99.222.101"},
+  "win_hermes_worker": {"status":"DOWN","note":"SSH 22 timeout, ping 100% loss at 100.113.82.10"},
+  "rpi_picoclaw":  {"status":"DOWN","note":"SSH 22 timeout, ping 100% loss at 100.68.107.101"},
+  "user_winpc":    {"status":"UP_PING","note":"ping ok 6.8ms; ssh auth denied (expected, not a worker)"}
+}
