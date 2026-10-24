@@ -1,0 +1,18 @@
+---
+id: 2026-1024-noones-prohibicion-explicita-de-circular-restricciones-por-ip-y-ubicacion
+type: atom
+certainty: solid
+sources: [sources/2026-10-23-noones-limits-and-verification.md]
+links: ["[[2026-1023-hero-sms-ip-y-vpn-coincidentes-con-el-pais-del-numero]]", "[[2026-1024-noones-jurisdicciones-globalmente-restringidas]]", "[[2026-1024-noones-bloquea-ip-estadounidense-con-mensaje-explicito]]", "[[2026-1023-5sim-sms-verificacion-como-coste-marginal-de-alta]]"]
+---
+## Claim
+El último ítem del bloque "Warning:" de la KB de límites es una **prohibición explícita de eludir el bloqueo**, no una simple nota de cobertura: *"Check if your country is on the list where we may not make all of the Services available. In case your country is on the list, do not attempt to circumvent any restrictions imposed via the Services, such as by obscuring your IP address or submitting any inaccurate information regarding your location. Please refrain from using the platform in this case."* Es decir: **ofuscar la IP** y **declarar una ubicación falsa** quedan nombrados como técnicas de elusión prohibidas, y la consecuencia declarada es dejar de usar la plataforma.
+
+## Why It Matters
+El vault opera con una técnica que aquí queda explícitamente vedada: la verificación por SMS de HeroSMS exige poner la ubicación virtual en el país del número ([[2026-1023-hero-sms-ip-y-vpn-coincidentes-con-el-pais-del-numero]]), y 5sim vende stock por país con el mismo sesgo de cobertura ([[2026-1023-5sim-sms-verificacion-como-coste-marginal-de-alta]]). En NoOnes, la elusión no es un riesgo abstracto: está **escrita con nombre propio en la página de límites** que toda cuenta lee antes de operar, y el bloqueo es doble — por IP en la home ([[2026-1024-noones-bloquea-ip-estadounidense-con-mensaje-explicito]]) y por residencia en la lista de jurisdicciones ([[2026-1024-noones-jurisdicciones-globalmente-restringidas]]). Un VPN que "funciona" no resuelve la capa de residencia, y usarlo knowingly convierte una cuenta en un activo quemable. Para el phone farm la lectura correcta es: el pool de IPs tiene que estar **compuesto por IPs cuyo país real coincide con la residencia declarada**, no al revés.
+
+## [FRICTION]
+> [[2026-1023-hero-sms-ip-y-vpn-coincidentes-con-el-pais-del-numero]] prescribe, como paso obligatorio de la verificación por SMS, *"activate a VPN or proxy server"* y poner *"your virtual location to match the country of the temporary number"*, y afirma que un número de un país donde el servicio está disponible permite completar la verificación *"regardless of your physical location"*. La técnica central del playbook del vault es, literalmente, **ofuscar la ubicación desde una IP ajena al país real del número**.
+> Este átomo registra que NoOnes prohíbe exactamente eso —*"obscuring your IP address or submitting any inaccurate information regarding your location"*— y lo hace con la consecuencia de dejar de usar la plataforma.
+> No es una contradicción lógica: son proveedores distintos con reglas distintas, y la técnica de HeroSMS puede ser perfectamente lícita allí. Pero **el vault no puede tratar "usar VPN para que la IP coincida con el país" como una práctica neutra y reutilizable en todos los proveedores**: en un exchange cripto P2P esa misma práctica es una violación de términos escrita por el proveedor, y en el caso de MiCA la restricción no se salva ni con IP coherente, porque la capa interna es de residencia.
+> Consecuencia para el diseño del farm: el criterio de selección de IP debe ser **"país real de la IP == país de la identidad usada"**, no "cualquier IP no-occidental que supere el filtro". Marcado para juicio humano, no auto-resuelto.

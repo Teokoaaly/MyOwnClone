@@ -2,7 +2,7 @@
 id: 2026-1023-hetzner-trafico-20-tb-inclusivos-y-1-euro-por-tb-extra
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-hetzner-cloud.md]
+sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-10-23-skhron-bitcoin-vps.md]
 links: ["[[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]", "[[2026-1023-hetzner-comparativa-trafico-20tb-contra-hyperscalers]]", "[[2026-1023-hetzner-facturacion-por-hora-0-0096]]"]
 ---
 
@@ -14,3 +14,6 @@ Fija el coste marginal del egreso, que es la partida que en los hyperscalers dis
 
 ## Nota de verificación
 La captura no publica el precio del tráfico adicional fuera de la UE, ni si los 20 TB son por servidor o por cuenta, ni la política de abuso. No se afirma ninguno de esos datos.
+
+## [NOTA 2026-10-24 — Skhron]
+Fuente: `sources/2026-10-23-skhron-bitcoin-vps.md`. Skhron usa un **modelo de contabilidad de tráfico distinto**: en cada plan se lee literalmente "**Sum of inbound and outbound traffic is accounted**", con volúmenes incluidos de **1 TiB a 64 TiB** según el plan (1, 2, 2,5, 4, 5, 8, 10, 16, 20, 32 y 64 TiB) y uplink de 1 Gbps compartido (línea XSIG, Intel Xeon) o 5 Gbps compartido (línea ER, AMD EPYC) (ver [[2026-1024-skhron-trafico-contado-en-dos-sentidos]]). La consecuencia práctica: **1 TiB "incluido" en Skhron equivale a ~0,5 TiB de egreso real** si el servidor también recibe tráfico, de modo que **las cifras de los dos proveedores no son comparables sin normalizar**. Además, Skhron **no publica el precio del tráfico adicional ni el umbral de corte**, lo que hace su modelo de egreso peor documentado que el de Hetzner (€1,00/TB extra) pese a estar más barato por servidor.

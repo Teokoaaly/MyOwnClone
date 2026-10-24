@@ -2,7 +2,7 @@
 id: 2026-1023-priceai-channels-correo-y-jianma-a-centimos-como-insumo-de-alta
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-priceai-channels.md]
+sources: [sources/2026-10-22-priceai-channels.md, sources/2026-10-23-notletters-mail.md]
 links: ["[[2026-1023-5sim-sms-verificacion-como-coste-marginal-de-alta]]", "[[2026-1023-priceai-modulo-kanet-marcas-y-modos-de-entrega]]", "[[2026-1023-priceai-channels-dispersion-de-precios-cuatro-ordenes]]"]
 ---
 
@@ -19,3 +19,6 @@ El caso de 真人 / KYC 验证 a ¥10.28 con **1 sola unidad en stock y 3 canale
 > [[2026-1023-5sim-sms-verificacion-como-coste-marginal-de-alta]] afirma que la verificación por SMS cuesta **$0.1026 a $8.8897 por unidad** con mediana $0.8942, y que "el coste marginal frente al modelo de costes" solo se optimiza "si se elige el par país-operador correcto".
 > Este átomo presiona esa creencia en un punto concreto: la tabla de 卡网 ofrece 接马 de OpenAI/ChatGPT a **¥0.37** con **789 canales** y 723 unidades en stock, y 接码 genérico a **¥0.57** — muy por debajo del suelo de 5sim en dólares. Si el vault usa 5sim como referencia de coste marginal de alta, está usando la capa cara de un mercado que tiene una capa más barata cuyo control de calidad es explícitamente "没有售后" y "售出不退".
 > Ambas no pueden ser completamente correctas: o el 接码 de 卡网 no es realmente el mismo servicio (un número propio, no un código cerrado) y por tanto no es comparable, o sí lo es y entonces el precio de referencia del vault está inflado por una decisión de proveedor no justificada por el precio. Marcado para juicio humano, no auto-resuelto.
+
+## [NOTA 2026-10-24 — NotLetters]
+A partir de `sources/2026-10-23-notletters-mail.md` (home de `notletters.com`). Existe un **proveedor dedicado de correo masivo** con precio nominal propio: **0.05 ₽ por correo** ("Price per mail"), contadores declarados de "> 5 000 000" correos comprados y "> 30 000 000" recibidos, y un tiempo medio de recepción de **573 Ms**. El precio está en rubles y la captura no publica tipo de cambio, así que la comparación con los ¥0.02–¥1.24 de este átomo solo es legible como **orden de magnitud nominal**. Su valor para el vault es de categoría: la landing declara "Our service makes it easier to create multiple mailboxes for site registrations" y su banner dice "Great for Lolzteam Market", es decir, el correo de alta se comercializa como producto ([[2026-1024-notletters-correo-masivo-para-registros-y-lolzteam]]). El matiz que mantiene el valor de la tabla 卡网 es que esta ofrece correo de cuentas **ya registradas** ("outlook邮箱带双令牌【二手 注册过部分产品 库存100w】"), mientras NotLetters crea buzones nuevos para registrar: no son el mismo producto, y por eso el suelo de ¥0.02 no queda sustituido sino **complementado** por un precio más bajo en otro canal ([[2026-1024-notletters-precio-005-rubles-por-correo-y-contadores-de-escala]]).

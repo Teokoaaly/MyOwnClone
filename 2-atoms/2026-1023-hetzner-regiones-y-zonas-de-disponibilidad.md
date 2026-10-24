@@ -2,7 +2,7 @@
 id: 2026-1023-hetzner-regiones-y-zonas-de-disponibilidad
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-hetzner-cloud.md]
+sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-10-23-evoxt-vms.md]
 links: ["[[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]", "[[2026-1023-hetzner-trafico-20-tb-inclusivos-y-1-euro-por-tb-extra]]", "[[2026-1022-i18n-es-first-jurisdiccion-es]]"]
 ---
 
@@ -14,3 +14,6 @@ La zona no es un detalle técnico sino una decisión de coste y de cumplimiento:
 
 ## Nota de verificación
 La captura no publica precios de servidor por zona (la calculadora muestra el mismo precio base en las cinco), ni qué zona aplica un recargo de tráfico distinto. La lista de Availability Zones incluye HEL1 dos veces, tal como aparece transcrita en la página.
+
+## [NOTA 2026-10-24 — Evoxt]
+Fuente: `sources/2026-10-23-evoxt-vms.md`. Contraste de dispersión geográfica: Evoxt declara **17 regiones** con un IX distinto en cada una (Los Angeles, Montreal, Nueva York, São Paulo, Londres, París, Ámsterdam, Fráncfort, Varsovia, Zúrich, Kuala Lumpur, Yakarta, Sídney, Hong Kong, Seúl, Osaka, Tokio) frente a las **5 zonas / 4 países** de Hetzner, y ofrece como argumento de privacidad **Zúrich** ("país políticamente neutral con leyes de privacidad fuertes"), que es el tipo de ubicación que este átomo concluye necesaria si el dato debe quedar en una jurisdicción defendible. El coste de esa dispersión no está publicado: la captura no indica qué regiones tienen capacidad ni si el precio varía por región (ver [[2026-1024-evoxt-17-regiones-con-peering-de-ix]]).

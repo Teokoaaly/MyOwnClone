@@ -2,7 +2,7 @@
 id: 2026-1023-midjourney-proxy-ecosistema-de-aplicaciones-que-lo-consumen
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-midjourney-proxy-github.md]
+sources: [sources/2026-10-22-midjourney-proxy-github.md, sources/2026-10-23-2captcha-solver.md]
 links: ["[[2026-1023-midjourney-proxy-convierte-discord-en-api-rest]]", "[[2026-1022-superficie-legal-publica-dpa-clon-terms]]", "[[2026-1023-midjourney-proxy-oferta-comercial-de-api-no-oficial]]"]
 ---
 
@@ -21,3 +21,6 @@ el caso `midjourney-captcha-bot` es la nota más incómoda: la lista de "aplicac
 
 ## Nota de verificación
 Las siete descripciones son literales del README. El vault **no** ha capturado ninguno de esos repositorios: no se verifica que la integración siga viva, ni sus licencias, ni sus usuarios.
+
+## [NOTA 2026-10-24]
+Añadido a partir de `sources/2026-10-23-2captcha-solver.md`. El caso `midjourney-captcha-bot` ("绕过Midjourney验证码") del listado de aplicaciones tiene un equivalente comercial ya cotizado en el mercado: **2Captcha** vende la resolución de captchas como servicio con API, SDKs en siete lenguajes, extensión de navegador, "**integrated into 4500+ software**" y "**99.9% uptime**", con precios públicos por 1000 captchas de **$0.5 a $2.99** para los tipos estándar y hasta **$50** para Arkose/FunCaptcha ([[2026-1024-2captcha-precios-por-1000-por-tipo-de-captcha]]). Es decir: el bot casero que el README lista como "aplicación" es exactamente la función que otro proveedor resuelve como producto con SLA y catálogo. Y el propio 2Captcha se ha movido hacia el mismo terreno con Browser API, Scraper API, Web Unlocker y cuatro servidores MCP para agentes ([[2026-1024-2captcha-giro-hacia-scraping-y-mcp-para-agentes]]). La fricción ya planteada en este átomo se refuerza en un punto: la demanda de elusión de captcha no solo existe, tiene **precio de mercado y proveedor de facto** — lo que hace más difícil sostener que la superficie legal completa sea un diferenciador frente a operadores sin ella.

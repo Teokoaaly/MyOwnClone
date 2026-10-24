@@ -2,8 +2,8 @@
 id: 2026-1023-hetzner-compartido-vs-dedicado-criterio-de-uso
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-hetzner-cloud.md]
-links: ["[[2026-1023-hetzner-escalera-de-precios-y-salto-a-dedicados]]", "[[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]", "[[2026-1022-live-verify-deployment-migrada-a-vps-nginx]]"]
+sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-10-23-buyvm-kvm-slices.md]
+links: ["[[2026-1023-hetzner-escalera-de-precios-y-salto-a-dedicados]]", "[[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]", "[[2026-1022-live-verify-deployment-migrada-a-vps-nginx]]", "[[2026-1024-buyvm-slices-modelo-dedicado-fraccionado-con-cpu-fair-share]]"]
 ---
 
 ## Claim
@@ -11,3 +11,6 @@ La propia página define el criterio de elección entre las dos familias de recu
 
 ## Why It Matters
 La página no vende "más GHz" sino **previsibilidad**: el argumento comercial del dedicado es que el rendimiento no se degrada por vecinos, no que sea más rápido en el pico puntual. Eso importa para la decisión de infraestructura ya documentada en el vault: el despliegue vivo es un nginx autoalojado ([[2026-1022-live-verify-deployment-migrada-a-vps-nginx]]) cuyo tráfico real se desconoce, de modo que la elección entre el escalón de €5.99 y el de €6.49 —o el salto a €43.49 ([[2026-1023-hetzner-escalera-de-precios-y-salto-a-dedicados]])— depende de si ese servidor sostiene carga sostenida o solo carga variable de beta. Con un producto en beta y un cliente de referencia que consume 3.000+ conversaciones al mes, el criterio compartido es defendible; con tenants de producción, la pregunta deja de ser el precio y pasa a ser la previsibilidad.
+
+## [NOTA 2026-10-24 — BuyVM]
+Fuente: `sources/2026-10-23-buyvm-kvm-slices.md`. BuyVM introduce una **tercera categoría** que este criterio binario no captura: un producto **vendido como "Dedicated KVM Slice"** ("All the performance benefits of a dedicated server, minus the costs and complexity", "Absolutely no overselling") cuya ficha técnica dice **"Fair Share CPU Usage"** en los slices 512, 1024 y 2048, y **solo "Dedicated CPU Usage" en el 4096** (ver [[2026-1024-buyvm-slices-modelo-dedicado-fraccionado-con-cpu-fair-share]]). Es decir: **"dedicado" en el nombre del producto no equivale a CPU dedicada en la ficha técnica**, y el criterio del vault debe aplicarse **plan por plan**, no por familia de producto. El dato que sí refuerza la tesis central de este átomo es que el precio del dedicado **sí bajó de forma radical**: BuyVM publica CPU dedicada (1 core, 4096 MB, 80 GB SSD, "Unmetered" bandwidth) por **$15.00/mes**, frente al salto a **€ 43.49/mes** de Hetzner (ver [[2026-1023-hetzner-escalera-de-precios-y-salto-a-dedicados]]). La conclusión operativa no cambia —la pregunta sigue siendo "carga sostenida o carga variable de beta", y BuyVM **no publica SLA**, así que la previsibilidad no está garantizada— pero el **precio de la previsibilidad ya no es el factor decisivo**: pasa a ser el cumplimiento.

@@ -1,0 +1,15 @@
+---
+id: 2026-1024-notletters-correo-masivo-para-registros-y-lolzteam
+type: atom
+certainty: solid
+sources: [sources/2026-10-23-notletters-mail.md]
+links: ["[[2026-1023-lzt-categoria-llm-accounts-para-reventa]]", "[[2026-1023-herosms-api-y-partners-de-registro-masivo]]", "[[2026-1023-priceai-channels-correo-y-jianma-a-centimos-como-insumo-de-alta]]"]
+---
+## Claim
+NotLetters (`notletters.com`) se presenta como un servicio de **correo masivo**, no de buzón personal: el título de la landing es "Fast and reliable mail for bulk tasks" y la promesa es "Our service makes it easier to create multiple mailboxes for site registrations" — es decir, la unidad que se compra es **el buzón creado para poder registrarse en un sitio**, y la operación que se facilita es exactamente la de **registro masivo**. El banner de la página dice literalmente "**Great for Lolzteam Market**", con dos llamadas a la acción: "Go to Mail" (`notletters.com/email`) y "Buy Mail" (`notletters.com/user`).
+
+## Why It Matters
+Es la pieza que faltaba en la cadena que el vault ya tenía documentada: proveedor de número SMS (5sim, HeroSMS) → API para integradores y revendedores de registro masivo → mercado de cuentas por lotes en lzt.market. Lo que añade NotLetters es la **pierna del correo** de esa misma cadena, y lo hace del lado de la demanda: el proveedor no vende "correos a céntimos" como el 卡网 de PriceAI ([[2026-1023-priceai-channels-correo-y-jianma-a-centimos-como-insumo-de-alta]]), sino un producto dedicado y con su propio texto de venta orientado a **generar altas**, con el mercado de cuentas de lzt.market citado en el banner como caso de uso ([[2026-1023-lzt-categoria-llm-accounts-para-reventa]]).
+El encaje con el sector de registro automatizado es explícito y del mismo tipo que el de HeroSMS ([[2026-1023-herosms-api-y-partners-de-registro-masivo]]): un insumo desechable, de pago por unidad, cuya función es hacer posible la creación masiva de identidades en terceros. La diferencia de canal es la que importa para el producto del vault: MyOwnClone sostiene la identidad por email (magic link de 6 dígitos), de modo que este mercado es **adyacente y no producto**, igual que el de los SMS.
+Por qué importa en el estado actual del vault: el plan de farm privado que hay en `research/PLAN-FARM-PRIVADO-Telegram-Bot.md` resuelve hoy la pata del correo con un **catch-all en dominio propio** (junto a SMS-Activate y proxy residencial por cuenta). NotLetters es la versión **comercializada de esa misma pata** — buzones ya montados, con API e IMAP, comprados por unidad en lugar de autoalojados — y por tanto el punto donde el farm privado podría externalizar su parte más dolorosa (generar y mantener buzones) si el coste de hacerlo en casa resultara mayor. El plan no está atomizado, así que esto queda como lectura, no como comparación de coste.
+Nota de encuadre: la captura es la home de marketing; las dos URL (`/email` y `/user`) son enlaces de navegación y no se han visitado, así que lo que se afirma es lo que la home afirma, no lo que la plataforma entrega.

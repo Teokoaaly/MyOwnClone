@@ -1,0 +1,189 @@
+---
+id: el-agregador-de-precios-como-producto
+type: thread
+updated: 2026-10-24
+sources: [sources/2026-10-22-priceai-home.md, sources/2026-10-22-priceai-channels.md, sources/2026-10-22-priceai-official-prices.md, sources/2026-10-22-priceai-official-api.md, sources/2026-10-23-veridrop-relays.md, sources/2026-10-23-new-api-calcium-ion-redirect.md]
+links: ["[[economia-de-la-verificacion-y-reventa-de-cuentas]]", "[[myownclone-platform-architecture]]", "[[myownclone-gtm-monetization-roadmap]]", "[[2026-1022-costes-por-categoria-tenant]]", "[[2026-1024-veridrop-directorio-de-relays-distinto-del-ranking]]", "[[2026-1024-veridrop-directorio-solo-deteccion-sin-precios]]", "[[2026-1024-veridrop-concentracion-de-muestras-en-tres-relays]]", "[[2026-1024-veridrop-cobertura-de-protocolos-por-relay]]", "[[2026-1024-veridrop-tercer-estado-edge-y-su-dispersion]]", "[[2026-1024-veridrop-insignia-pro-de-9-de-50-y-no-es-ranking-de-actividad]]", "[[2026-1024-veridrop-metodo-de-la-puntuacion-mediana-publica]]", "[[2026-1024-veridrop-relays-con-dominios-efimeros-y-riesgo-de-contraparte]]", "[[2026-1024-veridrop-ventana-de-actividad-y-frescura-de-deteccion]]", "[[2026-1024-new-api-redirect-calcium-ion-a-quantumnous]]"]
+---
+
+# Thread — PriceAI como producto: la taxonomía, los criterios y el bucle de corrección de un agregador de precios
+
+> **Este thread documenta el diseño de un agregador de precios de IA, no una recomendación de usarlo.** Las cifras vienen de capturas públicas del 2026-10-22 y de átomos del 2026-10-23; la sección 7 añade un segundo inventario del mismo mercado (VeriDrop) y el cambio de propietario del gateway new-api, ambos de capturas del 2026-10-23 atomizadas el 2026-10-24. El valor de este material para el vault no está en los precios: está en que PriceAI resuelve —con mecanismos concretos y con sus propios huecos— el problema que el vault tiene abierto: **cómo se mide y se mantiene fresco el precio de un insumo que no tiene SLA**.
+
+Los átomos de precio que sí tienen precio (arbitraje regional, multiplicadores de relay, canales 卡网) están ya sintetizados en [[economia-de-la-verificacion-y-reventa-de-cuentas]] y en [[myownclone-platform-architecture]]. Lo que este thread recoge es **la otra mitad**: cómo está construido el agregador que produce esas cifras. Porque un número sin criterio es ruido, y el criterio de PriceAI es explícito —y también tiene huecos.
+
+## 1. La taxonomía: cuatro módulos, cuatro commodities distintas
+
+La home de PriceAI se define como un *"AI 低价卡网订阅与中转 API 比价雷达"* — un radar, no un vendedor: *"PriceAI 不卖货、不收款、不参与交易"* ([[2026-1023-priceai-home-como-radar-y-no-como-vendedor]]). Y se organiza en **cuatro módulos con ejes de comparación distintos**, no en un catálogo único ([[2026-1023-priceai-cuatro-modulos-y-home-solo-desvia]]):
+
+| Módulo | Qué compara | Unidad de precio | Qué queda fuera |
+|---|---|---|---|
+| 卡网订阅 | cuentas, membresías, correo, 卡密, CDK, Kiro | precio con stock y forma de entrega | no es lista oficial; es oferta de tercero |
+| 官方订阅 | precio oficial, precio regional, elegibilidad, umbral de pago | precio de lista en moneda local | no incluye impuestos ni comisiones de pago |
+| 官方 API | cuota gratuita, Token Plan y límites de los proveedores chinos | cuota por ventana o por token | la tabla capturada no tabula ninguna cuota gratuita |
+| 中转 API | estaciones de reventa para GPT, Claude, Gemini, Grok | **倍率 (multiplicador)** sobre el precio oficial | no verifica qué modelo hay detrás |
+
+La taxonomía no es un capricho de navegación: separa **cuatro commodities que el vault ya sabía distinguir y que se confunden a diario**. Una suscripción de producto (cuota dentro de una ventana), un paquete de API (precio por token), una reventa de capacidad (multiplicador) y una cuenta ya creada (stock y modo de entrega) son cuatro cosas con cuatro unidades distintas, y un panel que las mezcle en una sola columna de "precio" está mintiendo. La comprobación que el vault ya tenía —*"月订阅多是产品内额度，不等同 API token 包"* ([[2026-1023-priceai-suscripcion-no-es-api-token]]) — está exactamente codificada en la estructura del sitio: son módulos distintos porque son cosas distintas.
+
+La home, además, es **solo índice**: no publica ningún recuento más allá de las **ocho marcas** que muestra con icono — ChatGPT, Claude, Gemini, Grok, DeepSeek, Qwen (千问), Kimi y GLM ([[2026-1023-priceai-cobertura-de-marcas-en-la-home]]). Y hay que tener cuidado al cruzar esas "8 marcas" con otras cifras de la captura: **8 marcas no son 8 canales ni 8 modelos**. La cobertura real, medida canal por canal, va de **1 a 12 modelos** ([[2026-1023-priceai-cobertura-de-modelos-de-1-a-12-item]]):
+
+| Canal | Ítems de cobertura | Modelos citados |
+|---|---|---|
+| OpenCode Go | **12** | Kimi K2.5, GLM-5, MiniMax M2.5, DeepSeek V4 Flash/Pro, Qwen3.7 Plus/Max, Kimi K2.6 |
+| Claude | 7 | Fable 5, Opus 4.8/4.7/4.6, Sonnet 5, Sonnet 4.6 |
+| Alibaba Model Studio | 5 | Kimi K2.5, GLM-5, MiniMax M2.5 |
+| ChatGPT | 4 | — |
+| Tencent TokenHub | 3 | Kimi K2.5, GLM-5, MiniMax M2.5 |
+| Grok | 3 | Grok 4.7, 4.6, 4.5 |
+| Bailian Token Plan | 1 | Qwen3.8-Max-Preview |
+| StepFun | 1 | Step 3.7 Flash |
+
+El solapamiento es la lectura que importa: **Qwen, Kimi, GLM y MiniMax aparecen en tres canales distintos** — Alibaba Model Studio, Tencent TokenHub y OpenCode Go — a precios distintos ($50, 200 元, $10). Es decir, la palanca de coste no es el modelo, es **el canal**. Y un plan de 1 modelo y otro de 12 no son comparables aunque ambos midan cuota en requests.
+
+## 2. El criterio del "mínimo": lo que el número incluye y lo que excluye
+
+La nota de pie de la página de precios define exactamente qué es un mínimo ([[2026-1023-priceai-criterio-de-minimo-y-exclusiones]]):
+
+> *"人民币和美元换算都由官方公开标价按同一天汇率直接换算，不额外计入结账税费、支付渠道汇率、银行手续费或礼品卡溢价"*
+> *"未匹配的 Google Play 公开区间、促销价和资格相关报价不参与最低价；已匹配端点仅在对应渠道视图中按单价排序"*
+
+Traducción operativa: el mínimo es el **precio de lista oficial** convertido al tipo de cambio del mismo día, y **excluye** impuestos de checkout, tipo de cambio del canal de pago, comisiones bancarias y prima de gift card. Excluye además los rangos de Google Play no emparejados, las promociones y las ofertas por elegibilidad. Solo los endpoints emparejados se ordenan por precio unitario dentro de la vista de su canal.
+
+Es un criterio honesto en su forma —define la unidad— y con dos huecos que hay que leer juntos:
+
+- **La página promete tres canales y la tabla usa dos.** El subtítulo anuncia *"对比 iOS Store、Google Play 与官网直购的官方公开标价"*, pero de las 17 filas, **14 son 官网直购 y 3 son iOS Store** (Claude Pro, Claude Pro Annual, Grok Premium). **Ninguna fila tiene canal Google Play** — el canal anunciado es justo el que no llega a la tabla, y la nota de pie explica por qué (los rangos no emparejados no participan) ([[2026-1023-priceai-google-play-no-aparece-en-ninguna-fila]]). Consecuencia: un mínimo de ¥118,33 para Claude Pro es un mínimo **dentro de un subconjunto de canales**, es decir una cota superior del ahorro disponible, no el ahorro real.
+- **La cobertura nominal y la cobertura efectiva no son lo mismo.** El agregador publica cobertura (producto × canal × región) y cobertura efectiva (lo que de verdad pudo emparejar); solo la segunda es comparable entre filas. Y es coherente con que Grok no muestre ninguna brecha: **Grok no regionaliza** ([[2026-1023-priceai-grok-sin-descuento-regional]]).
+
+La consecuencia para el vault es directa: **cualquier cifra de "descuento regional" que se copie de un agregador hay que releerla como precio de lista sin costes de pago**. Es la versión editorial de una regla que el vault ya conoce por otro lado —comparar precios entre proveedores exige comparar en la misma región, no contra el precio nominal ([[2026-1022-precio-99-mensual]]).
+
+Dos ejemplos que fijan la escala de la dispersión y dejan ver que el canal es parte del precio, no un detalle:
+
+- **ChatGPT Plus**: referencia US $20 ≈ ¥133,79; mínimo **¥103,65 en Filipinas** (₱982,14), −23 %, con 106 regiones en la muestra ([[2026-1023-priceai-chatgpt-plus-filipinas-23-menos]]).
+- **Claude Pro**: referencia US $20 ≈ ¥133,79; mínimo **¥118,33 en Pakistán** (Rs 4.900), −12 %, 109 regiones, y — esto es lo estructural — **canal iOS Store, no 官网直购**: es el único punto de la tabla donde el precio mínimo de un plan Anthropic no viene del checkout web ([[2026-1023-priceai-claude-pro-pakistan-12-menos]]).
+
+Es decir: **la app store puede tener un precio local distinto del checkout web**, y "precio oficial" no es sinónimos de "precio web". El descuento, además, es mucho menor en Anthropic (12 %) que en la familia OpenAI (23–56 %): a igualdad de cuota de $20/mes, Anthropic muestra menos dispersión regional.
+
+## 3. La cuota como unidad: por qué dos planes del mismo precio no son comparables
+
+Las ventanas de cuota de Claude tienen la misma estructura que las de ChatGPT pero con **cuotas más bajas a igual precio** ([[2026-1023-priceai-claude-pro-y-max-precios-y-ventanas]]):
+
+| Plan | Precio | 5 h | Semana | Mes |
+|---|---|---|---|---|
+| Claude Pro | $20/mes | $5 | $30 | $130 |
+| Claude Max 5x | $100/mes | $60 | $400 | $1.300 |
+| Claude Max 20x | $200/mes | $150 | $800 | $3.200 |
+
+A $20/mes, Claude Pro entrega **$130 de cuota mensual frente a los $450 de ChatGPT Plus — 3,5× menos**. A $200/mes, Max 20x da $3.200 frente a los $8.000 de ChatGPT Pro 20x: **la mitad**. Es decir, **a mismo precio, Claude da entre 1,7× y 3,5× menos cuota que ChatGPT**. La comparación entre modelos de frontera del vault depende de cuál cuota se mira; no son equivalentes.
+
+La página añade dos advertencias que son literalmente la línea entre producto y API: la cuota *"se calcula dinámicamente por uso dentro del producto, longitud de mensaje, adjuntos y ventana de 5 horas"*, y **"Claude Code o Console API 需要单独看限制和计费"** — el consumo de API va aparte aunque tengas la suscripción. Es la misma frontera de [[2026-1023-priceai-suscripcion-no-es-api-token]] aplicada a Anthropic.
+
+Y hay un caso aparte que introduce una **unidad de cuota relativa**: la X Subscription de Grok, una sola suscripción en cuatro escalones con cuota expresada como **múltiplo del plan Plus**, refrescada cada semana ([[2026-1023-priceai-grok-x-subscription-cuatro-escalones]]):
+
+| Plan | Precio | Cuota | Qué añade |
+|---|---|---|---|
+| Plus | $8/mes | 1x | Grok, Imagine, Grok Build, Cursor Agent, Grok API, X Premium (marca azul) |
+| Premium | $30/mes | 4x | vídeo, Grok Bot, Cursor cloud agent, automatizaciones, Origin code hosting, Bugbot, modelos de terceros a precio de lista de API |
+| Super | $100/mes | 15x | prioridad en horas punta |
+| Ultra | $200/mes | 50x | acceso anticipado a productos y modelos nuevos de xAI |
+
+Dos cosas: es la primera fila de la tabla donde **una sola cuota cubre varios productos** (chat + IDE + red social) — señal de empaquetado de ecosistema, no de suscripción de un chat; y "15x"/"50x" es una **unidad relativa sin definición publicada**: un modelo de coste no puede computarse sin saber qué es "1x", y la captura no lo dice. Compárese con las unidades absolutas de requests/prompts/credits ([[2026-1023-priceai-codificacion-por-requests-vs-prompts-vs-creditos]]), donde StepFun es el único caso que publica la conversión explícita (~15 llamadas de modelo por prompt) y por eso los planes con unidades distintas se vuelven comparables por fin ([[2026-1023-priceai-stepfun-step-plan-prompts-y-llamadas]]).
+
+## 4. El módulo 卡网: donde el agregador más se parece a un vendedor
+
+La vista `priceai.cc/channels` es el complemento formal del módulo que la home solo anunciaba: **53 商品**, *"最近更新：6分钟前"*, y una regla de precio explícita —*"主价格优先取有货最低价，缺货会明显标注"*: el precio principal es el más bajo **con stock**, y el agotamiento se marca de forma visible ([[2026-1023-priceai-channels-53-productos-y-minimo-con-stock]]).
+
+Dos detalles que cambian cómo se lee esa tabla:
+
+- **"Mínimo" significa "mínimo disponible", no "más barato de todos".** Una fila sin stock muestra *"暂无价格"* y su columna de canal dice *"暂无最低渠道"* — el agregador distingue explícitamente **no hay precio** de **no hay oferta**. Es una distinción que casi ningún catálogo del sector hace, y es la que permite modelar disponibilidad real en vez de un precio fantasma.
+- **El descargo es duro y la nota final lo remata**: *"PriceAI 聚合 AI 订阅卡网渠道报价。本站不卖货、不担保，价格仅供参考，实际交易和售后规则以原平台为准"*, y el bloque de cierre dice *"本工具不构成购买建议"*. Es el lugar donde el agregador más se parece a un vendedor sin serlo.
+
+## 5. El bucle de calidad: moderation, antifraude y corrección crowdsourced
+
+Esta es la parte más transferible del material, y es lo que el vault no tenía: **un agregador de precios de terceros sin SLA no es un índice estático, es un proceso con estados**.
+
+**El mecanismo de baja tiene tres escalones** ([[2026-1023-priceai-mecanismo-de-denuncia-y-baja-de-productos]]): primero la postventa de la tienda; si no responde, la queja en la plataforma 卡网 correspondiente; y solo después volver a PriceAI, pulsar 举报 (denunciar) junto al producto,補充 evidencia y esperar revisión —*"审核通过后会下架异常商品或渠道"*, es decir, la revisión puede bajar **el producto anómano o el canal entero**. El reparto de responsabilidades es explícito: al no participar en la transacción, PriceAI no resuelve disputes, **pero sí modera su propio índice**. El matiz de diseño es interesante: **la evidencia la aporta quien compró**, no el agregador — crowd-moderation ligero que no necesita aparecer en el ticket del marketplace.
+
+**El protocolo antifraude es una lista de comprobación de proveedor, no una advertencia** ([[2026-1023-priceai-faq-antifraude-y-prueba-pequena]]): comprobar si la tienda tiene contacto, entrada de postventa, grupo de Telegram o de postventa, y si ese grupo **está activo**; mirar el número de productos, las trazas históricas de operación y si la descripción es clara; para importes grandes, elegir plataformas que permitan queja o garantía (担保). Y una regla de entrada: **antes de moverse a un canal de terceros, hacer un pedido pequeño de prueba y no fijarse solo en el precio más bajo**.
+
+Ese circuito es más有线 de lo que parece: la tarjeta prepago y el correo se compran en un sitio y **el pago de la cuenta se puede cerrar en otro** (闲鱼), lo que multiplica los puntos de fricción y de disputa por el mismo pedido — y en ambos casos hay que volver a la plataforma original a confirmar descripción, reglas de postventa y precio final. Para el vault la regla del pedido pequeño es directamente aplicable: **una única transacción grande sin prueba previa es exactamente el modo de fallo que el sitio describe**, y es la versión operativa del principio de coste marginal del alta ([[2026-1023-5sim-sms-verificacion-como-coste-marginal-de-alta]]).
+
+**El canal de corrección de datos es un grupo de chat, no un ticket** ([[2026-1023-priceai-grupo-qq-canal-de-feedback-y-errores-de-datos]]): el anuncio que corona la home abre un grupo de交流 en QQ que acepta sugerencias de funcionalidad, ideas de producto, **problemas de datos y feedback de uso**. Es el único punto bidireccional de toda la página; el resto del contenido es单向 (catálogo) y el resto de la FAQ es单向 (normas). El enunciado delata el problema conocido del agregador: los datos vienen de terceros y se desactualizan, así que la vía natural para "este precio está mal" es un grupo de chat, **sin SLA y sin auditoría**. Es el patrón de corrección crowdsourced sin garantía.
+
+Y la comparación con el producto del vault es instructiva porque el destinatario del feedback es el mismo y el resultado es el contrario: en el vault el feedback de tenants (con capturas pegadas desde el portapapeles, [[2026-1022-feedback-widget-screenshots]]) se convierte en gaps de producto para el creator; en PriceAI el feedback de usuarios se convierte en **correcciones de datos de precios** — el insumo que el agregador no puede calcular solo y que le llega por un canal que nadie audita. De ahí sale la lectura de fondo: **el negocio real de un agregador de precios es mantener el dato fresco**; sin ese bucle, su promesa de "更新时间" verificable se vuelve falsa sin que nadie lo note.
+
+## 6. Tres personas, tres rutas de compra
+
+La home segmenta al comprador en **tres personas** con rutas distintas hacia los módulos ([[2026-1023-priceai-tres-personas-y-su-ruta-de-compra]]):
+
+| Persona | Ruta de entrada | Qué busca |
+|---|---|---|
+| 订阅新手 — el que solo quiere una suscripción | precio oficial → precio regional → umbral de pago → 卡网 si necesita stock inmediato o precio más bajo | el precio más bajo de un plan |
+| 资深买家 — busca el precio más bajo o más flexibilidad | 卡网 primero (spot de stock bajo, canal y hora de actualización) → 中转 API | opciones y margen |
+| 开发接入 — va a integrar API en su producto | API oficiales de DeepSeek, 千问, Kimi y GLM (cuota gratuita, Token Plan y límites) → 中转 API | coste de inferencia en producto |
+
+El patrón importa porque organiza la oferta por **pregunta del comprador**, no por proveedor — y separa explícitamente la figura del **usuario final que compra una cuenta ya hecha** ([[2026-1023-lzt-categoria-llm-accounts-para-reventa]]) de la del **desarrollador que consume API en su producto**. Es la misma segmentación por intención con la que el vault posiciona el producto propio, de "quiero un clon" a "quiero un MVP" ([[2026-1022-mvp-salir-al-mercado-pronto]]).
+
+Y hay un detalle de routing que explica por qué el módulo 卡网 es el corazón de la oferta: **el único punto de entrada del usuario final que quiere "precio más bajo" es 卡网**. El canal de reventa de cuentas, con stock y entrega, es la pieza que convierte el marketplace en el precio de referencia final del sector.
+
+## 7. Un segundo inventario del mismo mercado: VeriDrop, y por qué no se fusiona con PriceAI
+
+Lo que precede describe un producto. Lo que sigue describe **un competidor parcial**: `veridrop.org/relays` es otro inventario del mismo mercado de relays, capturado el 2026-10-23, que **no publica ningún precio** — en la captura no aparece ni una vez 倍率, 价格, 元 ni `$` ([[2026-1024-veridrop-directorio-solo-deteccion-sin-precios]]). Todo lo que publica es de **medición**: dominio, etiquetas de protocolo (Claude / Gemini / OpenAI), hora del último test (*"最近检测"*), recuento acumulado (*"累计 N 次"*), recuento en la ventana (*"窗口内 N 次"*) y el reparto de veredictos (*"N 通过 · N 边缘 · N 失败"*).
+
+Y la definición del propio sitio separa dos superficies que el vault venía tratando como una: el **directorio** (*"它 不替代 红黑榜（算法中立排名）——红黑榜回答「谁最好」，这里回答「市场上都有谁、谁最近在动」"*) y la 红黑榜, el ranking neutral ([[2026-1024-veridrop-directorio-de-relays-distinto-del-ranking]]). El directorio se ordena **enteramente por parámetros de URL**, declara no aceptar peso comercial y etiqueta los espacios pagados aparte con la marca "赞助". Es un criterio de ordenación **reproducible**, que es más de lo que se puede decir de un ranking algorítmico.
+
+La comparación de las dos fuentes, eje por eje:
+
+| Eje | PriceAI (módulo 中转 API) | VeriDrop (`/relays`) |
+|---|---|---|
+| Unidad de comparación | **倍率**: multiplicador compuesto, `综合倍率 = 充值系数 × 模型倍率` ([[2026-1023-priceai-transit-formula-del-multiplicador-compuesto]]) | **test acumulado** ("累计 N 次") y test en ventana ("窗口内 N 次") |
+| Denominador | "近 7 日可用率" sobre muestra de monitorización pública; la captura mezcla denominadores ("样本 N" y "24h 请求 N万") | **denominador explícito en cada fila**: histórico y ventana, más los tres recuentos crudos 通过/边缘/失败 |
+| Taxonomía de estado | binaria (pasa / no pasa), con semántica no publicada | **tres estados**: 通过 / 边缘 (edge, al límite) / 失败 |
+| Software del relay | sí: campo 来源渠道 (Sub2API 22 de 30 filas, New API 8 de 30) | **no publicado en ninguna de las 50 entradas** |
+| Capa comercial | patrocinadores **fusionados en la propia tabla** | bloque "推荐 / 赞助" **separado y etiquetado**, con salvedad de que "推荐展示不参与检测分计算" |
+| Insignia de selección | — | "PRO 认证收录" en **9 de 50**, criterio no publicado |
+| Qué **no** publica | el historial de test por relay | ningún precio, ningún 倍率 |
+
+Los recuentos que sostienen la columna de estabilidad hacen que la comparación sea cuantitativa, no retórica. En el agregado de las 50 filas hay **35.738 通过 · 627 边缘 · 190 失败** sobre 36.555 tests: **0,52 % de fallos y 1,72 % de edge** ([[2026-1024-veridrop-tercer-estado-edge-y-su-dispersion]]). Y la cobertura de protocolo es desigual: **OpenAI en 42 de 50**, Claude en 39, Gemini en solo 18; **15 relays declaran los tres** protocolos, 19 declaran dos y 16 uno solo ([[2026-1024-veridrop-cobertura-de-protocolos-por-relay]]) — es decir, la **compatibilidad multi-protocolo es la excepción y no la norma** en los despliegues comerciales, pese a que el software que los implementa se diseñó precisamente para eso ([[2026-1023-new-api-una-sola-api-multiproto]]).
+
+### 7.1 El hallazgo estructural: dos inventarios del mismo mercado que no se cruzan
+
+El problema de fondo es de **identidad de entidad**, no de cobertura. La tabla de PriceAI tiene precio y software pero no historial de test por relay; el directorio de VeriDrop tiene historial de test por relay pero ni precio ni software. **Ninguna de las dos superficies declara una clave estable que permita emparejar sus filas**: PriceAI no publica el dominio de cada relay y VeriDrop no publica ningún campo 来源渠道 ([[2026-1023-priceai-transit-canal-tipo-sub2api-vs-new-api]]). La consecuencia operativa es dura y ya la anticipó el átomo de los canales: la atribución "Sub2API vs New API" que PriceAI sí publica **no es reproducible desde la segunda fuente**, y **los dos inventarios no se cruzan sin una fuente adicional**.
+
+Y no basta con unir las capturas: **la evidencia está mal distribuida dentro de la propia lista**. Los 36.555 tests acumulados de las 50 entradas se concentran en un extremo: `la-api.vxvxvx.top` aporta **19.772 (54,1 %)** y los tres primeros (`la-api.vxvxvx.top` 19.772, `wawazz.xyz` 5.241, `kuaiapi.net` 4.285) suman **29.298 (80,1 %)**; en el otro extremo, **22 de las 50 entradas tienen ≤ 6 tests** y la **mediana de la lista es 9 tests**; solo **5 entradas superan los 1.000 tests**, y hay entradas con **un solo test** ([[2026-1024-veridrop-concentracion-de-muestras-en-tres-relays]]). Una tabla de 50 filas donde una fila acumula más de la mitad de la evidencia total no es una muestra de 50: es **una muestra de 3 y una cola de ruido**. Por eso el directorio **no puede usarse como lista blanca de proveedores de `OPENAI_API_BASE`**; el filtro honesto es por recuento acumulado (≥ 1.000 tests deja 5 candidatos), y aun así el criterio de inclusión del sitio es "todo lo que ha testeado", no "lo que ha testeado suficiente veces" ([[2026-1023-priceai-transit-cobertura-parcial-y-criterio-de-ranking]]).
+
+La otra mitad del problema es el **método de medición**, que PriceAI no publica en absoluto. El bloque de recomendación patrocinada de VeriDrop expone una métrica compuesta de cuatro piezas literales — **"公开检测综合中位分 99/100"**, **"421 份有效样本"**, **"最近检测 2026-10-23"** y el catálogo de modelos detectados (*"等 21 个"*) — con una salvedad explícita: *"推荐展示不参与检测分计算；分数来自公开报告聚合，并会随新检测变化"* ([[2026-1024-veridrop-metodo-de-la-puntuacion-mediana-publica]]). Es decir: la unidad es la **"muestra válida"** (421), el denominador sí se publica pero **no se define qué es una muestra válida**, y la puntuación proviene de **agregación de informes públicos**, fuera del control directo de VeriDrop — una cadena de custodia más débil que la de un test propio, declarada por el propio sitio. La repetición de la presión aquí es el patrón del vault: **el denominador publicado sin denominador definido** ya se había visto en la columna "近 7 日可用率" de PriceAI ([[2026-1023-priceai-transit-disponibilidad-7d-con-denominadores-heterogeneos]]).
+
+### 7.2 Contraparte: 48 dominios foráneos de baja fricción
+
+La consecuencia operativa de dos inventarios separados es que el precio y la fiabilidad tienen que venir de fuentes distintas, y que ninguna de las dos protege al vault del otro riesgo. El activo que el vault está a punto de pagar por es **acceso a un endpoint en un dominio que puede dejar de existir**, y eso lo acentúa el perfil de los dominios: de los 50 relays, **solo 17 son `.com`**, el resto se reparte en TLD de baja fricción (`.top` 5, `.ai` 5, `.xyz` 3, `.dev` 2, `.cn` 2, `.shop` 2, `.cc` 2 y una unidad en `.net`, `.id`, `.me`, `.pro`, `.lol`, `.fun`, `.chat`, `.skin`, `.org`, `.si`, `.cloud`, `.cd`), y **solo 2 dominios son `.cn`** frente a **48 foráneos** ([[2026-1024-veridrop-relays-con-dominios-efimeros-y-riesgo-de-contraparte]]). Ninguno de los dominios listados es un nombre de marca de proveedor de modelo, y entre los nombres aparece `ddos.skin` —literalmente el nombre de un sitio dedicado a DDoS— o `xgapi.lol`, `666six.top`, `freepro20x.fun`. La contraparte de cada relay es **un dominio pequeño, sin marca y sin verificación**, no una empresa: es el mismo patrón de contraparte efímera que el vault ya caracterizó en el mercado de cuentas de IA ([[2026-1023-lzt-categoria-llm-accounts-para-reventa]]).
+
+Para `OPENAI_API_BASE` la consecuencia es una regla, no una duda: **el multiplicador más bajo y el relay con más tests son variables que no se pueden combinar sin asumir que existe una contraparte detrás**. Ninguna insignia PRO ni ningún multiplicador cubre la pérdida del endpoint. Y la alternativa documentada —auto-hospedar el relay con un VPS barato ([[2026-1023-priceai-sponsors-vps-chinos-para-auto-hospedar-relay]])— convierte el riesgo de contraparte en riesgo de operación propia, con la variable de infraestructura medida aparte ([[2026-1022-costes-por-categoria-tenant]]).
+
+### 7.3 La caducidad por horas de cualquier tabla de proveedores derivada de scraping
+
+El dato que cierra el círculo es el de la **ventana de actividad**: cada fila de VeriDrop publica **dos denominadores distintos**, el histórico ("累计 N 次") y el de la ventana activa ("窗口内 N 次"). Sumando las 50 entradas, el histórico es de **36.555 tests** y la ventana suma **4.146** — solo **~11,3 %** del histórico es actividad reciente concentrada en la ventana ([[2026-1024-veridrop-ventana-de-actividad-y-frescura-de-deteccion]]). El reparto es altísimo y es donde aparece el modo de fallo nuevo: `wawazz.xyz` es **2º por histórico (5.241 tests, 54 fallos acumulados)** pero tiene **15 tests en ventana, un 0,3 %**; `kuaiapi.net` 88 sobre 4.285 (2,1 %); frente a `shushutoken.com` con 435 sobre 710 (**61,3 %**) y `la-api.vxvxvx.top` con 3.077 sobre 19.772 (15,6 %). La frescura declarada va de *"最近检测 5 分钟前"* (`8stoken.com`) a *"最近检测 8 小时前"* (`91token.com`, `direct.saviour.cc.cd`), y **41 de las 50 entradas** tienen su último test **hace 3 horas o más**.
+
+Es decir: **un relay con mucho histórico puede estar dead**, no solo poco probado. `wawazz.xyz` es la demostración exacta — 5.241 tests acumulados y una actividad de hoy casi nula. La señal accionable no es "tiene muchos tests" sino **"tiene muchos tests en la ventana"**, que es exactamente la variable que ordena el directorio por "最近活跃". Y con la mediana de la lista en tests de hace 5-6 horas y el intervalo de ventana **no publicado**, cualquier puntuación de proveedor derivada de esta página **envejece en horas, no en semanas**: una tabla de proveedores de `OPENAI_API_BASE` construida desde aquí necesita **timestamp por fila y criterio de re-verificación**, no un refresh global.
+
+A esto se añade un riesgo superpuesto en el propio gateway: la etiqueta "New API" de la tabla de PriceAI es hoy el proyecto **`QuantumNous/new-api`** ([[2026-1023-priceai-transit-canal-tipo-sub2api-vs-new-api]]), y la URL `github.com/Calcium-Ion/new-api` **no sirve un repositorio propio**: GitHub la redirige a `QuantumNous/new-api`, con el propietario renombrado ([[2026-1024-new-api-redirect-calcium-ion-a-quantumnous]]). La captura lo delata —los enlaces internos del repo ya apuntan a `github.com/QuantumNous/new-api` mientras el *badge* de Star History sigue apuntando a `Calcium-Ion`— o sea, el README se editó entre el 22 y el 23 de octubre y solo el badge quedó atrás. Para el vault es una **decisión de identificadores, no de producto**: cualquier `OPENAI_API_BASE`, docker-compose, pin de versión o enlace guardado con la ruta `Calcium-Ion/...` funciona hoy solo mientras GitHub mantenga la redirección, y no es la referencia canónica. Y tiene un efecto sobre la atribución de licencia que el vault ya tenía registrada: AGPLv3 y la atribución en UI ([[2026-1023-new-api-licencia-agplv3-y-atribucion-en-ui]]) son hoy las de `QuantumNous/new-api`, y "Calcium-Ion/new-api" debe tratarse como **alias histórico** — mismo efecto sobre la trazabilidad de la contraparte, porque la identidad de la cuenta es contra la que se resuelven la confianza y las incidencias ([[2026-1023-new-api-aviso-legal-para-reventa-publica]]).
+
+## 8. Fricciones para juicio humano
+
+1. **El canal es parte del precio, y el módulo que lo expresa es el que no aparece.** La tabla de 17 paquetes promete tres canales y usa dos; Google Play no llega a la tabla. Un "mínimo" sobre un subconjunto de canales es una cota superior del ahorro, no el ahorro real. [[2026-1023-priceai-google-play-no-aparece-en-ninguna-fila]] vs [[2026-1023-priceai-criterio-de-minimo-y-exclusiones]].
+2. **Las marcas, los canales y los modelos se cuentan en tres números distintos** (8 marcas / 8 canales / 1–12 modelos por canal). Cruzarlos es el error fácil de esta fuente. [[2026-1023-priceai-cobertura-de-marcas-en-la-home]] vs [[2026-1023-priceai-cobertura-de-modelos-de-1-a-12-item]].
+3. **La unidad de cuota de Grok es relativa y no está definida.** "15x"/"50x" sin definición de "1x" impide computar coste; es el mismo problema que el de la tabla que mezcla requests, prompts, credits y dólares de uso. [[2026-1023-priceai-grok-x-subscription-cuatro-escalones]] vs [[2026-1023-priceai-codificacion-por-requests-vs-prompts-vs-creditos]].
+4. **El canal de corrección de datos es un grupo de QQ, sin SLA ni auditoría.** Es el único mecanismo de calidad del agregador y el más débil: de él depende toda la frescura que el sitio promete. [[2026-1023-priceai-grupo-qq-canal-de-feedback-y-errores-de-datos]] vs [[2026-1023-priceai-catalogo-ocho-canales-y-fecha-de-tipo-de-cambio]].
+5. **El agregador modera su índice pero no responde por las transacciones.** La secuencia de tres escalones es un proceso real de baja, pero no un recurso: si lo que falla es el pago o la entrega, el recurso está en otro sitio. [[2026-1023-priceai-mecanismo-de-denuncia-y-baja-de-productos]] vs [[2026-1023-priceai-limite-de-verificacion-y-responsabilidad]].
+6. **VeriDrop sí publica denominador donde PriceAI lo dejaba heterogéneo.** Cada fila lleva "累计 N 次", "窗口内 N 次" y los tres recuentos crudos 通过/边缘/失败, mientras la columna "近 7 日可用率" de PriceAI mezcla dos denominadores sin definirlos. El problema se traslada, no desaparece: el "公开检测综合中位分 99/100" de VeriDrop publica "421 份有效样本" sin definir qué es una muestra válida, y la propia captura admite que el score viene de agregación de informes públicos. [[2026-1024-veridrop-ventana-de-actividad-y-frescura-de-deteccion]] vs [[2026-1023-priceai-transit-disponibilidad-7d-con-denominadores-heterogeneos]] vs [[2026-1024-veridrop-metodo-de-la-puntuacion-mediana-publica]].
+7. **El estado `边缘` (edge) no existe en la taxonomía binaria de PriceAI, y por eso las dos métricas de estabilidad no son comparables.** Dos relays con idéntico 0 % de fallos pueden tener perfiles radicalmente distintos: `modelflare.dev` con 0 fallos pero 66 边缘 sobre 249 tests (26,5 %) frente a `la-api.vxvxvx.top` con 75 边缘 sobre 19.772 (0,4 %). O "可用率" de PriceAI ya descuenta un estado equivalente y se comparan plazos distintos sin saberlo, o son métricas distintas con el mismo nombre. [[2026-1024-veridrop-tercer-estado-edge-y-su-dispersion]] vs [[2026-1023-priceai-transit-disponibilidad-7d-con-denominadores-heterogeneos]].
+8. **La insignia "PRO 认证收录" no ordena por actividad y su criterio no está publicado.** 9 de 50 la llevan, y cuatro entradas sin insignia quedan por encima en tests acumulados (`api.a6api.com` 1.316, `a6api.com` 599, `cc-vibe.com` 384, `api.hao.ai` 110 frente a `91token.com` 83 con PRO): PRO y volumen de detección son ejes distintos, y un PRO con 83 tests comparte insignia con otro de 19.772. Es un atajo de confianza cuyo contenido nadie publica. [[2026-1024-veridrop-insignia-pro-de-9-de-50-y-no-es-ranking-de-actividad]] vs [[2026-1024-veridrop-concentracion-de-muestras-en-tres-relays]].
+9. **El cambio de propietario de new-api deja obsoletas las rutas `Calcium-Ion/...` y arrastra la atribución AGPLv3.** `github.com/Calcium-Ion/new-api` redirige a `QuantumNous/new-api`; los enlaces internos del repo ya apuntan al owner nuevo y solo el badge de Star History quedó atrás, o sea el README se editó entre el 22 y el 23 de octubre. Toda ruta, pin o docker-compose guardado con el owner antiguo funciona solo mientras GitHub mantenga la redirección, y las cifras de licencia y atribución en UI que el vault tiene registradas ([[2026-1023-new-api-licencia-agplv3-y-atribucion-en-ui]]) son las de `QuantumNous/new-api`. [[2026-1024-new-api-redirect-calcium-ion-a-quantumnous]] vs [[2026-1023-new-api-escala-adopcion-y-traduccion]].
+10. **Dos inventarios del mismo mercado que no se cruzan, sin clave de emparejamiento.** PriceAI publica precio y software (来源渠道) pero no historial de test por relay; VeriDrop publica historial de test por relay pero ni precio ni software. Ninguna de las dos superficies declara una clave estable, así que la atribución "Sub2API vs New API" no es reproducible desde la segunda fuente y la tabla de coste/riesgo de `OPENAI_API_BASE` tiene que ser compuesta, con fechas de captura distintas. [[2026-1023-priceai-transit-canal-tipo-sub2api-vs-new-api]] vs [[2026-1024-veridrop-directorio-solo-deteccion-sin-precios]].
+
+## Nota de método
+
+Todos los átomos de las secciones 1 a 6 de este thread proceden de capturas del 2026-10-22 (`sources/2026-10-22-priceai-*.md`) atomizadas el 2026-10-23. La sección 7 y las fricciones 6 a 10 proceden de **capturas del 2026-10-23** (`sources/2026-10-23-veridrop-relays.md` y `sources/2026-10-23-new-api-calcium-ion-redirect.md`) atomizadas el 2026-10-24; las cifras de esa parte son recuentos calculados sobre el texto literal de la captura, no datos declarados por un proveedor. La distinción entre **medición** y **claim** se mantiene como en el resto del vault: "medición" = dato que el lector calculó o contó sobre la captura; "claim" = declaración del propio proveedor o del agregador. Ninguna cifra de este thread está verificada contra la página oficial de OpenAI, Anthropic, Google o xAI: son **precios de tercero**, y un agregador sin SLA que declara "no constituye consejo de compra" es, por definición, una fuente de dirección de mercado, no de precio de contrato.
+
+Una salvedad específica de la sección 7: **VeriDrop no es un agregador de precios**, es un directorio de detección, y sus datos no son comparables con los de PriceAI en la misma columna. El "99/100" del bloque patrocinado y los porcentajes de la 红黑榜 no se han contrastado con ninguna otra fuente del vault; la única cifra de precio que el thread conserva para el módulo de tránsito sigue siendo la de PriceAI y su multiplicador compuesto ([[2026-1023-priceai-transit-dispersion-de-multiplicadores]]).
+
+Ver también: [[economia-de-la-verificacion-y-reventa-de-cuentas]] (el mercado de la verificación y el arbitraje regional), [[myownclone-platform-architecture]] (la capa de inferencia: gateway y relay), [[myownclone-gtm-monetization-roadmap]] (dónde encajaría una decisión de coste de inferencia).

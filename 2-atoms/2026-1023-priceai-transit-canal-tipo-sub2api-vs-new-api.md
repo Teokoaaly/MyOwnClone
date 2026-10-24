@@ -2,7 +2,7 @@
 id: 2026-1023-priceai-transit-canal-tipo-sub2api-vs-new-api
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-priceai-api-transit.md, sources/2026-10-22-new-api-github.md]
+sources: [sources/2026-10-22-priceai-api-transit.md, sources/2026-10-22-new-api-github.md, sources/2026-10-23-veridrop-relays.md]
 links: ["[[2026-1023-priceai-transit-cobertura-parcial-y-criterio-de-ranking]]", "[[2026-1023-priceai-sponsors-vps-chinos-para-auto-hospedar-relay]]", "[[2026-1023-priceai-transit-dispersion-de-multiplicadores]]", "[[2026-1023-new-api-gateway-unificado-de-modelos]]", "[[2026-1023-new-api-grupos-como-eje-de-precio-del-relay]]"]
 ---
 
@@ -17,3 +17,6 @@ Consecuencia para el vault: si el coste del infra es casi el mismo para todos (V
 ## Extensión (captura del README de QuantumNous/new-api, 2026-10-23)
 La etiqueta "New API" de la tabla tiene ahora **identidad de software verificada**: se refiere al proyecto **`QuantumNous/new-api`**, un gateway de IA autoalojado, fork AGPLv3 de One API, que expone una API unificada OpenAI/Anthropic/Gemini y gestiona routing, cuotas, grupos y costes ([[2026-1023-new-api-gateway-unificado-de-modelos]]). Los 8 canales de la tabla no son entonces implementaciones mystery sino **despliegues de un software con estructura de canal→grupo→key y con motor de precios propio** ([[2026-1023-new-api-grupos-como-eje-de-precio-del-relay]]).
 Lo que esto cambia en la lectura de la tabla: la dispersión 0.04x–7.00x entre filas "New API" **no puede atribuirse a diferencias de software** (mismo core), sino al ** 号池, al grupo asignado y a la política comercial** del operador. Es decir, la varianza está concentrada exactamente en las variables que el vault ya había marcado como "distinto 号池 y distinto multiplicador" — confirmado ahora por el lado del software.
+
+## [NOTA 2026-10-24 — VeriDrop]
+Fuente: `sources/2026-10-23-veridrop-relays.md`. Un **segundo directorio** del sector, ajeno a PriceAI, confirma por el lado del inventario que la etiqueta de software es habitual pero **no está publicada**: el directorio de VeriDrop lista **50 relays** con dos capas de información —dominio, protocolos (Claude/Gemini/OpenAI), veredictos de detección, y la insignia **"PRO 认证收录"** en 9 de ellos— y **no expone ningún campo 来源渠道**: no dice qué software corre en ninguno de los 50. Es decir, la atribución "Sub2API vs New API" que la tabla de PriceAI sí publica **no es reproducible desde la segunda fuente**, y los dos inventarios no se cruzan sin una fuente adicional. Lo que sí aporta VeriDrop es el dato de cobertura de protocolos: solo **15 de 50 relays** ofrecen los tres (Claude+Gemini+OpenAI), **19** ofrecen dos y **16** uno solo ([[2026-1024-veridrop-cobertura-de-protocolos-por-relay]]). La conclusión del átomo se refuerza y se matiza: el **core** es casi con certeza común (New API/Sub2API dominan el precio bajo), pero la **superficie de protocolo realmente expuesta al cliente** en el despliegue comercial es mucho más estrecha que lo que el software permite — la conversión multi-protocolo del README ([[2026-1023-new-api-una-sola-api-multiproto]]) no se está deploying en el mercado.

@@ -2,8 +2,8 @@
 id: 2026-1023-priceai-sponsors-vps-chinos-para-auto-hospedar-relay
 type: atom
 certainty: tentative
-sources: [sources/2026-10-22-priceai-home.md]
-links: ["[[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]", "[[2026-1023-priceai-patrocinadores-y-canales-de-reventa-con-multiplicador]]", "[[2026-1023-hetzner-costes-por-categoria-vs-infraestructura-propia]]"]
+sources: [sources/2026-10-22-priceai-home.md, sources/2026-10-23-hostbrr-home.md, sources/2026-10-23-lowendbox-1-usd-vps.md]
+links: ["[[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]", "[[2026-1023-priceai-patrocinadores-y-canales-de-reventa-con-multiplicador]]", "[[2026-1023-hetzner-costes-por-categoria-vs-infraestructura-propia]]", "[[2026-1024-lowendbox-cuarto-escalon-de-precio-10-dolares-al-ano]]", "[[2026-1024-lowendbox-vps-anuales-de-10-a-11-dolares-no-mensuales]]"]
 ---
 
 ## Claim
@@ -21,3 +21,9 @@ Advertencia de fiabilidad, explícita: son cifras **de marketing de patrocinador
 
 ## Nota de verificación
 Las cifras (68 元/año, 199 元/año, 2核2G, 2核4G, 85 % de primera compra) están transcritas literalmente del copy de los patrocinadores. La captura **no** publica: SLA, ancho de banda, región efectiva, ni el precio sin descuento.
+
+## [NOTA 2026-10-24]
+Fuente: `sources/2026-10-23-hostbrr-home.md`. Aparece ahora un **tercer escalón de precio** para auto-hospedar un relay, intermedio entre los VPS chinos y Hetzner: HostBrr (proveedor europeo, Alemania/EE.UU./Luxemburgo) declara **Value VPS desde €2,00/mes** y **Performance VPS desde €3,90/mes**, con KVM, root, AMD EPYC/Ryzen/Threadripper, NVMe y mitigación DDoS L4+L7 de hasta 3,6 Tbps incluida sin coste adicional (ver [[2026-1024-hostbrr-escalera-de-precios-vps-2-00-3-50-y-3-90]] y [[2026-1024-hostbrr-ddos-3-6-tbps-l4-y-l7-incluido]]). La comparación de magnitudes queda así: VPS chinos a decenas de yuanes/año (marketing de sponsor, sin SLA) < HostBrr a ~€24/año (home de marketing, sin SLA publicado) < Hetzner a partir de €5,99/mes sin IVA (con SLA, ISO 27001, GDPR y egreso a €1/TB, cf. [[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]). La conclusión operativa para el vault no cambia —el hosting sigue siendo una línea de coste de plataforma que no aparece en el corte por categoría ([[2026-1023-hetzner-costes-por-categoria-vs-infraestructura-propia]])— pero ahora hay tres puntos de precio sobre la mesa y no uno. Nota: los precios de HostBrr son "From" de home, no de página de planes.
+
+## [NOTA 2026-10-24 — LowEndBox]
+Fuente: `sources/2026-10-23-lowendbox-1-usd-vps.md`. La escalera de auto-hospedado del vault tiene ahora **cuatro puntos con fuente trazada**, y el nuevo es el más barato: cuatro ofertas de VPS KVM de 768 MB–1 GB a **$10.00 / $10.18 / $10.28 / $11.00 al año** (CloudServer, DediRock, RackNerd, ServerHost), equivalentes a **~$0,83–0,88/mes con prepago anual** — ver [[2026-1024-lowendbox-vps-anuales-de-10-a-11-dolares-no-mensuales]] y [[2026-1024-lowendbox-cuarto-escalon-de-precio-10-dolares-al-ano]]. El orden completo queda: LowEndBox LEB ~$10/año < VPS chinos a decenas de yuanes/año (marketing de sponsor) < HostBrr desde €2,00/mes (~€24/año) < Evoxt $2,99/mes con specs declaradas ([[2026-1024-evoxt-plan-de-entrada-vm-0-5-a-2-99-dolar]]) < Hetzner desde €5,99/mes sin IVA. Para el escenario que este átomo describe —auto-hospedar un relay sub2api— la lectura cambia: el relay ya se puede alojar por **~€8,6–9,5 al año** en un nodo de 768 MB–1 GB, siempre que se acepte (a) prepago anual sin opción de salida, (b) que el egreso tenga un techo de 1 TB/mes salvo el plan de ServerHost, que es *unmetered*, y (c) que la geografía es casi enteramente estadounidense con un único punto europeo (Amsterdam), lo que penaliza la latencia de un relay usado desde Europa. Ninguno de los cuatro publica SLA: el argumento de compliance que hoy empuja hacia Hetzner sigue sin despejarse, pero el argumento de precio ya no puede ser la objeción.

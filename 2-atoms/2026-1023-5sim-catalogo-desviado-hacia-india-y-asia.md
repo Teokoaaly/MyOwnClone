@@ -2,7 +2,7 @@
 id: 2026-1023-5sim-catalogo-desviado-hacia-india-y-asia
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-5sim-products-catalog.md]
+sources: [sources/2026-10-22-5sim-products-catalog.md, sources/2026-10-23-noones-p2p.md, sources/2026-10-23-noones-blocked-jurisdictions.md]
 links: ["[[2026-1023-5sim-catalogo-153-paises-contra-180-de-la-home]]", "[[2026-1023-5sim-paises-no-occidentales-mas-baratos]]", "[[2026-1023-5sim-catalogo-50-servicios-de-apuestas]]", "[[2026-1023-5sim-catalogo-28-servicios-ia]]"]
 ---
 
@@ -12,3 +12,6 @@ El catálogo de 5sim está **geográficamente desviado hacia el sur de Asia y el
 ## Why It Matters
 El sesgo geográfico del catálogo es la lectura operativa del precio: los países baratos del inventario ([[2026-1023-5sim-paises-no-occidentales-mas-baratos]]) y los servicios que el proveedor lista en abundancia son los mismos mercados no occidentales. Un catálogo con esta composición no se puede leer como "proveedor global de SMS": es un proveedor con base operativa en India y el sudeste asiático, con una capa de cobertura nominal en Europa y EE.UU. Eso tiene una consecuencia directa para cualquier plan que dependa de números de países occidentales ([[2026-1023-5sim-catalogo-153-paises-contra-180-de-la-home]]): el precio de esos países es el extremo caro y el stock, escaso.
 El mismo sesgo atraviesa las verticales: las apuestas del catálogo son en su mayoría *rummy* y casinos de marca india ([[2026-1023-5sim-catalogo-50-servicios-de-apuestas]]), y el peso de los servicios de IA (28) es mínimo frente a los miles de nombres locales ([[2026-1023-5sim-catalogo-28-servicios-ia]]).
+
+## [NOTA 2026-10-24 — noones]
+Añadido a partir de `sources/2026-10-23-noones-p2p.md` y `sources/2026-10-23-noones-blocked-jurisdictions.md`. El sesgo no occidental de 5sim **no es una rareza de un proveedor de SMS**: se repite, con el mismo eje, en un exchange cripto P2P. La home de NoOnes —capturada **desde una IP estadounidense**, o sea desde el interior del bloque— muestra un pie titulado **"Supported countries"** con China, Ghana, Vietnam, Nigeria, Philippines, India y un grupo de banderas de Kenia, Venezuela, México, Sudáfrica y Tailandia más un enlace **"+150 more"** (ver [[2026-1024-noones-catalogo-de-paises-soportados-y-150-mas]]). Y la KB de jurisdicciones explica el lado complementario: desde el **1 de julio de 2026** NoOnes **no da de alta a residentes de los 30 países bajo MiCA** (27 de la UE + Islandia, Liechtenstein y Noruega) porque opera fuera de ese marco, además de bloquear 9 países y 4 territorios de EE.UU. (ver [[2026-1024-noones-mica-30-paises-no-servidos-desde-julio-2026]] y [[2026-1024-noones-jurisdicciones-globalmente-restringidas]]). La conclusión operativa para el vault se endurece: **el eje real del mercado de infraestructura de identidad es emergentes-vs-occidente, y la exclusión occidental en 2026 tiene dos motivos distintos —coste (5sim) y regulación (MiCA)**. Cualquier plan que asuma cobertura occidental como base tiene que justificar cada proveedor con una fuente, no con el nombre del proveedor.

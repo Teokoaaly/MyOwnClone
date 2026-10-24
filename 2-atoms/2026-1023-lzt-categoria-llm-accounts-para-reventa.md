@@ -2,7 +2,7 @@
 id: 2026-1023-lzt-categoria-llm-accounts-para-reventa
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-lzt-market-home.md]
+sources: [sources/2026-10-22-lzt-market-home.md, sources/2026-10-23-notletters-mail.md]
 links: ["[[2026-1023-5sim-catalogo-28-servicios-ia]]", "[[2026-1023-lzt-venta-individual-y-masiva-por-categoria]]", "[[2026-1023-lzt-categorias-gaming-y-social-network]]", "[[2026-1023-5sim-chatgpt-verificacion-stock-13-7-millones]]"]
 ---
 
@@ -20,3 +20,6 @@ El orden de las dos categorías en la URL también delata la línea del producto
 
 ## Nota de verificación
 Los nombres de categoría y las rutas están transcritos literalmente. La captura **no** publica: qué modelos de IA se venden, precio unitario, stock, país de la cuenta, estado de verificación ni garantía.
+
+## [NOTA 2026-10-24 — NotLetters]
+A partir de `sources/2026-10-23-notletters-mail.md`. La cadena de valor que este átomo describe (proveedor de número → registro masivo → cuenta revendida en lzt.market) tiene ahora **una pata de correo con su propio proveedor de mercado**: la home de `notletters.com` lleva en el banner literal "**Great for Lolzteam Market**" y vende buzones para "site registrations" ([[2026-1024-notletters-correo-masivo-para-registros-y-lolzteam]]). Es decir, el mercado que este átomo documenta como destino es también el **caso de uso declarado** de un proveedor de su cadena de insumos. El matiz que sigue vigente es que ese aviso de "Lolzteam Market" es un claim de marketing de un tercero, no una prueba de que sus buzones alimenten esas cuentas concretas ([[2026-1024-notletters-captura-minima-sin-dominios-ni-limites-ni-condiciones]]).
