@@ -313,7 +313,68 @@ Y el dato que cierra la sección, porque es el que más directamente afecta al p
 
 Un apunte de superficie, porque es la clase de detalle que separa a un intermediario opaco de un operador serio: NoOnes expone **API documentada** (`dev.noones.com`), partner program, página de estado, y **tres dominios espejo** —`noones.com`, `noones.app`, `noones.global`— más cuatro productos (P2P, SnapX, swap, wallet) ([[2026-1024-noones-superficie-publica-productos-y-dominios-espejo]]). Es la diferencia con HeroSMS, que publica una API sin documentación y externaliza la automatización a socios ([[2026-1023-herosms-api-y-partners-de-registro-masivo]]). Y su catálogo de países no es enumerable: seis países nombrados (China, Ghana, Vietnam, Nigeria, Filipinas, India) más un grupo de banderas y un enlace **"+150 more"** que es claim, no dato ([[2026-1024-noones-catalogo-de-paises-soportados-y-150-mas]]).
 
-## 8. Fricciones para juicio humano
+## 8. La geometría operativa del proxy: por qué $/GB es la unidad equivocada
+
+La §7 establece que el proxy es la única partida cuyo coste depende de un volumen que nadie del vault controla. Los átomos de DataImpulse de esta tanda dicen **por qué**: el volumen no se compra, se consume, y el proveedor decide la granularidad con la que se consume. La unidad de precio es el gigabyte; la unidad real de trabajo es **la sesión**.
+
+### 8.1 Un solo gateway, siete lenguajes, un puerto
+
+El acceso técnico es **un único endpoint** —`gw.dataimpulse.com:823`, con `login`/`password` embebidos en la URL (`http://{login}:{password}@{hostname}:{port}`), timeout de 30 s en los ejemplos y verificación contra `ip-api.com/json`, que devuelve IP, Country, State, City, Zipcode, ASN y Status. La misma forma aparece en los **siete lenguajes** que muestra la home (Python, Node.js, PHP, C#, Go, Ruby, curl), y los protocolos soportados son **HTTP / HTTPS / SOCKS5** con "Authorization by IP" como alternativa a las credenciales. La lista de integraciones cubre Scrapy, Puppeteer, Selenium, Playwright, Multilogin, AdsPower, GoLogin, Octoparse, Zapier, Postman, Proxifier y SwitchyOmega ([[2026-1024-dataimpulse-gateway-unico-y-protocolos]]).
+
+Eso significa que **cambiar de pool no cambia la integración**: el coste de migrar entre proveedores de proxy está en la configuración de origen, no en el código. Es la misma propiedad que hace que un proveedor de inferencia con OpenAI-compatible API sea intercambiable.
+
+### 8.2 Rotating vs sticky: la sesión es la unidad que decide el coste
+
+DataImpulse ofrece las dos modalidades sobre el mismo pool, y la duración de la sesión sticky **depende del tipo de proxy**:
+
+| Tipo | Sesión sticky declarada | Modalidad por defecto |
+|---|---|---|
+| **Residencial** | **30–120 minutos** de media, hasta 120 minutos | "the same IP up to 30 minutes by default" |
+| **Datacenter** | hasta **30 minutos** | — |
+| **Móvil** | sticky como característica destacada, **sin duración publicada** | — |
+
+La definición es explícita: *"Sticky sessions keep a single IP for login and browsing, while rotating sessions assign a new IP for each request"* ([[2026-1024-dataimpulse-sesiones-rotating-y-sticky]]).
+
+Aquí está la conversión que faltaba en la tabla de coste de la §7: **un alta con login y navegación no consume 1 GB, consume el número de sesiones sticky que la tarea requiera**, y cada sesión sticky puede durar hasta 120 minutos con una IP fija. Si el flujo de alta necesita tres pasos separados en momentos distintos (registro, verificación, confirmación de email), son **tres sesiones**, no una. A $1/GB residencial, un flujo de 30 MB por sesión son $0,03 — pero con 50 altas eso es $1,50 y **el número de altas, no el de bytes, es lo que escala**. El proxy no se compra por gigabytes consumidos: se compra por **número de altas × MB por sesión**, y el segundo factor lo fija la modalidad de sesión que se elija, no el proveedor.
+
+### 8.3 La escalera de volumen: el precio baja un escalón y el salto es enorme
+
+La tabla de precios define **cuatro escalones por tipo**, y el patrón es común a los cuatro: **precio por GB constante hasta 1 TB, un descuento marginal en el escalón Advanced, y un salto de capital de 5–8× en Custom+**:
+
+| Tipo | Intro | Basic | Advanced | Custom+ |
+|---|---|---|---|---|
+| **Residencial** | $5 / 5 GB → $1/GB | $50 / 50 GB → $1/GB | $800 / 1 TB → **$0,8/GB** | desde **$4.000** / 5 TB+ → precio custom |
+| **Datacenter** | $5 / 10 GB → $0,5/GB | $50 / 100 GB → $0,5/GB | $450 / 1 TB → **$0,45/GB** | desde **$2.250** / 5 TB+ |
+| **Móvil** | $5 / 2,5 GB → $2/GB | $50 / 25 GB → $2/GB | $1.600 / 1 TB → **$1,6/GB** | desde **$8.000** / 5 TB+ |
+| **Premium residencial** | $5 / 1 GB → $5/GB | $50 / 10 GB → $5/GB | — (no hay Advanced) | desde **$20.000** / 5 TB+ |
+
+([[2026-1024-dataimpulse-escalera-de-volumen-por-tipo]])
+
+El discount del 20 % en el escalón Advanced (residencial) y del 10 % (datacenter) paga una entrada de capital de **16×** respecto al escalón Basic. Para un vault con presupuesto de infraestructura de ≤ €4/mes, el salto de $50 a $800 no es una decisión de optimización: es una decisión de si el proyecto tiene volumen. Y el modelo comercial es explícitamente de saldo prepago: **"No expiry, no subscription"** y **"Pay-as-you-go"**, con "Traffic never expires" como fila común a las cuatro tablas ([[2026-1024-dataimpulse-payg-sin-suscripcion-ni-caducidad]]).
+
+### 8.4 La escala del proveedor, que es el único dato de solvencia del sector
+
+Contra el resto del sector, donde no se publica ni el número de empleados ni el volumen, DataImpulse publica una cifra de escala concreta: **soporte 24/7 con humanos** y **tiempo medio de respuesta < 1,5 min**, más un formulario *Enterprise Request* con "Amount of TB You Want to Purchase" y un listado de casos de uso que incluye **"Reselling"** y **"Affiliate Program"** ([[2026-1024-dataimpulse-soporte-24-7-y-canal-enterprise]]).
+
+Es una afirmación, no una medición, pero es la clase de dato que el resto del sector no publica en ninguna forma: **si el claim fuera falso, el passthrough de un flujo de alta que necesita soporte en medio de la ejecución fallaría de forma visible**. El contrapeso es que el canal enterprise es también donde el proveedor **vende el producto a revendedores**, lo que reintroduce el riesgo que el argumento de "first-party, sin revendedores" ([[2026-1024-dataimpulse-first-party-y-sin-revendedores]]) pretende cerrar.
+
+### 8.5 Los tres usos declarados, y por qué el vault tiene que separarlos
+
+La página de DataImpulse separa tres usos que apuntan a tres necesidades distintas, y solo uno de ellos tiene que ver con la verificación:
+
+1. **Construcción de datos para IA** — "Build large, clean training and RAG datasets", con la lista de fuentes declaradas: Amazon, eBay, Walmart, Shopify, Allegro; Google, Bing, Baidu, Naver; Instagram, TikTok, LinkedIn, Facebook, YouTube; Booking, Expedia, Airbnb; Tripadvisor, G2, Trustpilot, Yelp; Bloomberg, Reuters, WSJ ([[2026-1024-dataimpulse-uso-de-ips-en-agentes-y-visibilidad-en-ia]]).
+2. **Acceso web en vivo para agentes** — "Give AI agents and LLM apps live web access… Power agentic browsing, real-time retrieval, and coding assistants built on GPT, Codex, Claude, Claude code and Gemini".
+3. **Visibilidad en respuestas de IA** — "Query ChatGPT, Perplexity, and Google AI Overviews at scale from real IPs to monitor citations and AI-search visibility".
+
+El segundo y el tercero son **productos de monitorización de marca**, no de verificación. El tercero es directamente relevante para MyOwnClone: es exactamente la pregunta de si los clones de un creador aparecen citados en las respuestas de los modelos. Y el precio por GB de esa pregunta es el mismo que el de eludir un captcha.
+
+### 8.6 La latencia de resolución, que es el dato que faltaba
+
+La columna "Solving speed" del catálogo de 2Captcha da **1 segundo** para Image Captcha y reCAPTCHA v3, y **2 segundos** para reCAPTCHA v2, Cloudflare Turnstile, reCAPTCHA Enterprise y Amazon captcha. Los únicos tipos fuera de ese rango son Arkose/FunCaptcha (**16 sec**) y ALTCHA (**17 sec**) ([[2026-1024-2captcha-velocidad-de-resolucion-1-a-2-segundos-en-los-tipos-estandar]]).
+
+Esto completa la aritmética de la §7 en la dirección que faltaba: **un captcha estándar no es un cuello de botella de tiempo**, son milésimas de dólar y 1–2 segundos. Solo los dos tipos caros son además los lentos —FunCaptcha a 16 s con hasta $50/1000 y ALTCHA a 17 s a $2,99—, y ese solapamiento entre precio y latencia es la razón por la que el criterio de selección no puede ser "el más barato" sino "el del tipo de captcha que aparece en el destino".
+
+## 9. Fricciones para juicio humano
 
 Las que los átomos levantaron y el vault no puede resolver. Están aquí para decisión de una persona.
 
@@ -330,6 +391,10 @@ Las que los átomos levantaron y el vault no puede resolver. Están aquí para d
 11. **NoOnes prohíbe explícitamente la técnica central del playbook SMS.** La KB dice que no se intente eludir las restricciones "such as by obscuring your IP address or submitting any inaccurate information regarding your location". El playbook de HeroSMS, en cambio, prescribe activar VPN/proxy y hacer coincidir la ubicación virtual con el país del número. No es contradicción lógica (proveedores distintos, reglas distintas), pero el vault **no puede tratar "usar VPN para que la IP coincida con el país" como práctica neutra y reutilizable**: el criterio de selección de IP debe ser "país real de la IP == país de la identidad usada" ([[2026-1024-noones-prohibicion-explicita-de-circular-restricciones-por-ip-y-ubicacion]], [[2026-1023-hero-sms-ip-y-vpn-coincidentes-con-el-pais-del-numero]]).
 12. **La comparabilidad del suelo de correo es dudosa.** PriceAI fija el suelo del buzón de registro en **¥0.02** (其他邮箱 / iCloud / Outlook) y NotLetters publica **0.05 ₽ por correo**. Son el mismo orden de magnitud nominal, pero con **divisa distinta (yuanes contra rublos) y unidad distinta** (correo revendido por el 卡网 contra "precio por correo" de un proveedor dedicado), y la captura de NotLetters no publica tipo de cambio ni catálogo. Si son comparables, el suelo real del buzón está por debajo del que el vault tenía registrado y la diferencia entre marketplace y proveedor dedicado pasa a ser también una diferencia de precio; si no lo son, el suelo del vault no se mueve. Marcado para juicio humano, no auto-resuelto ([[2026-1024-notletters-precio-005-rubles-por-correo-y-contadores-de-escala]], [[2026-1023-priceai-channels-correo-y-jianma-a-centimos-como-insumo-de-alta]]).
 13. **2Captcha no publica hCaptcha ni Geetest.** La lista "Supported captchas" enumera diez tipos y la tabla de precios muestra ocho filas tras un "Show more"; hCaptcha y Geetest **no constan en ninguna parte de la página**. La captura **no permite afirmar que no se soporten** —pueden estar tras el "Show more"— pero sí que **no se pueden comprar como producto de catálogo publicado**: si un destino de scraping usa hCaptcha, su coste y su latencia no son cotizables con esta fuente. Y la captura es parcial por construcción, así que el catálogo real es al menos más grande que ocho filas ([[2026-1024-2captcha-hcaptcha-y-geetest-ausentes-del-catalogo-publicado]]).
+14. **La duración de la sesión sticky no está publicada para el proxy móvil, y es el tipo más caro por gigabyte.** DataImpulse publica "up to 30 minutes" en sticky para residencial y datacenter, pero para móvil la sesión sticky aparece como característica destacada **sin cifra de duración** —y el móvil es el escalón más caro por GB ($2/GB frente a $1 residencial y $0,5 datacenter) y el que tiene el salto de capital más alto ($8.000 en Custom+) ([[2026-1024-dataimpulse-sesiones-rotating-y-sticky]], [[2026-1024-dataimpulse-escalera-de-volumen-por-tipo]]). Para un flujo que necesita la misma IP durante una verificación de email con confirmación humana, la duración de la sesión es el parámetro que decide si el flujo se rompe, y en el tipo más caro no está publicado.
+15. **"Pay-as-you-go" y "traffic never expires" son incompatibles con un presupuesto de ≤ €4/mes, y no hay forma de expresar el saldo mínimo.** El modelo es de **saldo prepago sin caducidad**, lo que significa que el gasto se dispara sin límite natural: el único mecanismo de control es el saldo, y DataImpulse no publica un saldo mínimo ni un umbral de recarga ni una alerta documentada. Para un vault que relaciona todo gasto recurrente con un techo, esto es un riesgo operativo, no un beneficio: "no expira" es exactamente lo contrario de "no se acumula" ([[2026-1024-dataimpulse-payg-sin-suscripcion-ni-caducidad]]).
+16. **El canal enterprise vende el producto a revendedores, y eso reabre el riesgo que el argumento "first-party" cierra.** La página lleva un *Enterprise Request* con "Amount of TB You Want to Purchase" y una lista de casos de uso que incluye **"Reselling"** y **"Affiliate Program"**, mientras la home afirma ser "first-party" y "no resellers". Ambas cosas pueden ser ciertas —el proveedor no revende *su propio* tráfico de clientes retail— pero para un vault que compra para automatizar altas, la existencia de un canal de reventa significa que el mismo producto puede llegar con un nivel de soporte distinto según el canal por el que se compró ([[2026-1024-dataimpulse-soporte-24-7-y-canal-enterprise]], [[2026-1024-dataimpulse-first-party-y-sin-revendedores]]).
+17. **La latencia de resolución y el precio se solapan: los dos captcha caros son los dos lentos.** Arkose/FunCaptcha cuesta hasta **$50 por 1000** y tarda **16 segundos**; ALTCHA cuesta **$2,99** y tarda **17 segundos**; todos los demás tipos resuelven en **1–2 segundos** con un precio de $0,5–$2,99. Esto invalida "el más barato" como criterio de selección y obliga a elegir por **el tipo de captcha que aparece en el destino**: si el destino usa FunCaptcha, el coste y la latencia vienen juntos y ninguno es negociable ([[2026-1024-2captcha-velocidad-de-resolucion-1-a-2-segundos-en-los-tipos-estandar]], [[2026-1024-2captcha-arkose-funcaptcha-50-dolares-por-1000]], [[2026-1024-2captcha-altcha-299-y-17-segundos-el-mas-lento]]).
 
 ## Nota de método
 
