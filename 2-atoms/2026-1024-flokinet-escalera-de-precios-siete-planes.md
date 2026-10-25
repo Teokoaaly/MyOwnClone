@@ -1,0 +1,21 @@
+---
+id: 2026-1024-flokinet-escalera-de-precios-siete-planes
+type: atom
+certainty: solid
+sources: [sources/2026-10-24-flokinet-vps-pricing.md]
+links: ["[[2026-1023-hetzner-escalera-de-precios-y-salto-a-dedicados]]", "[[2026-1024-evoxt-escalera-de-precios-nueve-planes]]", "[[2026-1024-hostbrr-escalera-de-precios-vps-2-00-3-50-y-3-90]]", "[[2026-1024-flokinet-trafico-por-plan-y-direccion-no-publicada]]", "[[2026-1024-flokinet-ubicaciones-offshore-ripe-e-isnic]]"]
+---
+
+## Claim
+FlokiNET publica **siete planes de VPS** con esta escalera (los importes son "Starting at", por mes): **VPS I €7.99** (1 CPU core, 1 GB RAM, 20 GB NVMe, 1 Gbit uplink / 3 TB de tráfico), **VPS II €14.99** (2/2/50 GB/6 TB), **VPS III €27.99** (4/4/90 GB/9 TB), **VPS IV €41.99** (6/6/120 GB/12 TB), **VPS V €53.99** (8/8/180 GB/15 TB), **VPS VI €61.99** (10/10/200 GB/18 TB) y **VPS VII €73.90** (12/12/220 GB/20 TB). Los siete son **KVM**, todos incluyen **1 IPv4 + /64 IPv6**, **DDoS Protection (1Tbps+)** y **Virtual IPMI Console**. El rango es **×9,25**; los saltos más baratos son **+€8.00** (IV→V) y **+€11.91** (VI→VII). La **RAM escala 1:1 con los cores** en toda la escalera (1, 2, 4, 6, 8, 10, 12 GB), y el **precio por GB de RAM baja monótonamente** de €7,99/GB en el plan I a **€6,16/GB** en el VII.
+
+## Why It Matters
+Es la primera escalera del vault donde **RAM y vCPU crecen exactamente en la misma proporción**, sin la disociación de ExtraVM (15 GB NVMe por GB de RAM, 10 cores para 64 GB, ver [[2026-1024-extravm-disco-proporcional-15-gb-nvme-por-gb-de-ram]]) o de Evoxt (vCore casi gratis, RAM cara, [[2026-1024-evoxt-escalera-de-precios-nueve-planes]]). Eso hace de la escalera de FlokiNET una de las más fáciles de razonar: **el precio es prácticamente una función lineal de los GB de RAM**. Para el stack vivo (nginx + Postgres + Redis, [[2026-1022-live-verify-deployment-migrada-a-vps-nginx]]) el plan I no sirve por RAM, y el plan II (2 GB) ya cuesta **€14,99** — el doble del presupuesto de ≤ €4/mes del vault ([[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]). También es la escalera más cara del mercado barato documentado: su suelo de **€7,99** está por encima del CPX02 de Hetzner (€5,99, [[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]) y casi cuatro veces el Value 2GB de HostBrr (€2,00, [[2026-1024-hostbrr-escalera-de-precios-vps-2-00-3-50-y-3-90]]).
+
+## [FRICTION]
+> [[2026-1024-hostbrr-escalera-de-precios-vps-2-00-3-50-y-3-90]] (escrita hace 1 día) afirma que el precio de entrada de un VPS europeo con specs publicables es **€2,00/mes (Value 2GB, 1 core @ 3.4 GHz, 2 GB DDR4 ECC, 25 GB)** y que por tanto el umbral de ≤ €4/mes **es alcanzable** en un proveedor europeo con root y protección DDoS incluida sin coste adicional.
+> Este átomo presiona esa creencia en un punto concreto: **existe un proveedor europeo que no baja de €7,99**, y su página de precios es tan completa como la de HostBrr (siete planes con specs completas, KVM, IPv4+/64 IPv6, DDoS 1Tbps+, consola IPMI). Si los dos datos son ciertos, entonces **"es alcanzable" es una propiedad del proveedor, no del mercado**, y la pregunta correcta para el vault no es "¿hay algo por debajo de €4?" sino "¿qué se sacrifica por debajo de €4 y quién lo sacrifica?".
+> Ambas no pueden ser completamente correctas leídas como una afirmación sobre el coste de *un* VPS europeo con specs verificables: o HostBrr es un caso exceptionalmente barato, o FlokiNET está cobrando un sobrecoste por el posicionamiento *offshore* y el DDoS de 1 Tbps en todas las ubicaciones. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+Los importes y las specs están transcritos literalmente de la tabla "Pricing Plan", cuyos enlaces de compra apuntan a **Rumanía** (`virtual-private-server-romania/romania-vps-i` … `vii`). La página ofrece pestañas de ubicación (**Rumanía, Islandia, Países Bajos, Finlandia**) y un aviso **"Coming soon: Norway, Canada, Singapore"**, pero **la captura no publica precios por ubicación**: los siete importes son los de "Starting at" del bloque único. La FAQ añade que "each location and each package includes its own limits", lo que implica que los límites difieren por ubicación, pero sin cifras. No se publica SLA,Periodicidad ("per month" sí aparece), ni precio de tráfico adicional.

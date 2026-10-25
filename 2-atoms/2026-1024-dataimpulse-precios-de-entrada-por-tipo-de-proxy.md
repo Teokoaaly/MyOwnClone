@@ -21,3 +21,6 @@ El matiz de la comisión sigue vigente: si se recarga con Mastercard hay un 10 %
 
 ## Nota de verificación
 Números transcritos literalmente de la home y del FAQ. La captura **no** publica: número máximo de conexiones simultáneas, ancho de banda por conexión, ni comisiones o cambio de divisa.
+
+## Nota fechada — 2026-10-24 (captura IPRoyal, no modifica lo anterior)
+Un segundo proveedor confirma que **el $/GB no es la unidad del sector**, solo la de DataImpulse. IPRoyal publica cinco líneas con **cinco unidades distintas**: residencial $1.75/GB (pool 64M+), ISP $1.80/proxy (500K+ IPs), datacenter $1.39/proxy (60+ ubicaciones, "unlimited bandwidth"), móvil $117/mes (4.5M+ IPs) y Web Unblocker $1.00/1000 requests. Es decir: el residencial de IPRoyal es **×1,75** del de DataImpulse, y el móvil pasa de coste marginal por GB a **coste fijo recurrente** ([[2026-1024-iproyal-cinco-lineas-y-cinco-unidades-de-precio]], [[2026-1024-iproyal-movil-117-al-mes-y-45m-de-ips]], [[2026-1024-iproyal-datacenter-139-por-proxy-y-60-ubicaciones]]). La escala de precios de este átomo sigue siendo válida **para el catálogo de DataImpulse**, pero no puede generalizarse al sector.

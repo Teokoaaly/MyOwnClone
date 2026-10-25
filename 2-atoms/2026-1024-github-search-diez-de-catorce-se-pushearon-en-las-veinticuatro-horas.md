@@ -1,0 +1,18 @@
+---
+id: 2026-1024-github-search-diez-de-catorce-se-pushearon-en-las-veinticuatro-horas
+type: atom
+certainty: solid
+sources: [sources/2026-10-24-github-search-chatgpt-account-creator.md]
+links: ["[[2026-1024-github-search-noventa-y-cuatro-por-ciento-de-las-estrellas-en-tres-repos]]", "[[2026-1024-chatgpt-creator-cuatro-commits-y-338-estars-sin-mantenimiento-visible]]", "[[2026-1024-github-search-watchers-count-de-la-api-es-copia-de-stargazers]]"]
+---
+
+## Claim
+La distancia entre `created_at` y `pushed_at` dice que **10 de los 14 repositorios publicaron su primer push dentro de las 24 horas siguientes a su creación o incluso antes**; siete de esos pushes ocurren **dentro de la primera hora** (`wahdalo/chatgpt-account-creator` 22 min, `5enox/chatgpt-creator` 18 min, `BHPT-VIP/ChatGPTAccountCreator` 20 min, `ashleymccourt88-hub/chatgpt-account-creator` 4 min, `Khontol54/chatgpt-account-creator` 53 min, `Nilsber/CookieProfileCreator` 32 min, y `zbaxstore/chatgpt-account-creator` con `pushed_at` **anterior** a `created_at` en 2 h 15 min). Un noveno, `dameyosegoi-glitch/chatgpt-creator-standalone`, tiene `pushed_at` **anterior** a `created_at` en 35 min. Solo cuatro repositorios tienen una ventana de desarrollo superior a un día: `opeinime/ChatGPT-Account-Creator` (25 días), `verssache/chatgpt-creator` (26 días), `AuuCoder/gptGrok2api` (12 días) y `pharaohanjay-gif/chatgpt-account-creator` (23 h 54 min). En la fecha de captura (2026-10-24), **ninguno de los 14 había hecho un push en los últimos 88 días**: el `pushed_at` más reciente de todo el corpus es el 2026-07-27 (`AuuCoder/gptGrok2api`, 88 días), seguido de `dameyosegoi-glitch` (109 días) y `opeinime` (127 días); **once de los catorce llevaban más de 180 días sin push** y tres más de un año.
+
+## Why It Matters
+Este es el patrón de mantenimiento del corpus, y es el mismo que el vault ya había leído en un repo suelto —[[2026-1024-chatgpt-creator-cuatro-commits-y-338-estars-sin-mantenimiento-visible]] decía "cuatro commits y ni uno más"— pero aquí se ve como **regla de la categoría**: se sube el código de una vez y no se vuelve a tocar. Una herramienta para evadir controles no es un proyecto de software con ciclo de vida; es **el volcado de un script**.
+Y hay un dato colateral que la captura documenta sin explicarlo: dos repositorios tienen `pushed_at` **anterior** a `created_at`. Eso ocurre cuando el repositorio se crea a partir de una copia o una importación con historial ya existente, o cuando se renombra o traslada. El JSON **no dice cuál de los dos casos es**, y en ambos la lectura es la misma: **el repositorio no nació de un desarrollo propio, sino de una copia**. Uno de los dos (`dameyosegoi-glitch/chatgpt-creator-standalone`) se describe literalmente como *"ChatGPT account registration bot by xscope0"*, con 0 estrellas y 0 forks: es un **re-mirror sin categoría**, que es lo que hace la técnica tan fácil de replicar y lo que hace que contar repositorios sobreestime el número de proyectos reales.
+La segunda mitad da la profundidad temporal al corpus: **en el momento de la captura, la categoría entera llevaba más de tres meses sin una sola línea nueva**. El mercado que el thread documenta sigue vivo (5sim, HeroSMS, PriceAI, lzt.market); **el código abierto que lo implementa, no**. Es la separación entre la demanda de herramientas y la oferta de código mantenible.
+
+## Nota de verificación
+Diferencias temporales calculadas por el vault sobre `created_at` y `pushed_at` del JSON capturado el 2026-10-24; el JSON no publica ninguna métrica de commits, ramas ni actividad más allá de esas dos marcas. El umbral de 24 horas cuenta los pushes **anteriores** a la creación, que la API permite y que se reportan aparte en el texto.

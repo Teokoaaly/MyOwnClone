@@ -15,3 +15,6 @@ Y la ausencia de contador en `Show more` refuerza lo que ya se sabe del otro lad
 
 ## Nota de verificación
 El número de tarjetas (5), sus nombres, sus precios "from" y la ausencia de contador en `Show more` se han comprobado sobre las líneas de la captura. La captura **no** permite saber cuántos servicios hay detrás del botón.
+
+## Extensión (captura `/pricing`, 2026-10-24)
+Dos días después, el mismo selector de cinco tarjetas **rota una de sus entradas**: `Instagram+Threads` desaparece de la quinta posición y aparece `facebook`, y `Whatsapp` sube de la quinta a la cuarta. El "from" $0.0075 se hereda de una tarjeta a otra. Ver [[2026-1024-herosms-el-quinto-servicio-del-selector-cambia-en-dos-dias]] y [[2026-1024-herosms-url-de-precios-devuelve-404-y-no-publica-precios-propio]].

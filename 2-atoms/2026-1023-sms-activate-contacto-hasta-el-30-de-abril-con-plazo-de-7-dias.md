@@ -18,5 +18,16 @@ Para el vault, el dato relevante es el **silencio posterior**: después del 30 d
 > Este átomo presiona esa creencia porque la estructura de soporte de HeroSMS es la de un **proveedor en crecimiento**, y el contraste con SMS-Activate (buzón de email, hasta 7 días de respuesta, ventana de 4 meses, luego silencio) muestra que el SLA corto de HeroSMS es una ventaja de proveedor vivo, no una propiedad estructural del sector: en este sector los SLAs de soporte se degradan a **correo sin respuesta** cuando el operador entra en liquidación, con independencia del producto que se distribuya.
 > Ambas no pueden ser completamente correctas como una única regla del sector: o el SLA de un minuto de HeroSMS es representativo de cómo funcionan estos servicios, o es un efecto de la escala y el respaldo del operador, y el caso base del sector es el silencio. Marcado para juicio humano, no auto-resuelto.
 
+## [NOTA 2026-10-24 — captura `sms-activate.ru`]
+Fuente: `sources/2026-10-24-sms-activate-ru-closed.md` (mismo aviso, servido además en el dominio `.ru`). **Sin sobrescribir nada de lo anterior.**
+
+Dos precisiones que esta segunda captura añade sobre el calendario de cierre:
+
+1. **La ventana de contacto que este átomo describe como activa ya había caducado.** El aviso se captura el **2026-10-24** y sigue diciendo "до 30 апреля" sin año, con el texto íntegro en pasado ("прекратили", "были доступны"), de modo que el 5 de febrero y el 30 de abril son anteriores a la fecha de captura, sea cual sea el año del 22 de diciembre. El "hasta 7 días" es por tanto una **etiqueta histórica de un SLA ya vencido**, no un compromiso exigible. Ver [[2026-1024-el-plazo-de-contacto-del-aviso-ya-habia-caducado-al-capturarse]].
+
+2. **La página oficial es un texto congelado, no un estado vivo.** Servida sin cambios en dos dominios (`.org` el 2026-10-22 y `.ru` el 2026-10-24, cuerpo byte-idéntico), no ofrece catálogo, ni precios, ni stock, ni login, ni bot: solo la lápida y la recomendación de HeroSMS. Ver [[2026-1024-los-dominios-oficiales-solo-muestran-el-aviso-y-ningun-catalogo]] y [[2026-1024-sms-activate-ru-sirve-el-mismo-aviso-que-el-dominio-org]].
+
+La regla operativa que sale de esto: **una web de proveedor cerrado documenta un estado pasado, no el presente**; hay que fechar la lectura contra la fecha de captura.
+
 ## Nota de verificación
 La dirección `info@sms-activate.org` y la fecha del 30 de abril están transcritas del aviso; el aviso no indica año para ninguna de las dos fechas. El "hasta 7 días" es una declaración del proveedor sobre su propio tiempo de respuesta, sin histórico que lo respalde.

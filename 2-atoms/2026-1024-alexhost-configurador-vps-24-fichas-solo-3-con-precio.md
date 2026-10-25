@@ -1,0 +1,21 @@
+---
+id: 2026-1024-alexhost-configurador-vps-24-fichas-solo-3-con-precio
+type: atom
+certainty: solid
+sources: [sources/2026-10-24-alexhost-home.md]
+links: ["[[2026-1024-alexhost-vps-u1-u2-u4-escalera-de-precios]]", "[[2026-1024-hostbrr-categorias-del-configurador-y-escalera-de-ram-sin-precios]]", "[[2026-1024-alexhost-el-mismo-cpu-a-dos-precios-diferentes]]", "[[2026-1024-alexhost-litespeed-escalera-con-doble-precio-y-descuento]]"]
+---
+
+## Claim
+El bloque de VPS de la home es un **configurador con 24 fichas** (8 de U1, 8 de U2, 8 de U4) que **no muestra los precios de forma uniforme**: **7 fichas (todas de U1) aparecen sin importe**, mientras que las **17 restantes sí lo muestran** — una de U1 a **6.00 €**, las ocho de U2 a **10.00 €** y las ocho de U4 a **16.00 €**, todas "per Month". La asimetría es de **botón, no de precio**: de las 24 fichas, **21 tienen el "Order Now" apuntando al ancla inerte `alexhost.com/#`** y **solo 3 son comprables de verdad** (la primera de cada tier, con enlace a `bill.alexhost.com` cid 3725, 3726 y 3727). Es decir, las 8 réplicas de U2 y de U4 **repiten el mismo importe pero con un botón que no lleva a ninguna parte**, y solo la primera de cada tier es transaccional. Las réplicas difieren en el ancho de banda declarado ("Shared 100 Mbps" frente a "Shared 1 Gbps") y en la **idiomatización**: hay fichas que rotulan el ancho de banda **en alfabeto cirílico, con la unidad de megabits abreviada al estilo ruso** en lugar de "Mbps", y fichas que rotulan el disco como **"10 GoNVMe"** (gallego/francés por "Go") en lugar de "10 GB NVMe".
+
+## Why It Matters
+Es el caso más fuerte que ha producido el vault del patrón **"configurador que no es una lista de precios"** y va más allá de HostBrr, donde el configurador publicaba **seis valores de RAM sin precio** ([[2026-1024-hostbrr-categorias-del-configurador-y-escalera-de-ram-sin-precios]]): allí al menos se veían los valores de RAM; aquí **7 de 24 tarjetas están literalmente vacías de importe** y 21 de 24 tienen un botón inerte.
+La observación que importa para la lectura del catálogo: **el precio sí es legible para U2 y U4 en las ocho réplicas**, así que la escalera de tres niveles (6 → 10 → 16 €) es **dato duro, no inferencia**. Lo que no es dato es **el precio de la mitad de U1**: siete de las ocho fichas de U1 no lo publican, y la captura **no explica por qué** — no hay nota, no hay "sold out", no hay rango. La lectura más verosímil es que el configurador está poblado con **variantes de ubicación o de idioma** de un mismo plan (de ahí las etiquetas cirílicas y el "Go"), y que solo la entrada por defecto de cada tier conserva importe y enlace. Pero eso es hipótesis, y la captura no la sostiene.
+
+Lo que sí queda firme: **para comprar un VPS U2 o U4 desde la home hay que acertar la primera tarjeta**, porque las otras siete muestran el precio correcto y llevan a un ancla vacía. Es un fallo de instrumentación comercial, no una política de precios.
+
+El precedente más cercano del thread es el configurador de **HostBrr**, que publicaba seis valores de RAM sin precio ([[2026-1024-hostbrr-categorias-del-configurador-y-escalera-de-ram-sin-precios]]); la diferencia es que allí al menos se veían los valores de RAM y aquí **siete tarjetas no muestran ni el importe ni la diferencia entre ellas**, lo que convierte la página en un catálogo sin precios utilizable y no solo en un configurador mal exportado. La comparación con el tramo shared del mismo proveedor (doble precio por plan, sin etiqueta que diga cuál es el de lista) refuerza el patrón: **AlexHost tiene tres formas distintas de no poder leerse el precio**, según el bloque ([[2026-1024-alexhost-litespeed-escalera-con-doble-precio-y-descuento]]).
+
+## Nota de verificación
+La captura **no publica** para ninguna de las 24 fichas: tipo de virtualización (KVM u otro), número de IPv4/IPv6, tráfico incluido, ancho de banda no compartido, backups, SLA, sistema operativo, panel ni tiempo de aprovisionamiento. Tampoco explica qué criterio separa las 7 variantes de U1 sin importe de la que sí lo tiene, ni qué corresponde a cada una de las 8 réplicas de U2 y U4. El texto **"No plans in this price range."** que aparece al final de la captura pertenece al bloque de **hosting compartido LiteSpeed**, no al de VPS.

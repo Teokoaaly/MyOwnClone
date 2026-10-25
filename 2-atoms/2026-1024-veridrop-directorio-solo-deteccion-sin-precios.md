@@ -15,3 +15,6 @@ Para MyOwnClone la consecuencia práctica es que **la tabla de coste/riesgo del 
 
 ## Nota de verificación
 La ausencia de precios es un resultado de búsqueda literal sobre la captura (cero ocurrencias de 倍率/价格/元/$), no una omisión de lectura. La captura **no** publica: el precio de ningún relay, ni la relación entre su texto de recomendación y el resto de datos del sitio.
+
+## Nota fechada — 2026-10-25 (Refinery, captura home/leaderboard)
+Este átomo sigue siendo cierto **para `/relays`**, pero su alcance debe acotarse: la ausencia de precio es una **propiedad de la página, no del sitio**. En la home de la misma captura, el precio sí aparece —como **descuento sobre la tarifa oficial dentro del texto publicitario de las filas patrocinadas**— en unos diez sitios (`88api.ai` a 0,3 y 0,1 del oficial, `cc.yzzt.top` a 0,25 y 0,06, `shushutoken.com` anunciando "1,4 %-7,9 % del precio oficial", `ai.wcapis.com` a 0,046 y 0,12, `jizhiapi.site` con multiplicador 0,049 en el propio título del enlace, etc.). Véase [[2026-1024-veridrop-home-precios-solo-en-el-texto-publicitario-de-las-filas-patrocinadas]], que abre un bloque `[FRICTION]` contra la lectura general de este átomo. El claim original **no se modifica**: la ausencia en el directorio sigue siendo total.

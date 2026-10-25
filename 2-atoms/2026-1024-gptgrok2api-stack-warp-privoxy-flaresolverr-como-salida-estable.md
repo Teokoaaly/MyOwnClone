@@ -1,0 +1,18 @@
+---
+id: 2026-1024-gptgrok2api-stack-warp-privoxy-flaresolverr-como-salida-estable
+type: atom
+certainty: solid
+sources: [sources/2026-10-24-gptgrok2api.md]
+links: ["[[2026-1024-gptgrok2api-sondeo-y-recuperacion-automatica-de-cuentas-grok]]", "[[2026-1024-dataimpulse-sesiones-rotating-y-sticky]]", "[[2026-1024-gptgrok2api-registro-protocolo-sin-navegador-y-captcha-solver-integrado]]"]
+---
+
+## Claim
+El README define el **proxy como infraestructura de primer orden, no como opción**: la lista de capacidades incluye **proxy global, proxy por cuenta, configuración de proxy, grupos de proxy, límite de concurrencia por nodo, feedback de fallos, salida de reserva, WARP, Privoxy, FlareSolverr y refresco de Clearance**. La orquestación WARP (`docker-compose.warp.yml`) levanta **cinco servicios**: `app` (el servicio principal), `warp-proxy` (salida SOCKS5), `privoxy` (que convierte SOCKS5 en proxy HTTP), `flaresolverr` (para enlaces de red que requieren un reto de navegador) e `init-config` (inicializa la configuración de runtime del proxy). Los puertos por defecto publicados son **WARP SOCKS5 en 40000, Privoxy en 40080 y FlareSolverr en 8191**. El apartado de Checkout añade una regla de **salida sticky compartida** para las fases IN Checkout, Provider y Approve, con **rotación continua de proxy y reintentos independientes** para la promoción VN. El despliegue en servidor ata el puerto de la aplicación **solo a 127.0.0.1**, une el contenedor a una red Docker externa y deja la HTTPS a Nginx.
+
+## Why It Matters
+Es la respuesta del autor a la pregunta que el vault ya sabe hacer: **la IP es una variable de coste y de riesgo que hay que gestionar a nivel de arquitectura, no de cuenta**. El diseño es notable porque **no es "un proxy por cuenta" sino un sistema de salidas con jerarquía**: salida global, salida por cuenta, grupos, límite de concurrencia por nodo, salida de reserva y refresco de Clearance — es decir, **el repositorio convierte la resolución de IP y la reputación de salida en una pieza gestionada**, con WARP como la salida gratuita por defecto y Privoxy como el adaptador de protocolo. El vault ya tenía el lado comercial de esa variable (DataImpulse y sus sesiones rotating/sticky) ([[2026-1024-dataimpulse-sesiones-rotating-y-sticky]]); aquí el lado es **DIY con software libre**, y la diferencia de coste es radical: WARP y Privoxy son gratuitos pero **no son una IP residencial de calidad**, sino la diferencia entre "una salida distinta" y "una salida que los proveedores no señalan".
+El detalle del **Checkout con salida sticky compartida entre las tres fases** es el que más se parece a un proceso real de pago y el más transferible: **cambiar de IP entre las fases de un checkout es lo que rompe los pagos**, así que el autor fija la salida a propósito para esa parte y solo rota en la promoción. Y la rotación de la promoción VN con reintentos continuos muestra el otro extremo: **hay un mercado de promociones donde la supervivencia depende de la rotación constante**.
+Para el vault, la conclusión operativa es que **la infraestructura de IP es más barata de lo que el mercado de proxies sugiere si se acepta el tradeoff entre IP residencial y salida gratuita**, pero que ese tradeoff tiene un coste que el vault no ha medido: no hay ninguna cifra de tasa de bloqueo en el README.
+
+## Nota de verificación
+Servicios, puertos y reglas de salida están transcritos literalmente del README. La captura **no** publica: la tasa de bloqueo real por salida, el coste de los proxies de pago que el sistema admite, ni si WARP se considera suficiente para el registro de OpenAI. La sección de Checkout es un único párrafo: el vault no puede afirmar la tasa de éxito del proceso de pago.

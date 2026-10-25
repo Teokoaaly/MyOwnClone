@@ -1,0 +1,22 @@
+---
+id: 2026-1024-alexhost-sin-postura-dmca-ni-declaracion-de-no-kyc
+type: atom
+certainty: solid
+sources: [sources/2026-10-24-alexhost-home.md]
+links: ["[[2026-1024-alexhost-datacenter-propio-en-chisinau-soterrado]]", "[[2026-1024-alexhost-dos-metodos-de-pago-cripto-sin-nombre-de-moneda]]", "[[2026-1024-anubiz-dmca-ignored-etiquetado-por-plan-y-no-por-producto]]", "[[2026-1024-anubiz-sin-kyc-registro-anonimo-con-cripto]]", "[[2026-1024-extravm-pago-cripto-sin-kyc-ni-identidad]]"]
+---
+
+## Claim
+La home de AlexHost **no declara ninguna postura de contenido ni de identidad**. En el texto capturado **no aparece** ninguna de las expresiones que el vault ya ha registrado en otros proveedores: ni "bulletproof", ni "DMCA ignored", ni "DMCA friendly", ni "no KYC", ni "anonymous", ni "without verification", ni "we do not log", ni política de uso aceptable, ni mención a copyright, retiradas o takedowns. Lo único que sobrevive del pasado del producto es **una ruta de assets**: el selector de ubicaciones carga **ocho de sus nueve banderas** desde `img/dmca/icons/` (moldova.svg, netherlands.svg, sweden.svg, bulgaria.svg, switzerland.svg, france.svg, england.svg, romania.svg — la de Estados Unidos sale de otra ruta, `img/icons/usa.svg`), y el catálogo de dedicados usa el mismo prefijo de ruta `img/dmca/icons/` para sus iconos de CPU, RAM y disco. El texto sí afirma, en cambio, **"Guaranteed security and confidentiality"** entre las ventajas, y el único marco legal que se publica es una **"Fee for Service Agreement"** y un **"Data Processing Agreement (DPA)"** ([[2026-1024-alexhost-superficie-legal-dpa-y-terminos-publicados]]).
+
+## Why It Matters
+El vault tiene ya **tres proveedores con postura explícita de no-KYC o de DMCA ignorado** (Anubiz con "No KYC on signup" y el distintivo "DMCA IGNORED" en cuatro de cinco planes, [[2026-1024-anubiz-sin-kyc-registro-anonimo-con-cripto]] y [[2026-1024-anubiz-dmca-ignored-etiquetado-por-plan-y-no-por-producto]]; ExtraVM con "No identity verification is required when paying with cryptocurrency", [[2026-1024-extravm-pago-cripto-sin-kyc-ni-identidad]]; Skhron con "nothing"). AlexHost **no está en ese eje**: paga en cripto ([[2026-1024-alexhost-dos-metodos-de-pago-cripto-sin-nombre-de-moneda]]) pero **no declara nada sobre qué ocurre con la identidad**. Eso reordena el mapa del thread: **el criptopago sin declaración de identidad es el estado por defecto de medio sector**, no un privativo del tramo offshore explícito. Skhron, ExtraVM y Anubiz enumeran lo que **no** piden; AlexHost simplemente no dice nada, y esa diferencia importa: "no declarado" no es "no pedido".
+
+El matiz crucial para el producto del vault: la ausencia de postura DMCA **no es una postura favorable**. En la escala del thread (§6: "postura de identidad" frente a "cumplimiento auditable"), AlexHost queda en el intervalo que el thread llama "entre 'no pide nada' y 'no publica nada'", y **ese es exactamente el intervalo donde no se puede sustentar el Aviso Legal** ([[2026-1022-superficie-legal-publica-dpa-clon-terms]]). Su ventaja comparativa frente a Anubiz es la **geografía física** ([[2026-1024-alexhost-datacenter-propio-en-chisinau-soterrado]]), no una garantía jurídica.
+
+## [FRICTION]
+> La expectativa de trabajo para esta captura era que AlexHost declarara explícitamente su pertenencia al segmento de alto anonimato ("bulletproof", "no KYC", "DMCA ignored"), por su reputación como proveedor del tramo. La captura **no lo dice en ninguna parte**: ocho de las nueve banderas se sirven desde rutas `img/dmca/icons/`, lo que confirma que la interfaz está diseñada para ese posicionamiento, pero **diseño de interfaz no es declaración**.
+> Esto no es una contradicción con ningún átomo existente (Anubiz y ExtraVM declaran lo que hacen, y sus átomos siguen siendo ciertos), sino una **corrección de la premisa**: si el vault llega a tratar a AlexHost como "el proveedor bulletproof que declara su postura", esa etiqueta no tiene respaldo textual en esta fuente. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+La captura **no** reproduce el texto de la "Fee for Service Agreement" ni del DPA (solo el encabezado y un fragmento: "This Agreement is entered into between 'ALEXHOST' S.R.L., a company registered in the Republic of Moldova, located at 3, C.…"), de modo que la posible existencia de cláusulas sobre contenido, DMCA o verificación **dentro** de esos documentos no puede confirmarse ni descartarse con esta fuente.

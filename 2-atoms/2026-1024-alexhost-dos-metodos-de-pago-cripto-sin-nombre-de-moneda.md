@@ -1,0 +1,18 @@
+---
+id: 2026-1024-alexhost-dos-metodos-de-pago-cripto-sin-nombre-de-moneda
+type: atom
+certainty: solid
+sources: [sources/2026-10-24-alexhost-home.md]
+links: ["[[2026-1024-alexhost-sin-postura-dmca-ni-declaracion-de-no-kyc]]", "[[2026-1024-1984-hosting-acepta-bitcoin-y-monero]]", "[[2026-1024-hostkey-monedas-aceptadas-bitcoin-ethereum-litecoin-ripple-bch]]", "[[2026-1024-anubiz-sin-kyc-registro-anonimo-con-cripto]]", "[[2026-1024-hostbrr-pagos-eur-usd-paypal-cripto-y-provisionamiento-en-minutos]]"]
+---
+
+## Claim
+La home de AlexHost publica **dos bloques de métodos de pago**, y ninguno nombra una moneda. El bloque "Payment methods" contiene **seis imágenes sin texto alternativo identificable** —los archivos son `img/payment/1_1.png`, `img/payment/2_1.png`, `img/payment/6_1.png`, `uploads/2024/12/g-pay-3.png`, `uploads/2024/12/logo-4-1-2-e1735039516749.png` y `uploads/2025/11/back-transfer.svg`—, y el bloque "Cryptocurrency" contiene **nueve imágenes** (`img/payment/c1_1.png`, `c2_1.png`, `c3_1.png`, `c5_1.png`, `c6_1.png`, `c7_1.png`, `c8_1.png`, `c9_1.png` y `uploads/2025/06/cryptomus.png`), entre las cuales solo una es identificable por nombre de archivo: **`cryptomus.png`** — un agregador de cripto, no una moneda. Los nombres de archivo son **irregulares** (`1_1`, `2_1`, `6_1`; `c4_1` no existe y su lugar lo ocupa `cryptomus.png`), lo que indica **sustituciones puntuales de un set original**: el hueco en la numeración delata que el logotipo de Cryptomus **reemplazó** a la moneda que ocupaba la cuarta posición. El texto que sí aparece es una línea de ventajas: **"Credit cards, cryptocurrencies, online payment systems — Wide range of payment methods for maximum customer convenience"**. La captura **no nombra ninguna criptomoneda**, no publica ninguna condición de reembolso en cripto, no menciona comisiones, ni el proceso de verificación de pago.
+
+## Why It Matters
+Es una **cifra sin unidad**: nueve logotipos, cero nombres. En el thread, cada proveedor del tramo publica su lista con nombres verificables — HOSTKEY con Bitcoin, Ethereum, Litecoin, Ripple y BCH ([[2026-1024-hostkey-monedas-aceptadas-bitcoin-ethereum-litecoin-ripple-bch]]), Anubiz con seis monedas concretas ([[2026-1024-anubiz-sin-kyc-registro-anonimo-con-cripto]]), 1984 Hosting con Bitcoin y Monero ([[2026-1024-1984-hosting-acepta-bitcoin-y-monero]]). Para el vault esto significa que **el criptopago de AlexHost no es comparable con el de los demás**: no se puede afirmar si acepta XMR (que es la señal de segmento alto-anonimato que el vault ya usó para Anubiz y 1984), ni si BTC o ETH son las únicas opciones.
+
+Y hay un dato inferible de la captura que sí es relevante: **la presencia de un logotipo de Cryptomus** es la única señal técnica sobre el circuito de pago cripto. Cryptomus es un agregador con KYC por defecto en la mayoría de sus productos, lo que **orienta la política de identidad en sentido contrario** al del tramo offshore — pero esto es lectura del nombre del archivo, no una declaración de AlexHost, y por tanto queda como **pista, no como dato**. Lo que sí puede afirmarse es que la home no publica ninguna exclusión.
+
+## Nota de verificación
+La captura **no** nombra ni una sola criptomoneda, ni publica las condiciones de conversión, ni el estado del pago en cripto en la garantía de 30 días ([[2026-1024-alexhost-garantia-de-dinero-devuelto-30-dias]]), ni los métodos de pago de cada uno de los seis logotipos del bloque fiat. Los nombres de archivo de los logotipos son la única pista disponible y **no equivalen a la lista aceptada**: hay que confirmarlo en el checkout.

@@ -1,0 +1,25 @@
+---
+id: 2026-1024-alexhost-el-mismo-cpu-a-dos-precios-diferentes
+type: atom
+certainty: solid
+sources: [sources/2026-10-24-alexhost-home.md]
+links: ["[[2026-1024-alexhost-precios-dedicados-de-26-a-408-euros]]", "[[2026-1024-evoxt-dos-precios-distintos-para-el-mismo-plan]]", "[[2026-1024-hostbrr-webhosting-1-25-litespeed-ssl-y-backups]]", "[[2026-1024-alexhost-configurador-vps-24-fichas-solo-3-con-precio]]"]
+---
+
+## Claim
+Tres CPU aparecen **duplicados en la misma lista de dedicados**, sin que la captura explique qué cambia entre las dos fichas. **2x Xeon E5-2699 v3** figura a **149.00 €** (cid 328) y a **224.00 €** (cid 3912) con specs **idénticas línea por línea** (36 Cores / 72 Threads, base 2.3 GHz, turbo 3.6 GHz, DDR4 32/64/128/256 GB ECC, SSD) — **×1,50**. **2x Xeon Gold 6138** figura a **333.00 €** (cid 1495) y a **408.00 €** (cid 3917) con specs también idénticas (40C/80T, 2.0/3.7 GHz, DDR4 64/128/256/512 GB ECC, SSD) — **×1,225**. Y **2x Xeon E5-2690 v4** aparece dos veces **al mismo precio, 180.00 €** (cid 2941 con "64 GB ECC" fijo, "1TB SSD" y **sin icono de interrogación ni frecuencias de reloj**; cid 1537 con "64/128/256/512 GB ECC", "SSD" y 2,6/3,5 GHz), que es un duplicado sin discrepancia de precio pero sí de ficha técnica. El distintivo **"Customer's favorite"** aparece **seis veces** en la lista, siempre **entre dos fichas** (después del "Order Now" de una y antes del encabezado de la siguiente). Leyendo el distintivo como etiqueta de la ficha que le sigue, las seis marcadas serían **i5-4570, E5-2620, 2x E5-2620 v3, las dos SKUs del E5-2699 v3 y el RYZEN 9 3950X** — es decir, **las dos fichas del E5-2699 v3 quedan marcadas a la vez**. En cualquier lectura, el distintivo **no funciona como discriminante** entre las dos SKUs del E5-2699 v3, que son idénticas hasta en el reloj base y el turbo.
+
+## Why It Matters
+El vault ya tenía un caso de "dos precios distintos para el mismo plan" en **Evoxt** ([[2026-1024-evoxt-dos-precios-distintos-para-el-mismo-plan]]), y allí la discrepancia era de 66 % (VM-1: $5,99 vs $9,99) porque la página comparaba **dos tablas distintas**. En AlexHost la discrepancia es de otra naturaleza: **está dentro de una sola lista, con specs transcritas idénticas**, así que el lector no puede saber qué está comprando por la diferencia de precio (149 € vs 224 € = **×1,50** para la misma máquina). La hipótesis más verosímil —que las opciones de RAM configurables cambien el precio final— **no está en la captura**: ambas fichas listan exactamente las mismas cuatro opciones de RAM.
+
+Y el caso del E5-2690 v4 **endurece el argumento**: dos fichas al **mismo precio** con disco y configurabilidad de RAM distintos. Eso demuestra que **el duplicado en el catálogo no codifica el precio**: puede ser una SKU con más opciones de configuración al mismo importe, o una entrada que no se limpió al actualizar la tarifa. En cualquiera de los dos casos, **la lista de 17 fichas no son 17 SKUs legibles**, y por tanto el rango "26 € a 408 €" es el de un catálogo, no el de una lista de precios verificable.
+
+Para el método del vault esto refuerza una regla: **una lista de planes con specs transcritas sin diferencia visible NO es una lista de precios, es una lista de SKUs cuyo precio final no es determinable desde la página**. El mismo patrón aparece, más arriba, en el bloque de hosting compartido, donde cada plan muestra dos importes (5.90 € / 7.67 €) ([[2026-1024-hostbrr-webhosting-1-25-litespeed-ssl-y-backups]]), y en el configurador de VPS, donde 21 de 24 fichas llevan un botón de compra inerte ([[2026-1024-alexhost-configurador-vps-24-fichas-solo-3-con-precio]]).
+
+## [FRICTION]
+> [[2026-1024-evoxt-dos-precios-distintos-para-el-mismo-plan]] (escrita hace ~1 día) ya registró la discrepancia de Evoxt como fricción abierta y la dejó sin resolver, señalando que la página **no declara cuál de los dos precios es el de venta**.
+> Este átomo encuentra el mismo defecto con una diferencia que la de Evoxt no tenía: en AlexHost **las dos fichas son la misma lista y declaran specs idénticas**, no dos tablas. Si en Evoxt la discordancia era "dos catálogos", aquí es "el mismo catálogo con el mismo producto duplicado", lo que hace más difícil todavía sostener que cualquiera de los dos importes sea un precio de compra.
+> Ambas no pueden ser simultáneamente verdaderas leídas como "el precio publicado es el precio del producto": o el configurador calcula un precio distinto según una variable no visible en la ficha (ubicación, RAM, disco, o una SKU distinta con el mismo nombre), o la lista contiene precios residuales. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+La captura **no** muestra los identificadores de producto (`cid`) con su significado, ni permite saber si 224 € y 408 € corresponden a una configuración superior (por ejemplo, RAM fijada al máximo o disco NVMe) que la ficha no llega a expresar. Tampoco publica la periodicidad de los descuentos ni el precio por gigabyte de RAM resultante.
