@@ -1,0 +1,15 @@
+# Gemini Model Pricing and Shared Grounding Limits
+*Last updated: 2026-11-01*
+
+## Overview
+The Gemini API pricing structure establishes explicit upgrade paths and shared rate limits across model tiers. Google's free grounding search requests (5K per month, then $14/1K) are pooled across all Gemini 3+ models, creating coordination friction: heavy usage of one model depletes the shared bucket for others. Additionally, Gemini 2.5 Flash and Flash-Lite share a 500 RPD free grounding limit, forcing an explicit upgrade to Flash for retrieval-heavy workloads. This pricing architecture means model selection involves not just capability and cost but also grounding eligibility and rate-limit coordination within an organization.
+
+## Key Ideas
+Google's grounding policy creates a two-tier sharing structure: Gemini 2.5 Flash and Flash-Lite share a 500 RPD free limit, while all Gemini 3+ models (including Argon, Flash 3.8, Live, and Robotics) share a 5,000 free search requests per month. This design produces explicit upgrade thresholds — any application needing >500 RPD of Google Search grounding must use Flash rather than Flash-Lite, increasing minimum monthly costs by ~$35 per 1,000 grounded prompts beyond the free limit. Meanwhile, the 5K shared pool across Gemini 3+ models means that organizations running mixed-model workflows (e.g., Argon for reasoning + Flash for retrieval) must monitor grounding consumption across models to avoid unexpected charges. The shared limits also create implicit coordination friction: a team heavily invested in Argon-grounded queries may starve Flash of its grounding allocation, forcing rebalancing of model usage or budget increases. All seven atoms in this cluster ([[2026-11-01-gemini-2-5-flash]], [[2026-11-01-gemini-3-5-flash-lite]], [[2026-11-01-gemini-3-8-flash]], [[2026-11-01-gemini-4-argon-reasoning]], [[2026-11-01-gemini-live-api-models]], [[2026-11-01-gemini-robotics]], [[2026-11-01-gemini-tts-models]]) converge on this architecture, meaning that any decision to upgrade, rebalance, or optimize grounding usage affects multiple model tiers simultaneously.
+
+## Open Questions
+- Can organizations negotiate higher grounding quotas beyond the 5K/500 RPD defaults, and what is the enterprise pricing for dedicated grounding buckets?
+- Does the shared 5K pool favor models with lower grounding request rates, creating a competitive disadvantage for reasoning-heavy workloads that naturally require more retrieval?
+- How will the planned January 2027 price increases across models affect the cost-benefit analysis of staying within free grounding limits versus upgrading?
+- Is the 500 RPD Flash/Flash-Lite split a permanent architectural choice or a temporary measure during the Gemini 4 rollout?
+- For mixed-model workflows, what monitoring and orchestration tools can dynamically distribute grounding requests to stay within free quotas?
