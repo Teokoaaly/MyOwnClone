@@ -3,6 +3,7 @@ import { ArrowUpRight, CheckCircle, Sparkle } from "@phosphor-icons/react/dist/s
 import AnimatedLogoMark from "@/components/ui/AnimatedLogoMark";
 import PublicPricing from "@/components/ui/PublicPricing";
 import { Link } from "@/i18n/navigation";
+import type { PublicPlan } from "@/lib/public-pricing";
 import { CloneSimulator } from "./_components/CloneSimulator";
 import { LiquidOrb } from "./_components/LiquidOrb";
 import styles from "./page.module.css";
@@ -25,7 +26,15 @@ const steps = [
   ["04", "Despliega", "Publica el chat y comparte un asistente que funciona 24/7."],
 ] as const;
 
-export default function LiquidLandingPage() {
+interface LiquidLandingPageProps {
+  readonly documentationHref?: string;
+  readonly pricingPlans?: readonly PublicPlan[];
+}
+
+export function LiquidLandingPage({
+  documentationHref = "/docs",
+  pricingPlans,
+}: LiquidLandingPageProps) {
   return (
     <main className={styles.page} lang="es">
       <div className={styles.ambient} aria-hidden="true" />
@@ -68,11 +77,15 @@ export default function LiquidLandingPage() {
 
       <section className={styles.process} id="process"><div className={styles.sectionHead}><span>Cómo funciona</span><h2>Cuatro pasos para tu clon.</h2><p>Desde el registro hasta un asistente en vivo, en minutos y no semanas.</p></div><ol className={styles.processGrid}>{steps.map(([number, title, description]) => <li data-testid="process-step" key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></li>)}</ol></section>
 
-      <section className={styles.pricing} id="plans"><div className={styles.sectionHead}><span>Precios</span><h2>Elige tu plan.</h2><p>Empieza gratis y escala a medida que crece tu clon.</p></div><PublicPricing mode="landing" /></section>
+      <section className={styles.pricing} id="plans"><div className={styles.sectionHead}><span>Precios</span><h2>Elige tu plan.</h2><p>Empieza gratis y escala a medida que crece tu clon.</p></div>{pricingPlans ? <PublicPricing mode="landing" plans={pricingPlans} /> : <PublicPricing mode="landing" />}</section>
 
       <section className={styles.technology} aria-label="Tecnología que ya impulsa MyOwnClone"><p>Tecnología que ya impulsa MyOwnClone</p><div>{["Next.js", "Flask", "PostgreSQL", "Redis", "Ollama"].map((technology) => <span data-testid="technology-wordmark" key={technology}>{technology}</span>)}</div></section>
       <section className={styles.finalCta}><div><h2>¿Listo para clonarte <span>a ti mismo?</span></h2><p>Construye un asistente que escala tu conocimiento y automatiza conversaciones sin perder tu voz.</p></div><Link className={styles.primaryCta} href="/registro">Empieza a construir tu clon <span aria-hidden="true"><ArrowUpRight size={18} weight="bold" /></span></Link></section>
-      <footer className={styles.footer}><span><AnimatedLogoMark forceMotion size={20} /> © 2026 MyOwnClone</span><div><Link href="/legal">Legal</Link><a href="/docs">Documentación</a><a href="mailto:hello@myownclone.com">Contacto</a></div></footer>
+      <footer className={styles.footer}><span><AnimatedLogoMark forceMotion size={20} /> © 2026 MyOwnClone</span><div><Link href="/legal">Legal</Link><a href={documentationHref}>Documentación</a><a href="mailto:hello@myownclone.com">Contacto</a></div></footer>
     </main>
   );
+}
+
+export default function LandingLiquidRoute() {
+  return <LiquidLandingPage />;
 }
