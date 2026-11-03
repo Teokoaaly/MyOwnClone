@@ -70,7 +70,7 @@ export default function LegalPage() {
                 con marca personal
               </dd>
               <dt className="font-medium text-slate-900">Representantes legales</dt>
-              <dd>Jacinto Guzman y Mario Egea</dd>
+              <dd>Jacinto Guzman</dd>
             </dl>
           </LegalBlock>
 
