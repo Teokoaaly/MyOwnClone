@@ -1,0 +1,1048 @@
+---
+url: https://www.assemblyai.com/pricing
+captured: 2026-11-05
+word_count: 4667
+status: raw
+---
+
+New
+
+AssemblyAI-TTS-1: Text-to-speech for voice agents.
+[Learn more](https://www.assemblyai.com/blog/text-to-speech-api)
+
+x
+
+[![AssemblyAI](https://www.assemblyai.com/_aai/images/logos/assemblyai-logo-full-primary.svg)](https://www.assemblyai.com/)Close menu
+
+[Get started](https://www.assemblyai.com/dashboard/signup) [Log in](https://www.assemblyai.com/dashboard/login)
+
+[platform\\
+\\
+Platform overview\\
+\\
+Models, APIs, and infrastructure in one place. Build voice into any product, on any stack.](https://www.assemblyai.com/products)
+
+transcribe
+
+[Pre-recorded Speech-to-Text API](https://www.assemblyai.com/products/speech-to-text) [Realtime Speech-to-Text API](https://www.assemblyai.com/products/streaming-speech-to-text) [Sync Speech-to-Text API](https://www.assemblyai.com/products/sync-speech-to-text)
+
+understand
+
+[Speech Understanding API](https://www.assemblyai.com/products/speech-understanding) [Guardrails and Safety](https://www.assemblyai.com/products/guardrails) [LLM Gateway](https://www.assemblyai.com/products/llm-gateway)
+
+interact
+
+[Dictation API](https://www.assemblyai.com/products/dictation-api) [Text-to-Speech API new](https://www.assemblyai.com/products/text-to-speech)
+
+inference
+
+[Self Hosted](https://www.assemblyai.com/deployments/self-hosted) [Voice AI Cloud](https://www.assemblyai.com/deployments/cloud)
+
+use cases
+
+[Voice Agents](https://www.assemblyai.com/solutions/voice-agents) [AI Notetakers](https://www.assemblyai.com/use-cases/ai-notetakers) [Call Analytics](https://www.assemblyai.com/use-cases/call-analytics) [Medical Transcription](https://www.assemblyai.com/use-cases/medical-transcription) [Dictation](https://www.assemblyai.com/use-cases/dictation) [Agent Assist](https://www.assemblyai.com/use-cases/agent-assist) [AI Scribes](https://www.assemblyai.com/use-cases/ai-scribes)
+
+languages
+
+[English](https://www.assemblyai.com/languages/english) [Spanish](https://www.assemblyai.com/languages/spanish) [Portuguese](https://www.assemblyai.com/languages/portuguese) [French](https://www.assemblyai.com/languages/french) [German](https://www.assemblyai.com/languages/german) [Russian](https://www.assemblyai.com/languages/russian) [Hindi](https://www.assemblyai.com/languages/hindi) [Dutch](https://www.assemblyai.com/languages/dutch) [Japanese](https://www.assemblyai.com/languages/japanese) [Italian](https://www.assemblyai.com/languages/italian) [All 99 Languages](https://www.assemblyai.com/languages)
+
+customers
+
+All customer stories
+
+Top Voice AI companies are building with Assembly.
+
+[See all stories](https://www.assemblyai.com/customers)
+
+![Zoom](https://www.assemblyai.com/_aai/images/customers/zoom-light.svg)
+
+Zoom leverages AssemblyAI to help advance its AI research and development.
+
+[Read the story](https://www.assemblyai.com/customers/zoom-customer-story)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-light.svg)
+
+Siro achieves a 90% reduction in customer complaints and support tickets.
+
+[Watch the video](https://www.assemblyai.com/customers/siro-customer-story)
+
+resources
+
+[Documentation](https://www.assemblyai.com/docs) [API Reference](https://www.assemblyai.com/docs/api-reference/overview) [Cookbooks](https://www.assemblyai.com/docs/cookbooks) [Support](https://www.assemblyai.com/contact/support) [Changelog](https://www.assemblyai.com/changelog) [Status](https://status.assemblyai.com/)
+
+Latest Release
+
+Text-to-Speech API
+
+Our first text-to-speech model, AssemblyAI-TTS-1, is built for voice agents, on live calls. It sounds natural, responds fast, and keeps callers on the line.
+
+[Learn more](https://www.assemblyai.com/blog/text-to-speech-api)
+
+resources
+
+[Blog](https://www.assemblyai.com/blog) [Partners](https://www.assemblyai.com/partners) [Research](https://www.assemblyai.com/research) [Benchmarks](https://www.assemblyai.com/benchmarks) [Security](https://www.assemblyai.com/security)
+
+[![AssemblyAI](https://www.assemblyai.com/_aai/images/logos/assemblyai-logo-full-secondary.svg)](https://www.assemblyai.com/)Close menu
+
+[Get started](https://www.assemblyai.com/dashboard/signup) [Log in](https://www.assemblyai.com/dashboard/login)
+
+[platform\\
+\\
+Platform overview\\
+\\
+Models, APIs, and infrastructure in one place. Build voice into any product, on any stack.](https://www.assemblyai.com/products)
+
+transcribe
+
+[Pre-recorded Speech-to-Text API](https://www.assemblyai.com/products/speech-to-text) [Realtime Speech-to-Text API](https://www.assemblyai.com/products/streaming-speech-to-text) [Sync Speech-to-Text API](https://www.assemblyai.com/products/sync-speech-to-text)
+
+understand
+
+[Speech Understanding API](https://www.assemblyai.com/products/speech-understanding) [Guardrails and Safety](https://www.assemblyai.com/products/guardrails) [LLM Gateway](https://www.assemblyai.com/products/llm-gateway)
+
+interact
+
+[Dictation API](https://www.assemblyai.com/products/dictation-api) [Text-to-Speech API new](https://www.assemblyai.com/products/text-to-speech)
+
+inference
+
+[Self Hosted](https://www.assemblyai.com/deployments/self-hosted) [Voice AI Cloud](https://www.assemblyai.com/deployments/cloud)
+
+use cases
+
+[Voice Agents](https://www.assemblyai.com/solutions/voice-agents) [AI Notetakers](https://www.assemblyai.com/use-cases/ai-notetakers) [Call Analytics](https://www.assemblyai.com/use-cases/call-analytics) [Medical Transcription](https://www.assemblyai.com/use-cases/medical-transcription) [Dictation](https://www.assemblyai.com/use-cases/dictation) [Agent Assist](https://www.assemblyai.com/use-cases/agent-assist) [AI Scribes](https://www.assemblyai.com/use-cases/ai-scribes)
+
+languages
+
+[English](https://www.assemblyai.com/languages/english) [Spanish](https://www.assemblyai.com/languages/spanish) [Portuguese](https://www.assemblyai.com/languages/portuguese) [French](https://www.assemblyai.com/languages/french) [German](https://www.assemblyai.com/languages/german) [Russian](https://www.assemblyai.com/languages/russian) [Hindi](https://www.assemblyai.com/languages/hindi) [Dutch](https://www.assemblyai.com/languages/dutch) [Japanese](https://www.assemblyai.com/languages/japanese) [Italian](https://www.assemblyai.com/languages/italian) [All 99 Languages](https://www.assemblyai.com/languages)
+
+customers
+
+All customer stories
+
+Top Voice AI companies are building with Assembly.
+
+[See all stories](https://www.assemblyai.com/customers)
+
+![Zoom](https://www.assemblyai.com/_aai/images/customers/zoom-light.svg)
+
+Zoom leverages AssemblyAI to help advance its AI research and development.
+
+[Read the story](https://www.assemblyai.com/customers/zoom-customer-story)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-light.svg)
+
+Siro achieves a 90% reduction in customer complaints and support tickets.
+
+[Watch the video](https://www.assemblyai.com/customers/siro-customer-story)
+
+resources
+
+[Documentation](https://www.assemblyai.com/docs) [API Reference](https://www.assemblyai.com/docs/api-reference/overview) [Cookbooks](https://www.assemblyai.com/docs/cookbooks) [Support](https://www.assemblyai.com/contact/support) [Changelog](https://www.assemblyai.com/changelog) [Status](https://status.assemblyai.com/)
+
+Latest Release
+
+Text-to-Speech API
+
+Our first text-to-speech model, AssemblyAI-TTS-1, is built for voice agents, on live calls. It sounds natural, responds fast, and keeps callers on the line.
+
+[Learn more](https://www.assemblyai.com/blog/text-to-speech-api)
+
+resources
+
+[Blog](https://www.assemblyai.com/blog) [Partners](https://www.assemblyai.com/partners) [Research](https://www.assemblyai.com/research) [Benchmarks](https://www.assemblyai.com/benchmarks) [Security](https://www.assemblyai.com/security)
+
+# Pricing built for innovation
+
+[Try our API for free](https://www.assemblyai.com/dashboard/signup) [Contact sales](https://www.assemblyai.com/contact/sales)
+
+Start free, pay-as-you-go after that – no commitments required.
+
+transcribe
+
+Pre-recorded Speech-to-Text API  Realtime Speech-to-Text API  Sync Speech-to-Text API  Dictation API
+
+understand
+
+Speech Understanding API  Guardrails  LLM Gateway
+
+interact
+
+Text-to-Speech API
+
+### Pre-recorded Speech-to-Text API
+
+Build Voice AI on the most accurate Speech-to-Text with language detection, formatting, filler words, keyterms prompting, custom spelling, word-level timestamps, and more.
+
+Models  Add-On Features
+
+| Models | Pay as you go | Custom |
+| --- | --- | --- |
+| Universal-3.5 Pro<br>The most accurate async speech-to-text model that transcribes every conversation exactly as it's heard – works across 18 languages, with native code switching and our most accurate speaker diarization yet. | **$0.21**/hr | Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.<br>[Contact us](https://www.assemblyai.com/contact/sales) |
+| Universal-2<br>Our highly accurate speech-to-text model trained on over 12.5 million hours of audio data. Supports 99 languages. Exceptional accuracy at a lower price. | **$0.15**/hr |
+
+Models
+
+Pay as you go
+
+Universal-3.5 Pro
+
+The most accurate async speech-to-text model that transcribes every conversation exactly as it's heard – works across 18 languages, with native code switching and our most accurate speaker diarization yet.
+
+$0.21 /hr
+
+Universal-2
+
+Our highly accurate speech-to-text model trained on over 12.5 million hours of audio data. Supports 99 languages. Exceptional accuracy at a lower price.
+
+$0.15 /hr
+
+Custom
+
+Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.
+
+[Contact us](https://www.assemblyai.com/contact/sales)
+
+| Add-on features | Universal-3.5 Pro | Universal-2 |
+| --- | --- | --- |
+| Keyterms Prompting<br>Provide up to 1000 words or phrases (maximum 6 words per phrase) to improve transcription accuracy. | **$0.05**/hr | Included |
+| Prompting<br>Describe your audio in plain language to improve transcription accuracy — cover the domain, scenario, or full conversation details. | **$0.05**/hr | Not supported |
+| Speaker Diarization<br>Detect multiple speakers in audio files and segment the transcript into utterances, showing what each speaker said. | **$0.02**/hr | **$0.02**/hr |
+| Medical Mode New <br>Optimize transcription for medical terminology and healthcare conversations with significantly improved accuracy. | **$0.15**/hr | **$0.15**/hr |
+
+Add-on features
+
+Keyterms Prompting
+
+Provide up to 1000 words or phrases (maximum 6 words per phrase) to improve transcription accuracy.
+
+Universal-3.5 Pro  $0.05 /hr
+
+Universal-2 Included
+
+Prompting
+
+Describe your audio in plain language to improve transcription accuracy — cover the domain, scenario, or full conversation details.
+
+Universal-3.5 Pro  $0.05 /hr
+
+Universal-2 Not supported
+
+Speaker Diarization
+
+Detect multiple speakers in audio files and segment the transcript into utterances, showing what each speaker said.
+
+Universal-3.5 Pro  $0.02 /hr
+
+Universal-2  $0.02 /hr
+
+Medical Mode New
+
+Optimize transcription for medical terminology and healthcare conversations with significantly improved accuracy.
+
+Universal-3.5 Pro  $0.15 /hr
+
+Universal-2  $0.15 /hr
+
+### Realtime Speech-to-Text API
+
+Transcribe live audio and video files in real time at ultra-low latency and high-quality accuracy. Leverage auto punctuation and casing, next-gen end-of-turn detection, and ITM/formatting.
+
+Models  Add-On Features
+
+| Models | Pay as you go | Custom |
+| --- | --- | --- |
+| Universal-3.6 Pro Realtime New <br>The most accurate realtime model for high-quality voice agents with built-in context carryover and conversation memory. Supports 32 languages with self-correcting speaker labels, voice isolation, and keyterm prompting. | **$0.45**/hr | Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.<br>[Contact us](https://www.assemblyai.com/contact/sales) |
+| Universal-Streaming<br>High-quality realtime model for English only transcription. Purpose-built for production voice applications with reliable accuracy, low latency, and cost-effectiveness. | **$0.15**/hr |
+| Universal-Streaming Multilingual<br>Multilingual transcription at the speed and cost of Universal-Streaming. Supports English, Spanish, German, French, Portuguese, and Italian. | **$0.15**/hr |
+
+Models
+
+Pay as you go
+
+Universal-3.6 Pro Realtime New
+
+The most accurate realtime model for high-quality voice agents with built-in context carryover and conversation memory. Supports 32 languages with self-correcting speaker labels, voice isolation, and keyterm prompting.
+
+$0.45 /hr
+
+Universal-Streaming
+
+High-quality realtime model for English only transcription. Purpose-built for production voice applications with reliable accuracy, low latency, and cost-effectiveness.
+
+$0.15 /hr
+
+Universal-Streaming Multilingual
+
+Multilingual transcription at the speed and cost of Universal-Streaming. Supports English, Spanish, German, French, Portuguese, and Italian.
+
+$0.15 /hr
+
+Custom
+
+Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.
+
+[Contact us](https://www.assemblyai.com/contact/sales)
+
+| Add-on features | Universal-3.6 Pro Realtime | Universal-Streaming |
+| --- | --- | --- |
+| Keyterms Prompting<br>Provide up to 100 words or phrases (maximum 6 words per phrase) to improve transcription accuracy. | Included | **$0.04**/hr |
+| Speaker Diarization<br>Detect multiple speakers in audio files and segment the transcript into utterances, showing what each speaker said. | **$0.12**/hr | **$0.12**/hr |
+| Prompting<br>Describe your audio in plain language to improve transcription accuracy — cover the domain, scenario, or full conversation details. | **$0.05**/hr | Not supported |
+| Medical Mode<br>Optimize transcription for medical terminology and healthcare conversations with significantly improved accuracy. | **$0.15**/hr | **$0.15**/hr |
+| Voice Focus New <br>Hear the speaker, not the room. Isolate the primary speaker and suppress everything else. | **$0.10**/hr | Not supported |
+| PII Text Redaction<br>Identify and remove PII from the transcription text before it is returned to you. | **$0.12**/hr | **$0.12**/hr |
+
+Add-on features
+
+Keyterms Prompting
+
+Provide up to 100 words or phrases (maximum 6 words per phrase) to improve transcription accuracy.
+
+Universal-3.6 Pro Realtime Included
+
+Universal-Streaming  $0.04 /hr
+
+Speaker Diarization
+
+Detect multiple speakers in audio files and segment the transcript into utterances, showing what each speaker said.
+
+Universal-3.6 Pro Realtime  $0.12 /hr
+
+Universal-Streaming  $0.12 /hr
+
+Prompting
+
+Describe your audio in plain language to improve transcription accuracy — cover the domain, scenario, or full conversation details.
+
+Universal-3.6 Pro Realtime  $0.05 /hr
+
+Universal-Streaming Not supported
+
+Medical Mode
+
+Optimize transcription for medical terminology and healthcare conversations with significantly improved accuracy.
+
+Universal-3.6 Pro Realtime  $0.15 /hr
+
+Universal-Streaming  $0.15 /hr
+
+Voice Focus New
+
+Hear the speaker, not the room. Isolate the primary speaker and suppress everything else.
+
+Universal-3.6 Pro Realtime  $0.10 /hr
+
+Universal-Streaming Not supported
+
+PII Text Redaction
+
+Identify and remove PII from the transcription text before it is returned to you.
+
+Universal-3.6 Pro Realtime  $0.12 /hr
+
+Universal-Streaming  $0.12 /hr
+
+### Sync Speech-to-Text API
+
+Finished transcripts in a single API call. POST a short clip and read the transcript off the response — no polling, no WebSocket, no job to manage.
+
+Models  Add-On Features
+
+| Models | Pay as you go | Custom |
+| --- | --- | --- |
+| Sync API New <br>Universal-3.5 Pro accuracy delivered in a single call. Process up to 20 minutes per request, get results back in ~134 ms (p50). Includes per-word timing and confidence across 18 languages. | **$0.30**/hr | Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.<br>[Contact us](https://www.assemblyai.com/contact/sales) |
+
+Models
+
+Pay as you go
+
+Sync API New
+
+Universal-3.5 Pro accuracy delivered in a single call. Process up to 20 minutes per request, get results back in ~134 ms (p50). Includes per-word timing and confidence across 18 languages.
+
+$0.30 /hr
+
+Custom
+
+Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.
+
+[Contact us](https://www.assemblyai.com/contact/sales)
+
+| Add-on features | Sync API |
+| --- | --- |
+| Keyterms Prompting<br>Provide words or phrases to improve transcription accuracy. | Included |
+| Conversation Context<br>Supply prior dialogue to give the model conversational continuity and boost accuracy. | Included |
+| Prompting<br>Describe your audio in plain language to improve transcription accuracy — cover the domain, scenario, or full conversation details. | **$0.05**/hr |
+
+Add-on features
+
+Sync API
+
+Keyterms Prompting
+
+Provide words or phrases to improve transcription accuracy.
+
+Included
+
+Conversation Context
+
+Supply prior dialogue to give the model conversational continuity and boost accuracy.
+
+Included
+
+Prompting
+
+Describe your audio in plain language to improve transcription accuracy — cover the domain, scenario, or full conversation details.
+
+$0.05 /hr
+
+### Dictation API
+
+Voice input for any app. Send one spoken utterance and get back text your users can send — filler gone, self-corrections resolved, names spelled right.
+
+Models  Add-On Features
+
+| Models | Pay as you go | Custom |
+| --- | --- | --- |
+| Dictation API New <br>Finished text from a single spoken utterance, ready to go straight into whatever your user is writing. Built on Universal-3.5 Pro across 32 languages, with clips up to 120 seconds per request. The verbatim transcript comes back alongside it. | **$0.62**/hr | Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.<br>[Contact us](https://www.assemblyai.com/contact/sales) |
+
+Models
+
+Pay as you go
+
+Dictation API New
+
+Finished text from a single spoken utterance, ready to go straight into whatever your user is writing. Built on Universal-3.5 Pro across 32 languages, with clips up to 120 seconds per request. The verbatim transcript comes back alongside it.
+
+$0.62 /hr
+
+Custom
+
+Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.
+
+[Contact us](https://www.assemblyai.com/contact/sales)
+
+| Add-on features | Dictation API |
+| --- | --- |
+| Keyterms Prompting<br>Bias transcription toward the names and terms your users care about — teammates, customers, product names, internal jargon. | Included |
+| Prompting<br>Describe what the model is about to hear — your app, your domain, the kind of speech your users produce — to improve transcription accuracy. | Included |
+| Output Instruction<br>Describe the shape you want the text in and the output arrives that way, whether that is a bulleted task list, a clinical note, or a chat message. Omit it to keep the default cleanup. | Included |
+
+Add-on features
+
+Dictation API
+
+Keyterms Prompting
+
+Bias transcription toward the names and terms your users care about — teammates, customers, product names, internal jargon.
+
+Included
+
+Prompting
+
+Describe what the model is about to hear — your app, your domain, the kind of speech your users produce — to improve transcription accuracy.
+
+Included
+
+Output Instruction
+
+Describe the shape you want the text in and the output arrives that way, whether that is a bulleted task list, a clinical note, or a chat message. Omit it to keep the default cleanup.
+
+Included
+
+Every feature is included in the $0.62/hr rate. One line on your bill covers the whole request — there is no second rate to model and no token math to do.
+
+### Text-to-Speech API
+
+Conversational text-to-speech for voice agents. Trained on real conversational speech, so your agents sound human, get names and numbers right, and keep callers on the line.
+
+Models  Features
+
+| Models | Pay as you go | Custom |
+| --- | --- | --- |
+| AssemblyAI-TTS-1 New <br>Streaming text-to-speech with about 90 ms time to first audio, in English, Spanish, French, German, Italian, and Portuguese. Available over streaming WebSocket and HTTP APIs. | **$15**/1M chars | Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.<br>[Contact us](https://www.assemblyai.com/contact/sales) |
+
+Models
+
+Pay as you go
+
+AssemblyAI-TTS-1 New
+
+Streaming text-to-speech with about 90 ms time to first audio, in English, Spanish, French, German, Italian, and Portuguese. Available over streaming WebSocket and HTTP APIs.
+
+$15 /1M chars
+
+Custom
+
+Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.
+
+[Contact us](https://www.assemblyai.com/contact/sales)
+
+Billed on input characters. Cloned voices and EU processing cost the same.
+
+| Features | Text-to-Speech API |
+| --- | --- |
+| Voice Library<br>4,000+ voices, each with a name, description, and tags so you can filter to the one that fits your agent. | Included |
+| Instant Voice Cloning<br>Upload a short, clean clip of a voice you have permission to use and get a voice ID back right away. | Included |
+| Word-Level Timestamps<br>A timestamp for every synthesized word, so your orchestrator knows exactly what the agent said before the caller interrupted. | Included |
+| US and EU Processing<br>Process speech in the US or the EU at the same price. | Included |
+| Concurrency<br>No spend commitment to unlock the concurrency you need. Scale with your call volume. | Included |
+
+Features
+
+Text-to-Speech API
+
+Voice Library
+
+4,000+ voices, each with a name, description, and tags so you can filter to the one that fits your agent.
+
+Included
+
+Instant Voice Cloning
+
+Upload a short, clean clip of a voice you have permission to use and get a voice ID back right away.
+
+Included
+
+Word-Level Timestamps
+
+A timestamp for every synthesized word, so your orchestrator knows exactly what the agent said before the caller interrupted.
+
+Included
+
+US and EU Processing
+
+Process speech in the US or the EU at the same price.
+
+Included
+
+Concurrency
+
+No spend commitment to unlock the concurrency you need. Scale with your call volume.
+
+Included
+
+### Speech Understanding
+
+AI models that extract meaning from your transcripts. Identify speakers by name, detect sentiment, surface topics, generate summaries, and more.
+
+| Models | Pay as you go | Custom |
+| --- | --- | --- |
+| Speaker Identification<br>Identify speakers by their actual names or roles. Low effort is the default; set effort to medium for harder recordings. | **$0.02**/hrLow effort (default)<br>**$0.10**/hrMedium effort | Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.<br>[Contact us](https://www.assemblyai.com/contact/sales) |
+| Translation<br>Convert your content from one language to another | **$0.06**/hr |
+| Custom Formatting<br>Standardize and format specific types of information | **$0.03**/hr |
+| Entity Detection<br>Identify entities that are spoken, such as names or email addresses | **$0.08**/hr |
+| Sentiment Analysis<br>Detect the sentiment of each sentence spoken | **$0.02**/hr |
+| Key Phrases<br>Identify significant words and phrases | **$0.01**/hr |
+| Topic Detection<br>Label the topics spoken in standardized IAB taxonomy | **$0.15**/hr |
+| Summarization<br>Generate timestamped, chapter-based summaries of audio files at scale. Low effort is the default; set effort to medium for long, multilingual, or detail-critical audio. | **$0.02**/hrLow effort (default)<br>**$0.07**/hrMedium effort |
+
+Models
+
+Pay as you go
+
+Speaker Identification
+
+Identify speakers by their actual names or roles. Low effort is the default; set effort to medium for harder recordings.
+
+$0.02 /hrLow effort (default)
+
+$0.10 /hrMedium effort
+
+Translation
+
+Convert your content from one language to another
+
+$0.06 /hr
+
+Custom Formatting
+
+Standardize and format specific types of information
+
+$0.03 /hr
+
+Entity Detection
+
+Identify entities that are spoken, such as names or email addresses
+
+$0.08 /hr
+
+Sentiment Analysis
+
+Detect the sentiment of each sentence spoken
+
+$0.02 /hr
+
+Key Phrases
+
+Identify significant words and phrases
+
+$0.01 /hr
+
+Topic Detection
+
+Label the topics spoken in standardized IAB taxonomy
+
+$0.15 /hr
+
+Summarization
+
+Generate timestamped, chapter-based summaries of audio files at scale. Low effort is the default; set effort to medium for long, multilingual, or detail-critical audio.
+
+$0.02 /hrLow effort (default)
+
+$0.07 /hrMedium effort
+
+Custom
+
+Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.
+
+[Contact us](https://www.assemblyai.com/contact/sales)
+
+### Guardrails
+
+Guardrails ensures only high-quality, safe, and compliant content flows through your applications.
+
+| Models | Pay as you go | Custom |
+| --- | --- | --- |
+| Profanity Filtering<br>Filter out profanity from your transcripts | **$0.01**/hr | Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.<br>[Contact us](https://www.assemblyai.com/contact/sales) |
+| PII Audio Redaction<br>Identify and remove PII from the audio file before it is returned to you | **$0.05**/hr |
+| PII Text Redaction<br>Identify and remove PII from the transcription text before it is returned to you | **$0.08**/hr |
+| Content Moderation<br>Detect sensitive content in your audio and video files | **$0.15**/hr |
+
+Models
+
+Pay as you go
+
+Profanity Filtering
+
+Filter out profanity from your transcripts
+
+$0.01 /hr
+
+PII Audio Redaction
+
+Identify and remove PII from the audio file before it is returned to you
+
+$0.05 /hr
+
+PII Text Redaction
+
+Identify and remove PII from the transcription text before it is returned to you
+
+$0.08 /hr
+
+Content Moderation
+
+Detect sensitive content in your audio and video files
+
+$0.15 /hr
+
+Custom
+
+Get custom rate limits, enhanced concurrency, and enterprise-grade flexibility tailored to your AI workloads.
+
+[Contact us](https://www.assemblyai.com/contact/sales)
+
+### LLM Gateway
+
+Apply powerful language models directly to your audio data through a single API. Ask questions, generate insights, and build custom workflows all without managing LLM infrastructure.
+
+Search models
+
+SortInput price — low to highOutput price — low to highProvider — groupedModel name — A to Z
+
+Provider
+
+AssemblyAI1AWS Bedrock26Digital Ocean4Fireworks4Vertex10Inception Labs2Open AI11
+
+Input rate
+
+Under $1 / 1M in29$1–$5 / 1M in22$5+ / 1M in7
+
+Reset
+
+Showing 58 of 58 models
+
+| Models | Input | Output |
+| --- | --- | --- |
+| GPT-5 Nano | $0.05 / 1M | $0.40 / 1M |
+| Nemotron Lightning 3.5 30B A3B | $0.05 / 1M | $0.20 / 1M |
+| Nemotron 3 Nano 30B A3B | $0.06 / 1M | $0.24 / 1M |
+| Nemotron Nano 9B v2 | $0.06 / 1M | $0.23 / 1M |
+| GPT OSS 20B | $0.07 / 1M | $0.30 / 1M |
+| Gemini 2.5 Flash Lite | $0.10 / 1M | $0.40 / 1M |
+| GPT-6 Luna | $0.10 / 1M | $0.50 / 1M |
+| Haiku 5.5 | $0.10 / 1M | $0.50 / 1M |
+| Mercury 3 | $0.10 / 1M | $0.35 / 1M |
+| Qwen3.5 4B Fast | $0.10 / 1M | $0.50 / 1M |
+| gemma-4-31b | $0.14 / 1M | $0.40 / 1M |
+| GLM-5.3 Flash | $0.15 / 1M | $0.50 / 1M |
+| GPT OSS 120B | $0.15 / 1M | $0.60 / 1M |
+| Nemotron 3 Super 120B A12B | $0.15 / 1M | $0.65 / 1M |
+| Qwen3 32B | $0.15 / 1M | $0.60 / 1M |
+| Qwen3 Next 80B A3B | $0.15 / 1M | $1.20 / 1M |
+| GPT-5.6 Luna | $0.20 / 1M | $1.20 / 1M |
+| Mercury Voice | $0.20 / 1M | $0.75 / 1M |
+| Gemini 3.1 Flash Lite | $0.25 / 1M | $1.50 / 1M |
+| GPT-5 mini | $0.25 / 1M | $2.00 / 1M |
+| DeepSeek V4.1 Flash | $0.30 / 1M | $1.20 / 1M |
+| DeepSeek V4.1 Flash 1017 | $0.30 / 1M | $1.20 / 1M |
+| Gemini 2.5 Flash | $0.30 / 1M | $2.50 / 1M |
+| Gemini 3.5 Flash Lite | $0.30 / 1M | $2.50 / 1M |
+| Minimax M3 | $0.30 / 1M | $1.20 / 1M |
+| Beam 1.0 | $0.40 / 1M | $1.20 / 1M |
+| Gemini 3.7 Flash | $0.75 / 1M | $3.75 / 1M |
+| Gemini 3.8 Flash | $0.75 / 1M | $3.75 / 1M |
+| GLM-5.3 | $0.95 / 1M | $3.40 / 1M |
+| GPT-6.1 Terra | $1.00 / 1M | $5.00 / 1M |
+| Haiku 4.5 | $1.00 / 1M | $5.00 / 1M |
+| Gemini 2.5 Pro | $1.25 / 1M | $10.00 / 1M |
+| Gemini 3.5 Flash | $1.25 / 1M | $9.00 / 1M |
+| GPT-5 | $1.25 / 1M | $10.00 / 1M |
+| GPT-5.1 | $1.25 / 1M | $10.00 / 1M |
+| Muse Spark Open | $1.25 / 1M | $4.25 / 1M |
+| Gemini 3.6 Flash | $1.50 / 1M | $7.50 / 1M |
+| GPT-5.2 | $1.75 / 1M | $14.00 / 1M |
+| Gemini 4 Argon | $2.00 / 1M | $10.00 / 1M |
+| GPT-4.1 | $2.00 / 1M | $8.00 / 1M |
+| GPT-5.6 Terra | $2.00 / 1M | $12.00 / 1M |
+| GPT-6 Sol | $2.00 / 1M | $10.00 / 1M |
+| GPT-6.1 Sol | $2.00 / 1M | $10.00 / 1M |
+| Grok 4.7 | $2.00 / 1M | $6.00 / 1M |
+| Sonnet 5.5 | $2.00 / 1M | $10.00 / 1M |
+| Kimi K3 | $3.00 / 1M | $15.00 / 1M |
+| Sonnet 4.5 | $3.00 / 1M | $15.00 / 1M |
+| Sonnet 4.6 | $3.00 / 1M | $15.00 / 1M |
+| Sonnet 5 | $3.00 / 1M | $15.00 / 1M |
+| GPT-5.6 Sol | $4.00 / 1M | $20.00 / 1M |
+| Opus 5.5 | $4.00 / 1M | $20.00 / 1M |
+| GPT-5.5 | $5.00 / 1M | $30.00 / 1M |
+| Opus 4.5 | $5.00 / 1M | $25.00 / 1M |
+| Opus 4.6 | $5.00 / 1M | $25.00 / 1M |
+| Opus 4.7 | $5.00 / 1M | $25.00 / 1M |
+| Opus 4.8 | $5.00 / 1M | $25.00 / 1M |
+| Opus 5 | $5.00 / 1M | $25.00 / 1M |
+| GPT-6 Astra | $10.00 / 1M | $50.00 / 1M |
+
+No models match these filters.
+
+Try clearing the search or widening the filters.
+
+Prices shown are for global routing.
+In-region (US/EU) pricing is 10% higher due to provider cost increases. Add `"model_region": "global"` to your API requests to get the rates shown.
+
+[Looking for volume-based pricing? \\
+\\
+We’ll build a solution tailored to your needs. \\
+\\
+Talk to our team](https://www.assemblyai.com/contact/sales)
+
+[Security **Security and privacy**\\
+\\
+AssemblyAI uses enterprise-grade security practices to keep your data safe. We approach security by design and default, and continuously ensure AssemblyAI is secure for you and your team. \\
+\\
+Learn more\\
+\\
+![](https://www.assemblyai.com/_vercel/image?url=_astro%2Fsecurity.2MJXzdEu.png&w=2048&q=100&dpl=dpl_uaHn5p1X81cpd8TLsMGRC63r65Rt)](https://www.assemblyai.com/security)
+
+Playground
+
+## We’re not playing around, but you can
+
+Put our Voice AI models to the test in our no-code playground.
+
+[Try it out](https://www.assemblyai.com/playground)
+
+![AssemblyAI Playground screenshot](https://www.assemblyai.com/_vercel/image?url=_astro%2Fscreenshot.Dm7nal6m.png&w=2048&q=100&dpl=dpl_uaHn5p1X81cpd8TLsMGRC63r65Rt)
+
+## Frequently asked questions
+
+What are the differences between Speech-to-Text models?  expand\_more
+
+We have speech to text models available for both pre-recorded audio and live transcription settings. For pre-recorded, Universal-3.5 Pro is our most accurate model, delivering best-in-class transcription across a wide range of audio types and languages. Universal-2 offers excellent accuracy at a lower price point. Our streaming models are optimized for real-time use cases, with Universal-3.6 Pro Realtime delivering the highest accuracy and Universal-Streaming providing a cost-effective option.
+
+Can I sign up for free?  expand\_more
+
+Yes. You can create an account and start transcribing immediately with no credit card required. The free tier includes up to 185 hours of pre-recorded transcription and up to 333 hours of streaming transcription.
+
+How is the Text-to-Speech API billed?  expand\_more
+
+The Text-to-Speech API is billed on the input characters you send, at $15 per 1M characters. Cloned voices and EU processing cost the same, and there is no spend commitment to unlock concurrency.
+
+Do you offer volume discounts?  expand\_more
+
+Yes. We offer custom pricing for customers with high-volume usage. Contact our sales team to discuss tiered pricing, volume discounts, and enterprise agreements tailored to your needs.
+
+How does Streaming concurrency work?  expand\_more
+
+AssemblyAI’s Streaming API features free, unlimited, automatic scaling concurrency with no additional fees. On the free plan, you can open up to 5 new streaming connections per minute. On the pay-as-you-go plan, your starting limit is 100 sessions per minute — anytime you are utilizing 70% or more of your current limit, the number of new streams able to be opened over the next minute will automatically increase by 10%. This usage pattern has no ceiling and can continue to scale up indefinitely to whatever your application requires. Custom starting limits beyond 100 are also available at no additional cost.
+
+How does billing work?  expand\_more
+
+We bill monthly based on your actual usage. There are no minimum commitments, upfront fees, or contracts on the pay-as-you-go plan. Invoices are generated at the start of each month for the previous month’s usage.
+
+How is multichannel billed?  expand\_more
+
+Multichannel audio is billed per channel. For example, a 1-hour stereo (2-channel) file is billed as 2 hours of transcription. Each channel is transcribed independently, which provides more accurate results for multi-speaker recordings.
+
+Can I purchase or use AssemblyAI through the AWS Marketplace?  expand\_more
+
+Yes. AssemblyAI is available on the AWS Marketplace, allowing you to consolidate billing through your existing AWS account. Contact our sales team for details on setting this up.
+
+What languages do you support?  expand\_more
+
+AssemblyAI supports transcription in over 99 languages across our models. Please visit our documentation for the complete list.
+
+Can you detect different speakers?  expand\_more
+
+Yes. With Speaker Diarization, AssemblyAI can detect and label different speakers — available for both pre-recorded and Realtime Speech-to-Text API models. AssemblyAI builds and trains its speaker diarization models in-house. And with Speaker Identification, you can replace generic “Speaker A” and “Speaker B” labels with real names or roles.
+
+What is a token?  expand\_more
+
+A token is a unit of text used by large language models (LLMs) in the LLM Gateway. Tokens roughly correspond to word fragments — on average, one English word equals about 1.3 tokens. LLM Gateway pricing is based on the number of input and output tokens processed by the selected model.
+
+![Metaview](https://www.assemblyai.com/_aai/images/customers/metaview.svg)
+
+![Ashby](https://www.assemblyai.com/_aai/images/customers/ashby-logo.svg)
+
+![Cluely](https://www.assemblyai.com/_aai/images/customers/cluely.svg)
+
+![Genio](https://www.assemblyai.com/_aai/images/customers/genio-grey.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+36%
+
+improvement in close rate
+
+[See case study](https://www.assemblyai.com/customers/siro-customer-story)
+
+![LiveKit](https://www.assemblyai.com/_aai/images/customers/livekit-grey.svg)
+
+![EliseAI](https://www.assemblyai.com/_aai/images/customers/eliseai.svg)
+
+![Commure](https://www.assemblyai.com/_aai/images/customers/commure-grey.svg)
+
+![Dovetail](https://www.assemblyai.com/_aai/images/customers/dovetail.avif)
+
+![Fireflies](https://www.assemblyai.com/_aai/images/customers/fireflies-logo.svg)
+
+“The new Universal-3.5 Pro speech model from AssemblyAI is best so far in terms of accuracy, latency, and language switching.”
+
+![Retell](https://www.assemblyai.com/_aai/images/customers/retell-grey.svg)
+
+![CallRail](https://www.assemblyai.com/_aai/images/customers/callrail-logo.svg)
+
+![Apollo.io](https://www.assemblyai.com/_aai/images/customers/apollo-logo.svg)
+
+![ClickUp](https://www.assemblyai.com/_aai/images/customers/clickup.svg)
+
+![Calabrio](https://www.assemblyai.com/_aai/images/customers/calabrio.svg)
+
+80%
+
+increase in customer satisfaction
+
+![HeyGen](https://www.assemblyai.com/_aai/images/customers/heygen-grey.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+![JotPsych](https://www.assemblyai.com/_aai/images/customers/jotpsych.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+“Assembly has saved us countless hours managing models, and provided exceptional accuracy.”
+
+![Metaview](https://www.assemblyai.com/_aai/images/customers/metaview.svg)
+
+![Ashby](https://www.assemblyai.com/_aai/images/customers/ashby-logo.svg)
+
+![Cluely](https://www.assemblyai.com/_aai/images/customers/cluely.svg)
+
+![Genio](https://www.assemblyai.com/_aai/images/customers/genio-grey.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+36%
+
+improvement in close rate
+
+[See case study](https://www.assemblyai.com/customers/siro-customer-story)
+
+![LiveKit](https://www.assemblyai.com/_aai/images/customers/livekit-grey.svg)
+
+![EliseAI](https://www.assemblyai.com/_aai/images/customers/eliseai.svg)
+
+![Commure](https://www.assemblyai.com/_aai/images/customers/commure-grey.svg)
+
+![Dovetail](https://www.assemblyai.com/_aai/images/customers/dovetail.avif)
+
+![Fireflies](https://www.assemblyai.com/_aai/images/customers/fireflies-logo.svg)
+
+“The new Universal-3.5 Pro speech model from AssemblyAI is best so far in terms of accuracy, latency, and language switching.”
+
+![Retell](https://www.assemblyai.com/_aai/images/customers/retell-grey.svg)
+
+![CallRail](https://www.assemblyai.com/_aai/images/customers/callrail-logo.svg)
+
+![Apollo.io](https://www.assemblyai.com/_aai/images/customers/apollo-logo.svg)
+
+![ClickUp](https://www.assemblyai.com/_aai/images/customers/clickup.svg)
+
+![Calabrio](https://www.assemblyai.com/_aai/images/customers/calabrio.svg)
+
+80%
+
+increase in customer satisfaction
+
+![HeyGen](https://www.assemblyai.com/_aai/images/customers/heygen-grey.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+![JotPsych](https://www.assemblyai.com/_aai/images/customers/jotpsych.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+“Assembly has saved us countless hours managing models, and provided exceptional accuracy.”
+
+![Metaview](https://www.assemblyai.com/_aai/images/customers/metaview.svg)
+
+![Aircall](https://www.assemblyai.com/_aai/images/customers/aircall.svg)
+
+![Bland](https://www.assemblyai.com/_aai/images/customers/bland-2025.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+![Apollo.io](https://www.assemblyai.com/_aai/images/customers/apollo-logo.svg)
+
+![Ashby](https://www.assemblyai.com/_aai/images/customers/ashby-logo.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+![Calabrio](https://www.assemblyai.com/_aai/images/customers/calabrio.svg)
+
+![Cluely](https://www.assemblyai.com/_aai/images/customers/cluely.svg)
+
+![Genio](https://www.assemblyai.com/_aai/images/customers/genio-grey.svg)
+
+![Commure](https://www.assemblyai.com/_aai/images/customers/commure-grey.svg)
+
+![Retell](https://www.assemblyai.com/_aai/images/customers/retell-grey.svg)
+
+![CallRail](https://www.assemblyai.com/_aai/images/customers/callrail-logo.svg)
+
+![LiveKit](https://www.assemblyai.com/_aai/images/customers/livekit-grey.svg)
+
+![EliseAI](https://www.assemblyai.com/_aai/images/customers/eliseai.svg)
+
+![ClickUp](https://www.assemblyai.com/_aai/images/customers/clickup.svg)
+
+![HeyGen](https://www.assemblyai.com/_aai/images/customers/heygen-grey.svg)
+
+![Metaview](https://www.assemblyai.com/_aai/images/customers/metaview.svg)
+
+![Aircall](https://www.assemblyai.com/_aai/images/customers/aircall.svg)
+
+![Bland](https://www.assemblyai.com/_aai/images/customers/bland-2025.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+![Apollo.io](https://www.assemblyai.com/_aai/images/customers/apollo-logo.svg)
+
+![Ashby](https://www.assemblyai.com/_aai/images/customers/ashby-logo.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+![Calabrio](https://www.assemblyai.com/_aai/images/customers/calabrio.svg)
+
+![Cluely](https://www.assemblyai.com/_aai/images/customers/cluely.svg)
+
+![Genio](https://www.assemblyai.com/_aai/images/customers/genio-grey.svg)
+
+![Commure](https://www.assemblyai.com/_aai/images/customers/commure-grey.svg)
+
+![Retell](https://www.assemblyai.com/_aai/images/customers/retell-grey.svg)
+
+![CallRail](https://www.assemblyai.com/_aai/images/customers/callrail-logo.svg)
+
+![LiveKit](https://www.assemblyai.com/_aai/images/customers/livekit-grey.svg)
+
+![EliseAI](https://www.assemblyai.com/_aai/images/customers/eliseai.svg)
+
+![ClickUp](https://www.assemblyai.com/_aai/images/customers/clickup.svg)
+
+![HeyGen](https://www.assemblyai.com/_aai/images/customers/heygen-grey.svg)
+
+![Metaview](https://www.assemblyai.com/_aai/images/customers/metaview.svg)
+
+![Aircall](https://www.assemblyai.com/_aai/images/customers/aircall.svg)
+
+![Bland](https://www.assemblyai.com/_aai/images/customers/bland-2025.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+![Apollo.io](https://www.assemblyai.com/_aai/images/customers/apollo-logo.svg)
+
+![Ashby](https://www.assemblyai.com/_aai/images/customers/ashby-logo.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+![Calabrio](https://www.assemblyai.com/_aai/images/customers/calabrio.svg)
+
+![Cluely](https://www.assemblyai.com/_aai/images/customers/cluely.svg)
+
+![Genio](https://www.assemblyai.com/_aai/images/customers/genio-grey.svg)
+
+![Commure](https://www.assemblyai.com/_aai/images/customers/commure-grey.svg)
+
+![Retell](https://www.assemblyai.com/_aai/images/customers/retell-grey.svg)
+
+![CallRail](https://www.assemblyai.com/_aai/images/customers/callrail-logo.svg)
+
+![LiveKit](https://www.assemblyai.com/_aai/images/customers/livekit-grey.svg)
+
+![EliseAI](https://www.assemblyai.com/_aai/images/customers/eliseai.svg)
+
+![ClickUp](https://www.assemblyai.com/_aai/images/customers/clickup.svg)
+
+![HeyGen](https://www.assemblyai.com/_aai/images/customers/heygen-grey.svg)
+
+![Metaview](https://www.assemblyai.com/_aai/images/customers/metaview.svg)
+
+![Aircall](https://www.assemblyai.com/_aai/images/customers/aircall.svg)
+
+![Bland](https://www.assemblyai.com/_aai/images/customers/bland-2025.svg)
+
+![Granola](https://www.assemblyai.com/_aai/images/customers/granola-logo.svg)
+
+![Apollo.io](https://www.assemblyai.com/_aai/images/customers/apollo-logo.svg)
+
+![Ashby](https://www.assemblyai.com/_aai/images/customers/ashby-logo.svg)
+
+![Siro](https://www.assemblyai.com/_aai/images/customers/siro-logo.svg)
+
+![Calabrio](https://www.assemblyai.com/_aai/images/customers/calabrio.svg)
+
+![Cluely](https://www.assemblyai.com/_aai/images/customers/cluely.svg)
+
+![Genio](https://www.assemblyai.com/_aai/images/customers/genio-grey.svg)
+
+![Commure](https://www.assemblyai.com/_aai/images/customers/commure-grey.svg)
+
+![Retell](https://www.assemblyai.com/_aai/images/customers/retell-grey.svg)
+
+![CallRail](https://www.assemblyai.com/_aai/images/customers/callrail-logo.svg)
+
+![LiveKit](https://www.assemblyai.com/_aai/images/customers/livekit-grey.svg)
+
+![EliseAI](https://www.assemblyai.com/_aai/images/customers/eliseai.svg)
+
+![ClickUp](https://www.assemblyai.com/_aai/images/customers/clickup.svg)
+
+![HeyGen](https://www.assemblyai.com/_aai/images/customers/heygen-grey.svg)
