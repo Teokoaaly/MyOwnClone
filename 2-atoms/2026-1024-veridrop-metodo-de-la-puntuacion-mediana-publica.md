@@ -16,3 +16,7 @@ Para MyOwnClone, si algún día se necesita evidencia objetiva de un relay, la s
 
 ## Nota de verificación
 Las cuatro piezas ("99/100", "421 份有效样本", "最近检测 2026-10-23", "等 21 个") y la salvedad están transcritas literalmente. La captura **no** define "样本 válido", ni el algoritmo de la mediana compuesta, ni qué son los "公开报告" agregados.
+
+
+## Nota de extensión 2026-10-27
+La FAQ aporta la **tabla de pesos completa** que esta nota decía faltar: **11 项常规检测** más **1 项** de contexto largo pagada aparte, con los pesos nominales **thinking signature (25%) > behavioral signature (15%) > structured output (12%) > consistency / knowledge / token usage (各 10%) > pdf (8%) > identity / protocol / integrity / message_id (各 5%)**, y los umbrales de veredicto **≥85 优秀(绿) / 70-84 通过(浅绿) / 50-69 marginal(黄) / <50 未达标(红)**. La misma FAQ afirma **"评分公式公开,可逐行审计"** bajo AGPL-3.0, lo que **presiona** la afirmación de esta nota de que el score se publica sin definir cómo se agrega: el caso abierto pasa a ser la **agregación a mediana de informes públicos**, no la tabla de pesos. Véase [[2026-1027-veridrop-pesos-de-los-11-detectores-y-el-contexto-largo-de-pago]] y [[2026-1027-veridrop-los-pesos-de-la-deteccion-suman-110-y-no-100]] (la suma de los once pesos nominales es 110, no 100).

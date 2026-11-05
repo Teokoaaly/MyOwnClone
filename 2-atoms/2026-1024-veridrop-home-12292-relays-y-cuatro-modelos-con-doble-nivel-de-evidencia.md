@@ -16,3 +16,7 @@ Y hay una consecuencia de negocio para el producto: **el mapa de disponibilidad 
 
 ## Nota de verificación
 La cifra de 12.292 y los títulos de los cuatro tableros están transcritos de la captura; el vault traduce los rótulos y no reproduce los caracteres originales. La captura **no** publica: el criterio de inclusión de un relay en la cobertura de 12.292, ni qué es exactamente la "firma criptográfica" de Claude que se verifica, ni el número de sondeos por relay en los tableros de la home (las columnas "última sondeo" y "estado de ejecución" aparecen **vacías** en todas las filas capturadas).
+
+
+## Nota de extensión 2026-10-27
+La FAQ aporta los **identificadores de modelo verbatim** que faltaban: la detección cubre **nueve** modelos OpenAI — `gpt-5.6-sol`, `gpt-6-astra`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `gpt-5.4`, `gpt-5.3-codex`, `gpt-5.4-nano`, `gpt-5.4-mini` — y la home **GPT 5.6** es el tablero de OpenAI. La misma FAQ aclara el dato de los "4 模型组" de esta nota: son **grupos de modelo** y cada uno tiene su propio **escalón de patrocinio S1–S10**, es decir, **la CNC publicitaria de VeriDrop es multidimensional, con un eje por grupo de modelos**. Véanse [[2026-1027-veridrop-gpt-6-astra-exige-chat-completions-y-responses-api]] y [[2026-1027-veridrop-tres-flujos-de-ingreso-y-el-aislamiento-de-la-comision]].

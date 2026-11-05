@@ -2,7 +2,7 @@
 id: 2026-1023-hetzner-firewalls-estatales-sin-coste-adicional
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-10-23-evoxt-vms.md]
+sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-10-23-evoxt-vms.md, sources/2026-11-03-hetzner-cloud.md]
 links: ["[[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]", "[[2026-1022-ausencia-csp-xss-sin-mitigacion]]", "[[2026-1022-live-verify-superficie-dns-reducida-a-dos-hosts]]"]
 ---
 
@@ -15,5 +15,13 @@ Cierra el círculo de coste: los elementos que en otros proveedores son un extra
 ## Nota de verificación
 La captura no publica el número máximo de firewalls, el número de reglas por firewall, ni el precio de las redes privadas por encima de algún umbral. "Sin costes adicionales" es la formulación literal de la página, sin desglose.
 
+## Nota de extensión 2026-11-03
+Fuente: `sources/2026-10-31-hetzner-cloud.md`, `sources/2026-11-01-hetzner-cloud.md`, `sources/2026-11-02-hetzner-cloud.md`. El bloque de features se repite **literalmente** en las tres capturas: los **firewalls stateful "sin costes adicionales"**, asignables a "as many cloud servers as you like", junto a **Networks** (red privada, topologías complejas, clúster Kubernetes o base de datos no accesible públicamente) e **Images** (Ubuntu, Debian, Fedora y otras). Sin cambios en el periodo.
+
+La lectura de coste de este átomo se mantiene intacta: la superficie de seguridad completa (red privada + firewall + API/CLI) entra en los **€ 5,99/mes** del plan de entrada, que las tres capturas confirman sin variación (ver [[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]). Lo que las capturas no añaden es ningún dato nuevo sobre límites de reglas o número máximo de firewalls: la ausencia ya señalada sigue vigente.
+
 ## [NOTA 2026-10-24 — Evoxt]
 Fuente: `sources/2026-10-23-evoxt-vms.md`. Contrapunto de granularidad: Evoxt describe su firewall como **"enterprise-level layer 3"** con "better DDoS protection with layer 3 firewall", y lo gestiona **sin necesidad de conectarse a la VM** ("set firewall rules without even needing to connect to your virtual machine"), con protección DDoS incluida como argumento. Frente al firewall stateful de Hetzner, la diferencia de modelo es de **capa**: L3 filtra paquetes y no cubre capa 7, que es donde quedan expuestos los endpoints HTTP del clon (ver [[2026-1024-evoxt-firewall-capa-3-sin-conexion-al-servidor]]). La ventaja operativa —reglas gestionadas desde el panel, no dentro del sistema— sí es real y comparable al "sin coste adicional" que este átomo documenta para Hetzner.
+
+## 2026-11-03 — re-verificación
+Fuente: `sources/2026-11-03-hetzner-cloud.md`. El bloque de features se repite **literalmente**: los **firewalls stateful "without additional costs"**, que bloquean tráfico entrante y saliente no deseado según reglas definidas y se pueden asignar a "as many cloud servers as you like", junto a **Networks** (red privada entre servidores, topologías complejas, clúster Kubernetes o base de datos no accesible públicamente) e **Images** (Ubuntu, Debian, Fedora y otras). Sin cambios: la superficie de seguridad completa sigue entrando en los **€ 5,99/mes** del plan de entrada, confirmado por cuarta captura ([[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]). La captura **no publica** número máximo de firewalls, número de reglas por firewall ni precio de redes privadas por encima de algún umbral — la ausencia ya señalada sigue vigente. Ver [[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]].

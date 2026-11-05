@@ -15,3 +15,8 @@ La contradicción interna importa para el cálculo: la tabla aplica $0.8/GB ya e
 
 ## Nota de verificación
 Volúmenes, importes y $/GB transcritos literalmente de las cuatro tablas de la sección "Pricing". La captura **no** publica: si el Custom+ de 5TB+ se factura por adelantado o por consumo, ni qué volumen nominal corresponde exactamente al tramo 5TB+, ni si el descuento por volumen se aplica retroactivamente al saldo ya comprado.
+
+
+## Nota de extensión 2026-10-27
+La landing específica del pool móvil **reconfirma los cuatro escalones** de la escalera móvil con las mismas cifras y añade una promesa que la home no recogía. Escalera móvil transcrita de la tabla de precios de `dataimpulse.com/mobile-proxies/`: **Intro $5 / 2.5 GB → $2/GB** ("For New Users"), **Basic $50 / 25 GB → $2/GB**, **Advanced $1600 / 1 TB → $1,6/GB**, **Custom+ "Starts From $8000" / 5 TB+ → "Custom price per GB"** (CTA "Contact Sales"). La novedad de esta página es el badge del bloque de Ad Verification: **"$2/GB — unused GBs roll over"**, que **sí** es una promesa de acarreo entre periodos y por tanto matiza la frase "Traffic never expires" de la tabla. Ver el átomo nuevo [[2026-1027-dataimpulse-gb-sin-caducar-que-igual-rolling-y-son-90-de-satisfaccion]].
+También confirma el patrón de salto de capital ya descrito: el descuento unitario del 20 % ($2 → $1,6/GB) **exige x32 de gasto** respecto al escalón Basic, y el Custom+ de 5 TB+ exige $8.000 de entrada — **cinco veces más que el $1.600 del Advanced**, la misma desproporción que el átomo ya registra en los otros tres pools. Refuerza la conclusión operativa: **el único tramo con descuento real es el contrato enterprise negociado**, no el autoservicio.

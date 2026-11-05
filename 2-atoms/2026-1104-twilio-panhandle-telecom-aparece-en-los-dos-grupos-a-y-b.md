@@ -1,0 +1,16 @@
+---
+id: 2026-1104-twilio-panhandle-telecom-aparece-en-los-dos-grupos-a-y-b
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-twilio-sms-pricing.md]
+links: ["[[2026-1101-twilio-cargos-de-operador-por-sms-y-costo-real-por-mensaje]]", "[[2026-1104-twilio-el-render-completo-restaurado-resuelve-la-friccion-del-11-03]]"]
+---
+
+## Claim
+La sección **"Group A and B carriers"** de la página de precios de Twilio enumera los operadores a los que aplica cada recargo de short code, y **"Panhandle Telecom" aparece listado en los dos grupos a la vez**: en el grupo A (*"GoTextMe, Altice (CSC Wireless), Enflick (TextNow), Bandwidth, Aerialink, Zip Whip Non Toll-Free, Brightlink, Triangle, United Tel Assn, Digital Comm Consulting (OTZ Telecom), Bluegrass Wireless, Commnet Wireless, Sagebrush Cellular, Indigo Wireless, Telnyx LLC, Chariton Valley Tel. Co., Uintah Basin Electronic Telecom, **Panhandle Telecom**, Appalachian Wireless, Pioneer Cellular, Cellularone NE Arizona"* — 21 operadores) y en el grupo B (*"Dish Network, RINA (Rural Independent Network Association), Copper Valley Cellular, James Valley Wireless, Pine Belt Tel Co, Standing Rock Telecom, New Cell, Inland Tel Co, Cell One MTPCS LLC, Viaero Wireless, **Panhandle Telecom**, Northwest Missouri Cellular, GCI Communication, Illinois Valley Cellular, West Central Cellular, Carolina West Wireless, Nex-Tech Wireless, Thumb Cellular, Crossville Tel Co, Union Telephone Company, NewCore Wireless, Alaska Wireless, ASTAC Wireless, Southern Communication Services, Chat Mobility, STRATA, Pine Cellular Phones"* — 27 operadores). Los dos grupos cobran **cifras distintas** en la tabla de short code: *Other - Group A* $0.0025 de salida y *Other - Group B* $0.0042.
+
+## Why It Matters
+Es una **contradicción interna de la propia página**, no un problema de las capturas: el mismo operador queda asignado a dos tramos de recargo distintos, así que el coste real de un SMS saliente a short code por Panhandle Telecom **no está determinado por la página** — $0.0108 si se aplica el grupo A, $0.0125 si se aplica el grupo B, sobre la misma base de $0.0083. Ninguna de las dos cifras es un error de transcripción: ambas salen literalmente de la fuente ([[2026-1101-twilio-cargos-de-operador-por-sms-y-costo-real-por-mensaje]]). Para el vault esto acota el rango de coste por mensaje: el suelo de $0.0108 que se arrastra en los cálculos del hilo **deja de ser un mínimo en el caso de los short codes**, porque un mismo destino puede caer en dos tramos según la clasificación del operador. Y deja una regla de verificación pendiente: para cualquier SMS a short code con destino dudoso, el recargo hay que tomarlo como **$0.0025 o $0.0042 sin poder decidir**, no como un valor único.
+
+## Nota de método
+La captura del **2026-11-03** no renderizaba los nombres de los miembros de los grupos, así que la contradicción solo es observable en las capturas completas (11-01, 11-02 y 11-04), que son byte a byte idénticas en este bloque. Es, por tanto, una fricción que llevaba **tres capturas sin detectar** y que solo se hace visible cuando el extractor entrega la sección completa (ver [[2026-1104-twilio-el-render-completo-restaurado-resuelve-la-friccion-del-11-03]]).

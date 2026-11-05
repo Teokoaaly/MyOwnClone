@@ -1,0 +1,16 @@
+---
+id: 2026-1104-azure-architecture-center-la-captura-renderiza-urls-relativas-y-no-absolutas
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-azure-architecture-center.md]
+links: ["[[2026-1104-azure-architecture-center-cuarta-captura-identica-a-la-del-11-02]]", "[[2026-1101-azure-architecture-center-arboles-de-decision-para-elegir-servicios]]", "[[2026-1101-azure-architecture-center-hub-spoke-y-dmz-para-hibrido-seguro]]"]
+---
+
+## Claim
+El cuerpo capturado el **2026-11-04** conserva los **15 enlaces de las 5 áreas de diseño en forma relativa**, no absoluta: `guide/architecture-styles/`, `best-practices/index-best-practices`, `patterns/`, `ai-ml/ai-get-started`, `data-guide/technology-choices/ai-services`, `ai-ml/architecture/baseline-microsoft-foundry-chat`, `solution-ideas/articles/compute-get-started`, `guide/technology-choices/compute-decision-tree`, `virtual-machines/baseline`, `databases/database-get-started`, `guide/technology-choices/data-stores-getting-started`, `example-scenario/data/greenfield-lakehouse-fabric`, `guide/devops/devops-get-started`, `ai-ml/guide/mlops-maturity-model` y `ai-ml/guide/genaiops-for-mlops` — mientras que los 5 iconos sí vienen en ruta absoluta de site's media (`/en-us/media/common/i_design.svg`, `i_architecture.svg`, `i_best-practices.svg`). La captura del **2026-11-01** del mismo slug, en cambio, renderiza los mismos destinos como **URL absoluta** (`https://learn.microsoft.com/en-us/azure/architecture/...`).
+
+## Why It Matters
+Este es un **delta de render** con consecuencias operativas, no una diferencia de contenido: los 15 destinos son los mismos, pero su forma determina si el href puede citarse como URL o solo como ruta. Al resolver las rutas relativas contra la base `https://learn.microsoft.com/en-us/azure/architecture/`, **las 15 URL reconstruidas coinciden una a una con las que la captura completa del 11-01 ya recogía en absoluto** — lo que confirma que la captura del 11-04 no omite ninguna página del catálogo, solo la abstrae de su URL. Consecuencia para el vault: para citar rutas del center (los árboles de decisión de [[2026-1101-azure-architecture-center-arboles-de-decision-para-elegir-servicios]] o las de seguridad de [[2026-1101-azure-architecture-center-hub-spoke-y-dmz-para-hibrido-seguro]]) hay que declarar **qué forma se está usando**; y para comprobar cobertura basta con comparar el conjunto de rutas relativas, no el texto visible. La diferencia práctica: los **3 enlaces del área de seguridad** (`security/security-get-started`, `networking/architecture/hub-spoke`, `reference-architectures/dmz/secure-vnet-dmz`) que sí aparecen en la captura del 11-01 **no están** en la del 11-04 — ausencia de render, no retirada de la página.
+
+## Nota de verificación
+Extraído con `grep -o '](\([^)]*\))'` sobre `sources/2026-11-04-azure-architecture-center.md`: 20 coincidencias (15 de contenido + 5 de iconos). Contrastado contra las URL absolutas presentes en `sources/2026-11-01-azure-architecture-center.md` (28 URLs únicas bajo `/en-us/azure/architecture/`): las 15 rutas relativas del 11-04 resuelven exactamente contra ese conjunto, y las 3 URLs que quedan sin equivalente en el 11-04 son las del área "Secure and connect workloads".

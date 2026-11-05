@@ -1,0 +1,17 @@
+---
+id: 2026-1026-stealth-defaultargs-como-evasion-a-nivel-de-argumentos-de-lanzamiento
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-puppeteer-extra-stealth.md]
+links: ["[[2026-1026-stealth-evasions-nombradas-en-el-changelog-del-plugin]]", "[[2026-1026-patchright-command-flags-automation-controlled-y-habilitacion-de-funciones]]", "[[2026-1026-patchright-initscripts-inyectados-por-routes-y-detectables-por-timing]]", "[[2026-1026-puppeteer-extra-604-commits-559-tags-y-ultimo-commit-en-marzo-de-2023]]", "[[2026-1026-stealth-modularidad-por-carga-selectiva-y-require-directo-de-una-evasion]]"]
+---
+
+## Claim
+La tabla de ficheros del paquete muestra que **`index.js` —el fichero que carga las evasions— tiene como último commit "feat(plugin-stealth): Add defaultArgs evasion (#579)", del 16 de octubre de 2021**. Es la única evasión que la captura sitúa **fuera de la categoría de las que se nombran en el changelog de objetos del navegador**: `defaultArgs` actúa sobre los **argumentos de lanzamiento del navegador**, no sobre propiedades de `navigator`/`window`. Además, la tabla muestra que la carpeta `evasions/` tiene como último commit "feat: Add plugin proxy-router (#693)" del **8 de agosto de 2022**.
+
+## Why It Matters
+Divide la elusión en **dos capas de actuación** que el vault hasta ahora tenía fundidas en una sola palabra: la capa **JavaScript en la página** (todo lo que el changelog nombra: `navigator.webdriver`, `iframe.contentWindow`, `accept-language`…) y la capa **línea de comandos del binario** (`defaultArgs`, los flags con los que se arranca Chromium). La segunda no se puede resolver desde una página y por tanto **no la cubre ningún detector que mire solo el DOM**.
+Y esa división es exactamente el eje sobre el que se mueve el sector: `patchright` ajusta command flags para eliminar `--enable-automation` y añadir `--disable-blink-features=AutomationControlled`, y recupera funciones que la automatización por defecto desactiva ([[2026-1026-patchright-command-flags-automation-controlled-y-habilitacion-de-funciones]]). Es decir: **la línea de flags es una superficie de detección disputada**, y tanto el plugin de inyección como el driver parcheado la atacan, cada uno desde su nivel. Y al otro lado de esa línea está el vector que el vault ya tenía medido en el driver parcheado: **los `InitScripts` inyectados por rutas**, que son detectables por *timing* ([[2026-1026-patchright-initscripts-inyectados-por-routes-y-detectables-por-timing]]) — es decir, **la capa de arranque y la de inyección no son independientes: se delatan entre sí**.
+La consecuencia práctica para el vault es un matiz que las listings no capturan bien: **la granularidad del paquete es por evasión, pero la granularidad de la técnica no** — una evasión puede estar en la capa JS y otra en la de arranque, y desactivarlas selectivamente produce **perfiles de cliente distintos**, no solo "menos señales tapadas". Eso es relevante para un pipeline que fijo `enabledEvasions`: el conjunto elegido **determina en qué capas se está intervenir** ([[2026-1026-stealth-modularidad-por-carga-selectiva-y-require-directo-de-una-evasion]]).
+
+Nota de verificación: la fecha, el mensaje de commit y la ruta son transcripción literal de la tabla de ficheros de la captura. La captura **no** documenta qué argumentos concretos añade o modifica `defaultArgs` —el nombre de la evasión es lo único verificable.

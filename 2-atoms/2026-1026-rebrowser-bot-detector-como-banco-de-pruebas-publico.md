@@ -1,0 +1,21 @@
+---
+id: 2026-1026-rebrowser-bot-detector-como-banco-de-pruebas-publico
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-rebrowser-patches.md]
+links: ["[[2026-1026-patchright-declara-pasar-catorce-detectores-publicados]]", "[[2026-1024-brightdata-web-unlocker-resuelve-captcha-y-no-requiere-kyc]]", "[[2026-1026-rebrowser-runtime-enable-la-fuga-que-usan-todos-los-antibot]]"]
+---
+
+## Claim
+El README ofrece una **herramienta de prueba pública y gratuita** para el propio cliente: `https://bot-detector.rebrowser.net/`, con el código fuente en `github.com/rebrowser/rebrowser-bot-detector`. La secuencia documentada es: se parchea, se lanza el navegador automatizado contra ese detector y se lee el resultado — *"That's it! Just visit the rebrowser-bot-detector page and test your patched browser"*. La tabla del README compara explícitamente dos estados, **"Before the patches 👎"** y **"After the patches 👍"**, en dos capturas de pantalla de la misma prueba. El README sitúa además el listón: **"It doesn't matter how good your proxies, fingerprints, and behaviour scripts, if you don't have it patched, you're just a big red flag for any major website."**
+
+## Why It Matters
+Es la pieza que faltaba en las dos familias de elusión que el vault tenía registradas. Patchright declara pasar **catorce detectores** con una lista de nombres y marcas ✅, **sin publicar ni una captura ni una fecha de ejecución** ([[2026-1026-patchright-declara-pasar-catorce-detectores-publicados]]). Rebrowser publica, en cambio, **la herramienta con la que se comprueba** y una comparación antes/después. La diferencia no es de eficacia sino de **auditabilidad**: una afirmación de fourteen detectores es un claim; un detector público con su código es un instrumento que cualquier lector puede ejecutar.
+
+Eso convierte al detector en el **activo verificable de la capa**, y tiene el mismo rol que el CSV de precios de 5sim tenía para la capa de SMS: en ambos casos el valor del vault no está en el dato del proveedor, sino en **que el número se puede recomputar**. Aquí la recomputación es con navegador, no con tabla: se necesita una instancia de Chrome parcheada, lo que es un listón de verificación más alto que en el caso de los precios.
+
+Y hay un dato de economía de la elusión que conviene no perder: el README insiste en que **proxies, huellas y scripts de comportamiento no bastan sin el parche**. Es la afirmación, hecha por el propio sector, de que **la calidad de las partidas comprables es condicional a una partida que no se compra**. Es exactamente el tipo de dependencia que la tabla de coste del thread no puede representar ([[2026-1024-brightdata-web-unlocker-resuelve-captcha-y-no-requiere-kyc]]).
+
+## [FRICTION]
+> [[2026-1026-patchright-declara-pasar-catorce-detectores-publicados]] afirma que Patchright "currently is considered undetectable" frente a **catorce detectores nombrados** —Cloudflare, Kasada, Akamai, Datadome, Fingerprint.com, CreepJS, Sannysoft, Incolumitas, IPHey, Browserscan, Pixelscan, Bet365, Shape/F5 y Brotector— y de ahí el átomo concluye que **el captcha es evitable en la capa anterior** y que su coste real es "mantener un parche".
+> Este átomo presiona esa afirmación en el punto de la **medición**: rebrowser, que mantiene un proyecto hermano de la misma familia técnica, **publica el detector y su código fuente**, mientras Patchright publica una lista de marcas sin una sola evidencia adjunta. Si el detector de rebrowser es el banco de pruebas de facto del sector —y su tabla antes/después sugiere que lo es—, entonces la afirmación de Patchright es verificable por terceros y la de rebrowser es autodeclarada, y el vault no puede tratar ambas como claims del mismo peso. Ambas no pueden ser igualmente creíbles: o la lista de catorce detectores de Patchright es **una disposición de pruebas reproducible** —y entonces su ausencia de evidencia es una omisión de la fuente, no una diferencia de herramienta—, o **no es reproducible** y "currently undetectable" es un claim de marketing con fourteen nombres. Marcado para juicio humano, no auto-resuelto: la captura no publica el método, los logs ni la fecha de la prueba de rebrowser, ni un enlace que relacione el detector de rebrowser con la lista de Patchright.

@@ -14,3 +14,11 @@ Es la misma lógica de desplazamiento de riesgo que en [[2026-1023-5sim-reembols
 
 ## Extensión (home, 2026-10-22)
 La home del 2026-10-22 **confirma el mismo umbral con otra redacción**: en el FAQ, "This is the most profitable option for one-time or mass account registration. To receive SMS online, you do not need to rent a number for a day or more, **20 minutes is enough**. And if the SMS has not arrived during this time, **the money will automatically return to your balance** in your personal account." La diferencia de fondo es que la home **ata el reembolso al modelo de saldo** ("return to your balance") y no a un reembolso en el medio de pago, lo que encaja con el prepago sobre saldo y pago por uso documentado en [[2026-1023-hero-sms-modelo-pay-per-use-y-tabla-real-vs-virtual]]. Es decir, el riesgo financieramente asumido por el proveedor es de **tiempo de saldo bloqueado**, no de dinero perdido.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-hero-sms-api-docs.md`.
+
+Este átomo fija la política de HeroSMS: **reembolso automático si el SMS no llega en 20 minutos**, con un umbral que no coincide con el de 5sim (15 minutos) ni con el "instant" del marketing ([[2026-1023-5sim-reembolso-instantaneo-si-no-llega-sms]]). La API publica ahora **el estado del reembolso como dato consultable**: el endpoint `get/activations/history` acepta el parámetro de filtrado `statuses[]` junto a `services[]`, `countries[]`, `size`, `page`, `sort[id]` y `search`, con `from` y `to` **obligatorios** ([[2026-1027-hero-sms-el-historial-de-activaciones-exige-ventana-temporal-y-filtros]]).
+
+Consecuencia para el Editor: el reembolso deja de ser una **condición comercial** y pasa a ser una **columna de un histórico consultable**, lo que permite al cliente auditar **cuánto se gastó, en qué servicio, en qué país y con qué resultado** —incluido qué activación se reembolsó. Es la diferencia entre un umbral publicado y una **partida de coste medida**, y es la primera superficie de auditoría de gasto que el vault tiene en el sector de SMS.

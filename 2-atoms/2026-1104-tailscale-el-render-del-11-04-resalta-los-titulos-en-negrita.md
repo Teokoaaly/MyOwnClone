@@ -1,0 +1,13 @@
+---
+id: 2026-1104-tailscale-el-render-del-11-04-resalta-los-titulos-en-negrita
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-tailscale-docs.md]
+links: ["[[2026-1104-tailscale-quinta-captura-byte-identica-a-la-del-11-02]]", "[[2026-1101-tailscale-kb-captura-26-lineas-utiles-y-340-de-navegacion-duplicada]]", "[[2026-1031-tailscale-docs]]"]
+---
+
+## Claim
+El `diff` entre la captura del 2026-10-31 y la del 2026-11-04 de `tailscale.com/kb` muestra que **las 18 entradas del índice son las mismas, con las mismas rutas `/docs/...` y las mismas descripciones de una línea, pero en el render del 11-04 los títulos de enlace vienen en negrita** (`[**What is Tailscale?**](/docs/concepts/what-is-tailscale)`) frente al texto plano del 10-31 (`[What is Tailscale?](/docs/concepts/what-is-tailscale)`). Contando las 18 líneas de título en negrita en cada captura: **10-31 → 0, 11-01 → 0, 11-02 → 18, 11-03 → 0, 11-04 → 18**. El énfasis tipográfico es, por tanto, un eje de variación **binario y agrupado**: las dos capturas "limpias" de índice (11-02 y 11-04, byte a byte idénticas) llevan los títulos en negrita, y las tres que incluyen navegación completa o render degradado los llevan en plano. Las únicas otras diferencias frente al 10-31 son la ausencia de salto de línea final en ese fichero y los metadatos del frontmatter.
+
+## Why It Matters
+Muestra que el formato de emphasis es un axis de variación **independiente** del contenido documental, y que se mueve **a la par** con el modo de captura: no es aleatorio ni alea un dato, es una propiedad del render que produce el fichero. La consecuencia práctica es de higiene de corpus: cuando dos capturas "parecen distintas" hay que distinguir el delta de **contenido** del delta de **renderizado**, porque el mismo índice con los mismos 18 destinos y descripciones tiene al menos tres hashes distintos según el modo (plano, plano+nav, negrita) y según si el fetcher recoge los enlaces. Este es el mismo eje que separa a [[2026-1103-tailscale-cuarta-captura-del-kb-sin-frase-zero-trust-ni-urls]] de [[2026-1031-tailscale-docs]]: ninguno de esos deltas afecta al techo de contenido, que sigue siendo "el índice solo promete la cifra, no la contiene" ([[2026-1101-tailscale-kb-captura-26-lineas-utiles-y-340-de-navegacion-duplicada]]). Sirve además como criterio de desempate explícito para el pipeline: los dos renders que conservan simultáneamente las 18 rutas, la frase de Zero Trust y la fecha de validación son el del 11-02 y el del 11-04, y son indistinguibles entre sí salvo por la fecha del frontmatter ([[2026-1104-tailscale-quinta-captura-byte-identica-a-la-del-11-02]]).

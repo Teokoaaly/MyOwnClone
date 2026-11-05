@@ -15,3 +15,7 @@ La segunda, y más incómoda para el vault: **no se publica ninguna comisión po
 
 ## Nota de verificación
 Textos transcritos literalmente. La captura **no** publica: comisión por método de pago, importe de los créditos extra por verificación, si esos créditos caducan, ni condiciones de los canales Azure y AWS Marketplace.
+
+
+## Nota de extensión 2026-10-26
+La documentación de billing del 2026-10-25 matiza el "cargo único de autorización por operación" de este átomo con dos datos nuevos. El primero: **añadir una tarjeta no cobra** —*"Adding a credit card is a verification step only. You will not be charged unless your free credits are exhausted and you have funds deposited in your account"*— y el **bonus de $5** por añadir método de pago, con **validez de 30 días**, es un incentivo con caducidad, no un reembolso ([[2026-1026-brightdata-proxies-excluidos-con-2-dolares-de-prueba-y-5-de-bonus]]). El segundo, y con más peso: la documentación de billing describe un **sistema de bloqueo por facturación con cuatro modos y reverificación que exige identidad** ([[2026-1024-brightdata-bloqueo-por-fallo-de-facturacion-y-reverificacion]]), de modo que el mismo gesto que aquí se presenta como "verification step only" es en la otra página el disparador de un proceso antifraude con fricción documental. El átomo queda por tanto **acotado**: el mecanismo existe y hay recompensa, pero el "cargo único" no debe citarse sin nombrar que el sistema de pagos tiene cuatro modos de bloqueo. Ver [[2026-1026-brightdata-tarjeta-como-paso-de-verificacion-sin-cargo]].

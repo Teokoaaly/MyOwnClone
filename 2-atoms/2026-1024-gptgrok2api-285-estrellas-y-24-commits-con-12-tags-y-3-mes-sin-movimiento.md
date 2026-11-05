@@ -16,3 +16,8 @@ Para el vault, la conclusión operativa no cambia (el producto no debe depender 
 
 ## Nota de verificación
 Cifras de estrellas, forks, watchers, ramas, tags y commits son metadatos renderizados por GitHub en la captura. La captura **no** publica: la fecha de creación del repositorio, la distribución de estrellas en el tiempo, ni si los 145 forks tienen actividad propia. El vault no ha clonado el repositorio.
+
+
+## Nota de extensión 2026-10-27
+Dos días después de la captura que fijó 285 estrellas, 24 commits, 12 tags y tres meses sin movimiento, la consulta `q=openai+account+creator+api` (2026-10-26) vuelve a medir el mismo repositorio con **286 estrellas y 144 forks** —antes 285 y 145— y con `pushed_at` **idéntico** (2026-07-27T09:15:26Z), `created_at` idéntico (2026-07-15T05:24:29Z) y `updated_at` movido a la madrugada de la captura (2026-10-26T06:43:36Z), lo que deja el desfase en **90,9 días**. Los **3 issues abiertos** y el `homepage` `muyuai.top` se mantienen.
+La extensión aporta dos correcciones que este átomo necesita. La primera, de **cuantía**: el repositorio **ha perdido un fork** en dos días, de modo que el ratio forks/estrellas ha bajado de 0,5088 a 0,5035 sin actividad de código —el primer caso medido en el vault de un contador no monótono ([[2026-1027-gptgrok2api-el-ratio-forks-estrellas-baja-en-dos-dias-sin-codigo]]). La segunda, de **encuadre**: este repositorio **sigue siendo el único útil de su consulta dos días después**, con el 99,65 % de las estrellas del corpus y sin que haya aparecido ningún competidor público ([[2026-1027-github-search-openai-account-creator-api-cuatro-resultados-y-tres-de-ruido]]), lo que confirma la lectura de "monopolio de un repo" para la oferta pública de alta de cuentas de OpenAI.

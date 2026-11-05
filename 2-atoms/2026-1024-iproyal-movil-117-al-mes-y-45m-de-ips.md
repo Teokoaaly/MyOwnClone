@@ -15,3 +15,8 @@ La otra diferencia es de uso: **"unrestricted usage"** sobre 5G/4G/3G es la prom
 
 ## Nota de verificación
 Cifras y frases transcritas literalmente. La captura **no** publica: qué incluye el mes de $117 (número de IPs, GB, o sólo acceso), si hay escalones de plan, ni si el precio de $117 corresponde a una sola IP o a un pool. "4.5M+ IPs" y "100 Mbps" son **claims**.
+
+
+## Nota de extensión 2026-10-27
+La landing móvil de DataImpulse **añade una tercera unidad de precio al pool móvil**, y la que menos se parecía a las dos ya medidas. Su FAQ "What is the cheapest mobile proxy provider?" dice: **"Some providers charge per port per day ($2–7/day), others per gigabyte."** Es decir, el sector móvil cotiza en **GB, mes y puerto-día**, y el vault solo tenía medidas dos de las tres: **$2/GB** (DataImpulse móvil, prepago) y **$117/mes** (IPRoyal móvil, 4,5M+ IPs, coste fijo recurrente).
+El dato que cierra la comparación es aritmético: **un puerto a $2/día** es, por sí solo, **más de la mitad del plan Intro completo de DataImpulse** ($5 por 2,5 GB) **y se paga cada día**. Es la misma propiedad que este átomo ya registra para el móvil de IPRoyal —el móvil es **coste fijo recurrente, no coste marginal por alta**— pero aquí se refuerza con un dato del propio competidor que define la forma de ese coste fijo en el mercado. Átomos nuevos: [[2026-1027-dataimpulse-movil-2-a-7-dolares-por-puerto-y-dia]] y [[2026-1027-dataimpulse-tabla-comparativa-con-el-promedio-movil]].

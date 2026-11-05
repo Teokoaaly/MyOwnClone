@@ -1,0 +1,19 @@
+---
+id: 2026-1026-5sim-copy-de-marketing-identica-tres-dias-despues
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-5sim-home.md, sources/2026-10-22-5sim-home.md]
+links: ["[[2026-1023-5sim-claim-500k-numeros-y-piso-0008]]", "[[2026-1024-herosms-precio-de-whatsapp-sube-de-00625-a-0075]]", "[[2026-1023-5sim-reembolso-instantaneo-si-no-llega-sms]]"]
+---
+
+## Claim
+La captura del 2026-10-25 de la home de 5sim (`https://5sim.net/en`, 653 palabras) reproduce **literalmente, sin una sola palabra distinta**, las mismas afirmaciones de marketing que la captura del 2026-10-22 de `https://5sim.net/` (563 palabras): "Over 500,000 numbers originating from around 180 countries online" / "more than 180 countries", "the pricing starts at **$0.008** for a single number, and you will not have to pay for monthly SIM plans too", "**New virtual numbers added daily**", "**Single-use numbers to receive SMS**", "**Low commission fees**" ("Add funds to your 5SIM balance while spending as little as you can on commission fees"), "**Support available 24/7**", los cinco casos de uso (privacidad, viaje, desarrollo y QA, separación trabajo/vida, confirmaciones temporales), el flujo de tres pasos, las cinco razones de "Why 5SIM beats other SMS verification services" (Smart Buy, AI assistant, "No registration needed to browse", "Transparent success rates", "Instant refunds"), y el cierre "The service does not support sending outgoing SMS and calls… Rules of use and Stop list". Tres días de distancia y **cero deriva**: ningún número de la página se mueve y ningún claim nuevo aparece.
+
+## Why It Matters
+Es la diferencia de régimen entre los dos proveedores que el vault tiene medidos: HeroSMS movió un "from" un **+20 % en 48 horas** ([[2026-1024-herosms-precio-de-whatsapp-sube-de-00625-a-0075]]), mientras que la copy de 5sim es **estática**, y esa estáticalidad convive con que su CSV de precios sí es medible y con que sus contadores de stock son datos vivos replicados en tres URLs ([[2026-1023-5sim-catalogo-servicios-precios-y-stock]]). Es decir: **la página de marketing de 5sim es decorado congelado y el widget de compra es la parte viva** — y la re-captura lo confirma por ausencia, porque la versión `/en` del 2026-10-25 no trae ni un contador ([[2026-1026-5sim-home-en-sin-widget-ni-contadores-de-stock]]).
+Para el vault esto fija una regla: una cifra de 5sim que venga de la home (500.000 números, 180 países, $0.008, 24/7) es **un claim con fecha de captura y sin valor de mercado**, y solo el CSV de precios (175 filas de `telegram`) es un dato reutilizable.
+
+## [FRICTION]
+> [[2026-1024-herosms-precio-de-whatsapp-sube-de-00625-a-0075]] (escrita el 2026-10-24) afirma que los "from" de HeroSMS son **valores vivos** y que "cualquier cifra de escaparate de este mercado debe ir acompañada de *fecha + servicio*, y no puede reutilizarse como 'el precio de HeroSMS'".
+> Este átomo presiona esa regla en un punto: si 5sim mantiene **idéntica** su copy de marketing durante tres días, entonces **la fecha no basta como salvaguarda**. O la estabilidad de 5sim significa que sus cifras de home son un catálogo nominal —y entonces "$0.008" se lee como una tarifa fija, no como una foto del mercado—, o la estabilidad es solo de la capa de marketing mientras el dato vivo se mueve en otra capa (el widget), lo que la captura del 2026-10-25 sugiere al no traer contadores ([[2026-1026-5sim-home-en-sin-widget-ni-contadores-de-stock]]).
+> Ambas no pueden ser completamente correctas: no se puede usar "fecha + servicio" como regla universal de caducidad cuando hay proveedores cuya página no cambia en tres días y otros cuya cambia un 20 % en dos. Marcado para juicio humano, no auto-resuelto: la captura del 2026-10-25 no publica contadores ni precios de servicio, así que no permite saber si la capa viva se movió.

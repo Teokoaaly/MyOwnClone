@@ -1,0 +1,22 @@
+---
+id: 2026-1031-workos-pricing
+type: atom
+certainty: solid
+sources: [sources/2026-10-31-workos-pricing.md, sources/2026-11-03-workos-pricing.md]
+links: ["[[2026-1031-proton-business-vpn-essentials-6-99-minimo-2-usuarios]]", "[[costes-por-categoria-tenant]]", "[[2026-1103-workos-calculadora-interactiva-y-cta-schedule-a-call]]"]
+---
+
+## Claim
+WorkOS pricing is per-API-call or per-product with tiered plans, creating a hybrid cost model where cost depends on API usage volume and selected products rather than per-user seats.
+
+## Why It Matters
+Unlike the per-seat cost dominance model where user count is the primary cost variable, WorkOS pricing combines per-product tiered pricing with usage-based components. For products using WorkOS for OAuth, SSO, or user directory, cost depends on which products are enabled (Auth, Directory, SSO, etc.) and the volume of API calls. This creates a cost structure that's neither purely per-seat nor purely usage-based, but a hybrid. The friction is in projecting cost: teams must estimate both which WorkOS products they'll need and the expected API call volume per user, then combine these to determine the total cost, which may or may not align with the per-seat model depending on the product mix and usage patterns.
+
+## Nota de extensión 2026-11-03
+Procesadas las capturas del 2026-11-01 y 2026-11-02 de workos.com/pricing (idénticas en precios a la del 2026-10-31 salvo la tabla de soporte). El detalle fino de este modelo queda desglosado en átomos nuevos: la partida de usuarios es **AuthKit con 1M de MAU gratis y $2.500/mes por millón adicional** ([[2026-1031-workos-authkit-primer-millon-de-mau-gratis]]); el precio de la parte "per-product" es una **escalera por conexión SSO** de $125 a $65 ([[2026-1031-workos-sso-escalera-de-conexiones-125-100-80-65]]) y una **escalera idéntica para Directory Sync** ([[2026-1031-workos-directory-sync-misma-escalera-que-sso]]); y la unidad de facturación del SSO es **una por cliente enterprise, independientemente del número de usuarios finales** ([[2026-1031-workos-conexion-por-cliente-corporativo-no-por-usuarios]]). No aparece ninguna unidad de cobro por llamada a la API en ninguna de las tres capturas, lo que hace precisa la fricción ya abierta en este átomo. El cierre del benchmark de tres vías (WorkOS vs Auth0 vs Clerk) está en [[2026-1102-workos-auth0-clerk-benchmark-de-identidad-en-tres-vias]].
+
+## Nota de extensión 2026-11-03 (segunda pasada)
+Procesada la **cuarta captura** de workos.com/pricing (2026-11-03, 580 palabras), que es un **volcado crudo** de la página (a diferencia de las tres anteriores, condensadas a tablas). Ningún precio cambia, pero el volcado crudo aporta la **estructura comercial** de la página que las capturas condensadas no mostraban: un **calculador interactivo** con deslizador por producto que arranca en "$0.00 Free" y cierra siempre con "Unlock annual discounts, expert guidance, and migration support / Schedule a call" ([[2026-1103-workos-calculadora-interactiva-y-cta-schedule-a-call]]), un **inventario funcional de 10 capacidades de AuthKit** sin línea de precio propia ([[2026-1103-workos-inventario-de-funciones-de-authkit]]), el ancla de venta **"vs $100 to build it yourself"** repetida en SSO y Directory Sync ([[2026-1103-workos-vs-100-para-construir-sso-o-scim-uno-mismo]]) y la ausencia de la tabla de soporte ([[2026-1103-workos-captura-cruda-no-trae-tabla-de-soporte]]). La fricción ya abierta en este átomo sobre el "per-API-call" **se afianza**: cuatro capturas de la misma URL, ninguna con una unidad de cobro por llamada a la API — las unidades publicadas siguen siendo MAU, conexiones, conexiones SIEM, eventos retenidos y checks.
+
+## [FRICTION]
+> [[2026-1025-refinery-workos-pricing.md]] documents WorkOS's tiered product pricing, confirming the hybrid model. While the refinery atom analyzes WorkOS costs as a per-product line item, the `costes-por-categoria-tenant` thread focuses on per-seat SaaS costs. A product adopting WorkOS for SSO/directory must estimate both the plan tier and expected API call volume to project total cost within the per-seat framework. If API volume per user is high, WorkOS cost may dominate; if low, the per-seat model may remain primary. The break-even point requires measuring API calls per active user before committing to WorkOS.

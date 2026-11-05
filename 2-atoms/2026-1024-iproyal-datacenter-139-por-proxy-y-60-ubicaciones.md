@@ -20,3 +20,11 @@ La cifra geográfica también es un contrapunto: **"60+ locations"** es un núme
 
 ## Nota de verificación
 Precios y frases transcritos literalmente. "Unlimited bandwidth" y "60+ locations" son **claims del propio proveedor**. La captura **no** publica: cities o países enumerables, límite de concurrencia, ancho de banda por proxy, ni SLA de uptime.
+
+
+## Nota de extensión 2026-10-27
+La captura de proxy residencial de 2Captcha aporta un **contraste de vocabulario que este átomo necesita**: 2Captcha promete "**Unlimited traffic**" en un producto **facturado por GB** ("Price per GB", con nueve tramos), mientras que el "**unlimited bandwidth**" de IPRoyal aparece en un producto **facturado por proxy** ($139/proxy, 60 ubicaciones). Ver [[2026-1027-2captcha-unlimited-traffic-y-socks5-en-un-plan-facturado-por-gb]].
+
+La asimetría importa para el modelo de coste: **"unlimited" solo es un claim coherente cuando la unidad de cobro no es el tráfico**. En el datacenter de IPRoyal el cobro es por proxy y el ancho de banda no tiene coste marginal, de modo que "ilimitado" es exacto. En el proxy residencial de 2Captcha el cobro **es** por gigabyte, de modo que "tráfico ilimitado" solo puede significar **que el tráfico comprado no caduca o no se topa**, no que sea gratis. La conclusión de este átomo —que el "unlimited bandwidth" es **"la primera vez que el vault ve una partida de proxy sin coste marginal por volumen"**— **se convierte en un caso de estudio de dos**: **el mismo adjetivo aplicado a dos modelos de cobro opuestos**, y el vault no puede citarlos como equivalentes sin matizar.
+
+Además, las otras dos inclusiones de 2Captcha ("SOCKS5 supported", "API access") **confirman que el soporte de protocolo y de API ya es estándar en el corpus de proxy**, y que la variable que discrimina entre proveedores ya no es el protocolo sino el precio y la sesión.

@@ -1,0 +1,18 @@
+---
+id: 2026-1104-digitalocean-precios-identicos-en-las-cinco-capturas-del-31-oct-al-4-nov
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-digitalocean-droplets-pricing.md]
+links: ["[[2026-1103-digitalocean-precios-identicos-en-las-cuatro-capturas-del-31-oct-al-3-nov]]", "[[2026-1031-digitalocean-cinco-familias-de-droplet-y-sus-precios-de-entrada]]", "[[2026-1104-digitalocean-captura-vuelve-a-render-completo-tras-el-render-reducido-del-3-nov]]", "[[2026-1101-digitalocean-el-precio-mensual-es-exactamente-672-horas-de-tarifa-horaria]]"]
+---
+
+## Claim
+Las **31 filas** de las cinco tablas de precios de Droplets (Basic ×7, CPU-Optimized ×6, General Purpose ×6, Memory-Optimized ×6, Storage-Optimized ×6) son **numéricamente idénticas por quinta captura consecutiva** —2026-10-31, 2026-11-01, 2026-11-02, 2026-11-03 y **2026-11-04**—. La entrada sigue siendo el Basic de 512 MiB / 1 vCPU / 500 GiB / 10 GiB SSD a **$0.00595/hora y $4.00/mes**; los cinco techos de familia siguen en $96.00 (Basic), $1,008.00 (CPU-Optimized), $1,260.00 (General Purpose), $1,344.00 (Memory-Optimized) y $2,096.00 (Storage-Optimized). La captura del 11-04 **reproduce además** los cuatro precios por hora de los v5 ($0.024, $0.052, $0.181 y $0.36) y la tabla de backups y snapshots, con redacción idéntica a las del 11-01 y el 11-02.
+
+## Why It Matters
+La quinta captura convierte la estabilidad del catálogo de DO en una **medida de precio de lista, no de una instantánea**. Con una ventana de cinco días y una captura completa en el extremo, la conclusión que se puede defender ante el humano es fuerte: **el catálogo de DigitalOcean no se ha movido ni un céntimo en el período medido**, y por tanto cualquier cifra de DO que difiera viene de terceros o de una configuración que el proveedor no ofrece — es exactamente el argumento que sostiene el conflicto con la tabla de BuyVM en [[2026-1103-digitalocean-precios-identicos-en-las-cuatro-capturas-del-31-oct-al-3-nov]], ahora ampliado a cinco capturas.
+
+El valor añadido del 11-04 es que **la quinta confirmación no es una repetición de la cuarta**: esta captura vuelve a renderizar el bloque v5 con sus cuatro precios por hora y la tabla de "Additional product pricing" (backups al 20 %/30 % y snapshots a $0.06/GB), secciones que el 11-03 había perdido. Es decir, la estabilidad no se apoya solo en las tablas de familias: se extiende por primera vez de forma simultánea a **precios, v5, backups y snapshots** en una misma captura completa. Para el thread de hosting barato esto cierra la partida de backups, que era la única línea de coste recurrente del stack sin re-verificación reciente. Ver [[2026-1104-digitalocean-captura-vuelve-a-render-completo-tras-el-render-reducido-del-3-nov]] y [[2026-1031-digitalocean-cinco-familias-de-droplet-y-sus-precios-de-entrada]].
+
+## Nota de verificación
+Comparación **fila a fila** de las 31 filas (memoria, vCPU, transferencia, SSD, $/hr y $/mo) contra `sources/2026-11-03-…` y `sources/2026-11-02-…`: **0 diferencias**. El bloque de las cinco tablas de la captura del 11-04 es **byte a byte idéntico** al de la del 11-02 tras normalizar el formato de las celdas con enlace (hash del bloque: mismo valor para 11-02 y 11-04). Los cuatro precios por hora de v5 y los porcentajes de backup se compararon por cadena de texto contra las capturas del 11-02 y del 11-01: idénticos. La relación $precio_mensual = $tarifa_horaria × 672 se mantiene en las 31 filas, como en [[2026-1101-digitalocean-el-precio-mensual-es-exactamente-672-horas-de-tarifa-horaria]]. La estabilidad afirmada **cubre la ventana 2026-10-31 → 2026-11-04** y no afirma nada fuera de ella.

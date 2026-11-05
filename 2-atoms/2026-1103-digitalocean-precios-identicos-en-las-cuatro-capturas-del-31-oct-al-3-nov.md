@@ -1,0 +1,21 @@
+---
+id: 2026-1103-digitalocean-precios-identicos-en-las-cuatro-capturas-del-31-oct-al-3-nov
+type: atom
+certainty: solid
+sources: [sources/2026-11-03-digitalocean-droplets-pricing.md]
+links: ["[[2026-1031-digitalocean-entrada-basic-512-mib-4-dolares-al-mes]]", "[[2026-1031-digitalocean-cinco-familias-de-droplet-y-sus-precios-de-entrada]]", "[[2026-1101-digitalocean-el-precio-mensual-es-exactamente-672-horas-de-tarifa-horaria]]"]
+---
+
+## Claim
+Las 31 filas de las cinco tablas de precios de Droplets (Basic ×7, CPU-Optimized ×6, General Purpose ×6, Memory-Optimized ×6, Storage-Optimized ×6) son **numéricamente idénticas** en las cuatro capturas de `digitalocean.com/pricing/droplets`: **2026-10-31, 2026-11-01, 2026-11-02 y 2026-11-03**. No hay ni una sola variación en memoria, vCPU, transferencia, SSD, $/hr ni $/mo entre las cuatro: la entrada sigue siendo el Basic de 512 MiB / 1 vCPU / 500 GiB / 10 GiB SSD a **$0.00595/hora y $4.00/mes**, y los techos siguen siendo $96.00 (Basic), $1,008.00 (CPU-Optimized), $1,260.00 (General Purpose), $1,344.00 (Memory-Optimized) y $2,096.00 (Storage-Optimized).
+
+## Why It Matters
+Convierte un repetido ciclo de capturas en **una medida de estabilidad de precio**: en cuatro días el catálogo completo de DigitalOcean no se movió ni un céntimo, lo que confirma que las cifras fijadas en [[2026-1031-digitalocean-entrada-basic-512-mib-4-dolares-al-mes]] y en [[2026-1031-digitalocean-cinco-familias-de-droplet-y-sus-precios-de-entrada]] son **valores de lista estables**, no instantáneas de una promoción, y que la relación "precio mensual = 672 horas de tarifa horaria" ([[2026-1101-digitalocean-el-precio-mensual-es-exactamente-672-horas-de-tarifa-horaria]]) se sostiene sobre la tabla vigente. Operativamente, esto **valida la práctica de re-verificar contra la página del fabricante** que el vault ya había exigido tras detectar que las cifras de DO atribuidas por terceros ([[2026-1024-buyvm-comparativa-precios-15-al-mes-contra-aws-do-linode-y-vultr]]) no coinciden con el catálogo real: la página es la fuente estable, y las discrepancias del corpus vienen de terceros, no de DigitalOcean. También fija un umbral: si alguna captura futura de esta URL muestra un precio distinto, el cambio será real y habrá que tratarlo como FRICTION contra este átomo, no como ruido de captura.
+
+## [FRICTION]
+> [[2026-1024-buyvm-comparativa-precios-15-al-mes-contra-aws-do-linode-y-vultr]] registra que DigitalOcean cuesta "**$40.00/mes** con 2 cores, 60 GB de disco y 4 TB de ancho de banda", y usa esa cifra como una de las dos referencias contra las que BuyVM atribuye un 62,5 % de ahorro.
+> La tabla del fabricante, **estable e idéntica en cuatro capturas seguidas**, no contiene ninguna fila de $40.00: las filas de 2 vCPU son $18.00 (2 GiB / 60 GiB SSD / 3,000 GiB) y $24.00 (4 GiB / 80 GiB SSD / 4,000 GiB), y la fila de $48.00 es la de 8 GiB / 4 vCPU. Ninguna fila de la tabla publicada combina $40 con 2 cores, 60 GB de disco y 4 TB de transferencia.
+> Ambas no pueden ser completamente correctas: o la cifra de $40.00 corresponde a un plan o una configuración que DigitalOcean ya no ofrece, o la tabla comparativa de BuyVM no es una fotografía de la lista de precios del fabricante. Marcado para juicio humano, no auto-resuelto. Consecuencia operativa: **la estabilidad de cuatro capturas convierte la página de DO en la referencia de mercado fiable**, y obliga a tratar toda cifra de DO atribuida por terceros como no verificada hasta contrastarla fila a fila con el catálogo vigente ([[2026-1031-digitalocean-entrada-basic-512-mib-4-dolares-al-mes]]).
+
+## Nota de verificación
+Las 31 filas se compararon **fila a fila** entre `sources/2026-10-31-…`, `sources/2026-11-01-…`, `sources/2026-11-02-…` y `sources/2026-11-03-…` (extracción normalizada de memoria, vCPU, transferencia, SSD, $/hr y $/mo, con los enlaces de signup del 11-02 eliminados): **0 diferencias en las 31 filas en las tres comparaciones**. El recuento de 31 filas y el de 825 palabras proceden del frontmatter y de la lectura completa del archivo del 11-03. Esta captura **no** incluye la tabla de backups/snapshots ni los precios de v5, así que la estabilidad afirmada se refiere **exclusivamente a las cinco tablas de las familias Bundled**.

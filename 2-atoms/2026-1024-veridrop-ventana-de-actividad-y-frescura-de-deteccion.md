@@ -15,3 +15,7 @@ Y la consecuencia de la frescura es un plazo de caducidad corto: con la mediana 
 
 ## Nota de verificación
 Sumas calculadas sobre los valores literales "累计 N 次" y "窗口内 N 次" de las 50 entradas. La captura **no** publica: la duración de la "ventana", el intervalo de muestreo, ni el criterio de qué entradas son "recientes".
+
+
+## Nota de extensión 2026-10-27
+La FAQ añade una **causa de "cero" que no es caída**: un resultado de **"0 个 GPT 模型可用"** es casi siempre **falta de permiso GPT en la key** — **"很多综合中转站把模型按厂家分组卖,有的客户买的是 Claude 卡、有的是 Gemini 卡,没买就调不出对应模型"** — y VeriDrop lo resuelve con un **preflight** que lista los modelos que la key sí puede usar, con redirección automática a la página del otro protocolo. Con ello, la disponibilidad del modelo deja de ser un atributo del par (sitio, modelo) y pasa a tener **una tercera dimensión: el tipo de tarjeta/grupo del cliente**. Véanse [[2026-1027-veridrop-cero-modelos-gpt-suele-ser-permiso-de-key-y-no-relay-caido]] y [[2026-1027-veridrop-preflight-y-el-0-que-no-significa-relay-malo]].

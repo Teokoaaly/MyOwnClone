@@ -1,0 +1,16 @@
+---
+id: 2026-1101-twilio-segmento-de-160-caracteres-y-regla-de-concatenacion
+type: atom
+certainty: tentative
+sources: [sources/2026-11-01-twilio-sms-pricing.md, sources/2026-11-03-twilio-sms-pricing.md]
+links: ["[[2026-1101-twilio-sms-base-0-0083-por-segmento-de-160-caracteres]]", "[[2026-1022-auth-magic-link-codigo-seis-digitos]]", "[[2026-1101-twilio-cargos-de-operador-por-sms-y-costo-real-por-mensaje]]"]
+---
+
+## Claim
+El cobro es **por segmento de 160 caracteres**, no por mensaje: *"Text messages are charged per segment"* y *"The base rate ... is $0.0083 per 160-character segment"*. La captura **no enuncia** la regla de concatenación a partir de 161 caracteres (remite a un glosario externo, `twilio.com/docs/glossary/what-sms-character-limit`, que no forma parte de la fuente); lo que sí enuncia es el contrapunto del MMS: *"MMS is billed at a flat rate that allows for media attachments (up to 5 MB) and up to 1,600 characters of text without triggering multi-segment billing"*. Conclusión operativa derivada: un mensaje de 161–320 caracteres cuesta el doble de base ($0.0166) más el doble de cargo de operador, mientras que un MMS de hasta 1.600 caracteres se paga una sola vez a $0.022.
+
+## 2026-11-03 — re-verificación
+La captura del **2026-11-03** confirma **literalmente** la contraparte del MMS: *"MMS is billed at a flat rate that allows for media attachments (up to 5 MB) and up to 1,600 characters of text without triggering multi-segment billing. Outbound MMS in the US costs $0.022 per message across long codes, toll-free, and short codes."* Es decir, los umbrales **5 MB / 1.600 caracteres** se mantienen idénticos, y ahora además aparecen en el FAQ (no solo en la nota al pie). Sigue faltando lo mismo que en noviembre: el umbral exacto de concatenación a partir de 161 caracteres y el conteo Unicode (GSM-7 vs UCS-2), que solo viven en el glosario externo — por eso este átomo **sigue siendo `tentative`**. Nota de fidelidad: las notas al pie de las tablas de carrier de esta captura **pierden la cláusula *"Prices may change from time to time without notice"*** (solo conservan *"Text messages are charged per segment. Learn more about character limits and message segments."*), aunque la advertencia sí permanece en la tabla de Features y en el FAQ.
+
+## Why It Matters
+El vault tiene hoy la autenticación por **código mágico de 6 dígitos por email** ([[2026-1022-auth-magic-link-codigo-seis-digitos]]); si se migra a SMS, el texto del mensaje decide el coste por unidad. Un código de 6 dígitos con prefijo corto cabe de sobra en un segmento de 160 caracteres → un segmento, $0.0128–$0.0133 efectivos ([[2026-1101-twilio-cargos-de-operador-por-sms-y-costo-real-por-mensaje]]). Pero cualquier plantilla con texto legal, enlaces largos o multiidioma en 161+ caracteres **duplica silenciosamente** el coste por verificación: el mismo "envía un SMS de verificación" pasa de ~$0.013 a ~$0.026. Por eso el diseño del mensaje (código + branding mínimo) es una decisión de unidad económica, no de UX. Nota de honestidad: el umbral exacto de concatenación y el conteo de caracteres Unicode (GSM-7 vs UCS-2) **no están en la fuente** — este átomo es `tentative` y requiere el glosario de Twilio para cerrarse.

@@ -1,0 +1,17 @@
+---
+id: 2026-1104-deepgram-renderizado-completo-restaurado-identico-al-11-01
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-deepgram-pricing.md, sources/2026-11-01-deepgram-pricing.md, sources/2026-11-02-deepgram-pricing.md, sources/2026-11-03-deepgram-pricing.md]
+links: ["[[2026-1103-deepgram-captura-11-03-rendering-reducido-y-sin-enlaces]]", "[[2026-1101-deepgram-enterprise-selfhost-nvidia-y-endpoint-eu]]", "[[2026-1103-deepgram-precios-estables-en-cuatro-capturas-consecutivas]]"]
+---
+
+## Claim
+La captura de `deepgram.com/pricing` del **2026-11-04 (10.315 bytes, word_count 1560) es una restauración del renderizado completo**: su cuerpo es **idéntico byte a byte al de la captura del 11-01** (y al del 11-02 salvo un salto de línea final), y **vuelve a incluir todo lo que el 11-03 había perdido** — los enlaces markdown ("Log in" → `console.deepgram.com/login`, "Sign up" → `console.deepgram.com/signup`, "Contact sales" → `deepgram.com/contact-us`), el bloque de compliance ("Sweating compliance, so you don't have to" con las tarjetas SOC 2 Type 1 & 2 Certified, HIPAA Compliant, GDPR Ready & EU Data Residency con el hostname `api.eu.deepgram.com`, CCPA Compliant, PCI Compliant y la sección "How we protect voice data"), las imágenes (`rock_03.avif`, `globe_paper.avif`, el `bg` de sanity.io) y las cabeceras de FAQ "How do overages work on Growth?" y "How is multichannel audio billed?". El contraste de superficie es de **1.392 palabras (11-03) frente a 1.566 (11-04)**, no de contenido: los precios, tablas y texto de FAQ son los mismos.
+
+## Why It Matters
+Resuelve de raíz la pregunta que dejó abierta [[2026-1103-deepgram-captura-11-03-rendering-reducido-y-sin-enlaces]: el bloque de compliance y los enlaces **no se habían retirado de la web**, los había perdido el extractor durante un único día. La web tiene una sola versión y el pipeline produce dos niveles de detalle según el día; por tanto, **una ausencia en una captura no es evidencia de retirada** y el hostname `api.eu.deepgram.com` —que el 11-03 dejó sin re-verificar en [[2026-1101-deepgram-enterprise-selfhost-nvidia-y-endpoint-eu]]— queda confirmado de nuevo por el 11-04. También fija una referencia de integridad: la captura del 11-04 sirve como **canónica** para el slug, porque su cuerpo es el mismo que el del 11-01 y el 11-02, y eso hace verificables por comparación directa los cambios de una captura a otra (los precios de las cinco capturas son los mismos, ver [[2026-1103-deepgram-precios-estables-en-cuatro-capturas-consecutivas]]).
+
+## [FRICTION]
+> [[2026-1103-deepgram-captura-11-03-rendering-reducido-y-sin-enlaces]] (escrita hace 2 días) afirma que el 11-03 "pierde todos los enlaces markdown, elimina el bloque de compliance y colapsa la estructura de listas y encabezados", y deja explícitamente abierto si la causa era una retirada editorial o una pérdida del extractor: "o el bloque de compliance se retiró de la web entre el 11-02 y el 11-03, o el extractor del 11-03 lo perdió".
+> Esta nota presiona esa creencia porque **el 11-04 restaura el bloque íntegro sin ningún cambio de precios ni deCopy**: si la web hubiera retirado la sección el 11-03, el 11-04 no la habría recuperado magicada en menos de 24 h sin que ninguna otra parte de la página cambiase. La explicación consistente es la pérdida del extractor el 11-03. La contradicción no es entre átomos sino entre la hipótesis de "retirada editorial" contenida en el átomo viejo y la evidencia de esta captura. Marcado para juicio humano, no auto-resuelto.

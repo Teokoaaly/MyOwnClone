@@ -19,3 +19,23 @@ Los contadores, en cambio, son claims sin evidencia adjunta, y el propio texto l
 
 ## Nota de verificación
 Los rótulos ("Price per mail", "Mail purchased", "Emails received", "Average time to receive emails") y las cuatro cifras están transcritos literalmente de la captura; el orden de extracción (cifra antes del rótulo) es el del HTML capturado, no una atribución del redactor. La captura **no** publica: formato o lista de dominios, patrón de las direcciones, límites por buzón o por cuenta, plazos de retención, precios por volumen (solo afirma que "la mayoría de los clientes" recibe descuentos), forma de pago, reembolso, condiciones o SLA, ni documentación de la API.
+
+
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-emailondeck-temp-mail.md`. Este átomo fija **0.05 ₽ por correo** como precio de referencia del buzón de registro y, en su §[FRICTION], confronta ese nominal con el suelo de **¥0.02** del 卡网 de PriceAI.
+
+EmailOnDeck añade dos presiones a ese dato, en direcciones opuestas.
+
+**Hacia abajo: el suelo nominal no es el suelo del mercado.** EmailOnDeck se presenta como **gratis** —"EmailOnDeck is always simple and free", "Free & fast temp mail in 2 easy steps"— y no publica ni un precio, ni de la versión gratuita ni del plan PRO enlazado en `pro.emailondeck.com` ([[2026-1026-emailondeck-gratis-con-paso-pro-sin-cifras]]). Si ese "gratis" es real y no tiene límites relevantes, el 0.05 ₽ de NotLetters es el precio de un **canal de pago concreto**, no el suelo del producto. Y como los dos proveedores no son comparables en unidad —NotLetters vende "por correo", PriceAI revende buzones de otros— la fricción 12 del thread sobre la comparabilidad del suelo del correo tiene ahora **un tercer término**: un competidor declarado gratuito sin cifra.
+
+**Hacia arriba: el contador de escala, que es el dato comparable.** NotLetters publica "> 5 000 000" correos comprados y "> 30 000 000" recibidos, y este átomo concluye que el dato defendible es "el precio y el tiempo de recepción, no los totales" porque los contadores no cuadran entre sí (≈6 recibidos por comprado frente a un rango declarado de 3 a 5). EmailOnDeck publica **"Over 215,158,204 temporary emails processed"** con **"© 2015-2026"**, es decir **11 años** de operación ([[2026-1026-emailondeck-contador-215158204-correos-procesados]]). La cifra es **×7 mayor** que la de NotLetters en compras y es, al mismo tiempo, **menos auditable**: no distingue comprados de recibidos ni da periodo ni desglose, de modo que **colapsa en un solo número la distinción que este átomo necesita para poder auditar a NotLetters**.
+
+Nota para el Editor: los dos contadores no son comparables en unidad (uno son unidades compradas y el otro unidades procesadas, sin desglose), así que la conclusión correcta no es "el mayor proveedor es 7 veces más grande" sino "**el vault solo tiene dos contadores de escala del sector de correo y ninguno es auditable**". La regla que este átomo establece —"el dato defendible es el precio y el tiempo, no los totales"— queda reforzada, no matizada.
+
+
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-mail-tm-temp-mail.md`.
+
+Este átomo fija **0.05 ₽ por correo** como precio de referencia del buzón de registro del corpus, con contadores de escala ("> 5 000 000" comprados, "> 30 000 000" recibidos) y tiempo medio de recepción de **573 Ms**. Mail.tm **no publica ningún precio** —el bloque "Free" dice "Every user gets full access to their temporary mailbox and an unlimited number of new ones. **No hidden conditions, no paid extras**"— y **no publica ningún tiempo de recepción**; lo único que ofrece es "Your temporary mailbox is **generated instantly**" y, en el nav, la línea de financiación: "You can support us by **disabling your ad blocker** on our site" ([[2026-1026-mail-tm-gratis-sin-cifras-con-financiacion-por-anuncios]]).
+
+La consecuencia para el Editor es de **unidad de comparación**, no de precio: mail.tm introduce un **cuarto régimen de correo** en el corpus —**gratis, automatizable, y financiado con publicidad**— frente a los tres ya registrados (función de biblioteca del bot, NotLetters pago y automatizable, EmailOnDeck gratuito y manual). Mail.tm es el **único** que combina las dos propiedades que el thread usa para decidir si el correo es una partida cotizable: **coste monetario cero y superficie programable declarada**. Y con eso, el dato de los 573 Ms de NotLetters queda todavía más aislado: es el **único tiempo de recepción medido del corpus**, y la alternativa gratuita no publica ninguno.

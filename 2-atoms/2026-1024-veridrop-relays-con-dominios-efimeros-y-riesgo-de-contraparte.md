@@ -15,3 +15,7 @@ Esto fija también un límite a cualquier tabla de "mejores relays": el activo q
 
 ## Nota de verificación
 Recuento literal de TLD sobre los 50 dominios de la captura; la captura **no** publica: fecha de alta de cada dominio, quién opera cada relay, ni si alguno está detrás de una empresa identificable.
+
+
+## Nota de extensión 2026-10-27
+La FAQ añade el **lado del comprador** del riesgo de contraparte, con tres riesgos prácticos declarados: **① 跑路风险** — el relay puede dejar de servir, subir precios o **desaparecer con el saldo** (**"大额充值要慎重"**); **② 模型响应跟官方不一致** — cambio de modelo, retirada de capacidades o **falsificación del recuento de tokens**; **③ prompt 内容被记录** — **"涉及商业机密 / 用户数据的对话最好避开来路不明的中转站"**. Y un quinto punto de la lista de trampas: **"规则说变就变"**, con la misma key pasando de funcionar a **"升级套餐"**, **"分组失效"** o **直接封号** sin previo aviso. Es la confirmación textual de que **el contrato implícito con un relay no es un contrato**, sino una configuración que el otro puede editar. Véanse [[2026-1027-veridrop-riesgo-legal-gris-y-tres-peligros-practicos-del-relay]] y [[2026-1027-veridrop-cinco-indicadores-duros-para-elegir-relay]].

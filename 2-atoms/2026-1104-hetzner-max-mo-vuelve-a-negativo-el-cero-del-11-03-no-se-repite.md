@@ -1,0 +1,21 @@
+---
+id: 2026-1104-hetzner-max-mo-vuelve-a-negativo-el-cero-del-11-03-no-se-repite
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-hetzner-cloud.md]
+links: ["[[2026-1103-hetzner-max-mo-cost-optimized-cero-ruptura-de-serie]]", "[[2026-1102-hetzner-techo-max-mo-de-cada-familia-varia-entre-capturas]]", "[[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]]"]
+---
+
+## Claim
+La sexta captura del widget "max/mo." de Hetzner Cloud (2026-11-04) renderiza tres techos nuevos: **Cost-Optimized € -27.93**, **Regular Performance € -30.33** y **General Purpose € -203.90**. Lo decisivo es que **la familia de entrada vuelve a tener signo negativo**: el **€ 0.00** del 2026-11-03 **no se repite** y no era una ruptura de serie sino un valor anómalo de un único render. La serie por familia queda Cost-Optimized **€ -25.81 → € -31.19 → € -27.33 → € 0.00 → € -27.93**, Regular Performance **€ -27.85 → € -33.80 → € -29.65 → € -35.97 → € -30.33**, General Purpose **€ -187.46 → € -226.48 → € -199.05 → € -240.99 → € -203.90** (capturas 10-22 → 10-31 → 11-02 → 11-03 → 11-04). Además, dentro de esta captura **las dos repeticiones del carrusel muestran el mismo valor** en las tres familias (€ -27.93 / € -30.33 / € -203.90 en ambas), mientras que el 10-31 y el 11-02 divergían en el último céntimo entre repeticiones (€ -226.48 vs € -226.50; € -199.05 vs € -199.07). La página sigue publicando, en los tres bloques, "starting from … € 5.99 / € 6.49 / € 43.49 per month, excl. VAT".
+
+## Why It Matters
+Cierra el episodio abierto por [[2026-1103-hetzner-max-mo-cost-optimized-cero-ruptura-de-serie]]: **el valor cero era un glitch de render, no un cambio de semántica**, así que la conclusión operativa de aquel átomo se mantiene intacta —**la cifra no admite lectura monetaria y el precio de un dedicado sigue sin estar publicado**— pero su encuadre de "ruptura de serie" no se sostiene: un solo render puede producir un valor que el resto de la serie contradice. La consecuencia práctica es la que ya viene de [[2026-1102-hetzner-techo-max-mo-de-cada-familia-varia-entre-capturas]]: la banda "€ 190–230/mes para un dedicado" no puede usarse como dato de coste, y lo único firme es el "starting from" de cada familia. El dato adicional de esta captura —que las dos repeticiones del carrusel coinciden en el 11-04— es una advertencia práctica para el pipeline: **el widget no garantiza ni siquiera divergencia interna**, así que no se puede usar "las dos apariciones difieren" como prueba de que el valor es calculado en cliente; solo se puede afirmar que **el valor cambia entre capturas**.
+
+## [FRICTION]
+> [[2026-1103-hetzner-max-mo-cost-optimized-cero-ruptura-de-serie]] (escrita hace 2 días) afirma que la captura del 2026-11-03 trae una "ruptura de serie" en la que "la familia de entrada aparece por primera vez sin signo negativo y en cero", y que esa ruptura "presiona la lectura monetaria de la cifra" del átomo de los techos.
+> Este átomo presiona esa creencia porque **el 2026-11-04 vuelve a un valor negativo (€ -27.93) para la misma familia, en las dos repeticiones del carrusel**, sin ningún anuncio de cambio de catálogo: si el cero indicara un cambio real en la forma de calcular el techo, el 11-04 no habría vuelto al rango negativo. Al revés de lo que sugería el 11-03, la evidencia de esta captura es que **el cero es ruido de un render aislado** y la mejor lectura sigue siendo "cifra no interpretable".
+> Ambas no pueden ser completamente correctas: o el 11-03 foret un cambio de semántica del widget que el 11-04 desmiente, o el 11-03 fue un render degradado. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+La captura transcribe literalmente "starting from / € -27. / 93 / max/mo. / € 5.99 per month, excl. VAT" para Cost-Optimized, "€ -30. / 33 / max/mo. / € 6.49 per month" para Regular Performance y "€ -203. / 90 / max/mo. / € 43.49 per month" para General Purpose, en las dos repeticiones de cada bloque. La **semántica** de la cifra (precio del plan más caro de la familia, valor máximo de un slider, o ahorro acumulado) **no está declarada por la página**: este átomo se apoya solo en la transcripción y en la comparación con las cinco capturas anteriores. La captura del 2026-11-01 no renderiza valores de techo, por lo que esa fecha no participa en la serie.

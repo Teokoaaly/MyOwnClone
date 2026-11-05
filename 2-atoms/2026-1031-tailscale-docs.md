@@ -1,0 +1,40 @@
+---
+id: 2026-1031-tailscale-docs
+type: atom
+certainty: solid
+sources: [sources/2026-10-31-tailscale-docs.md, sources/2026-11-01-tailscale-docs.md, sources/2026-11-02-tailscale-docs.md, sources/2026-11-03-tailscale-docs.md]
+links: ["[[2026-1031-proton-business-vpn-essentials-6-99-minimo-2-usuarios]]", "[[2026-1022-costes-por-categoria-tenant]]"]
+---
+
+## Claim
+Tailscale provides zero-config VPN connectivity with per-node pricing, creating a node-count cost model rather than per-user seating, where cost scales with the number of connected devices/nodes rather than user count.
+
+## Why It Matters
+Unlike the per-seat cost dominance model validated in `costes-por-categoria-tenant`, Tailscale's per-node pricing means cost depends on the number of network nodes (servers, workstations, mobile devices) rather than user count. For infrastructure-heavy products with more devices than human users (e.g., IoT, multi-tenant architectures with service-to-service connectivity), Tailscale cost may be driven by node count rather than user count. The friction is in products where node count differs significantly from user count: Tailscale may be cheaper than per-seat VPN services when node count < user count, but more expensive when node count > user count. Teams must map their architecture to determine whether their cost driver is nodes or users.
+
+## [FRICTION]
+> [[2026-1027-proton-business-vpn-despliegue-en-minutos-sin-ingenieria-desde-un-panel]] notes Proton VPN can be deployed in minutes without panel engineering, while Tailscale offers zero-config VPN with per-node pricing. Both solve VPN connectivity but with different cost models: Proton's per-user model with included features vs. Tailscale's per-node model for infrastructure devices. A product with 10 users and 50 IoT devices must calculate total cost as (10 × Proton per-user) + (50 × Tailscale per-node) to compare against alternative VPN solutions, since conflating node count with user count would produce inaccurate cost projections.
+
+## Nota de extensión 2026-11-03
+Fuentes: `sources/2026-10-31-tailscale-docs.md`, `sources/2026-11-01-tailscale-docs.md`, `sources/2026-11-02-tailscale-docs.md`.
+
+**Sobre el tamaño real de la fuente.** La fuente citada por este átomo (`sources/2026-10-31-tailscale-docs.md`) es un índice de knowledge base de 26 líneas de contenido útil, no una página de precios: su único texto económico es *"the plans we offer"*. Las tres capturas (10-31, 11-01, 11-02) son equivalentes entre sí en contenido —la del 11-01 añade 340 líneas de navegación duplicada— y ninguna publica una cifra de precio, nombre de plan ni límite de nodos o usuarios. La afirmación de "per-node pricing" que abre este átomo **no está respaldada por el corpus capturado**: véase [[2026-1101-tailscale-kb-sin-ninguna-cifra-de-precio-ni-plan]], que registra la fricción sin auto-resolverla.
+
+**Lo que las capturas sí aportan** es un mapa de capacidades documentadas que acota el diseño posible del trío api + worker + db sin puertos públicos:
+- Zero Trust por identidad, que sustituye VPN/SASE/PAM: [[2026-1101-tailscale-zero-trust-identity-based-que-reemplaza-vpn-sase-y-pam]].
+- Control de acceso por **un único fichero de política** con dos primitivas diferenciadas, ACL y grants: [[2026-1101-tailscale-acl-y-grants-conviven-en-el-fichero-de-politica]] y [[2026-1101-tailscale-plano-de-control-centralizado-por-politica-y-dispositivos]].
+- DNS dentro del tailnet (MagicDNS, nombre de tailnet, dominio propio): [[2026-1101-tailscale-magicdns-y-nombre-de-dominio-del-tailnet]].
+- Enrutado: subnet routers para importar subredes y exit nodes para el egress: [[2026-1101-tailscale-subnet-routers-para-alcanzar-subredes-sin-publicar-puertos]] y [[2026-1101-tailscale-exit-nodes-para-sacar-todo-el-trafico-por-un-nodo]].
+- Automatización de nodos (nodos efímeros, auth keys con expiración, cloud-init, unattended) y acceso SSH sin puerto 22 público: [[2026-1101-tailscale-nodos-efimeros-y-claves-de-auth-para-automatizar-servidores]] y [[2026-1101-tailscale-ssh-integrado-con-grabacion-de-sesion]].
+- Publicación de servicios (Tailscale services, Serve vs Funnel) y superficies de integración que cubren contenedores, bases de datos y firewalls: [[2026-1101-tailscale-servicios-tailscale-y-nodos-compartidos-para-publicar-sin-publicar]] y [[2026-1101-tailscale-categorias-de-integracion-que-cubren-el-stack-del-vault]].
+- Logging y auditoría del propio plano de red, como Logging overview con descripción explícita: [[2026-1101-tailscale-logging-audit-y-flow-logs-para-observar-el-plano-de-red]].
+- Dos productos hermanos que amplían el alcance más allá de la conectividad: **Tailscale PAM** (acceso privilegiado, service accounts, secretos, session logs, Terraform) y **Aperture: Secure AI** (gobernanza de IA para agentes, con "Manage AI spending"): [[2026-1101-tailscale-pam-gestion-de-acceso-privilegiado-como-producto-propio]] y [[2026-1101-tailscale-aperture-governance-de-ia-para-agentes-y-usuarios]].
+- Dónde NO hay evidencia: ningún servidor de coordinación autohospedado, ninguna cifra de plan, ningún nombre de plan personal vs enterprise: [[2026-1101-tailscale-comunidad-open-source-sin-servidor-de-coordinacion-autohospedado]] y [[2026-1101-tailscale-plan-gratuito-de-entrada-y-linea-enterprise-por-contacto-comercial]].
+
+**Conclusión operativa.** Tailscale encaja bien en el requisito "api + worker + db sin puertos públicos" y **no añade una partida de coste medida** con la evidencia actual, porque el precio no está capturado. El eje coste-por-asiento vs coste-por-infraestructura sigue sin dato nuevo: lo que Tailscale aporta es una capa de control de red por identidad, no una categoría de coste.
+
+## 2026-11-03 — re-verificación
+Una **cuarta** captura del mismo URL (`sources/2026-11-03-tailscale-docs.md`, 2224 bytes) llega al mismo punto y refuerza el vacío: el índice de 18 entradas vuelve a no traer **ni una sola cifra de precio, nombre de plan ni límite de nodos o usuarios**; lo único económico sigue siendo "the plans we offer". Por tanto, la afirmación de "per-node pricing" que abre este átomo **sigue sin respaldo en el corpus**, cuatro capturas después — la fricción con [[2026-1101-tailscale-kb-sin-ninguna-cifra-de-precio-ni-plan]] no se ha cerrado. Novedad menor pero real de esta cuarta captura: el índice llega **sin destinos de enlace** y con un control **"Ask AI"** que no estaba en las tres anteriores ([[2026-1103-tailscale-kb-control-ask-ai]]), lo que confirma que el artefacto capturado es un renderizado inestable y no una especificación — la conclusión operativa de este átomo no cambia, pero su base documental se ha ensanchado en un punto y debilitado en otro ([[2026-1103-tailscale-cuarta-captura-del-kb-sin-frase-zero-trust-ni-urls]]).
+
+## 2026-11-04 — re-verificación
+Una **quinta** captura del mismo URL (`sources/2026-11-04-tailscale-docs.md`, 2779 bytes, 55 líneas, `word_count: 316`) llega al mismo punto y **refuerza el vacío sin producir fricción nueva**: el índice de 18 entradas vuelve a no traer **ni una sola cifra de precio, nombre de plan ni límite de nodos o usuarios**; lo único económico sigue siendo "the plans we offer". La afirmación de "per-node pricing" que abre este átomo **sigue sin respaldo en el corpus**, cinco capturas después — la fricción con [[2026-1101-tailscale-kb-sin-ninguna-cifra-de-precio-ni-plan]] no se ha cerrado. Novedad de esta quinta captura: es **byte a byte idéntica a la del 2026-11-02** (`md5` del cuerpo desde la línea 4 = `dfd19d3b301aeb651e1567b1b8d728c4` en ambos), lo que **reclasifica la cuarta captura como render degradado puntual** y no como una variante de la página: la frase de Zero Trust reaparece íntegra y "Ask AI" vuelve a desaparecer ([[2026-1104-tailscale-la-frase-zero-trust-vuelve-a-renderizarse]], [[2026-1104-tailscale-ask-ai-solo-aparece-en-la-captura-del-11-03]], [[2026-1104-tailscale-quinta-captura-byte-identica-a-la-del-11-02]]). La conclusión operativa de este átomo no cambia: Tailscale aporta una capa de control de red por identidad y **ninguna partida de coste medida**.

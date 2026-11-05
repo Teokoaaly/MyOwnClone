@@ -1,0 +1,21 @@
+---
+id: 2026-1026-rebrowser-nube-propia-como-salida-comercial-del-parche-gratuito
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-rebrowser-patches.md]
+links: ["[[2026-1026-brightdata-browser-api-navegadores-remotos-para-automatizar]]", "[[2026-1026-patchright-readme-financiado-por-codigos-de-proxy-para-usuarios]]", "[[2026-1023-midjourney-proxy-oferta-comercial-de-api-no-oficial]]"]
+---
+
+## Claim
+El repo no es un proyecto sin patrocinador: está **"sponsored and maintained by Rebrowser"** (rebrowser.net). El README cierra con la oferta: escalar la automatización y el scraping **"in the cloud with hundreds of unique fingerprints"**, con una función concreta —**"notifications if your library uses `Runtime.Enable` during execution or has other red flags that could be improved"**— y una llamada a crear cuenta **para ser invitado** a probar la plataforma. La sección de atasco cierra igual: *"consider using cloud solutions from Rebrowser"*. Hay además una URL propia con ese mismo objeto, `rebrowser.net/docs/sensitive-cdp-methods`, ilustrada con una captura de **"Automated warnings"**.
+
+## Why It Matters
+Es un **modelo de negocio de núcleo abierto con capa de pago**, y el vault lo tenía documentado solo en su forma negativa —el proxy de imagen, núcleo abierto en GitHub y canal comercial en otro sitio ([[2026-1023-midjourney-proxy-oferta-comercial-de-api-no-oficial]])— y en la forma del descubrimiento de proxy ([[2026-1026-patchright-readme-financiado-por-codigos-de-proxy-para-usuarios]]). Aquí la monetización tiene una forma más elegante: **el producto gratuito es el detector y el parche; el producto de pago es el navegador en la nube con huellas únicas**.
+
+La pieza realmente nueva es la **función de notificación**: la nube **vigila el uso de CDP del cliente y avisa**. Eso invierte la relación del sector: en lugar de que el cliente detecte al detector, es **el proveedor el que diagnostica al cliente**. Es un servicio de **telemetría de evasión**, y su incentivo implícito es que un cliente que no usa `Runtime.Enable` dentro de la nube es un cliente **más difícil de detectar**, es decir, **más caro de defender para el proveedor** —lo que da un incentivo comercial directo al proveedor para que sus usuarios adopten el parche gratuito.
+
+El contraste con Bright Data es instructivo: allí el navegador remoto es **un producto de catálogo entre otros** dentro de una familia de scraping ([[2026-1026-brightdata-browser-api-navegadores-remotos-para-automatizar]]); aquí el navegador en la nube es **la fase 2 de un producto gratuito que ya está instalado en tu proyecto**. La diferencia comercial es que en un caso se compra desde cero y en el otro es la suscripción de algo que ya vive en tu `package.json`.
+
+## [FRICTION]
+> [[2026-1026-brightdata-browser-api-navegadores-remotos-para-automatizar]] y el resto de las capturas del thread sitúan la elusión de navegador como **una línea de coste con precio de catálogo** (navegador remoto con huella gestionada, $/GB, $/IP, créditos), y la lectura resultante es que la capa dominante de un flujo de alta puede ser comprada.
+> Este átomo presiona esa lectura en un punto estructural: **existe una elusión que se distribuye gratis y se monetiza en el uso**, es decir, **su precio no está en un catálogo sino en un contrato de suscripción detrás de "create an account to be invited"**, y **no hay ninguna cifra en la captura**. Si la vía gratuita basta para la mayoría de los destinos —y el README dice que el fix no basta, lo que empuja al usuario a la nube—, entonces **el coste de la capa dominante del sector es, para una parte de los usuarios, un contrato que el vault no puede cotizar**, no un precio por gigabyte. Ambas no pueden ser a la vez: o la huella gestionada en la nube es un producto con precio de lista comparable al de las demás partidas del thread, o **es un producto de suscripción cuyo precio no aparece en ningún sitio público** y hay que tratarlo como partida no cotizable, como ya se hizo con `generator.email` y con el paquete de Proton. Marcado para juicio humano, no auto-resuelto: la captura **no publica ningún precio, ni plan, ni límite** de rebrowser.net, y la propia plataforma se describe como "bleeding-edge" **por invitación**.

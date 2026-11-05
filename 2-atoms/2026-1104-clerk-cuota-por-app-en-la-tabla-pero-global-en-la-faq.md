@@ -1,0 +1,20 @@
+---
+id: 2026-1104-clerk-cuota-por-app-en-la-tabla-pero-global-en-la-faq
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-clerk-pricing.md]
+links: ["[[2026-1101-clerk-plan-gratuito-50000-mru-y-3-asientos]]", "[[2026-1101-clerk-organizaciones-100-mro-y-20-miembros-gratis]]", "[[2026-1101-clerk-mru-no-mau-con-primer-dia-gratis]]"]
+---
+
+## Claim
+La página de precios de Clerk **cifra las cuotas de dos maneras incompatibles**. La tabla "Full price breakdown" las da **por aplicación**: "Included MRUs … **50,000 per app**" (Hobby) y "50,000 MRUs **included per app**" (Pro y Business), "SSO connections: 1 connection **included per app**", "Directory Sync connections: 1 connection **included per app**", y en la tabla de add-ons "Monthly retained organizations (MROs) … **100 included per app**". Pero la FAQ y el CTA las dan **por cuenta, sin "per app"**: "Once you exceed **50,000 monthly retained users** you will be required to upgrade to the Pro plan. Once you exceed **100 monthly retained organizations**, you will be required to upgrade to the B2B Authentication add-on", y el cierre "Free for your first **50,000 monthly retained users and 100 monthly retained orgs**". Y el encabezado de la página añade que "**Every plan supports unlimited applications**".
+
+## Why It Matters
+Es la fricción más útil de esta captura porque **cambia el tamaño real del tramo gratuito**: con la lectura "por app" (que es la que dan las tablas, y que la página usa de forma consistente para MRU, MRO y conexiones) y **aplicaciones ilimitadas**, un workspace con 10 apps tendría **500.000 MRU y 1.000 MRO incluidos sin pagar nada**; con la lectura "por cuenta" de la FAQ, superar 50.000 MRU o 100 MRO **obliga al plan de pago**. La diferencia entre ambas lecturas es, literalmente, la diferencia entre un producto que escala gratis y un producto con su primer muro de pago en el primer cliente grande. Y no es un matiz menor: el vault ya atomicé el "50.000 MRU por app" ([[2026-1101-clerk-plan-gratuito-50000-mru-y-3-asientos]]) y el "100 MRO por app" ([[2026-1101-clerk-organizaciones-100-mro-y-20-miembros-gratis]]) **sin registrar que la propia página los contradice en la FAQ** — de modo que esas dos notas, tal como están, inducen a error en el sentido de "el free tier aguanta mucho" cuando la FAQ dice lo contrario. Para el hilo de economía de la verificación, la consecuencia práctica es que **cualquier presupuesto de identidad construido sobre la cuota gratuita de Clerk debe probationarse contra la lectura peor (por cuenta)**, porque la que se factura es la que impone la página, no la que se entiende leyendo la tabla.
+
+## [FRICTION]
+> [[2026-1101-clerk-plan-gratuito-50000-mru-y-3-asientos]] afirma, sin registrar la contradicción, que el plan Hobby da "**50.000 MRU por app**" y "aplicaciones ilimitadas", y lo lee como "una ventana de gratuidad muy holgada para un SaaS multi-tenant en fase beta".
+> Este átomo presiona esa lectura porque **la FAQ de la misma página dice "50,000 monthly retained users" sin "per app"** y obliga a subir al plan Pro al superarlos. Si la lectura por cuenta es la buena, el free tier de Clerk **no** escala con el número de apps, y la multiplicación 50.000 × nº apps no existe. Ambas no pueden ser completamente correctas: o la FAQ omite el "per app" por abrevio, o las tablas usan "per app" donde la cuota real es por cuenta. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+Filas "Included MRUs", "SSO connections", "Directory Sync connections" y "Monthly retained organizations (MROs)" de la tabla "Full price breakdown", encabezado "Plans for every stage" ("Every plan supports unlimited applications"), sección FAQ ("What happens when I exceed the first 50,000 monthly retained users or 100 monthly retained organizations?") y CTA final ("Free for your first 50,000 monthly retained users and 100 monthly retained orgs"), todo verbatim de `sources/2026-11-04-clerk-pricing.md` (idéntico a las capturas del 11-01 y del 11-02). La lectura de la multiplicación 50.000 × nº apps es inferencia marcada como tal, no texto de la fuente.

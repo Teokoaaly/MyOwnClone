@@ -20,3 +20,11 @@ La consecuencia operativa es que el único modo de comprar Bright Data con presu
 
 ## Nota de verificación
 Volúmenes e importes transcritos literalmente. La captura **no** publica: si los GB incluidos son acumulativos o caducan cada mes, si el excedente se factura al mismo $/GB, ni qué incluye exactamente "Custom price per GB" por encima de 1 TB.
+
+
+## Nota de extensión 2026-10-27
+La escalera de 2Captcha confirma la forma general de la escalera de Bright Data —**precio de entrada alto y descuento fuerte al subir de volumen**— y añade dos magnitudes que el vault no tenía. **Descuento**: −68,7 % en el tramo de 10 TB, contra los **−14 % y −17 %** de Bright Data y el **−26,7 %** de Decodo. **Precio unitario final**: **$1.25/GB**, por debajo del $2.50/GB del tramo de 798 GB de Bright Data.
+
+La diferencia de fondo es el compromiso: **Bright Data exige $499/mes en su primer tramo**, y su "−14 %" es un descuento pequeño **sobre una base de compromiso alto**; 2Captcha alcanza un descuento **4,8 veces mayor** partiendo de un tramo de **1 GB**. Es decir, **la profundidad de la escalera no está correlacionada con la exigencia de capital**: hay una escalera profunda sobre un compromiso bajo y una escalera superficial sobre un compromiso alto. La afirmación de este átomo —que "**el descuento unitario del 14 % en el primer escalón de Bright Data cuesta $499/mes de golpe**"— **se aplica al subconjunto de planes mensuales** y el vault debe corregirla como una generalización, no como una ley del sector.
+
+Nota: Bright Data declara el cupón `RESIGB50` y el *match* del primer depósito; **2Captcha no publica ninguna promoción**, solo precios y descuentos de volumen.

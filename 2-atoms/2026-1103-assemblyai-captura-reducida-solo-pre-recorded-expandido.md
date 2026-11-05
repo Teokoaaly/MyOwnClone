@@ -1,0 +1,20 @@
+---
+id: 2026-1103-assemblyai-captura-reducida-solo-pre-recorded-expandido
+type: atom
+certainty: solid
+sources: [sources/2026-11-03-assemblyai-pricing.md, sources/2026-11-02-assemblyai-pricing.md, sources/2026-11-01-assemblyai-pricing.md]
+links: ["[[2026-1101-assemblyai-tarifas-por-hora-no-por-minuto]]", "[[2026-1101-assemblyai-addons-prerecordado-diarizacion-keyterms-medical]]", "[[2026-1031-assemblyai-pricing]]"]
+---
+
+## Claim
+La tercera captura consecutiva de `https://www.assemblyai.com/pricing` (2026-11-03) es una **renderización reducida**: declara `word_count: 720` y 3.446 bytes, frente a las 4.663 palabras / 42.955 bytes del 2026-11-02 y las 4.307 palabras / 40.465 bytes del 2026-11-01. Solo la sección **Pre-recorded Speech-to-Text** aparece expandida —con su tabla de modelos ($0,21/hr y $0,15/hr) y su tabla de add-ons completa— mientras que **Realtime, Sync, Dictation y Text-to-Speech aparecen con la cadena literal "..."** en lugar de contenido. La captura conserva intactos el hero ("Start free, pay-as-you-go after that – no commitments required."), los botones "Try our API for free" / "Contact sales" y el índice de producto (transcribe / understand / interact).
+
+## Why It Matters
+Es un hecho sobre la **fiabilidad del pipeline de captura**, no sobre el precio, y por eso importa para todo el corpus de voz: la ausencia de cifras en una captura posterior **no es evidencia de que un precio se haya retirado ni de que una sección haya desaparecido**. Las tres capturas de la misma URL en tres días consecutivos devuelven tres contenidos distintos, igual que ya se registró en el corpus de 5sim y en Azure Architecture Center; el patrón es que el renderizado de estas páginas es intermitente y parcial, no que los productos cambien. Consecuencia operativa para el vault: (1) la fuente vigente para Realtime, Sync, Dictation y TTS sigue siendo `sources/2026-11-02-assemblyai-pricing.md` — la del 11-03 **no permite re-verificar** ninguna de esas cifras, y debe citarse como Ausencia de dato, nunca como precio retirado; (2) la única tabla que sí queda re-verificada hoy es la de pre-recorded, que reproduce **exactamente** los mismos importes del 11-01 y del 11-02 (Universal-3.5 Pro $0,21/hr y Universal-2 $0,15/hr, con Keyterms Prompting $0,05/hr vs "Included", Prompting $0,05/hr vs "Not supported", Speaker Diarization $0,02/hr en ambos y Medical Mode $0,15/hr en ambos), lo que confirma que **las tarifas de pre-recorded no se han movido** desde el 1 de noviembre; (3) la lección operativa para el pipeline: una captura que solo guarde la tabla que se renderizó no puede afirmar nada sobre el resto del catálogo, y el vault debería tratar `word_count` como un indicador de calidad de captura antes que como metadato.
+
+## [FRICTION]
+> [[2026-1031-assemblyai-pricing]] (escrita hace ~4 semanas): su nota de extensión afirma que "Los precios se han mantenido idénticos entre las tres capturas (2026-10-31, 2026-11-01, 2026-11-02), así que el cambio es de **lectura**, no de tarifa".
+> Esta cuarta captura **no confirma ni desmiente** esa afirmación para el catálogo completo: solo re-verifica pre-recorded y colapsa el resto a "...". La estabilidad solo puede sostenerse para la sección Pre-recorded. No hay contradicción directa, pero sí un límite al alcance de la afirmación previa, que se documenta aquí sin auto-resolverla.
+
+## Actualización 2026-11-04 — el recorte no se repite
+La quinta captura (`sources/2026-11-04-assemblyai-pricing.md`) **vuelve al render completo** (4.663 palabras / 42.954 bytes) y es **idéntica línea a línea a la del 2026-11-02**, salvo el hash de despliegue de Vercel en dos URLs de imagen. Esto confirma el patrón ya descrito: el render de esta URL es intermitente, y el estado "solo Pre-recordado" del 11-03 fue un fallo puntual, no un cambio del producto ni una retirada de secciones. El catálogo completo queda re-verificado hoy contra esta fuente; ver [[2026-1104-assemblyai-captura-vuelve-al-render-completo-identica-a-la-del-11-02]] y [[2026-1104-assemblyai-precios-estables-en-las-tres-capturas-completas]].

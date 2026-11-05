@@ -1,0 +1,25 @@
+---
+id: 2026-1027-decodo-js-rendering-y-proxies-premium-como-extras-activables-a-demanda
+type: atom
+certainty: tentative
+sources: [sources/2026-10-26-decodo-web-data-api-pricing.md]
+links: ["[[2026-1027-decodo-web-data-api-ocho-planes-mensuales-con-limite-de-crawls-y-paginas]]", "[[2026-1026-decodo-payg-a-4-por-gb-solo-con-wallet-y-un-gb-a-la-vez]]", "[[2026-1027-decodo-la-unidad-no-es-estable-requests-paginas-y-crawls]]", "[[2026-1024-brightdata-web-unlocker-resuelve-captcha-y-no-requiere-kyc]]"]
+---
+
+## Claim
+La página de precios de la Web Data API sostiene dos afirmaciones que no encajan. Una es la **cabeza de venta**: *"**Stop overpaying for scraping plans** — The new Web Data API lets you **enable JS rendering and premium proxies only when needed**."* La otra es la **lista de features incluidas en todos los planes**, que enumera como primera de la lista: *"**JavaScript rendering**"*, seguida de *"99.99% success rate"*, *"HTML, Markdown, XHR, plus JSON, CSV, PNG where supported"*, *"One-click AI integrations"*, *"LLM-ready Markdown format"*, *"100+ pre-built templates"*, *"Single API key for all endpoints"* y *"24/7 tech support"*. El encabezado de esa lista lo dice sin ambigüedad: *"With each plan, you access:"*, y la introducción de la página añade *"All plans include the same powerful features – you only pay for what you use."*
+
+## Why It Matters
+La contradicción no es un detalle de redacción: **determina qué unidad económica hay que cotizar**. Si el JavaScript rendering y los proxies premium van **incluidos en todos los planes**, entonces el coste marginal de una página con JS es el mismo que el de una página estática, y la unidad de la cuota —crawl o página— es la única variable. Si van **activables solo cuando hacen falta**, hay un **tercer eje de coste por petición** que la tabla de ocho planes no muestra: una página que necesita JS render y proxy premium **consume más cuota o cuesta más por la misma página**, y esa diferencia **no está publicada en ningún sitio de la captura**.
+
+El titular "Stop overpaying for scraping plans" es, de hecho, **un argumento de modelo de cobro**, no de precio: el pitch es que el cliente **no paga por capacidad que no usa**, lo que implica un mecanismo de metering por feature —y ese mecanismo es **precisamente lo que el vault no puede cotizar**, porque el precio unitario que sale de la tabla de planes solo vale si JS y proxies premium son gratis o si su activación se mide contra la misma cuota.
+
+El contexto del corpus reinforce por qué esto importa: el vault ya registró que en Bright Data el captcha **se reabsorbe** en el precio del tráfico en lugar de ser una partida aparte ([[2026-1024-brightdata-web-unlocker-resuelve-captcha-y-no-requiere-kyc]]), y que el PAYG de Decodo existe **precisamente** para quien quiere granularidad y no suscripción ([[2026-1026-decodo-payg-a-4-por-gb-solo-con-wallet-y-un-gb-a-la-vez]]). Si la Web Data API ofrece un tercer mecanismo —**metering por feature dentro de un plan de suscripción**—, el vault tiene **tres** regímenes de coste distintos del mismo proveedor para el mismo producto: suscripción con cuota, PAYG por GB con Wallet y activating por feature.
+
+## [FRICTION]
+> El propio átomo nuevo [[2026-1027-decodo-web-data-api-ocho-planes-mensuales-con-limite-de-crawls-y-paginas]] (y el bloque de features de la página) establece que "**All plans include the same powerful features**" y por tanto que la **única variable** de la tabla es la cuota (crawls o páginas) más la concurrencia (req/s).
+> Este átomo presiona esa lectura con la propia cabecera de venta de la misma página: "**enable JS rendering and premium proxies only when needed**". Si "solo cuando hace falta" significa **sin coste adicional** —porque ya están incluidos y lo único que se hace es no usarlos—, entonces la frase es puro marketing y la tabla es completa. Si significa **con coste adicional o con cuota adicional**, entonces **la tabla de ocho planes no describe el coste de una petición difícil**, y el vault no puede cerrar el coste de un scrape real contra Amazon o Cloudflare con los datos publicados: el caso que el propio proveedor declara como su propio terreno (99,99 % de éxito en objetivos anti-bot) es precisamente el que **usa las dos features "opcionales"**.
+> Ambas no pueden ser completamente correctas: o el titular es una frase de marketing sin efecto en el precio, o la metering por feature existe y es **la partida que falta** en la tabla de coste. Marcado para juicio humano, no auto-resuelto: la captura no publica cómo se mide ni cuánto cuesta activar JS rendering o proxies premium, ni si esa activación consume cuota de crawls/páginas.
+
+## Nota de verificación
+Frases transcritas literalmente de las dos zonas de la captura. `certainty: tentative` porque la fuente **no dice** si "only when needed" implica coste: la lectura de que hay metering es una inferencia del titular, no una afirmación explícita. La captura **no** publica: el precio del excedente, el coste de JS rendering, ni el de los proxies premium.

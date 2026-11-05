@@ -1,0 +1,24 @@
+---
+id: 2026-1026-puppeteer-extra-seis-paquetes-y-esus-versiones-en-el-commit-de-publicacion
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-puppeteer-extra-repo.md]
+links: ["[[2026-1026-puppeteer-extra-catalogo-de-plugins-numerados-en-la-captura]]", "[[2026-1026-puppeteer-extra-flujo-de-publicacion-por-lerna-con-npm-y-no-yarn]]", "[[2026-1024-github-search-lenguajes-licencias-y-topics-del-corpus]]", "[[2026-1023-midjourney-proxy-popularidad-y-actividad-del-repo]]"]
+---
+
+## Claim
+El commit de publicación ("Publish", 1 de marzo de 2023) enumera en su mensaje **seis paquetes con su versión exacta**: `extract-stealth-evasions@2.7.3`, `@extra/proxy-router@3.1.6`, `puppeteer-extra-plugin-anonymize-ua@2.4.6`, `puppeteer-extra-plugin-devtools@2.4.6`, `puppeteer-extra-plugin-recaptcha@3.6.8` y `puppeteer-extra@3.3.6`. Es la única lista de versiones con número que la captura contiene.
+
+## Why It Matters
+Es un dato pequeño pero del tipo que el vault sí usa: **la profundidad de versión por paquete es un indicador de antigüedad de cada pieza**. `puppeteer-extra` en **3.3.6** y `puppeteer-extra-plugin-recaptcha` en **3.6.8** son dos plugins con seis y siete minors publicados respectivamente, lo que implica un ciclo de release largo y sostenido por paquete — coherente con los 559 tags del repositorio y con la política de Lerna, que "Will ask for new pkg version per package" ([[2026-1026-puppeteer-extra-flujo-de-publicacion-por-lerna-con-npm-y-no-yarn]]).
+La observación útil para el vault es de **coste de dependencia**: un plugin en `2.4.6` está en la misma línea de versión que un framework en `3.3.6`, de modo que instalar un plugin arrastra una expectativa de compatibilidad con una major concreta. Y el contraste con el resto del corpus es directo: en la consulta de GitHub de "chatgpt account creator", **8 de 14 repositorios declaraban licencia MIT y 6 ninguna**, con versiones sin publicar y sin metadatos comparables ([[2026-1024-github-search-lenguajes-licencias-y-topics-del-corpus]]); aquí hay **seis versiones concretas y seis paquetes con nombre**, que es el nivel de metadato que aquel corpus no tenía. El caso de Midjourney-Proxy, con 5,4k estrellas y un release congelado desde junio de 2024, muestra que el número de versión por sí solo no garantiza mantenimiento vivo ([[2026-1023-midjourney-proxy-popularidad-y-actividad-del-repo]]).
+Nota de verificación: las seis versiones son transcripción literal del mensaje de commit. La captura **no** publica las dependencias entre paquetes (qué versión de `puppeteer-extra` exige cada plugin), ni el `CHANGELOG`, ni el contenido de los releases —la sección "Releases" de la página aparece **vacía**.
+
+
+## Nota de extensión 2026-10-26
+La captura del 2026-10-25 del README del **paquete `puppeteer-extra-plugin-stealth`** aporta una **segunda lista de versiones del mismo commit tipo "Publish" y de la misma fecha** que la de este átomo, y por tanto **corrige la afirmación de unicidad** que este átomo hacía ("Es la única lista de versiones con número que la captura contiene").
+
+El último cambio del `package.json` de ese paquete es el commit **`2f4a357` ("Publish", 1 de marzo de 2023)**, cuyo mensaje enumera **diecisiete paquetes** con `extract-stealth-evasions@2.7.2`, `@extra/proxy-router@3.1.5`, `puppeteer-extra-plugin-anonymize-ua@2.4.5`, `puppeteer-extra-plugin-devtools@2.4.5`, `puppeteer-extra-plugin-recaptcha@3.6.7` y `puppeteer-extra@3.3.5` — **exactamente una versión menor** que los seis valores de este átomo (`2.7.3`, `3.1.6`, `2.4.6`, `2.4.6`, `3.6.8`, `3.3.6`), cuyo commit en la cabecera del monorepo es **`39248f1`**, también "Publish" y también del 1 de marzo de 2023.
+
+**La extensión es de corrección de un claim, no de matiz.** Las dos listas no pueden ser la misma publicación —son commits distintos con hash distinto— y ambas están fechadas el mismo día. De ahí se sigue una regla que este átomo no formulaba: **el mensaje del commit de publicación no es una fuente única de versiones del ecosistema**, porque el repositorio publica por paquete y **varios "Publish" pueden compartir fecha**. La formulación que conviene evitar es "la versión publicada de X es 2.7.3"; la que el vault puede sostener es "**en el commit de publicación `39248f1` del 1 de marzo de 2023, `extract-stealth-evasions` iba en `2.7.3`; en el commit `2f4a357` de la misma fecha, en `2.7.2`**". El vault no ha clonado el repositorio y no puede establecer cuál de los dos commits es posterior ([[2026-1026-stealth-version-publicada-2-11-2-y-licencia-mit-2018-2023]]).
+Nota adicional: este átomo afirmaba que la sección "Releases" de la página aparece vacía. La captura del paquete **no publica una sección "Releases"** en absoluto (la tabla de ficheros y el README son el contenido), de modo que esa ausencia queda **acotada a la página del repositorio** y no es extrapolable al paquete.

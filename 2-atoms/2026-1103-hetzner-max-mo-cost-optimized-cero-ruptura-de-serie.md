@@ -1,0 +1,21 @@
+---
+id: 2026-1103-hetzner-max-mo-cost-optimized-cero-ruptura-de-serie
+type: atom
+certainty: solid
+sources: [sources/2026-11-03-hetzner-cloud.md]
+links: ["[[2026-1102-hetzner-techo-max-mo-de-cada-familia-varia-entre-capturas]]", "[[2026-1023-hetzner-escalera-de-precios-y-salto-a-dedicados]]", "[[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]]"]
+---
+
+## Claim
+En la captura del **2026-11-03** el widget de planes de Hetzner Cloud renderiza tres techos "max/mo." nuevos: **Cost-Optimized € 0.00**, **Regular Performance € -35.97** y **General Purpose € -240.99**. Frente a las series de las tres capturas anteriores (Cost-Optimized € -25.81 → € -31.19 → € -27.33; Regular Performance € -27.85 → € -33.80 → € -29.65; General Purpose € -187.46 → € -226.48 → € -199.05) la ruptura es doble: la familia de entrada aparece por **primera vez sin signo negativo y en cero** (y las dos repeticiones del carrusel muestran el mismo € 0.00), y el techo de General Purpose alcanza su **valor más alto en cinco capturas** (€ -240.99). La página sigue publicando, en los tres bloques, "starting from … € 5.99 / € 6.49 / € 43.49 per month, excl. VAT".
+
+## Why It Matters
+Convierte la lectura de los techos "max/mo." en **un problema de semántica del widget, no de catálogo**: un valor € 0.00 para una familia cuyo plan de entrada cuesta € 5,99/mes y un valor € -240,99 para otra no son precios de plan, son la salida numérica de un render dinámico (posiblemente un slider de rango o un cálculo de ahorro). Por eso la banda "€ 187–226/mes para un servidor dedicado" que se leía en [[2026-1102-hetzner-techo-max-mo-de-cada-familia-varia-entre-capturas]] **no puede usarse como dato de coste**; lo que sí puede usarse es el "starting from" de cada familia, que es estable: € 5,99 / € 6,49 / € 43,49 ex-VAT según [[2026-1023-hetzner-escalera-de-precios-y-salto-a-dedicados]]. Para el modelo de coste del vault la consecuencia es práctica: **el precio de un dedicado sigue sin estar publicado** y hay que seguir tratándolo como un escalón de € 43,49 más un techo no interpretable, no como una banda de coste. El contraste con los dos widgets que sí cambian en cada render está en [[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]].
+
+## [FRICTION]
+> [[2026-1102-hetzner-techo-max-mo-de-cada-familia-varia-entre-capturas]] (escrita hace 2 semanas) afirma que los techos "max/mo." van de "Cost-Optimized € -25.81 → € -31.19 → € -27.33" a "General Purpose € -187.46 → € -226.48 → € -199.05" y que, por ello, "el General Purpose llega a un orden de € 190–230/mes según el momento de la captura", una banda que el átomo usa como corrección operativa de la escalera de precios.
+> Este átomo presiona esa creencia porque el valor del **2026-11-03 es € 0.00 para la familia Cost-Optimized** —cero, sin signo negativo, para un plan que la propia página anuncia desde € 5,99/mes— y **€ -240.99 para General Purpose**, fuera del rango € 187–226 que el átomo fijaba. Un widget que puede renderizar 0 y −241 para familias cuyo precio de catálogo es 5,99 y 43,49 no está publicando un techo de coste: **la cifra no admite lectura monetaria y la banda € 190–230/mes no puede sostenerse sobre ella**.
+> Ambas no pueden ser completamente correctas: o los valores negativos son un artefacto de scrape del símbolo y el "€ 0.00" de Cost-Optimized es en realidad un máximo real (imposible, si el mínimo es € 5,99), o la cifra es un descuento/ahorro acumulado cuyo signo y magnitud no corresponden a un precio mensual. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+La captura transcribe literalmente "starting from / € 0. / 00 / max/mo. / € 5.99 per month, excl. VAT" para Cost-Optimized, y "€ -35. / 97 / max/mo. / € 6.49 per month" para Regular Performance y "€ -240. / 99 / max/mo. / € 43.49 per month" para General Purpose. La **semántica** de la cifra (si es precio del plan más caro de la familia, valor máximo de un slider, o ahorro acumulado) **no está declarada por la página**: ese punto sigue siendo lectura inferida, y por eso este átomo se apoya solo en la transcripción y en la comparación con las cuatro capturas anteriores, no en una interpretación del valor.

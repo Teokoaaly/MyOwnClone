@@ -1,0 +1,20 @@
+---
+id: 2026-1026-stealth-cobertura-de-canvas-ausente-en-el-changelog-de-evasions
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-puppeteer-extra-stealth.md]
+links: ["[[2026-1026-rebrowser-el-fix-solo-no-basta-y-hacen-falta-canvas-y-webgl]]", "[[2026-1026-stealth-evasions-nombradas-en-el-changelog-del-plugin]]", "[[2026-1026-rebrowser-runtime-enable-la-fuga-que-usan-todos-los-antibot]]"]
+---
+
+## Claim
+El changelog del plugin enumera **`webgl.vendor`** ("is otherwise set to 'Google' in headless") y **`media.codecs`** ("we spoof the presence of proprietary codecs in Chromium now"), pero **no nombra `canvas` en ninguna entrada**. La lista completa de evasiones nombradas es `user-agent-override`, `navigator.vendor`, `navigator.webdriver`, `iframe.contentWindow`, `accept-language`, `media.codecs`, `chrome.runtime`, `navigator.plugins`, `webgl.vendor`, `window.outerdimensions` y `defaultArgs`.
+
+## Why It Matters
+Este es el **cruce que el vault no podía hacer antes**: la fuente de rebrowser afirma, en su sección "The fix doesn't help, I'm still getting blocked 🤯", que el parche **no basta** y que falta lo que llama "proper user-agent and fingerprints (**canvas, WebGL**)" ([[2026-1026-rebrowser-el-fix-solo-no-basta-y-hacen-falta-canvas-y-webgl]]); el changelog de este plugin enumera **`webgl.vendor` pero no `canvas`**. Es decir: **el sector coincidía en que WebGL y canvas son las señales de huella que faltan, y solo una de las dos aparece en el catálogo del plugin de inyección**.
+La observación es más fina que un simple hueco y por eso tiene valor: **`webgl.vendor` no es la huella de WebGL**. Es un **string de identificador de proveedor**, y lo que rebrowser llama "fingerprints (canvas, WebGL)" es la **huella de render** —el resultado de dibujar y hashear— que ningún `navigator` override puede tapar. Es decir, el plugin **tapa la etiqueta pero no el valor**, y esa es exactamente la diferencia entre los dos niveles de la señal.
+Y hay una consecuencia de alcance para el vault: **la ausencia de `canvas` en el changelog no prueba que la evasión no exista** —el README declara explícitamente que el changelog es un extracto ("Older changelog") y que la lista actualizada está en el directorio `evasions` ([[2026-1026-stealth-evasions-nombradas-en-el-changelog-del-plugin]]). Pero sí prueba algo más fuerte y verificable: **el changelog es un buen detector de qué señales el proyecto considera prioritarias**, y la prioridad declarada no incluye el canvas.
+
+## [FRICTION]
+> [[2026-1026-rebrowser-el-fix-solo-no-basta-y-hacen-falta-canvas-y-webgl]] afirma que la elusión del navegador **no se resuelve con una pieza**, y enumera lo que falta como "proxies, proper user-agent and fingerprints (**canvas, WebGL**)".
+> Este átomo presiona esa afirmación en un punto que le hace más preciso: **`webgl.vendor` sí está en el catálogo del plugin de inyección y `canvas` no**, y —más importante— **`webgl.vendor` no es la huella de WebGL**, sino su etiqueta. Es decir: **las dos listas miden cosas distintas y ninguna de las dos puede usarse como inventario de cobertura**. La de rebrowser lista **capas de señal** (canvas, WebGL, user-agent, proxy); la del plugin lista **mecanismos** (un `vendor` que se puede fijar, un `media.codecs` que se puede suplantar). Ante "canvas" el plugin no ofrece enumeración porque **no ofrece enumeración de lo que no cubre**: cubre etiquetas, no huellas.
+> Ambas no pueden ser a la vez una taxonomía de cobertura: o el changelog del plugin es un inventario de lo que se tapa —y entonces falta canvas y el diagnóstico de rebrowser es correcto—, o es una taxonomía de **mecanismos tapables** —y entonces el diagnóstico de rebrowser y el catálogo del plugin **no son comparables y no se puede usar uno para auditar al otro**. Marcado para juicio humano, no auto-resuelto: **la captura no incluye el directorio `evasions/`**, de modo que el vault no puede afirmar que la evasión de canvas no exista; solo puede afirmar que **no está en el changelog truncado** ([[2026-1026-rebrowser-runtime-enable-la-fuga-que-usan-todos-los-antibot]]).

@@ -16,3 +16,7 @@ Y hay un punto de método que conviene retener para cualquier compra de capacida
 
 ## Nota de verificación
 Las tres declaraciones de política (el pago no altera puntuación ni leaderboard; el Top 10 como espacio pagado; las filas patrocinadas a mano marcadas como valor estático) están transcritas de la captura en chino y traducidas al español; el vault no reproduce los caracteres originales. La captura **no** publica: qué porcentaje del Top 10 está pagado, cuánto cuestan esos espacios, ni la evidencia de las filas que no son de patrocinio.
+
+
+## Nota de extensión 2026-10-27
+La FAQ añade el **inventario completo de los tres flujos de ingreso** del sitio: **① 联盟合作** (comisión del relay por registro, **"不影响用户实际支付价格"**), **② 基础收录与站长后台套餐**, **③ 模型级 S 赞助位(4 个模型组均为 S1–S10) y Top1–Top10 精选位(均明确标识为付费展示)**, con la detección **"本身永久免费、无需注册"**. Y añade la garantía más fuerte que esta nota tenía: **"联盟收入与评分严格隔离"**, **"即使是付费 Featured 客户,被检出严重问题 仍标严重问题"** y **"代码完全开源(AGPL-3.0),评分公式公开,可逐行审计"**. Es decir, la separación commerce/métrica que el vault registró en PriceAI como excepción (patrocinadores fusionados en la tabla) aparece aquí como **norma declarada y auditable**. Véanse [[2026-1027-veridrop-tres-flujos-de-ingreso-y-el-aislamiento-de-la-comision]] y [[2026-1023-priceai-patrocinadores-y-canales-de-reventa-con-multiplicador]].

@@ -14,3 +14,7 @@ Es una **política de precio opuesta a la del resto del vault**: ExtraVM declara
 
 ## Nota fechada — 2026-10-24 (Refinery Proton VPN)
 Una captura del mismo día documenta **un tercer modelo de pago cripto en el sector de privacidad**: en Proton el pago directo es solo fiat (Visa, Mastercard, AMEX, PayPal) y **Bitcoin no compra el servicio sino saldo interno** ("purchase Proton credits using cash, bank transfers, or Bitcoin"), sin descuento declarado. Es decir: ExtraVM = cripto al mismo precio que la tarjeta, Mullvad = cripto con −10 %, Proton = cripto como prepago de saldo a precio nominal ([[2026-1024-proton-metodos-de-pago-tarjetas-paypal-y-creditos-comprables-con-bitcoin]]).
+
+
+## Nota de extensión 2026-10-26
+Este átomo dice que el modelo de Mullvad («el cripto es un descuento explícito, con la razón declarada») es «el tercero» tras ExtraVM (mismo precio) y Proton (solo saldo interno), y su nota fechada enumera los tres. La captura de IVPN añade un **cuarto modelo** con un matiz nuevo: IVPN acepta **Bitcoin, BTC Lightning, Monero, efectivo, PayPal y tarjeta** en la misma línea y **no declara ningún descuento, recargo ni diferencia por método de pago** ([[2026-1026-ivpn-efectivo-monero-bitcoin-y-lightning-sin-descuento-declarado]]). La consecuencia operativa que conviene tener presente en el thread: **«pagar en cripto» no es una palanca de precio en esta categoría salvo en Mullvad**; en IVPN la diferencia entre la vía más anónima y la más rastreable es cero en precio declarado, lo que convierte la elección en una decisión de postura y no de coste.

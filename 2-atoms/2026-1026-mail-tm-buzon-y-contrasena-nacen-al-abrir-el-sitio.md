@@ -1,0 +1,26 @@
+---
+id: 2026-1026-mail-tm-buzon-y-contrasena-nacen-al-abrir-el-sitio
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-mail-tm-temp-mail.md]
+links: ["[[2026-1024-chatgpt-creator-correo-temporal-y-otp-automatico-con-generator-email]]", "[[2026-1024-notletters-tres-vias-de-consumo-api-http-imap-y-web]]", "[[2026-1026-emailondeck-gratis-con-paso-pro-sin-cifras]]"]
+---
+
+## Claim
+La home de `mail.tm` describe el alta de un buzón como **un efecto colateral de abrir la página**: "A free service that gives you an email address and a password for it **the moment you open the site**, with **no personal details required**. The mailbox is **created automatically**, with no link to your identity" y "You give us **no personal data and sign no user agreements**: just open the site and use it". El bloque "Simple" lo repite: "**No registration forms, no personal details.** Copy your temporary address and start using it right away". Y la credencial también es automática: "Every temporary mailbox is protected by a **unique, automatically generated password**". El bloque "Fast" añade que "By the time the page has loaded, you already have an address and a password".
+
+## Why It Matters
+Es la **forma más barata que el vault ha visto de obtener un buzón desechable**: no hay cuenta, no hay alta, no hay datos, no hay contrato y no hay clave que comprar — solo una navegación. El contraste con el resto del corpus del sector es total: NotLetters vende buzones por unidad a **0.05 ₽** y publica tres vías de consumo —web, API HTTP e IMAP— detrás de un flujo de compra ([[2026-1024-notletters-tres-vias-de-consumo-api-http-imap-y-web]]); EmailOnDeck presenta un flujo de **dos pasos** con botón "Get Email" y un enlace "PRO" a otro subdominio ([[2026-1026-emailondeck-gratis-con-paso-pro-sin-cifras]]); mail.tm **no tiene ni un paso**: la dirección y la contraseña ya existen cuando la página ha terminado de cargar.
+La consecuencia de diseño es la que importa para el producto del vault: **el buzón desechable no necesita ser un producto purchased, puede ser un subproducto de una navegación**, y por tanto su coste marginal monetario puede ser cero sin que eso dependa de un plan de pago. Esto conecta con lo que el vault ya sabe del otro lado del corredor: el bot de registro de cuentas de ChatGPT **se trae su propio generador de buzones** —"Auto Email Generation — Generates temporary emails via generator.email or custom domains"— precisamente para no depender de un proveedor ([[2026-1024-chatgpt-creator-correo-temporal-y-otp-automatico-con-generator-email]]). mail.tm es la prueba de que ese generador propio **es reemplazable por una navegación**: el mismo producto, sin código, sin servidor y sin coste.
+
+## [FRICTION]
+> [[2026-1024-chatgpt-creator-correo-temporal-y-otp-automatico-con-generator-email]] registra que el bot genera buzones "random from generator.email" **o con dominios propios**, y que su lectura del correo es por polling del OTP: un generador **propio**, con dominios que el bot puede diversificar.
+> Este átomo presiona ese diseño en un punto: mail.tm ofrece exactamente la misma propiedad —dirección y contraseña listas sin registro— **pero con un único pool de dominios compartido que la captura no publica**. Y el propio bot resuelve ese problema con una pieza que el vault ya documentó: un archivo `blacklist.json` donde persisten los dominios de correo que fallan ([[2026-1024-chatgpt-creator-blacklist-de-dominios-persistida-en-archivo]]). O el pool de mail.tm es suficiente y el generador propio del bot es sobreingeniería, o ese pool es un punto único de bloqueo —y entonces un proveedor gratuito con un solo pool de dominios es exactamente el perfil de insumo que un flujo de alta a escala tiene que blacklistear. Marcado para juicio humano, no auto-resuelto: la captura **no publica ni un solo dominio** de mail.tm, así que el vault no puede contar los dominios disponibles ni contrastarlos con la blacklist.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-mail-tm-api-docs.md`.
+
+Este átomo sostiene, desde la home, que en mail.tm la dirección y la contraseña "**nacen al abrir el sitio**", que el buzón "**is created automatically**" y que la credencial es "a **unique, automatically generated password**". La documentación de la API publica un **segundo camino de alta con modelo de credencial distinto**: el cliente envía `address` y `password` y el proveedor no genera ninguno ([[2026-1027-mail-tm-la-api-permite-fijar-address-y-password-a-diferencia-de-la-web]]).
+
+Consecuencia para el Editor: el átomo debe **acotar su alcance a la vía web**, porque la formulación actual —"nacen al abrir el sitio"— es cierta de la interfaz y **falsa como descripción del servicio**: hay dos interfaces con dos modelos de credencial, la web con autogeneración y la API con elección del cliente. No es una contradicción del proveedor sino una distinción que la captura de la home no podía ver. La consecuencia operativa es de seguridad: **"autogenerada" era el atributo que hacía aceptable el buzón de mail.tm para un flujo de alta**, y por tanto ese atributo **no se puede extender a la vía API**, donde la unicidad y la aleatoriedad de la clave pasan a ser responsabilidad del integrador.

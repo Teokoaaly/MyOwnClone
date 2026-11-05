@@ -15,3 +15,8 @@ El segundo uso es un reconocimiento de mercado: la propia página enumera **Clau
 
 ## Nota de verificación
 Listas y frases transcritas literalmente. La captura **no** publica: precio por gigabyte específico para estos usos, si hay acuerdo de partners con alguno de esos servicios de IA, ni métricas de volumen de crawler que la página cite. Ninguna de estas aplicaciones al producto del vault está afirmada por la fuente: es lectura propia del vault.
+
+
+## Nota de extensión 2026-10-27
+La landing móvil **no añade usos de IA**, pero sí añade el dato de **composición de uso** que le faltaba a este átomo: **"Web Scraping — Used by 68% of customers"**. Es la primera vez que el vault tiene una **cifra de penetración de un pool de proxy por caso de uso**, y dice que el móvil es, para el proveedor, **un pool de scraping** — no un pool de SMM, aunque la página dedique un bloque entero a Social Media Management. La conexión con este átomo se mantiene: el scraping de fuentes públicas es exactamente el uso que el producto del vault tiene, y la página móvil **también** declara el bloque de integraciones con Scrapy, Selenium y Puppeteer. Ver [[2026-1027-dataimpulse-movil-68-por-ciento-scraping-y-cuatro-casos-de-uso]].
+La captura móvil introduce además un **cuarto caso de uso que el vault no tenía para ningún pool**: **testeo de app en redes de operador reales** ("check that their app works the same way across different carriers and mobile devices", "Accurate testing of local content", "Quick detection of region-specific bugs"). Es un uso de **QA de producto**, no de elusión, y por tanto el de mejor relación valor/riesgo del corpus: no hay captcha, no hay bloqueo que sortear, solo cobertura de operadores.

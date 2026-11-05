@@ -1,0 +1,50 @@
+# Propuesta de inserción en thread — el scraping API como producto (captura 2026-10-26)
+
+THREAD: el-agregador-de-precios-como-producto
+Fuente: `sources/2026-10-26-decodo-web-data-api-pricing.md` (captura `0-raw/2026-10-26-decodo-web-data-api-pricing.md`).
+Átomos: 9 nuevos (`2026-1027-decodo-*`) + 5 extendidos.
+
+Instrucciones de inserción: (1) insertar la nueva sección **después de la §7.6** ("La otra mitad del mercado: el proveedor que publica un market maker en lugar de un agregador"), porque la §7.3 ya dejó sentido de que "cualquier puntuación de proveedor derivada de scraping envejece en horas" y esta captura es la que muestra **el proveedor que vende el scraping como producto con precio propio**, que es el contrapunto directo de esa caducidad; (2) añadir las fricciones al apartado "## 10. Fricciones para juicio humano" **sin numerar**, con el marcador `<!--friccion:NUEVA-->`; (3) las numeraciones de sección y de fricción las reasigna el worker de integración.
+
+---
+
+## [INSERTAR en el-agregador-de-precios-como-producto, después de §7.6 — nueva sección]
+
+### 7.7 El otro extremo de la cadena: quien vende el scraping, con precio de catálogo y unidad propia
+
+La §7.3 de este thread estableció el problema de la **caducidad por horas** de cualquier tabla de proveedores derivada de scraping: una puntuación construida desde una página de pruebas envejece en horas, y por eso necesita timestamp por fila y re-verificación. La §7.6 mostró el otro extremo: un proveedor que publica un market maker en lugar de un inventario. Esta captura muestra **el tercero**: un proveedor que **vende el scraping como producto con precio de catálogo**, es decir, **el mismo trabajo que el agregador quiere hacer, pero vendido con unidad, cuota y precio fijo**.
+
+**La tabla, literal** ([[2026-1027-decodo-web-data-api-ocho-planes-mensuales-con-limite-de-crawls-y-paginas]]):
+
+| req/s | $/mes | Límite |
+|---|---|---|
+| 10 | $0 | 5K crawls o 10K pages |
+| 10 | $19 | 19K crawls o 38K pages |
+| 25 | $49 | 65K crawls o 122K pages |
+| 50 | $99 | 141K crawls o 330K pages |
+| 100 | $249 | 383K crawls o 1.2M pages |
+| 150 | $499 | 831K crawls o 2.7M pages |
+| 200 | $999 | 1.8M crawls o 6.2M pages |
+| 200 | $1499 | 2.9M crawls o 9.9M pages |
+
+**Lo primero, y es lo que cambia la tesis del thread: la unidad de precio de esta industria no está estabilizada.** Aquí conviven **cuatro** unidades en la misma página: **crawls**, **pages scraped**, **requests** y **req/s** de concurrencia. Y la conversión entre las dos primeras **no es estable**: la dispersión de páginas por crawl va de **2,000** (en los planes de $0 y $19) a **3,414** (en el de $1499), con un máximo intermedio de 3,444 en el plan de $999. Es decir, **el mismo "crawl" entrega más páginas cuanto más caro es el plan** ([[2026-1027-decodo-la-unidad-no-es-estable-requests-paginas-y-crawls]]). Un agregador que intente normalizar "una unidad de trabajo" se encuentra con que **la unidad cambia de valor según el plan del cliente**, lo que invalida cualquier comparación que no declare en qué unidad está.
+
+**Lo segundo: el titular del sector es $0,15/1K requests, y solo se alcanza en el plan más caro.** El precio efectivo por mil de páginas es **$0,5000** en el plan de $19, **$0,3000** en el de $99, **$0,2075** en el de $249, **$0,1848** en el de $499, **$0,1611** en el de $999 y **$0,1514** en el de $1499 — y por crawls, el plan de $19 sale a **$1,0000/1K** y el de $1499 a **$0,5169/1K** ([[2026-1027-decodo-el-titular-de-015-por-mil-solo-se-alcanza-en-el-plan-de-1499]]). El titular de **$0,15/1K** coincide **exactamente** con el coste por mil de **páginas** del plan de $1499, lo que hace sospechar que "requests" y "pages" son la misma unidad en el titular —pero **las fuentes no lo demuestran**, y la equivalencia no puede darse por hecha.
+
+**Lo tercero: la concurrencia se compra aparte y tiene techo.** La escalera va de **10 a 200 req/s**, y **los dos planes más caros comparten el mismo 200 req/s**: el marginal de $499 (de $999 a $1499) compra **1,1M crawls y 3,7M páginas más** —a **$0,1351/1K páginas**— **sin un solo req/s adicional** ([[2026-1027-decodo-concurrencia-por-plan-de-10-a-200-req-s-con-techo-en-los-dos-ultimos]]). Es un detalle de diseño que importa al agregador: **la capacidad simultánea y el volumen total son dos ejes distintos**, y el segundo es el que se compra con la cuota.
+
+**Lo cuarto, y es la conexión con la §7: el precio por 1.000 requests del sector está entre $0,15 y $0,30, y los dos extremos significan cosas distintas.** El Scraper API de 2Captcha publica **$0,30 por 1.000 requests en los cinco planes**, con precio unitario **invariante al volumen** ([[2026-1027-2captcha-scraper-api-030-por-mil-de-requests-en-los-cinco-planes]]); el titular de Decodo es **$0,15**, pero es el **mejor caso** de una escalera de suscripción con cuota. Es decir, **"precio por 1.000 requests" no es una unidad comparable entre proveedores**: hay que leer si es precio único de producto o titular de escalera.
+
+**Lo quinto: el proveedor también vende el comparador, y no resuelve el problema de la comparación.** La página enlaza a **decodo.com/compare** ("Easily compare features and prices in just a few clicks"), un comparador **de sus propias ocho líneas**, con unidades mezcladas y **dos líneas sin precio** ([[2026-1027-decodo-comparador-propio-de-productos-con-fecha-y-unidad]]). Es el **mismo movimiento que el §7.1 y el §7.4 documentan en el lado de la oferta**: los agregadores neutrales y los comparadores de proveedor **compiten por el mismo término**, y el del proveedor tiene la ventaja estructural de conocer el margen y la unidad real.
+
+**La conexión con la §7.3, que es la que hay que dejar escrita.** La caducidad por horas se desprende de una tabla de precios de terceros *derivada de scraping*. Aquí el scraping **es el producto con precio**, y su tabla es **estable y con fecha** —pero **su unidad no es estable**, y por eso el problema no desaparece: se traslada. El agregador que quiera cotizar "una unidad de trabajo" tiene que **elegir una unidad y declararla**, porque el proveedor ofrece **cuatro**, y la equivalencia entre crawls y páginas **varía con el plan**. El hueco defendible del agregador —la §7.1 lo define como la fricción de la comparación— **sigue abierto, pero se ha desplazado**: ya no es "nadie publica los precios", es "**nadie publica los precios en una unidad comparable**", y el proveedor que los publica mejor es el que **vende la comparación como producto**.
+
+**Y un dato de superficie que el thread necesita para su propio roadmap**: la Web Data API declara **Markdown y JSON sin boilerplate** ("stripped of nav bars, cookie banners, and ad clutter"), **HTML, Markdown, XHR, JSON, CSV, PNG** en el mismo endpoint, y **100+ plantillas pre-construidas** para objetivos como Google y Amazon ([[2026-1027-decodo-markdown-y-json-sin-limpieza-como-salida-nativa-para-llm]]). Es decir, **la limpieza del dato está en el precio del scrape, no en el pipeline del cliente**. Para un agregador, eso significa que **la clasificación de precios por proveedor es trabajo de un tercero** que ya lo hace y lo cobra por mil de requests: la partida de "limpiar el HTML" del scraper **desaparece del coste del producto** —y con ella, una de las fricciones que este thread ya tenía que cotizar.
+
+## [FRICCIONES A AÑADIR]
+
+<!--friccion:NUEVA--> — **La unidad de precio del scraping no está estabilizada, y dos proveedores que publican el mismo número lo miden de forma distinta.** El Scraper API de 2Captcha publica $0,30 por 1.000 requests en los cinco planes, **invariante al volumen** ([[2026-1027-2captcha-scraper-api-030-por-mil-de-requests-en-los-cinco-planes]]); Decodo anuncia "From $0.15/1K requests" ([[2026-1027-decodo-el-titular-de-015-por-mil-solo-se-alcanza-en-el-plan-de-1499]]) pero su precio efectivo por mil **cae de $0,5000 a $0,1514** según el plan, y **la conversión entre crawls y páginas varía de 2,000 a 3,444** según el plan ([[2026-1027-decodo-la-unidad-no-es-estable-requests-paginas-y-crawls]]). O "precio por 1.000 requests" es una unidad comparable entre proveedores —y entonces hay que publicarla **siempre con la tabla de conversión**, que aquí no existe—, o cada proveedor está midiendo una cosa distinta y **la tabla de precios de scraping del sector no tiene columna comparable**. Marcado para juicio humano, no auto-resuelto: la captura no publica qué es una "request" ni el precio del excedente.
+
+<!--friccion:NUEVA--> — **La comparación como producto la venden también los proveedores, y el del proveedor tiene ventaja estructural.** La §7.1 y la §7.4 del thread cierran el hueco del inventario unificado neutral; aquí aparece **decodo.com/compare**, un comparador de las ocho líneas del propio proveedor, con unidades mezcladas y dos líneas sin precio publicable ([[2026-1027-decodo-comparador-propio-de-productos-con-fecha-y-unidad]]). O el agregador neutral se diferencia por **normalizar unidades** —que es justamente lo que el comparador del proveedor no hace—, o compite contra un actor que conoce su propio margen. Marcado para juicio humano, no auto-resuelto: `decodo.com/compare` no se ha capturado en este run, así que solo consta la existencia del enlace y su texto.
+
+<!--friccion:NUEVA--> — **"Cifras de éxito" y "cifras de latencia" hay que leerlas siempre con su página de origen, porque Decodo publica dos valores distintos para cada una.** La página de proxies declara **<0,5 s** y **99,92 %** de éxito medido por Proxyway 2024 con método publicado; el hero de la home declara **<0,2 s** y **99,99 % de éxito contra Amazon y sitios protegidos por Cloudflare** [[2026-1027-decodo-9999-de-exito-en-destinos-anti-bot-como-amazon-y-cloudflare]]). La cifra más alta es la temáticamente relevante y la no auditable. O el vault usa la cifra con método y descarta la otra, o **ninguna de las dos sirve como parámetro de reintentos** —y en un producto facturado por mil de requests, cada reintento fallido es cuota consumida. Marcado para juicio humano, no auto-resuelto.

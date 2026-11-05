@@ -1,0 +1,20 @@
+---
+id: 2026-1026-rebrowser-parchea-el-codigo-fuente-porque-no-hay-configuracion-que-lo-arregle
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-rebrowser-patches.md]
+links: ["[[2026-1024-chatgpt-creator-tls-fingerprinting-con-perfiles-chrome-aleatorios]]", "[[2026-1024-chatgpt-creator-bot-go-de-registro-masivo-de-cuentas-de-chatgpt]]", "[[2026-1024-gptgrok2api-stack-warp-privoxy-flaresolverr-como-salida-estable]]"]
+---
+
+## Claim
+El README explica el método antes de enumerar los parches: *"Some aspects of automation libraries or browser behavior cannot be adjusted through settings or command-line switches. Therefore, we fix these issues by patching the library's source code."* El repositorio se titula **"Patches for undetectable browser automation"** y su alcance declarado es **Puppeteer y Playwright**. El propio README califica el método como **"fragile"**: los parches "may break as the libraries' source code changes over time", y el mantenimiento se sostiene "with community help".
+
+## Why It Matters
+Es la **tercera vía** de la capa anti-detección que el vault tenía documentada, y es distinta de las dos anteriores. La primera es **construir el cliente**: el bot en Go con **TLS fingerprinting de perfiles Chrome aleatorizados** ([[2026-1024-chatgpt-creator-tls-fingerprinting-con-perfiles-chrome-aleatorios]]) imita el transporte de un navegador real desde cero. La segunda es **operar la infraestructura**: WARP + Privoxy + FlareSolverr en contenedores ([[2026-1024-gptgrok2api-stack-warp-privoxy-flaresolverr-como-salida-estable]]) para que el reto de navegador se resuelva en un navegador de verdad. Esta es la tercera: **no construir ni operar, sino parchear el código de la librería de terceros** para que el navegador que ya shippea deje de delatar.
+
+La consecuencia práctica es que **la elusión tiene un coste de mantenimiento recurrente y no un coste de construcción**: no hay que escribir un cliente, hay que re-aplicar parches cada vez que la librería cambia de versión. Eso es exactamente el patrón que el vault registró comocharacteristic del corpus abierto de registro masivo —popularidad sin mantenimiento, cuatro commits y cero releases en el bot de Go ([[2026-1024-chatgpt-creator-bot-go-de-registro-masivo-de-cuentas-de-chatgpt]])— pero aquí el mantenimiento está **externalizado a un proyecto con comunidad y releases versionados**, que es la diferencia real.
+
+## [FRICTION]
+> [[2026-1024-chatgpt-creator-tls-fingerprinting-con-perfiles-chrome-aleatorios]] afirma que **la capa dominante de un flujo de alta no es una compra, es una construcción**: el bot declara TLS fingerprinting, token sentinel y cabeceras de traza Datadog porque "cambiar de IP no basta si el cliente HTTP sigue siendo el mismo", y de ahí la conclusión de que "la huella del cliente no se compra en ninguna parte".
+> Este átomo presiona esa creencia en el punto de la **vía de implementación**: existe una capa anti-detección que **no es ni construcción propia ni compra**, sino **parcheo del código de una librería de terceros** —con un solo `npx rebrowser-patches patch` y sin tocar el código de automatización—, y cuyo precio es **tiempo de re-aplicación** en vez de ingenieria. Además, la misma fuente sostiene que la señal que delata a Puppeteer y Playwright no es el transporte (huella TLS) sino el **uso del protocolo CDP** —que un cliente HTTP en Go no genera—, es decir, la huella del navegador y la huella del cliente HTTP **no son la misma señal** y tienen capas de coste distintas.
+> Ambas no pueden ser completamente correctas a la vez: o la evasión exige construir el cliente desde cero porque no hay atajo que iguale al transporte real, o **parte de la señal que el bot tenía que imitar a mano (el protocolo de control del navegador) se puede neutralizar parcheando**, y entonces el "no se compra en ninguna parte" del bot era una lectura de un repo concreto, no una propiedad del sector. Marcado para juicio humano, no auto-resuelto: la captura no publica ninguna comparación de eficacia entre las dos vías.

@@ -15,3 +15,7 @@ El sesgo es además hacia OpenAI: el directorio de un sitio de monitorización d
 
 ## Nota de verificación
 Recuento literal de las etiquetas de protocolo de las 50 filas de la captura. La captura **no** publica: qué modelos concretos hay detrás de cada etiqueta, ni si las etiquetas son autodeclaradas por el relay o detectadas por el propio VeriDrop.
+
+
+## Nota de extensión 2026-10-27
+La FAQ añade **por qué la cobertura de Gemini es tan baja en el directorio (18 de 50)**: no es que falten relays, es que **el 99 % de los relays de Gemini de terceros solo expone protocolo OpenAI-compatible** y **Google 官方 también ofrece endpoint OpenAI-compatible** (`/v1beta/openai`), de modo que **"维护两套独立的检测逻辑成本高且容易引入翻译层导致结果失真"** y la detección de Gemini se hace **"只走 OpenAI 兼容路径(POST /chat/completions)"**. La etiqueta "Gemini" del directorio, por tanto, **no implica que el relay exponga la API nativa de Google**. Véanse [[2026-1027-veridrop-gemini-solo-se-detecta-por-la-ruta-openai-compatible]] y [[2026-1023-new-api-una-sola-api-multiproto]].

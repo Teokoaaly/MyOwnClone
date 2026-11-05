@@ -26,3 +26,11 @@ Y hay que tener en cuenta que **no son dos proveedores independientes**: HeroSMS
 
 ## Nota de verificación
 La tabla resume datos ya verificados en los átomos hermanos: [[2026-1023-herosms-catalogo-cinco-servicios-visibles]], [[2026-1023-herosms-precios-escapate-entre-0059-y-08551]], [[2026-1023-hero-sms-stock-fisico-y-virtual-por-servicio]] y [[2026-1023-5sim-catalogo-servicios-precios-y-stock]]. Las fuentes de 5sim citadas en esta tabla proceden de átomos ya existentes del vault, no de una captura nueva en esta corrida.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-hero-sms-api-docs.md`.
+
+Este átomo compara HeroSMS y 5sim como competencia directa. La página de API añade **un eje de comparación que antes no era medible**: quién **publica su contrato técnico**. HeroSMS publica OpenAPI 3.2.0 en JSON y YAML, servidor `https://hero-sms.com/api/v1`, `apiKeyAuth` con cabecera `Authorization` y **clientes de ejemplo en Shell, Ruby, Node.js, PHP y Python** ([[2026-1027-hero-sms-openapi-3-2-0-con-api-key-en-la-cabecera-authorization]]); 5sim integra la compra dentro del chat y no expone una especificación equivalente ([[2026-1023-5sim-asistente-ia-integrado]]).
+
+Consecuencia para el Editor: la comparación puede añadir una **columna de documentabilidad** a la tabla de proveedores de SMS, y conviene encuadrarla bien: **publicar la especificación no es publicar el precio**. HeroSMS sigue sin precios públicos ([[2026-1024-herosms-url-de-precios-devuelve-404-y-no-publica-precios-propio]]), de modo que el resultado del cruce es que **el proveedor con el contrato técnico más abierto es también el más opaco en precio** —lo que refuerza, en vez de debilitar, la tesis del thread de que **en SMS el precio solo se obtiene entrando al panel con saldo**.

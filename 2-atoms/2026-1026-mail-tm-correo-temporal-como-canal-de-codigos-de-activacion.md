@@ -1,0 +1,27 @@
+---
+id: 2026-1026-mail-tm-correo-temporal-como-canal-de-codigos-de-activacion
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-mail-tm-temp-mail.md]
+links: ["[[2026-1023-hero-sms-numeros-de-un-solo-uso-y-recuperacion-por-email]]", "[[2026-1022-auth-magic-link-codigo-seis-digitos]]", "[[2026-1024-chatgpt-creator-alta-por-correo-sin-telefono-en-el-flujo]]"]
+---
+
+## Claim
+La home de `mail.tm` describe el uso **de la función que el vault necesita** con una frase exacta: "Receive messages and **account activation codes** without ever revealing your real address, keep your privacy intact, and spare your main inbox the spam and junk mail". Y enuncia el mismo uso en dos registros distintos: el primer bloque de la home ("Temp Mail") dice que el servicio "works for signing up on **any website or service**", mientras el bloque "Anonymous" acota los destinos —"signing up on dubious websites, forums, chat rooms and social networks"— y el bloque "Smart" los reagrupa como "guard your main address and use a temporary one for dubious websites, forums, blogs, online shops and social networks".
+
+## Why It Matters
+Es la **tercera confirmación del vault de que el código de un solo uso por correo es el canal estructural de la verificación**, y ahora viene de un proveedor de correo y no de un bot: NotLetters lo vendía como "buzones para registros" ([[2026-1024-notletters-correo-masivo-para-registros-y-lolzteam]]), el bot de ChatGPT lo automatiza con polling de OTP ([[2026-1024-chatgpt-creator-alta-por-correo-sin-telefono-en-el-flujo]]), y mail.tm lo formula como **caso de uso declarado del producto de consumo**: "account activation codes".
+La comparación con el otro canal del corpus es la que da el valor de diagnóstico: HeroSMS documenta que un número desechable **"verifica el alta pero no sostiene la cuenta"**, y que la recuperación de OpenAI se hace **por email** ([[2026-1023-hero-sms-numeros-de-un-solo-uso-y-recuperacion-por-email]]). Es decir, el buzón desechable es la parte que **se pierde**, y el correo permanente es la parte que **sostiene**. Mail.tm publica el reverso: buzón desechable que **nunca caduca** ("kept forever") y **contraseña propia**. Si la afirmación del proveedor fuera cierta, el buzón desechable de mail.tm **no pierde continuidad**: conserva la capacidad de recibir el correo de recuperación. Es un dato que el corpus no tenía porque los otros dos proveedores no especifican ciclo de vida.
+Y la conexión con el producto propio es de forma, no de fondo: el magic link de MyOwnClone es un **código de 6 dígitos** por email ([[2026-1022-auth-magic-link-codigo-seis-digitos]]), exactamente la misma forma de UX que el "account activation code" que mail.tm vende, pero con la diferencia de que **el del vault es el buzón real del usuario** y el del proveedor es un buzón desechable. Es decir: el producto del vault ya ocupa el extremo del eje que mail.tm no cubre —**correo real, identidad sostenible**— y mail.tm ocupa el otro, el de la **dirección de usar y tirar**.
+
+## [FRICTION]
+> [[2026-1023-hero-sms-numeros-de-un-solo-uso-y-recuperacion-por-email]] establece que el número virtual desechable **verifica el alta pero no sostiene la cuenta**, porque la recuperación de OpenAI se hace **por email** — es decir, el canal de continuidad es el correo, y el insumo desechable se queda sin continuidad.
+> Este átomo presiona esa regla en un punto: mail.tm declara **lo contrario para su propio buzón** —"kept forever", "unlimited number of new ones", "no limit on how many disposable addresses you create"— y además **publica explícitamente el caso de uso "account activation codes"**, es decir, se ofrece como buzón de códigos de activación. O la continuidad del alta la da **el correo de la cuenta y no el buzón** —y entonces "kept forever" es irrelevante para el alta, porque el buzón que importa es el del usuario final— o el buzón desechable puede **sostener** la cuenta y entonces el argumento de "el insumo desechable no sostiene identidad" es una propiedad de los proveedores de SMS, no una ley del canal de correo. Marcado para juicio humano, no auto-resuelto: la captura **no publica condiciones de uso, ni SLA, ni qué ocurre si el dominio pasa a estar bloqueado**, y el vault no ha verificado ninguna alta real contra mail.tm ni contra ningún destino.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-mail-tm-api-docs.md`.
+
+Este átomo registró que la home de mail.tm declara el caso de uso "Receive messages and **account activation codes**", sin ningún mecanismo asociado. La documentación aporta el mecanismo: el buzón se crea con dos llamadas (`POST /accounts`, `POST /token`), se **lee** con `GET /messages` y esa lectura admite **dos modos** —consulta o "**listen in real-time with SSE**" ([[2026-1027-mail-tm-flujo-de-cuatro-peticiones-para-obtener-un-buzon]]).
+
+Consecuencia para el Editor: la línea de "correo temporal como canal de códigos de activación" deja de ser un **caso de uso declarado por el proveedor** y pasa a tener un **contrato de entrega con dos modos**, lo que la hace comparable con la partida de SMS del mismo sector: HeroSMS, en cambio, **no puede sostener la cuenta** porque su número verifica el alta pero la recuperación de OpenAI se hace por email ([[2026-1023-hero-sms-numeros-de-un-solo-uso-y-recuperacion-por-email]]). Es decir, **el correo es el canal que sostiene la cuenta y el SMS solo el que la abre**, y ahora el canal del correo tiene además modo push.

@@ -1,0 +1,58 @@
+=== EXTEND 2-atoms/2026-1024-notletters-captura-minima-sin-dominios-ni-limites-ni-condiciones
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-emailondeck-temp-mail.md`. Este átomo documenta que la captura de NotLetters es una home de marketing de 172 palabras sin ninguna especificación operativa, y acota el alcance: "del proveedor de correo masivo más explícitamente orientado a registros que ha caído en la captura, el vault solo puede afirmar precio nominal, orden de magnitud y superficies de acceso".
+
+La segunda captura del sector **reproduce el mismo perfil con el mismo detalle** y añade la prueba de que no es casualidad: `emailondeck.com` publica **344 palabras** y **cero** dominios, cero patrón de dirección, cero límites de buzón, cero plazo de retención, cero forma de pago, cero reembolso, cero SLA, cero condiciones y cero documentación de API ([[2026-1026-emailondeck-captura-minima-344-palabras-y-cero-especificacion-operativa]]). Lo único que publica, enumerado, son **11 idiomas** (English, Français, Español, Deutsch, Nederlands, Português, Türkçe, Русский, bahasa Indonesia, 中文(台灣), العربية), un contador de **"Over 215,158,204 temporary emails processed"**, un sello "SSL and TLS certified", el claim de prensa "As Seen On CBS News, FOX, NBC, abc", un enlace "Spy Pixel Scanner" y cinco enlaces de navegación.
+
+La diferencia relevante es de superficie y la hace más fuerte: NotLetters publica **tres vías de consumo** —web, HTTP API en `api.notletters.com` e IMAP en `imap.notletters.com` por el 993 con SSL— sin documentar ninguna ([[2026-1024-notletters-tres-vias-de-consumo-api-http-imap-y-web]]); EmailOnDeck **no publica ninguna vía programable**, porque su superficie es un formulario de dos pasos en el navegador. Es decir: el vault se enfrenta a dos niveles de opacidad —"superficies sin especificación" y "ausencia total de superficie"— y el segundo es el extremo.
+
+Consecuencia para el Editor: la formulación de este átomo debería subir de alcance. La ausencia de especificación **no es una característica del proveedor de correo masivo orientado a registros**, sino del sector de correo desechable tal como se presenta en su home. La afirmación defendible pasa a ser: "las homes públicas de correo desechable no son fuentes de coste ni de rendimiento", y el vault solo puede afirmar de NotLetters el nominal y las tres superficies porque son las **únicas** cosas que su captura contiene.
+=== END
+
+=== EXTEND 2-atoms/2026-1024-notletters-precio-005-rubles-por-correo-y-contadores-de-escala
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-emailondeck-temp-mail.md`. Este átomo fija **0.05 ₽ por correo** como precio de referencia del buzón de registro y, en su §[FRICTION], confronta ese nominal con el suelo de **¥0.02** del 卡网 de PriceAI.
+
+EmailOnDeck añade dos presiones a ese dato, en direcciones opuestas.
+
+**Hacia abajo: el suelo nominal no es el suelo del mercado.** EmailOnDeck se presenta como **gratis** —"EmailOnDeck is always simple and free", "Free & fast temp mail in 2 easy steps"— y no publica ni un precio, ni de la versión gratuita ni del plan PRO enlazado en `pro.emailondeck.com` ([[2026-1026-emailondeck-gratis-con-paso-pro-sin-cifras]]). Si ese "gratis" es real y no tiene límites relevantes, el 0.05 ₽ de NotLetters es el precio de un **canal de pago concreto**, no el suelo del producto. Y como los dos proveedores no son comparables en unidad —NotLetters vende "por correo", PriceAI revende buzones de otros— la fricción 12 del thread sobre la comparabilidad del suelo del correo tiene ahora **un tercer término**: un competidor declarado gratuito sin cifra.
+
+**Hacia arriba: el contador de escala, que es el dato comparable.** NotLetters publica "> 5 000 000" correos comprados y "> 30 000 000" recibidos, y este átomo concluye que el dato defendible es "el precio y el tiempo de recepción, no los totales" porque los contadores no cuadran entre sí (≈6 recibidos por comprado frente a un rango declarado de 3 a 5). EmailOnDeck publica **"Over 215,158,204 temporary emails processed"** con **"© 2015-2026"**, es decir **11 años** de operación ([[2026-1026-emailondeck-contador-215158204-correos-procesados]]). La cifra es **×7 mayor** que la de NotLetters en compras y es, al mismo tiempo, **menos auditable**: no distingue comprados de recibidos ni da periodo ni desglose, de modo que **colapsa en un solo número la distinción que este átomo necesita para poder auditar a NotLetters**.
+
+Nota para el Editor: los dos contadores no son comparables en unidad (uno son unidades compradas y el otro unidades procesadas, sin desglose), así que la conclusión correcta no es "el mayor proveedor es 7 veces más grande" sino "**el vault solo tiene dos contadores de escala del sector de correo y ninguno es auditable**". La regla que este átomo establece —"el dato defendible es el precio y el tiempo, no los totales"— queda reforzada, no matizada.
+=== END
+
+=== EXTEND 2-atoms/2026-1024-chatgpt-creator-correo-temporal-y-otp-automatico-con-generator-email
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-emailondeck-temp-mail.md`. Este átomo describe la **pata de correo resuelta como función de biblioteca**: el bot genera el buzón él mismo vía `generator.email`, recoge el OTP solo, y el vault concluye que "en esta ruta no hay partida de correo que cotizar" y que "el coste marginal de un buzón es cero".
+
+EmailOnDeck documenta el **extremo contrario del mismo producto**: el mismo objeto técnico —una dirección desechable— servido por un proveedor que **no publica ninguna vía de consumo programable**. Su superficie es un formulario de dos pasos en el navegador ("Step 1", "Step 2", "Get Email"), y los cinco usos que declara son **QA testing de emails, free trials, perfiles de citas, compraventa de Bitcoin y trading en exchanges**; **no menciona ni una vez** el registro masivo, el mercado de cuentas, la automatización ni una API ([[2026-1026-emailondeck-casos-de-uso-de-consumo-y-no-de-registro-masivo]]).
+
+Eso obliga a precisar la afirmación del átomo en un punto que el vault necesita para el §7: **"coste marginal cero" y "no cotizable" no son lo mismo**. En la ruta del bot, el buzón no tiene precio **porque el bot lo genera**; en la ruta de EmailOnDeck, el buzón no tiene precio **porque el proveedor no lo publica y su automatización no está disponible** —y la automatización por API es justamente lo que un flujo de registro masivo necesita. La regla correcta para el vault es: **el correo desechable tiene tres regímenes distintos** —biblioteca (coste marginal cero, sin proveedor), proveedor **pagado y automatizable** (NotLetters: 0.05 ₽, web + API + IMAP), y proveedor **gratuito y manual** (EmailOnDeck: sin precio, sin API)— y solo el segundo es cotizable por unidad.
+
+La fricción que esto abre para el §7 es de **elegibilidad del insumo**: un correo gratuito que hay que usar a mano no puede servir de pata de correo a un pipeline automatizado, aunque su precio nominal sea cero. El vault no puede modelar el correo como "la partida más barata" sin distinguir antes **para qué uso** es gratis.
+=== END
+
+=== EXTEND 2-atoms/2026-1024-gptgrok2api-icloud-privacy-mail-fabrica-de-correo-con-techo-decreciente
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-emailondeck-temp-mail.md`. Este átomo documenta el **único ciclo de vida de buzón explícito del corpus**: 20 buzones/hora en la interfaz nueva, 5/hora en la antigua, 25/hora sumando ambas, **tope de 750 buzones acumulados por cuenta**, temporizador de 60 minutos por ronda, y "la retirada de correos para registro se hace **aislada por plataforma objetivo**". Su tesis es que allí el correo es "un módulo con contrato".
+
+EmailOnDeck ofrece el **contraste de ciclo de vida sin contrato**, y con una contradicción interna que este átomo no tenía: la home incluye entre sus cinco ventajas, con icono propio, **"Emails are constantly being securely deleted"**, y al mismo tiempo ofrece en la navegación un enlace **"RECOVER EMAIL"** → `www.emailondeck.com/recover_email_address.php` ([[2026-1026-emailondeck-borrado-seguro-y-pagina-de-recuperacion]]). La captura **no describe** el mecanismo de recuperación: ni datos que pide, ni plazo, ni condiciones, ni si aplica a cualquier buzón.
+
+Dos consecuencias para el Editor:
+
+1. **El "ciclo de vida con contrato" del sidecar no es la norma del sector, es la excepción.** Un proveedor con 11 años de operación y 215 millones de correos declarados ([[2026-1026-emailondeck-contador-215158204-correos-procesados]]) **no publica ni un plazo de retención ni un límite de buzón**. El contrato explícito (20/5/25 por hora, 750 de por vida) es una feature del repo, no del mercado.
+
+2. **La fricción borrado-vs-recuperación es real y hay que dejarla abierta.** Si "constantly being securely deleted" y "RECOVER EMAIL" se refieren al mismo buzón, no pueden ser ciertas a la vez; si la recuperación cubre solo un subconjunto de casos, la captura no lo dice. Esto **no es** un problema para el sidecar del bot —que consume y retira el correo él mismo— pero sí lo es para cualquier diseño que asuma "el buzón desechable es un recurso de un solo uso". **No se ha visitado `recover_email_address.php`**, así que el vault no puede arbitrarlo.
+=== END
+
+=== EXTEND 2-atoms/2026-1024-notletters-correo-masivo-para-registros-y-lolzteam
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-emailondeck-temp-mail.md`. Este átomo establece que NotLetters es "la **pierna del correo** de esa misma cadena" —proveedor de número SMS → API para integradores → mercado de cuentas por lotes en lzt.market— y que su valor para el vault es ser "la versión **comercializada** de esa misma pata" del farm privado, externalizable si el coste en casa saliera mayor.
+
+EmailOnDeck **no amplía esa cadena: la delimita por el otro lado**. Con 11 años de operación, **215 millones de correos declarados** y 11 variantes de idioma, **no menciona ni una vez** el registro masivo, ni el mercado de cuentas, ni la automatización, ni una API; su flujo es "Step 1 / Step 2 / Get Email" en el navegador y su plan de pago vive en un subdominio aparte (`pro.emailondeck.com`) sin cifras ([[2026-1026-emailondeck-gratis-con-paso-pro-sin-cifras]]). Los cinco usos declarados son de consumo: cripto, **QA testing de emails**, **free trials** y **perfiles de citas** ([[2026-1026-emailondeck-casos-de-uso-de-consumo-y-no-de-registro-masivo]]).
+
+La consecuencia para el Editor es de **delimitación del mercado**, no de ampliación: el corpus ya no puede decir "el proveedor de correo del sector de altas". Hay **dos** proveedores del mismo producto técnico con modelos de negocio opuestos —uno dirigido al alta automatizada y revendido en markets de cuentas, otro dirigido al usuario final sin API— y el vault tiene que decidir, para su modelo de coste, **si el proveedor de consumo cuenta como proveedor de la partida "correo de registro"**. La respuesta natural es que no, porque **un buzón manual no puede alimentar un pipeline automatizado**; pero eso convierte el "gratis" en un dato que solo aplica a un escenario que el vault no usa.
+
+Añade además un ángulo de cobertura que el thread no tenía para el sector de correo: EmailOnDeck publica su alcance en **11 idiomas** y **cero países** ([[2026-1026-emailondeck-cobertura-expresada-en-idiomas-y-no-en-paises]]), de modo que **la regla de "la cobertura es una propiedad del par (proveedor, producto)"**, que el vault ha derivado siempre sobre conjuntos de países enumerados, **no es aplicable aquí**: hay proveedores del sector cuya cobertura es indeterminable desde la home.
+=== END

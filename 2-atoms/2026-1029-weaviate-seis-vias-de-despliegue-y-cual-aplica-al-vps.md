@@ -1,0 +1,15 @@
+---
+id: 2026-1029-weaviate-seis-vias-de-despliegue-y-cual-aplica-al-vps
+type: atom
+certainty: solid
+sources: [sources/2026-10-29-weaviate-deployment-options.md]
+links: ["[[2026-1029-weaviate-self-hosted-misma-base-de-datos-que-weaviate-cloud]]", "[[2026-1023-new-api-despliegue-postgres-redis-y-clickhouse]]", "[[2026-1022-live-verify-deployment-migrada-a-vps-nginx]]"]
+---
+## Claim
+La documentación de despliegue de Weaviate enumera **seis vías oficiales**, cada una con su perfil de operación: **Weaviate Cloud** (cluster compartido, infraestructura gestionada por Weaviate, replicación opcional), **Docker** (para evaluación y desarrollo local, contenedores de inferencia local, modelos multimodales, configuración personalizable), **Kubernetes** (de desarrollo a producción, charts de Helm, auto-despliegue o vía marketplace, actualizaciones sin downtime opcionales), **AWS** (Cloud compartido facturado a través de AWS, Kubernetes facturado a través de AWS, o autoalojado en **EKS**), **GCP Marketplace** (Cloud compartido o Kubernetes facturados a través de GCP) y **DigitalOcean** (**totalmente gestionado por DigitalOcean**, aprovisionado vía la API de DO, backups diarios, TLS en cada conexión, **actualmente en public preview**). Aparte, se listan **Snowpark Container Services** (despliegue dentro del entorno Snowflake de Snowflake) y **Embedded Weaviate** (**experimental**, herramienta basada en cliente).
+
+## Why It Matters
+Es el mapa de decisiones que el vault no tenía para el componente vectorial del stack, y el reparto importa: **solo dos de las seis vías son "nadie lo opera"** —**Weaviate Cloud** (infraestructura gestionada por Weaviate) y **DigitalOcean** (totalmente gestionado por DigitalOcean)—, mientras que **Docker** y **Kubernetes** son autoalojadas y **AWS** y **GCP Marketplace** ofrecen ambas modalidades (Shared Cloud facturado a través del proveedor, o Kubernetes facturado a través del proveedor, y en el caso de AWS también autoalojado en EKS). Es decir, **cuatro de las seis vías ofrecen la variante self-managed**, que no cuesta licencia ni servicio gestionado, solo CPU y RAM del VPS. Para un producto que ya vive en **nginx sobre VPS propio** ([[2026-1022-live-verify-deployment-migrada-a-vps-nginx]]) y que ya usa un `docker-compose.yml` para Postgres + Redis + app ([[2026-1023-new-api-despliegue-postgres-redis-y-clickhouse]]), la vía natural es **Docker**: una imagen más en el mismo compose. Y la existencia de **DigitalOcean como vía gestionada** es la alternativa que el vault no había considerado al medir el precio de DigitalOcean, ya que allí el vector store sería una pieza gestionada por el mismo proveedor que factura el droplet ([[2026-1102-digitalocean-el-precio-de-entrada-cabe-en-euros-pero-el-stack-no-cabe]]).
+
+## Nota de verificación
+La columna de "qué requiere operaciónally" (Docker = un contenedor más; Kubernetes = un clúster + Helm; DigitalOcean = API de aprovisionamiento en preview) es **lectura de este átomo** a partir de la columna "Evaluation/Development/Production" y de las bullets literales de la fuente; la fuente no publica precios de DigitalOcean ni de los marketplaces.

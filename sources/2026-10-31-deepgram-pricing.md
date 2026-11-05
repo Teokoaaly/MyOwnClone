@@ -1,0 +1,183 @@
+---
+url: https://deepgram.com/pricing
+captured: 2026-10-31
+word_count: 3125
+status: raw
+---
+Deepgram home
+
+Log in
+
+Sign up
+
+Free to start. Priced to scale.
+
+Speech-to-text, text-to-speech, voice agents, and audio intelligence. Start free, pay for usage, and unlock better rates as you scale.
+
+## Pay as you go
+
+No minimums, no expiration, and no credit card required.
+
+Free $200 credit then pay-as-you-go
+
+Sign up free
+
+## Growth
+
+Pre-paid credits for the year, redeemed against actual usage.
+
+Save up to 20%
+
+$4,000+/ year
+
+Get started
+
+### Enterprise
+
+For businesses with large volumes, data or deployment requirements, or support needs.
+
+Custom pricing
+
+Contact sales
+
+## Rates by product
+
+Usage-based rates across every product, billed per second of audio, per 1,000 characters, or per minute of connection time. No minimums.
+
+### Speech-to-text
+
+Streaming | Pre-recorded
+
+Power your applications with world-class speech recognition APIs. Nova models support 60+ languages, with capabilities including speaker diarization, Smart Formatting, and Keyterm Prompting. Nova multilingual models support multiple languages in real time.
+
+#### Streaming | Pre-recorded
+
+| API | Pay as you go | Growth | Enterprise |
+| --- | --- | --- | --- |
+| Flux STT English | $0.0077/ min | $0.0065/ min | - |
+| Flux STT Multilingual | $0.0078/ min | $0.0068/ min | - |
+| Nova-3 Monolingual | $0.0077/ min | $0.0065/ min | - |
+| Nova-3 Multilingual | $0.0092/ min | $0.0078/ min | - |
+| Custom | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) |
+
+Speech-to-text
+
+Billed per second, with no block-based rounding for normal audio requests. Multichannel audio bills by total processed duration across channels.
+
+### Speech-to-text add-ons
+
+#### Streaming | Pre-recorded
+
+Optional features billed on top of transcription. Smart formatting is included at no cost.
+
+| API | Pay as you go | Growth | Enterprise |
+| --- | --- | --- | --- |
+| Redaction | $0.0020/ min | $0.0017/ min | - |
+| Keyterm Prompting | $0.0013/ min | $0.0012/ min | - |
+| Smart Formatting | Included | Included | - |
+| Entity Detection | $0.0017/ min | $0.0017/ min | - |
+| Speaker Diarization | $0.0020/ min | $0.0017/ min | - |
+| Custom | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) |
+
+### Text-to-speech
+
+Billed per 1,000 characters of input text.
+
+| API | Pay as you go | Growth | Enterprise |
+| --- | --- | --- | --- |
+| Flux TTS | $0.0450/1k characters | $0.0450/1k characters | - |
+| Aura-2 | $0.030/1k characters | $0.027/1k characters | - |
+| Aura-1 | $0.0150/1k characters | $0.0135/1k characters | - |
+| Custom | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) |
+
+### Voice Agent
+
+per minute | per hour
+
+One rate covering speech-to-text, a managed language model, and text-to-speech. Bring your own LLM or TTS provider for a lower per-minute rate.
+
+| API | Pay as you go | Growth | Enterprise |
+| --- | --- | --- | --- |
+| Standard | $0.075/ min | $0.068/ min | - |
+| Standard, BYO TTS | $0.065/ min | $0.051/ min | - |
+| Custom, BYO LLM | $0.065/ min | $0.059/ min | - |
+| Custom, BYO LLM and TTS | $0.050/ min | $0.041/ min | - |
+| Advanced | $0.163/ min | $0.146/ min | - |
+| Advanced, BYO TTS | $0.122/ min | $0.110/ min | - |
+| Custom | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) |
+
+### Audio Intelligence
+
+Billed per 1,000 input and output tokens in addition to transcription.
+
+| API | Pay as you go | Growth | Enterprise |
+| --- | --- | --- | --- |
+| Summarization | $0.0003/ 1k in | $0.0006/ 1k out | $0.00024/ 1k in | $0.00048/ 1k out | - |
+| Topic Detection | $0.0003/ 1k in | $0.0006/ 1k out | $0.00024/ 1k in | $0.00048/ 1k out | - |
+| Sentiment Analysis | $0.0003/ 1k in | $0.0006/ 1k out | $0.00024/ 1k in | $0.00048/ 1k out | - |
+| Intent Recognition | $0.0003/ 1k in | $0.0006/ 1k out | $0.00024/ 1k in | $0.00048/ 1k out | - |
+| Custom | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) | [Contact sales](https://deepgram.com/contact-us) |
+
+### How much does speech-to-text cost per hour?
+
+Monolingual streaming is $0.46 an hour on Pay as you go, for either Nova-3 or Flux STT, and $0.39 on Growth. Multilingual is $0.55 for Nova-3 and $0.47 for Flux STT. Pre-recorded runs lower.
+
+### What is the difference between Pay as you go and Growth?
+
+Pay as you go has no commitment and bills against credits as you use them. Growth starts at $4,000 a year in pre-paid annual credits for up to 20% off and higher streaming concurrency.
+
+### What does the $200 free credit cover?
+
+Roughly 43,000 minutes, over 700 hours, of Nova-3 transcription. It does not expire, so you can prototype without a clock running. No credit card is required to start.
+
+### How does Voice Agent pricing work?
+
+Billed per minute of WebSocket connection time, with one rate covering speech-to-text, a managed language model, and text-to-speech. Bringing your own language model or voice moves you to a lower tier.
+
+### How is text-to-speech billed?
+
+Per 1,000 characters of input text, across Flux TTS, Aura-2, and Aura-1. Rates differ by model and plan, and the table above carries the current figures. For Flux TTS, $1 in credits for every $1 spent, up to $500, through Dec. 31, 2026.
+
+### Do you charge for silence or round up audio?
+
+No. Billing is per second of processed audio, so a 14-second file bills as 14 seconds. There is no minimum duration and no rounding up to the next block.
+
+### Do Audio Intelligence features cost extra?
+
+Yes, billed per 1,000 input and output tokens on top of transcription. They run on purpose-built small language models rather than a general-purpose LLM, which is why the per-unit cost is low.
+
+### What happens if you exceed your concurrency limit?
+
+Requests beyond your limit are queued or rejected. Pay as you go allows 150 concurrent streaming speech-to-text connections and Growth 225; Enterprise limits are set to your peak traffic.
+
+### How does overage work on Growth?
+
+Exceeding your credits bills at your Growth rate plus 10%, charged weekly on Mondays for the prior week. A card must stay on file; without one, requests return a 402 once credits run out.
+
+### Can you avoid the 10% overage premium?
+
+Yes. Early renew at any time by purchasing a new Growth plan in the Console. That resets your credits to the standard rate and moves your billing cycle forward.
+
+### How is multichannel audio billed?
+
+By total processed duration. A ten-minute stereo file contains twenty minutes of audio across two channels, so it bills as twenty minutes.
+
+### Can you self-host or deploy in your own cloud?
+
+Yes. Self-hosted containers run in your own VPC or on-prem hardware and require NVIDIA GPUs. It is available on Enterprise, for teams with data sovereignty or security requirements that rule out cloud processing.
+
+### Which security and compliance standards do you support?
+
+SOC 2 Type 1 and Type 2, HIPAA with a BAA for Enterprise, GDPR with an EU endpoint, CCPA, and PCI. FIPS 140-3 images are available for self-hosted deployments.
+
+### Do you offer volume discounts?
+
+Yes. Enterprise pricing ladders down with committed volume, and includes custom model training and a named account team. Talk to sales if you are processing millions of minutes a month.
+
+### Are Nova-2, Enhanced and Base still available?
+
+Yes, at unchanged rates for existing deployments: Nova-2 streaming $0.35 an hour, Enhanced $0.99, Base $0.87. Growth is about 12.5% lower. New projects should start with Nova-3 for general transcription or Flux for real-time voice agents.
+
+### What is the refund request process?
+
+To request a refund for unused credits purchased within the last 30 days, please contact consolebilling@deepgram.com. We will review your account and process any eligible refunds promptly.

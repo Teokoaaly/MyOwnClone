@@ -16,3 +16,13 @@ Para el vault, la conclusión operativa es que **la infraestructura de IP es má
 
 ## Nota de verificación
 Servicios, puertos y reglas de salida están transcritos literalmente del README. La captura **no** publica: la tasa de bloqueo real por salida, el coste de los proxies de pago que el sistema admite, ni si WARP se considera suficiente para el registro de OpenAI. La sección de Checkout es un único párrafo: el vault no puede afirmar la tasa de éxito del proceso de pago.
+
+
+## Nota de extensión 2026-10-26
+La captura del 2026-10-25 de `https://github.com/Kaliiiiiiiiii-Vinyzu/patchright` **ofrece una alternativa de arquitectura a la que este átomo registra como stack DIY**, y es una alternativa de coste radicalmente distinto.
+
+Este átomo describe la jerarquía de salidas de `gptGrok2api`: WARP (SOCKS5) + Privoxy + **FlareSolverr** para los enlaces que exigen reto de navegador, con sticky compartido en el checkout y rotación continua en la promoción ([[2026-1024-gptgrok2api-stack-warp-privoxy-flaresolverr-como-salida-estable]]). FlareSolverr es **un servicio aparte** que hace el trabajo con su propio navegador, y por tanto **una dependencia más que mantener**.
+
+Patchright toma el camino contrario: **internaliza el reto en el propio driver**, de manera que el navegador que lo ejecuta ya está parcheado para no ser detectado ([[2026-1026-patchright-declara-pasar-catorce-detectores-publicados]]). El coste pasa de "un contenedor más que desplegar y mantener" a "**una dependencia que se rompe sola con cada release de Playwright y cuyo fix tarda días**" ([[2026-1026-patchright-tests-de-playwright-con-bugs-no-resolubles-y-ventana-de-dias]]).
+
+**Lo que el vault gana aquí es una tercera vía de coste que no estaba en la tabla:** ni **comprar la elusión por unidad** (captcha por 1000, proxies por GB) ni **mantener un servicio aparte** (FlareSolverr), sino **depender de un parche open source Apache 2.0** que se actualiza solo y cuyo precio es la fragilidad ([[2026-1026-patchright-licencia-apache-2-y-descargo-de-uso-educativo]]). El punto operativo nuevo es además que Patchright **recomienda una IP sticky por perfil y coherencia de `timezone_id` y `locale` con la ciudad del proxy** —un emparejamiento de tres campos, no de un país— y que hay que fijar `--webrtc-ip-handling-policy=disable_non_proxied_udp` porque **WebRTC expone la IP real** ([[2026-1026-patchright-webrtc-ip-handling-policy-y-timezone-coherente-con-el-proxy]]). Eso es un requisito operativo que la §7 y la §8 del thread no habían recogido: **el presupuesto de IP del pipeline incluye una vía de fuga que no pasa por el proxy**.

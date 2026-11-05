@@ -16,3 +16,11 @@ Y deja explícita la línea ética del sector: "bypass restrictions" y la revent
 
 ## Nota de verificación
 Los cinco socios y sus dominios están transcritos literalmente. La captura **no** contiene: documentación de la API, condiciones comerciales del "API and great conditions", precios de API, ni condiciones de pedido mínimo — su ausencia se ha comprobado sobre el texto completo de la captura.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-hero-sms-api-docs.md` (página `hero-sms.com/en/api`, capturada el 2026-10-26).
+
+Este átomo registró el caso de HeroSMS: la home ofrece botón "Get API key" **sin publicar documento, endpoint, precio ni condiciones**, y de ahí la conclusión de que "en HeroSMS está [la automatización] **fuera**, en un ecosistema de partners y en una API sin documentación pública", con un coste de integración **mayor** que 5sim. La página de API **existe y está publicada**: "Server: **https://hero-sms.com/api/v1**", "**OpenAPI 3.2.0**", descarga del documento en "**json**" y "**yaml**", esquema "**apiKeyAuth**" con cabecera "**Authorization**" y formato "**ApiKey {your_token}**", y una **tabla de trece operaciones de activación** ([[2026-1027-hero-sms-trece-operaciones-de-activacion]], [[2026-1027-hero-sms-openapi-3-2-0-con-api-key-en-la-cabecera-authorization]]).
+
+Consecuencia para el Editor: la afirmación "API sin documentación pública" **queda desactualizada en su premisa** —lo que la captura del 2026-10-22 no vio fue la **página**, no la ausencia de documentación. Lo que **sigue en pie** es lo demás: **precio y condiciones comerciales siguen sin publicarse** —el 404 de `/pricing` se mantiene ([[2026-1024-herosms-url-de-precios-devuelve-404-y-no-publica-precios-propio]])—, de modo que el diagnóstico correcto pasa a ser: **HeroSMS publica su contrato técnico pero no su contrato comercial**, exactamente el patrón de NoOnes invertido ([[2026-1026-noones-dev-noones-sin-precios-ni-limites-ni-documentacion-publica]]). Y hay que añadir el dato nuevo más fuerte: **el proveedor publica una guía de migración de clientes software existentes** ([[2026-1027-hero-sms-compatibilidad-de-wire-con-los-clientes-de-sms-activate]]), lo que confirma que su modelo es **integrar a los registros de alto del ecosistema**, no solo vender saldo.

@@ -1,0 +1,22 @@
+---
+id: 2026-1027-2captcha-cuatro-velocidades-cambiaron-en-tres-dias
+type: atom
+certainty: solid
+sources: [sources/2026-10-26-2captcha-pricing-captcha.md, sources/2026-10-23-2captcha-solver.md]
+links: ["[[2026-1024-2captcha-velocidad-de-resolucion-1-a-2-segundos-en-los-tipos-estandar]]", "[[2026-1024-2captcha-precios-por-1000-por-tipo-de-captcha]]", "[[2026-1027-2captcha-catalogo-completo-de-48-filas-de-captcha]]"]
+---
+## Claim
+Comparando la tabla de 8 filas del 2026-10-23 con la de 48 filas del 2026-10-26, **los ocho precios por 1000 son idénticos tipo a tipo, pero cuatro de las velocidades de resolución cambiaron en tres días**: **Arkose Labs captcha (FunCaptcha) pasó de 16 sec a 18 sec**; **Amazon captcha de 2 sec a 3 sec**; **reCAPTCHA Enterprise de 2 sec a 1 sec**; y **ALTCHA de 17 sec a 15 sec**. Las capacidades libres de esos mismos tipos no cambiaron: FunCaptcha sigue en 578, Amazon en 5.632, Enterprise en 483 y ALTCHA en 203. La única diferencia estructural es **reCAPTCHA v3**, que pasa de una fila con rango "$1.45 — $2.99" a **dos filas** con precio cerrado por banda de score ([[2026-1027-2captcha-recaptcha-v3-se-factura-por-el-score-obtenido]]).
+
+## Why It Matters
+Es la **primera medición de deriva del propio catálogo de 2Captcha entre dos capturas del vault**, y su forma es precisa: **los precios son estables y las latencias no**. En tres días, la columna "Solving speed" se mueve ±1–2 segundos en cuatro de ocho tipos, en ambas direcciones: **ALTCHA y Enterprise bajan, FunCaptcha y Amazon suben**. El vault tenía registrado un "1–2 segundos" como banda estándar y un "16–17 segundos" como banda de outliers, y la lectura correcta es que **ninguna de las dos bandas es una constante del tipo**: son **el valor publicado en una fecha concreta**.
+
+La consecuencia metodológica es la que el thread necesita: **cualquier cifra de latencia de este corpus lleva fecha y proveedor, y una diferencia de un segundo entre dos capturas no es una discrepancia sino deriva del claim**. Es el mismo argumento que ya se aplicó a los precios (que son estables) y al catálogo (que se amplía), extendido a la tercera columna.
+
+Y hay un punto de arquitectura de producto detrás de la deriva: **ALTCHA y reCAPTCHA Enterprise son tipos con más de una tecnología de resolución detrás** (el modelo y el fallback a trabajadores humanos, con la profundidad del pool como límite), mientras que **FunCaptcha y Amazon son tipos de flujo largo cuyo tiempo viene del sitio de destino y no del solver**. Que se muevan en direcciones opuestas encaja con esa lectura: **la latencia medida mezcla el coste del solver con el del destino**, y el vault no puede separar los dos componentes con esta fuente.
+
+## [FRICTION]
+> [[2026-1024-2captcha-velocidad-de-resolucion-1-a-2-segundos-en-los-tipos-estandar]] afirma que "los tipos estándar resuelven en **1–2 segundos**" y que "los únicos tipos fuera de ese rango son Arkose/FunCaptcha (**16 sec**) y ALTCHA (**17 sec**)", y de ahí deduce que "**un captcha estándar no es un cuello de botella de tiempo**" y que "solo los dos tipos caros son además los lentos".
+> Este átomo presiona esa afirmación en tres puntos verificables contra la captura del 2026-10-26: (1) **ALTCHA ya no está a 17 sec sino a 15**, y **FunCaptcha ya no a 16 sino a 18** — las dos cifras del átomo quedaron desactualizadas en tres días sin que cambiara el precio; (2) la banda "1–2 sec" **no cubre el catálogo**: hay tipos estándar por su precio —DataDome e Imperva a 11 sec, MTCaptcha a 8 sec, Capy Puzzle a 8 sec, Friendly captcha a 11 sec, atbCAPTCHA a 11 sec, CyberSiARA a 13 sec— que son de precio medio ($1.45–$2.99) y latencia de 8–13 segundos, sin ser outliers de precio; (3) la conclusión "solo los dos tipos caros son además los lentos" **no se sostiene en el catálogo completo**, porque el tipo más lento (KeyCAPTCHA, 37 sec) cuesta $2.99 y el segundo más lento (Cutcaptcha, 24 sec) $1.45 — el peldaño habitual del catálogo. Ambas no pueden ser completamente correctas: o la banda de latencia es una propiedad del tipo, o es una propiedad del día en que se midió. Marcado para juicio humano, no auto-resuelto: la captura no define "Solving speed" (media, mediana o valor típico) ni su ventana de cálculo.
+
+Nota: la comparación entre capturas **no** permite saber si el cambio de latencia proviene de una mejora del solver, de un cambio del mix de trabajadores, o de un ajuste de la definición de la métrica; la fuente no explica el mecanismo.

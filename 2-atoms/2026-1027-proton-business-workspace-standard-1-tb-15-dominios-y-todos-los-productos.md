@@ -1,0 +1,17 @@
+---
+id: 2026-1027-proton-business-workspace-standard-1-tb-15-dominios-y-todos-los-productos
+type: atom
+certainty: solid
+sources: [sources/2026-10-26-proton-business-vpn-pricing.md]
+links: ["[[2026-1027-proton-business-vpn-precios-publicados-por-usuario-en-cuatro-planes]]", "[[2026-1024-proton-limites-de-capacidad-por-plan-500-gb-15-correos-y-50-bovedas]]", "[[2026-1027-proton-business-vpn-pass-professional-anade-pass-integrado-alias-y-un-cli]]"]
+---
+
+## Claim
+**Workspace Standard** ($12.99/user per month, **sin mínimo de usuarios declarado**) se define como "All Proton products for business, including:" **"Password manager to secure credentials"**, "**1 TB storage per user**", "**15 custom email domains**", "Secure personal and shared calendar", "Cloud storage and sharing for large files", "Advanced account protection", "Manage user permissions and access" y "**VPN connection for 10 devices per user**". La tabla de logos enumera **ocho productos**: Proton VPN, Pass, Mail, Calendar, Drive, Docs, Sheets y Meet. El total declarado es **"Billed at $155.88 every 12 months."** (sin indicar número de usuarios). En la tabla comparativa, el "Lumo AI assistant" aparece como "**Add-on with free trial**" en las cuatro columnas.
+
+## Why It Matters
+Es el **único plan del corpus que publica una partida de correo con dominios propios** —"15 custom email domains"— y la captura la liga a "1 TB storage per user", o sea **$12,99/mes buys correo con dominio propio + nube de 1 TB + VPN**. Frente a la línea de consumo, donde Proton Unlimited da 15 buzones y **3** dominios propios ([[2026-1024-proton-limites-de-capacidad-por-plan-500-gb-15-correos-y-50-bovedas]]), esta es la primera vez que el vault ve **dominios propios como producto cotizado** en la línea de privacidad por suscripción. Y el "VPN connection for **10 devices per user**" es la diferencia estructural con el consumo: allí los 10 dispositivos son **por cuenta** ([[2026-1024-protonvpn-diez-dispositivos-y-20000-servidores-en-140-paises]]), aquí son **por usuario**, de modo que la capacidad de red **escala linealmente con el número de licencias** y no con el número de cuentas. Es exactamente la unidad que necesita un producto multi-tenant con un tenant por persona.
+
+
+## Nota de extensión 2026-10-27
+Este átomo describe Workspace Standard desde la página de precios B2B del VPN ("All Proton products for business", 1 TB, 15 dominios, 8 productos, "$155.88 every 12 months"). Las capturas del 2026-10-26 de `proton.me/business/mail/pricing` y `proton.me/business/plans` **confirman las cifras desde la ruta de correo** y añaden la escalera completa que faltaba: **Mail Essentials $6,99** (15 GB, 3 dominios, 10 direcciones de correo por usuario, solo Mail + Calendar, 1 conexión VPN y 10 países), **Workspace Standard $12,99** (1 TB, 15 dominios, 20 direcciones) y **Workspace Premium $19,99** (3 TB, 20 dominios, 20 direcciones, 250 participantes en Meet, Lumo AI con prompts ilimitados) ([[2026-1027-proton-business-mail-limites-por-usuario-almacenamiento-y-direcciones-y-dominios]], [[2026-1027-proton-business-mail-essentials-es-el-plan-solo-correo-y-calendario]]). El dato estructural nuevo: **el precio por usuario es idéntico ($12,99 / $19,99) en las tres rutas de producto**, de modo que el mismo Workspace se compra desde la página de correo, la de planes o la de VPN — la cifra es estable y **no depende del producto desde el que se entre**.

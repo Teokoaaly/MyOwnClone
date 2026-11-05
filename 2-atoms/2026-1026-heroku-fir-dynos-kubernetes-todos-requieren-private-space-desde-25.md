@@ -1,0 +1,20 @@
+---
+id: 2026-1026-heroku-fir-dynos-kubernetes-todos-requieren-private-space-desde-25
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-heroku-pricing.md, sources/2026-10-25-heroku-dyno-sizes.md]
+links: ["[[2026-1026-heroku-private-y-shield-desde-125-y-150-dolares]]", "[[2026-1022-live-verify-deployment-migrada-a-vps-nginx]]", "[[2026-1026-heroku-fir-general-purpose-2cpu-4gb-dice-1-vcpu]]"]
+---
+
+## Claim
+La segunda base de dynos de Heroku es **Fir**, "**Kubernetes-powered**", y **todos sus planes declaran "Requires Private Space: Yes"** — sin excepción en las 17 filas. La tabla publica **plan id, RAM, vCPU y familia**: **Classic 1CPU-0.5GB $25** (plan `dyno-1c-0.5gb`), **Classic 2CPU-1GB $50** (`dyno-2c-1gb`), **General Purpose 2CPU-4GB $80** (`dyno-1c-4gb`), **General Purpose 2CPU-8GB $160** (`dyno-2c-8gb`), **General Purpose 4CPU-16GB $320** (`dyno-4c-16gb`), **General Purpose 8CPU-32GB $640** (`dyno-8c-32gb`), **General Purpose 16CPU-64GB $1,200** (`dyno-16c-64gb`), **Compute 2CPU-4GB $150** (`dyno-2c-4gb`), **Compute 4CPU-8GB $300** (`dyno-4c-8gb`), **Compute 8CPU-16GB $600** (`dyno-8c-16gb`), **Compute 16CPU-32GB $1,000** (`dyno-16c-32gb`), **Compute 32CPU-64GB $2,400** (`dyno-32c-64gb`), **Memory 1CPU-8GB $100** (`dyno-1c-8gb`), **Memory 2CPU-16GB $250** (`dyno-2c-16gb`), **Memory 4CPU-32GB $500** (`dyno-4c-32gb`), **Memory 8CPU-64GB $750** (`dyno-8c-64gb`), **Memory 16CPU-128GB $1,500** (`dyno-16c-128gb`). Todos declaran "Full network isolation", "Dedicated Kubernetes runtime environment", "Private network and data services" y "**Private Space required**".
+
+## Why It Matters
+Es la **segunda gramática de infraestructura** que el vault documenta para el mismo proveedor, y tiene dos consecuencias duras.
+La primera es de precio: **el suelo de Fir es $25/mes** — cinco veces el dyno Cedar más barato ($5) y por debajo del plan de Performance-M de Cedar ($250). Comprar "Kubernetes con aislamiento de red" en Heroku **exige comprar Private Space**, que es un add-on aparte: es decir, **el precio de $25 no es el precio de un dyno Fir**, es el precio de un dyno Fir *más* un Private Space, cuya cifra la fuente no publica en esta página.
+La segunda es de arquitectura: para el stack vivo del vault ([[2026-1022-live-verify-deployment-migrada-a-vps-nginx]], nginx + Postgres + Redis en un VPS autoalojado), Fir ofrece "Dedicated Kubernetes runtime environment" con "Full network isolation" y "Private network and data services" — es exactamente el *deployment* que el producto necesitaría para multi-tenant aislado, y a un orden de magnitud por encima del VPS autoalojado. Pero **Fir no es un sustituto de Cedar para una app pequeña**: la entrada de Fir (0.5 GB) ya cuesta $25 y **exige un complemento que la página no cuantifica**.
+También queda documentada por qué la tabla publica `plan id`: el precio se compra **por plan de Heroku**, no por "vCPU y RAM", lo que hace la migración entre gamas un cambio de *plan id* y no un simple resize.
+
+## Nota de extensión 2026-10-26
+Fuente adicional: `sources/2026-10-25-heroku-dyno-sizes.md` (página "Technical Specifications by Dyno Size"). La tabla de specs **confirma los 17 precios** de la tabla anterior y **publica la columna `vCPUs` de forma explícita**, junto con la frase "**All Fir dynos are dedicated compute resources and are only available with Fir-generation Private Spaces**". Los ratios de RAM por vCPU de las cuatro familias y los precios por GB están en [[2026-1026-heroku-fir-cuatro-familias-con-4-2-y-8-gb-de-ram-por-vcpu]].
+Sobre la fila inconsistente "General Purpose 2CPU-4GB" / `dyno-1c-4gb`, ya registrada en [[2026-1026-heroku-fir-general-purpose-2cpu-4gb-dice-1-vcpu]]: la página de specs **no repite el error** — nombra el plan por su `plan id` y publica `vCPUs = 1` en la fila `dyno-1c-4gb`. Es decir, **la segunda página de Heroku es internamente coherente y la contradicción queda localizada en la tabla de la página de precios**, no en el catálogo de producto. El átomo anterior no se modifica.

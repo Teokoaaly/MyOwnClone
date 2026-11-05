@@ -1,0 +1,20 @@
+---
+id: 2026-1027-veridrop-el-coste-de-la-sonda-larga-paga-el-usuario
+type: atom
+certainty: solid
+sources: [sources/2026-10-26-veridrop-openai-detection.md, sources/2026-10-26-veridrop-faq.md]
+links: ["[[2026-1027-veridrop-la-sonda-de-contexto-largo-y-la-maxima-por-modelo]]", "[[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]", "[[2026-1023-priceai-transit-formula-del-multiplicador-compuesto]]"]
+---
+
+## Claim
+El coste de la verificación **lo paga siempre el usuario con su propia key**, y VeriDrop lo dice sin rodeos: **"费用随模型和中转站定价而变,由你的 API key 支付"**. Las cifras publicadas para **GPT-6 Astra** son: **sonda de profundidad ≈ $3.32** de input estándar oficial, y **sonda máxima ≈ $27.06** (*"官方标准输入价估算约 $27.06,不含输出和中转站加价"*) — esta última, con la sonda de **875.9k tokens** de entrada. Aparte, la FAQ cuantifica el coste de la detección **estándar** de Claude: **~12 llamadas API, 3000-5000 tokens**, a razón de **Haiku ~$0.012, Sonnet ~$0.05, Opus ~$.20**, con la conclusión **"Veridrop 自己不收费 — 你付的是上游 API 的真实 token 钱"**.
+
+## Why It Matters
+Esto convierte la "verificación" en un **artículo con precio de mercado**, y el número es mucho mayor de lo que sugiere la etiqueta de "herramienta gratuita". La sonda máxima de Astra **cuesta ~$27.06**, es decir, **más de seis veces el presupuesto de infraestructura mensual completo del vault** ([[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]). La consecuencia de producto es directa: **la verificación profunda no es un tool de uso rutinario, es un evento que se planifica y se paga una vez por proveedor**, no por consulta.
+Y hay un matiz económico que el vault debe registrar porque invalida la comparación ingenua: **el coste de la sonda depende del multiplicador del relay que se está midiendo**. Si el relay cobra 0,1 del oficial, la misma sonda cuesta una fracción; si cobra 1,5, cuesta más. Es decir, **el precio de verificar a un relay se correlaciona con suMarkup**, y verificar un relay muy barato puede costar proporcionalmente más. Encaja con lo que el vault ya sabe del sector ([[2026-1023-priceai-transit-formula-del-multiplicador-compuesto]]): el multiplicador solo es comparable si los tokens son reales, y ahora aparece que **la propia medición de esa condición tiene un precio** que depende del multiplicador. Es una circularidad que hay que explicitar antes de construir cualquier cosa que mida calidad de relays: **el detector público más serio del sector es un servicio de pago disfrazado de gratis, y su precio escala con lo que estás a punto de ahorrar**.
+
+## Nota de verificación
+Cifras literales de las dos capturas. La captura **no** publica la fórmula de la estimación (tokenización media, precio por millón), ni el número exacto de tokens de salida de las sondas, ni si existe un descuento o un límite de gasto por ejecución.
+
+## [FRICTION]
+> [[2026-1026-new-api-cache-12h-openai-2-5x-y-precios-gpt-6-astra]] (escrita el 2026-10-26) fija la tarifa de **gpt-6-astra en $25 por millón de tokens** para las escrituras de caché de 12 h y **$50/M por encima de 272K tokens**, es decir, un precio de lista conocido para ese modelo. Esta nota presiona ese dato desde la página de detección: la propia estimación oficial que VeriDrop publica para sus sondas sobre Astra es de **~$3.32** (sonda de profundidad 32k → 100k → 200k, 332k tokens) y **~$27.06** (sonda máxima 32k → 461k → 875.9k, 875.9k tokens). Si se aplica el precio de lista de $25/M, la sonda máxima costaría **~$21.90**, no $27.06: hay una diferencia de **~24 %** entre el precio de lista conocido y el que implica la estimación de la página, y la captura **no publica la fórmula de la estimación** (ni tokenización media ni si incluye algún margen). Es decir, **la cifra de coste de la verificación no es reproducible a partir del precio de lista del modelo**. Marcado para juicio humano: la aritmética es del vault sobre cifras literales de dos fuentes distintas, y la diferencia puede deberse a que la estimación use la tarifa de entrada general y no la de caché, o a un redondeo. No auto-resuelto.

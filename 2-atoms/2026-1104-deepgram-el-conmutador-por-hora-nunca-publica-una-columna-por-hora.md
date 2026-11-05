@@ -1,0 +1,17 @@
+---
+id: 2026-1104-deepgram-el-conmutador-por-hora-nunca-publica-una-columna-por-hora
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-deepgram-pricing.md, sources/2026-11-03-deepgram-pricing.md, sources/2026-11-02-deepgram-pricing.md, sources/2026-11-01-deepgram-pricing.md, sources/2026-10-31-deepgram-pricing.md]
+links: ["[[2026-1031-deepgram-voice-agent-por-minuto-con-llm-y-tts-propios]]", "[[2026-1101-assemblyai-vs-deepgram-coste-por-hora-de-streaming]]", "[[2026-1031-deepgram-modelos-legacy-nova2-enhanced-base-por-hora]]", "[[2026-1104-deepgram-quinta-captura-sin-cambio-de-precio-y-faq-que-vuelve-a-la-formulacion-anterior]]"]
+---
+
+## Claim
+La página de precios de Deepgram ofrece un conmutador **"per minute | per hour"** en la sección Voice Agent —presente en las cinco capturas (10-31, 11-01, 11-02, 11-03 y 11-04)— pero **en ninguna de ellas la tabla llega a renderizar una columna por hora**: las seis filas de Voice Agent solo muestran $/min ($0,075 / $0,065 / $0,065 / $0,050 / $0,163 / $0,122). Las **únicas cifras por hora publicadas en toda la página** son las de la FAQ: "$0.46 an hour on Pay as you go, for either Nova-3 or Flux STT, and $0.39 on Growth. Multilingual is $0.55 for Nova-3 and $0.47 for Flux STT" (STT) y "$0.35 an hour, Enhanced $0.99, Base $0.87" (modelos legacy). Además, la FAQ en $/hr **no cubre el multilingüe en Growth** ni ninguna cifra horaria de Voice Agent, TTS o Audio Intelligence.
+
+## Why It Matters
+Corrige una hipótesis de lectura que la propia captura del 11-04 invitaba a hacer: el "salto" de 1.392 a 1.566 palabras **no procede de columnas de precio por hora nuevas**, sino de la restauración del markdown con enlaces y del bloque de compliance (ver [[2026-1104-deepgram-renderizado-completo-restaurado-identico-al-11-01]]); el conmutador por hora ya estaba en la captura del 11-03 y en las anteriores. La consecuencia práctica es la regla de cotización: **para Voice Agent hay que derivar el $/hr multiplicando el $/min por 60** (Standard $0,075 → $4,50/hr; el mínimo BYO LLM+TTS $0,050 → $3,00/hr) y esa cifra es una inferencia del vault, no un dato publicado — exactamente la ambigüedad que [[2026-1031-deepgram-voice-agent-por-minuto-con-llm-y-tts-propios]] dejó marcada como fricción abierta y que sigue abierta tras esta quinta captura. La comparación con AssemblyAI, que publica $/hr cerrados, solo es auditable en STT, donde ambas unidades conviven en la misma página ($0,0077 × 60 = $0,462 ≈ "$0.46 an hour" en [[2026-1101-assemblyai-vs-deepgram-coste-por-hora-de-streaming]]); para el resto del catálogo hay que normalizar a mano, con la advertencia de que el rounding de la FAQ no siempre es exacto ($0,0068 × 60 = $0,408 → Growth multilingüe publicaría $0,41/hr, cifra que la página no publica).
+
+## [FRICTION]
+> [[2026-1031-deepgram-modelos-legacy-nova2-enhanced-base-por-hora]] (escrita hace ~3 semanas) afirma que "la tabla principal va en $/min y la FAQ de modelos legacy en $/hr, sobre la misma página" y normaliza los precios legacy a $/hr para compararlos.
+> Esta nota delimita el alcance de esa mezcla: **la página no ofrece una vista por hora completa**, solo una FAQ con un puñado de cifras horarias (cuatro de STT y tres de legacy). Cualquier valor en $/hr de Voice Agent, TTS o Audio Intelligence citado en el vault es una conversión del vault, no una cifra de Deepgram, y debe etiquetarse como tal para no atribuirle a la web una publicación que no hace. Marcado para juicio humano, no auto-resuelto.

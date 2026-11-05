@@ -15,3 +15,7 @@ Para el modelo de coste del vault esto significa que el "precio de lista" que se
 
 ## Nota de verificación
 Textos transcritos literalmente. La captura **no** publica: la caducidad de la promoción "50 % OFF" ni del cupón, si el *match* de $500 es único por cuenta o por persona, ni los términos del saldo promocional (si caduca, si es reembolsable, si se aplica a planes con compromiso mensual ya abiertos).
+
+
+## Nota de extensión 2026-10-26
+La documentación de billing del 2026-10-25 añade el **orden de consumo** que faltaba para cerrar la aritmética de las tres palancas de entrada de Bright Data: *"Free credits are consumed first. Promo code discounts apply to any PAYG usage that follows."* Es decir, el cupón **RESIGB50** (50 % sobre los cuatro planes) y el *match* de primer depósito hasta $500 de este átomo **no se aplican a los 5.000 créditos gratuitos mensuales**: el descuento solo entra en juego a partir del consumo que pase al saldo PAYG. Consecuencia para este átomo: el "coste de entrada de $0 o muy bajo" que aquí se concluía ahora tiene un **mecanismo explícito** — el free tier se consume antes que cualquier saldo y antes que cualquier cupón — y añade un cuarto tramo que este átomo no tenía, el **free tier recurrente de ~$7,50/mes de valor**. Ver [[2026-1026-brightdata-cupon-gratis-primero-y-descuento-para-el-payg-siguiente]] y [[2026-1026-brightdata-5000-creditos-gratis-al-mes-para-cuentas-nuevas]].

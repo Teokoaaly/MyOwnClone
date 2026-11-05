@@ -1,0 +1,16 @@
+---
+id: 2026-1104-aiven-comparacion-con-vendors-de-una-sola-tecnologia-feature-gating-y-lock-in
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-aiven-pricing.md]
+links: ["[[2026-1104-aiven-la-captura-vuelve-a-ser-completa-e-identica-a-la-del-11-02]]", "[[2026-1102-aiven-funciones-operativas-estandar-en-todos-los-planes]]", "[[2026-1031-clerk-pricing]]"]
+---
+
+## Claim
+La FAQ "How does Aiven pricing compare to service-specific vendors?" (presente en esta captura, eliminada en la del 2026-11-03) delinea cuatro diferencias frente a los vendors de una sola tecnología (ejemplo explícito: **Confluent** para Kafka): **feature gating** — esos vendors "tier their pricing by feature access: connectors, audit logs, role-based access, or advanced security are locked to higher tiers", mientras en Aiven "monitoring, backups, and access controls are standard across plans, not premium add-ons"; **consumption-based compounding** — "charge by ingest volume, partition count, or connector usage", frente a un bill por plan que refleja "the size of your workload, not the granularity of how you use the service"; **single-service lock-in** — con Confluent "you still need a separate contract for your database, your search layer, and your caching layer, each with its own support line, pricing model, and renewal cycle", mientras Aiven da "Kafka, PostgreSQL, OpenSearch, ClickHouse, Valkey, and more under one platform, one contract, and one invoice"; y **multi-cloud y portabilidad** — "Aiven runs on AWS, Google Cloud, Azure, and others, in 100+ regions".
+
+## Why It Matters
+Es el único bloque de la página que se ocupa de la **forma del contrato y del gating**, no del precio, y es donde se juega la comparación que el vault sí tiene abierta: el patrón de coste por asiento del vault ([[2026-1022-costes-por-categoria-tenant]]) se rompe con el "consumption-based compounding" que Aiven atribuye a Confluent, porque el coste por uso ingestion-scale no se puede atribuir a un tenant de forma estable. La respuesta de Aiven —precio por tamaño de plan— es exactamente lo que [[2026-1102-aiven-funciones-operativas-estandar-en-todos-los-planes]] ya verificó en la tabla de features, y [[2026-1031-clerk-pricing]] es el contraejemplo en el vault de un vendor que sí usa gating por feature como palanca de precio. Caveat para el vault: la afirmación de "100+ regions" es un claim comercial de la página, y el selector de regiones de la misma captura solo nombra nueve códigos — la capturamos completa en [[2026-1104-aiven-la-captura-vuelve-a-ser-completa-e-identica-a-la-del-11-02]].
+
+## [FRICTION]
+> [[2026-1101-aiven-sin-bundles-el-coste-de-plataforma-es-la-suma-de-servicios]] afirma que "no bundle fees, no cross-service licensing, and no separate contracts per service", y que el coste de la plataforma es la suma de los planes de cada servicio. La FAQ de esta captura afirma lo contrario en apariencia — Aiven da "one platform, one contract, and one invoice" frente a los "separate contracts" de los vendors de una sola tecnología. Ambas no pueden ser completamente correctas: o "one contract, one invoice" es solo una comodidad de facturación (no un bundle con descuento, y el precio sigue siendo la suma por servicio), o Aiven sí empaqueta y la fórmula de coste por suma queda incompleta. Marcado para juicio humano, no auto-resuelto.

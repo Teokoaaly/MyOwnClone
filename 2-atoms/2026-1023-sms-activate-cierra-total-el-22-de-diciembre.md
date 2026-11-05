@@ -20,3 +20,19 @@ Consecuencia operativa: cualquier plan de aprovisionamiento que asumiera un prov
 
 ## Nota de verificación
 El aviso no da el **año** del 22 de diciembre, ni la razón del cierre, ni cifras de saldo pendiente. La captura es del 2026-10-22 y el texto está en pasado ("прекратили"), por lo que el año es inferible pero no está escrito; el vault no debe fijar un año sin otra fuente.
+
+
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-onlinesim-virtual-sms.md` (capturada **tres días después** del aviso de cierre). El hecho que este átomo documenta —que SMS-Activate cesó toda su actividad por completo y sin excepciones— tiene ahora una **contraprueba de vigencia en el mercado**: la home de OnlineSim, capturada el 2026-10-25, sigue usando a SMS-Activate como **ejemplo vivo y actual** del sector, en presente y sin ningún matiz: "**Normally, SMS activation services (such as SMS-Activate)** are used to register on social networks (VK, OK, Facebook, Instagram), confirm messengers (Telegram, WhatsApp, Viber, WeChat), and emails (Yandex, Mail.ru, Gmail, Yahoo)" ([[2026-1026-onlinesim-faq-nombra-sms-activate-como-ejemplo-de-activacion]]).
+
+Dos lecturas posibles que este átomo deja abiertas para el Editor: (a) el texto del competidor es **copy de plantilla sin actualizar**, lo que significa que ninguna referencia nominal a un proveedor en el corpus es fiable como dato de mercado; (b) la marca SMS-Activate sobrevivió como **etiqueta comercial** aunque la empresa haya dejado de existir — lo que encaja con que HeroSMS, su heredero technology-wise,sea el único linaje vivo.
+
+La consecuencia para el thread: la afirmación "el mercado perdió un actor" debe matizarse a "**el mercado perdió una empresa y conservó su nombre como referencia sectorial**", y el FAQ de OnlineSim es la prueba de esa persistencia.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-hero-sms-api-docs.md`.
+
+Este átomo documenta el cierre total de SMS-Activate el 22 de diciembre de 2026 y su calendario de liquidación. La página de API de HeroSMS publica ahora **un destino de migración con procedimiento**: cuatro pasos, host `api.sms-activate.ae` → `hero-sms.com`, API key de HeroSMS en su lugar, y la mención de "**former** SMS-Activate partners" ([[2026-1027-hero-sms-compatibilidad-de-wire-con-los-clientes-de-sms-activate]]).
+
+Consecuencia para el Editor: el cierre deja de ser solo un hecho de mercado y pasa a tener un **receptor de tráfico documentado**. Eso tiene una consecuencia práctica para cualquier software de registro que hoy apunte a `api.sms-activate.ae`: **el coste de migrar es una línea de configuración**, no una reescritura de cliente. Y un matiz que hay que escribir: la migración **no resuelve** la liquidación —el saldo, los números comprados y los plazos del operador saliente siguen sin varias reglas—; HeroSMS es un **destino de integración**, no un sucesor de los derechos de los clientes del operador cerrado.

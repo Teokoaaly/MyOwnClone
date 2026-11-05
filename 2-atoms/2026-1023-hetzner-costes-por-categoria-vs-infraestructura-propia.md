@@ -2,7 +2,7 @@
 id: 2026-1023-hetzner-costes-por-categoria-vs-infraestructura-propia
 type: atom
 certainty: tentative
-sources: [sources/2026-10-22-hetzner-cloud.md]
+sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-11-03-hetzner-cloud.md]
 links: ["[[2026-1022-costes-por-categoria-tenant]]", "[[2026-1022-platform-admin-tenants-costes-mrr]]", "[[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]", "[[2026-1022-precio-99-mensual]]"]
 ---
 
@@ -19,3 +19,9 @@ Con un plan base de 99/mes ([[2026-1022-precio-99-mensual]]) y un solo tenant, ~
 
 ## Nota de verificación
 El coste de €5,99/mes viene de la página de Hetzner ([[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]); que el VPS vivo de [[2026-1022-live-verify-deployment-migrada-a-vps-nginx]] sea un plan de ese precio es una inferencia no confirmada. La captura de Hetzner no dice nada sobre la contabilidad interna de [[myownclone]].
+
+## Nota de extensión 2026-11-03
+Fuente: `sources/2026-10-31-hetzner-cloud.md`, `sources/2026-11-01-hetzner-cloud.md`, `sources/2026-11-02-hetzner-cloud.md`. El hosting de referencia del vault —**CPX02 de 1 vCPU a € 5,99/mes ex-VAT**— se reproduce sin cambios en las dos capturas que renderizan la calculadora (2026-10-31 y 2026-11-02), con el mismo desglose (€ 5,99/mes + € 0,0096/h, IPv4 € 0,00, 20 TB a € 0,00), y el bloque de planes repite "starting from … € 5.99 per month, excl. VAT" en las tres capturas (la del 2026-11-01 no renderiza la calculadora). La partida de infraestructura ausente del panel de costes, por tanto, **sigue valiendo ~€6/mes y no se ha movido** en el periodo 2026-10-22 → 2026-11-02: sigue siendo un 6 % del ingreso con un tenant y un 0,06 % con 100. Es decir, la ausencia de la categoría en el back-office sigue siendo **la** anomalía del modelo de coste, no un problema de precio del proveedor. Ver [[2026-1102-hetzner-precio-de-entrada-5-99-no-4-67]] y [[2026-1031-hetzner-cloud]].
+
+## 2026-11-03 — re-verificación
+Fuente: `sources/2026-11-03-hetzner-cloud.md`. El hosting de referencia del vault —**CPX02 de 1 vCPU a € 5,99/mes ex-VAT**— se reproduce sin cambios en la calculadora de esta captura (€ 5,99/mes + € 0,0096/h, IPv4 € 0,00, 20 TB a € 0,00) y el bloque de planes repite "starting from … € 5.99 per month, excl. VAT". La partida de infraestructura ausente del panel de costes **sigue valiendo ~€6/mes y no se ha movido** en el periodo 2026-10-22 → 2026-11-03: un 6 % del ingreso con un tenant y un 0,06 % con 100. Es decir, la ausencia de la categoría en el back-office sigue siendo **la** anomalía del modelo de coste, no un problema de precio del proveedor. Lo que esta captura añade al marco de lectura es que **el precio de Hetzner es la parte más estable de la fuente y la única que sostiene cifras**: ver [[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]] y [[2026-1102-hetzner-precio-de-entrada-5-99-no-4-67]].

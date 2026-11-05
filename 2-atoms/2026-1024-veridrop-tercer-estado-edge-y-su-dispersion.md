@@ -20,3 +20,7 @@ Y encaja con lo que el vault ya sabe del sector: **el precio no predice la estab
 
 ## Nota de verificación
 Recuentos y porcentajes calculados sobre los valores literales "N 通过 · N 边缘 · N 失败" de las 50 filas. La captura **no** define qué significa exactamente "边缘", ni la longitud de la "ventana".
+
+
+## Nota de extensión 2026-10-27
+La FAQ documenta la **semántica de los umbrales** que faltaba para leer el estado intermedio: **50-69 = marginal(黄)**, y sobre todo la **regla de veto** — **"任意 detector 报严重问题,verdict 会被砍到 marginal(圆圈变黄)— 即使分数够 70 也不绿"**. Es decir, el "边缘/marginal" que esta nota registraba como tercer estado agregado **tiene una regla de producción explícita**: no es una zona de puntuación intermedia, es el resultado de un detector grave. Y el color del veredicto (verde / amarillo) es una dimensión **distinta** del recuento 通过/边缘/失败 por test. Véanse [[2026-1027-veridrop-una-desviacion-grave-baja-el-veredicto-a-amarillo]] y [[2026-1027-veridrop-tres-senos-de-deteccion-protocolo-capacidad-y-uso]].

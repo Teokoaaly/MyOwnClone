@@ -1,0 +1,27 @@
+---
+id: 2026-1102-hetzner-precio-de-entrada-5-99-no-4-67
+type: atom
+certainty: solid
+sources: [sources/2026-10-31-hetzner-cloud.md, sources/2026-11-01-hetzner-cloud.md, sources/2026-11-02-hetzner-cloud.md, sources/2026-11-03-hetzner-cloud.md]
+links: ["[[2026-1031-hetzner-cloud]]", "[[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]", "[[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]"]
+---
+
+## Claim
+Tres capturas consecutivas de la página de Hetzner Cloud (2026-10-31, 2026-11-01 y 2026-11-02) dan **el mismo precio de entrada: € 5.99 por mes, excl. VAT**. En las dos capturas que renderizan la calculadora (2026-10-31 y 2026-11-02) ese precio corresponde al plan **CPX02 de 1 vCPU AMD** a **€ 0.0096 por hora**, con IPv4 primario a € 0,00 y 20 TB de tráfico esperado a € 0,00. Ninguna de las tres introduce un precio de entrada inferior, ni un plan nuevo por debajo de ese umbral: el catálogo sigue teniendo tres familias —Cost-Optimized € 5.99, Regular Performance € 6.49, General Purpose € 43.49— con "Shared Resources — Currently not available" apareciendo junto al bloque Cost-Optimized en las tres capturas.
+
+## Why It Matters
+Confirma con tres capturas fechadas que el suelo del catálogo de Hetzner Cloud **no se ha movido en dos semanas**: el argumento de [[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]] ("ningún plan de Hetzner Cloud cabe en ≤ €4/mes") sigue vigente con la misma evidencia, y la referencia de coste de infraestructura del vault ([[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]) sigue siendo € 5,99 ex-VAT. La otra mitad del dato es la **estabilidad**: el vault ha documentado en paralelo proveedores con precio de entrada bajo (Skhron € 2,34, ExtraVM "starting at $4.50" —suelo realmente comprable $8,00 según [[2026-1024-extravm-stock-casi-todo-agotado-y-solo-cinco-planes-comprables]]—, BuyVM SLICE 512 a $24,00/año ≈ $2,00/mes), pero ninguno de ellos publica SLA con créditos, GDPR, ISO 27001 ni BSI C5 — que es justo lo que Hetzner sí publica ([[2026-1023-hetzner-sla-99-9-gdpr-e-iso-27001]]). Que el precio no baje en dos semanas refuerza que **el trade-off del vault es estable, no una instantánea**: el proveedor con cumplimiento auditable mantiene su suelo en € 5,99, y la decisión no se resuelve con una espera.
+
+## [FRICTION]
+> [[2026-1031-hetzner-cloud]] afirma, en su bloque `[FRICTION]`, que "Hetzner Cloud VMs start at approximately **€ 4.67/mo** for entry-level instances".
+> Este átomo presiona esa cifra porque **ninguna de las tres capturas de la página publica € 4,67**: el precio de entrada que la calculadora resuelve como configuración por defecto es **€ 5.99/mes (€ 0.0096/h)** en las tres, y el bloque de planes lista "starting from … € 5.99 per month, excl. VAT" en las tres.
+> Ambas no pueden ser completamente correctas: o los € 4,67 son un precio con IVA/descuento de otra oferta de Hetzner (no cloud) o un valor transcrito a mano, o el precio de entrada cambió después de esa nota. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+Ninguna de las tres capturas publica un precio de entrada distinto del de 2026-10-22. La captura del 2026-11-01 no renderiza los valores de la calculadora (la sección "The cost check for your cloud server" aparece sin cifras), por lo que para esa fecha el dato se apoya en el bloque de planes, no en el widget.
+
+## 2026-11-03 — re-verificación
+Fuente: `sources/2026-11-03-hetzner-cloud.md`. **Cuarta captura consecutiva con el mismo precio de entrada: € 5.99 por mes, excl. VAT.** Esta captura sí renderiza la calculadora y resuelve la configuración por defecto como **Shared · Regular Performance · CPX02 1 VCPU AMD · € 5.99 per month · € 0.0096 per hour**, con IPv4 primario a € 0,00 y 20 TB de tráfico esperado a € 0,00. El bloque de planes repite los tres "starting from" (**€ 5.99 / € 6.49 / € 43.49**, excl. VAT) y el "**Shared Resources — Currently not available**" aparece junto al bloque Cost-Optimized. **Ninguna captura del corpus publica € 4,67**: la fricción con [[2026-1031-hetzner-cloud]] permanece abierta y sin auto-resolver, con ahora cuatro capturas fechadas (10-31, 11-01, 11-02, 11-03) del lado de los € 5,99. Ver [[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]].
+
+## Actualización 2026-11-04
+Fuente: `sources/2026-11-04-hetzner-cloud.md`. **Quinta captura consecutiva con el mismo precio de entrada: € 5.99 por mes, excl. VAT.** La calculadora renderiza completa y resuelve la configuración por defecto como **Shared · Regular Performance · CPX02 1 VCPU AMD · € 5.99 per month · € 0.0096 per hour**, con IPv4 primario a € 0,00 y 20 TB de tráfico esperado a € 0,00 y € 1.00 por TB adicional en la UE. El bloque de planes repite **€ 5.99 / € 6.49 / € 43.49** y el "**Shared Resources — Currently not available**" aparece junto al bloque Cost-Optimized. La lista de cinco Availability Zone (HEL1 FIN, FSN1 GER, NBG1 GER, HEL1 FIN, SIN SG) se mantiene literal. **Ninguna captura del corpus publica € 4,67**: la fricción con [[2026-1031-hetzner-cloud]] sigue abierta y sin auto-resolver, con ahora cinco capturas fechadas (10-31, 11-01, 11-02, 11-03, 11-04) del lado de los € 5,99. Los valores que sí se mueven en esta captura (techos "max/mo." y ahorro medio del comparador) son los dos widgets dinámicos documentados en [[2026-1104-hetzner-max-mo-vuelve-a-negativo-el-cero-del-11-03-no-se-repite]] y [[2026-1104-hetzner-ahorro-medio-cambia-con-operandos-identicos-al-11-03]].

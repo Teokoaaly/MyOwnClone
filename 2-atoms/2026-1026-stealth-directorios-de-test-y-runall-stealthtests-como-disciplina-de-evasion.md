@@ -1,0 +1,17 @@
+---
+id: 2026-1026-stealth-directorios-de-test-y-runall-stealthtests-como-disciplina-de-evasion
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-puppeteer-extra-stealth.md]
+links: ["[[2026-1026-stealth-bancos-de-prueba-publicos-que-el-plugin-cita-como-evidencia]]", "[[2026-1024-chatgpt-creator-cuatro-commits-y-338-estars-sin-mantenimiento-visible]]", "[[2026-1026-rebrowser-bot-detector-como-banco-de-pruebas-publico]]", "[[2026-1026-stealth-cobertura-de-canvas-ausente-en-el-changelog-de-evasions]]"]
+---
+
+## Claim
+El paquete contiene **cuatro directorios y dos ficheros de infraestructura de test** con su propio historial: `stealthtests/` (último commit "fix(plugin-stealth): Harden proxy and toString behavior (#573)", **8 de octubre de 2021**), `test/` (último commit "feat(plugin-stealth): Enhance the `navigator.webdriver` evasion for Chrome 89.0.4339 (#449)", **14 de marzo de 2021**), `examples/` (**24 de noviembre de 2019**), más `index.test.js` ("chore(plugin-stealth): Fix tests", **3 de diciembre de 2019**) y `index.d.ts` ("fix(plugin-stealth): Improve d.ts", **5 de diciembre de 2019**). El paquete incluye además un script ejecutable `runall_stealthtests.sh` y un `.npmignore` de 2019. El changelog de `v2.4.0` declara que "All evasions now have a specific **before and after test**".
+
+## Why It Matters
+Es la evidencia estructural más relevante de la captura para el método del vault: **la disciplina de "antes y después" por evasión** es una forma de **auditoría de regresión de detección**, y es lo que convierte la lista de evasiones en un inventario verificable pieza a pieza. El vault puede leer el changelog como un registro de hipótesis —"esto se tapaba, esto se tapa"— con una prueba asociada a cada entrada.
+Y hay un detalle fino que solo se ve en la tabla de ficheros y que vale por sí solo: **el último trabajo real en la lógica de evasión es de octubre de 2021** (`stealthtests`, PR #573), y **el directorio `test/` no se toca desde marzo de 2021** (#449). El proyecto **construyó una infraestructura de pruebas de evasión y después dejó de usarla**. Es la misma forma de abandono que el vault registró en `chatgpt-creator` —popularidad sin mantenimiento, código congelado en `main` ([[2026-1024-chatgpt-creator-cuatro-commits-y-338-estars-sin-mantenimiento-visible]])— pero con un matiz que importa: aquí **la infraestructura de verificación está publicada y es reutilizable**, aunque congelada.
+Eso tiene una consecuencia operativa concreta: **`runall_stealthtests.sh` y los tests "antes/después" son un banco de pruebas que alguien puede reejecutar contra su propio cliente** y ver qué evasion se ha roto. Es la misma idea que la que el vault registró como "banco de pruebas público" del otro sector, pero aquí en forma de **script local versionado** ([[2026-1026-stealth-bancos-de-prueba-publicos-que-el-plugin-cita-como-evidencia]]), y con la ventaja frente a aquel de que **el detector y la evidencia están en el mismo repositorio y versionados juntos**, mientras que el detector del otro sector es un servicio externo ([[2026-1026-rebrowser-bot-detector-como-banco-de-pruebas-publico]]).
+
+Nota de verificación: rutas, mensajes de commit y fechas son transcripción literal de la tabla de ficheros. La captura **no** publica el contenido de los tests, ni del script `runall_stealthtests.sh`, ni el `.npmignore`; por tanto no puede afirmarse qué se empaqueta y qué no.

@@ -1,0 +1,18 @@
+---
+id: 2026-1027-dataimpulse-movil-68-por-ciento-scraping-y-cuatro-casos-de-uso
+type: atom
+certainty: solid
+sources: [sources/2026-10-26-dataimpulse-mobile-proxies.md]
+links: ["[[2026-1024-dataimpulse-uso-de-ips-en-agentes-y-visibilidad-en-ia]]", "[[2026-1024-dataimpulse-cuatro-tipos-y-que-cada-uno-resuelve]]", "[[2026-1022-myclone-scraping-ingestion-pipeline]]", "[[2026-1024-dataimpulse-soporte-24-7-y-canal-enterprise]]"]
+---
+
+## Claim
+La página móvil publica la **composición de uso del pool móvil** y una cifra de penetración por caso de uso: **"Web Scraping — Used by 68% of customers"**. Los cuatro casos de uso con bloque propio son: **Web scraping** ("16 million mobile IPs", "Auto-rotation", "Country-targeting is included in the price", "Integration with Scrapy, Selenium, Puppeteer"), **Ad verification** ("verify ad placements, check ad blockers, and validate campaigns in different places"; "Detect invalid clicks across regions"), **Social Media Management** ("SMM specialists can run multiple accounts without suspicious login alerts and account restrictions"; "Active sessions up to 120 minutes"; "Free country targeting"; "195+ locations") y **App testing & automation** ("check that their app works the same way across different carriers and mobile devices"; "Accurate testing of local content"; "Quick detection of region-specific bugs"). El badge de ese último bloque declara **"Zero block rate"** y el de Ad Verification **"100% ethical"** y **"$0 country-targeting"**.
+
+## Why It Matters
+El **68 %** es la primera vez que el vault tiene una **cifra de uso de un pool de proxy** que no sea un precio: dice que el móvil es, para el proveedor, **un pool de scraping**, no un pool de SMM. Eso importa porque el scraping es exactamente el caso de uso que el producto del vault tiene ([[2026-1022-myclone-scraping-ingestion-pipeline]]), y porque separa el móvil del resto: el móvil **no** es principalmente el pool de la verificación por SMS ni de la automatización social, aunque la página dedique un bloque entero a SMM y declare "Active sessions up to 120 minutes" para ello.
+El reparto declarado tiene además una lectura de arquitectura: los tres bloques que **no** son scraping traen badges con **promesas absolutas** —"Zero block rate", "100% ethical", "$0 country-targeting"—, mientras que el bloque de scraping (el único con el 68 % detrás) trae un desglose funcional con integraciones concretas (Scrapy, Selenium, Puppeteer). Es decir: **cuanto más cerca está el bloque de la promesa de elusión, más vacío de datos medibles es** — el mismo patrón que el thread viene registrando en todo el corpus de proxies ([[2026-1024-dataimpulse-uso-de-ips-en-agentes-y-visibilidad-en-ia]]).
+El cuarto caso de uso es el más nuevo para el vault: **testeo de app en redes reales** ("works the same way across different carriers and mobile devices", "Quick detection of region-specific bugs"). Es un uso de **QA de producto**, no de scraping, y es el único de la página que no implica elusión de nada: no hay captcha, no hay bloqueo que sortear, solo cobertura de operadores. Para un producto con surface web, es la partida de proxy con mejor relación valor/riesgo del corpus.
+
+## Nota de verificación
+Cifras y listas transcritas literalmente de la sección "Use Cases". "Used by 68% of customers", "Zero block rate", "100% ethical" y "$0 country-targeting" son **claims del proveedor** sin metodología ni fuente de medida. La captura **no** publica: el reparto de clientes entre los cuatro casos de uso, ni el volumen de GB consumido por cada uno, ni si el 68 % es transversal a los cuatro pools o específico del móvil.

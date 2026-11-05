@@ -1,0 +1,24 @@
+---
+id: 2026-1027-mail-tm-la-api-permite-fijar-address-y-password-a-diferencia-de-la-web
+type: atom
+certainty: solid
+sources: [sources/2026-10-26-mail-tm-api-docs.md]
+links: ["[[2026-1026-mail-tm-buzon-y-contrasena-nacen-al-abrir-el-sitio]]", "[[2026-1026-mail-tm-el-farm-del-vault-ya-lo-usa-con-dominio-propio-y-clave-determinista]]", "[[2026-1027-mail-tm-flujo-de-cuatro-peticiones-para-obtener-un-buzon]]"]
+---
+
+## Claim
+La creación de buzón por API de mail.tm exige **que el cliente elija las dos credenciales**: el cuerpo del `POST https://api.mail.tm/accounts` es literalmente `{"address":"user@domain.com","password":"secret"}`, y el `POST https://api.mail.tm/token` **repite el mismo par** `address`/`password`. Es decir, **la dirección y la contraseña son entradas del cliente, no salidas del proveedor** — y el ejemplo literal de la documentación usa un dominio de ejemplo (`domain.com`), no un dominio del pool publicado.
+
+## Why It Matters
+Es la diferencia de modelo de credencial más relevante del corpus de correo, y es invisible desde la home. La vía web de mail.tm promete **credencial autogenerada**: dirección y contraseña "nacen al abrir el sitio", con una contraseña "**unique, automatically generated**" ([[2026-1026-mail-tm-buzon-y-contrasena-nacen-al-abrir-el-sitio]]). La vía API invierte el modelo: **el que llama decide la contraseña**. Es la diferencia entre "el proveedor te da una credencial" y "tú le das una credencial al proveedor", y por eso el buzón por API es un **activo con clave del cliente** en lugar de un **regalo con clave del proveedor**.
+
+La consecuencia operativa es de **reproducibilidad y de trazabilidad**: una credencial elegida por el cliente es determinista, se puede rotar, se puede inventariar y se puede auditar; una autogenerada obliga a **capturar la respuesta** de la API para no perderla. Y esto conecta con el único uso real de mail.tm que el vault tiene registrado: el farm del vault usa mail.tm **con dominio propio y clave derivada de un timestamp** ([[2026-1026-mail-tm-el-farm-del-vault-ya-lo-usa-con-dominio-propio-y-clave-determinista]]). Es decir, **ese patrón —clave determinista, dominio propio— es exactamente lo que la API permite y lo que la web no da**: no es una rareza ni una excepción, es la forma de la interfaz programada. Pero el matiz de seguridad sigue siendo el del átomo viejo: **una clave derivable no es una clave aleatoria**, y "elegible" no quiere decir "segura" — solo quiere decir **elegible**, lo que traslada el problema de la generación al cliente y abre el de la gestión de secretos.
+
+Y hay una segunda lectura, más incómoda para el vault: **el ejemplo de la propia documentación usa `user@domain.com`**, un dominio que **no está en el pool publicado** por `api.mail.tm/domains` (que solo expone `maxxspace.com`, [[2026-1027-mail-tm-un-solo-dominio-publicado-en-la-api-en-vivo]])). O el ejemplo es simplemente ilustrativo, o la API acepta dominios externos al pool —en cuyo caso el pool de un solo dominio no limita el alta. La captura **no** lo aclara, y la diferencia es exactamente la que separa "un proveedor con un dominio" de "un proveedor que además te deja traer el tuyo".
+
+## [FRICTION]
+> [[2026-1026-mail-tm-buzon-y-contrasena-nacen-al-abrir-el-sitio]] afirma, a partir de la home, que mail.tm "da al usuario **una dirección y una contraseña**" con "**no personal details required**", que el buzón "**is created automatically**" y que la credencial es "a **unique, automatically generated password**", y de ahí deduce que "**cualquiera puede tener un buzón sin escribir una sola letra**".
+> Este átomo presiona esa creencia en un punto: **la vía API no crea nada automáticamente**. El cliente **elige** la dirección y la contraseña y las envía en el `POST /accounts`; el proveedor no genera nada. Ambas no pueden ser la misma descripción de un mismo producto: o la autogeneración es una propiedad de la **interfaz web** y la API es un camino distinto con modelo de credencial propio, o la afirmación "the mailbox is created automatically" describe un efecto observado en la web que **no es el contrato del servicio**. Marcado para juicio humano, no auto-resuelto: la captura de la home **no** documenta la vía API, la de la API **no** describe la vía web, y **no se ha ejecutado ninguna alta real** contra mail.tm en ninguno de los dos caminos.
+
+## Nota de verificación
+El cuerpo `{"address":"user@domain.com","password":"secret"}`, su repetición en el `POST /token` y las tres URLs son **transcripción literal** de `sources/2026-10-26-mail-tm-api-docs.md`. El ejemplo de contraseña es un **placeholder de la documentación**, transcrito tal cual y sin ningún valor real detrás. La captura **no** publica: los esquemas de respuesta de `/accounts` y `/token` (qué campos devuelve el alta —si devuelve la credencial, un id o un token—), si la API acepta dominios externos al pool, ni si la dirección debe pertenecer al dominio publicado.

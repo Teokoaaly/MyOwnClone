@@ -1,0 +1,18 @@
+---
+id: 2026-1104-twilio-el-render-completo-restaurado-resuelve-la-friccion-del-11-03
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-twilio-sms-pricing.md]
+links: ["[[2026-1103-twilio-tercera-renderizacion-texto-plano-sin-algunas-secciones]]", "[[2026-1101-twilio-addons-de-features-y-descuentos-no-publicados]]", "[[2026-1104-backblaze-b2-render-completo-restaurado-resuelve-la-friccion-del-11-03]]"]
+---
+
+## Claim
+La captura del **2026-11-04** de Twilio vuelve a ser un **render completo** (285 líneas, `word_count: 2212`) y **restaura todos los bloques que la captura del 11-03 había perdido**: la fila del **Traffic Optimization Engine** (*"Starting at $300 /month"*) en la tabla de Features, la sección **"Committed-use discounts"** (*"Commit to annual message volumes and receive a discount beyond standard volume tiers. Contact our sales team to learn more."*), el FAQ *"What is the base cost to send and receive SMS in the US with Twilio?"* ($0.0083 por segmento de 160 caracteres), los **nombres de los miembros de los grupos A y B** de operadores (GoTextMe, Altice, TextNow, Dish Network, RINA, etc.), la frase *"Twilio helps by handling the carrier nuances in every country you send to"*, la frase introductoria de precios de números (*"Phone number charges are added to your message volume and carrier costs for your total price."*), los **enlaces de descarga de los CSV** (`SMSPricing.csv`, `NumbersPricing.csv`) y la cláusula final del descargo del recomendador con IA (*"Review our Privacy Notice for additional details on how we use data."*). En precios, en cambio, **no hay ninguna variación**: la captura del 11-04 es byte a byte idéntica a la del 11-01.
+
+## Why It Matters
+**Resuelve empíricamente** la fricción que dejó abierta la captura reducida del 11-03: la ausencia del Traffic Optimization Engine a $300/mes y de los descuentos de uso comprometido era un **artefacto del extractor**, no una retirada de la página. El add-on sigue vigente y queda re-verificado con dato fresco ([[2026-1101-twilio-addons-de-features-y-descuentos-no-publicados]]). El mecanismo es el mismo que se documentó en los otros proveedores capturados el 11-04: el render completo vuelve a los dos días y **la línea reaparece intacta, sin que ninguna cifra de precio se haya movido entre medias** — el mismo patrón de resolución de fricción que en [[2026-1104-backblaze-b2-render-completo-restaurado-resuelve-la-friccion-del-11-03]]. Con esto queda consolidada la regla operativa del vault para esta página: **una ausencia en una captura no es una retirada de precio; el punto donde hay que mirar es una captura completa, no la última disponible**.
+
+## [FRICTION]
+> [[2026-1103-twilio-tercera-renderizacion-texto-plano-sin-algunas-secciones]] (escrita el 2026-11-03) afirmaba que la variante en texto plano **no renderiza** el Traffic Optimization Engine ($300/mes), la sección Committed-use discounts, los nombres de los grupos A/B ni los enlaces CSV, y dejaba la hipótesis —"¿retirada de la oferta o fallo del extractor?"— abierta, sin auto-resolverla.
+> Esta captura del 11-04 **no contradice** al átomo viejo (el 11-03 efectivamente omitía esos bloques) sino que **resuelve su incertidumbre**: todos los bloques reaparecen sin cambios y el resto de la página es idéntico a la del 11-01. Ambas afirmaciones —"la captura del 11-03 estaba degradada" y "las ofertas y el add-on siguen vigentes"— no pueden ser simultáneamente ciertas solo si se supone que la omisión implicó una retirada; con esta captura esa suposición queda desmentida.
+> Marcado para juicio humano, no auto-resuelto: el átomo viejo conserva su texto original, que sigue describiendo correctamente lo que la captura del 11-03 renderizaba, y su `certainty: solid` no se modifica.

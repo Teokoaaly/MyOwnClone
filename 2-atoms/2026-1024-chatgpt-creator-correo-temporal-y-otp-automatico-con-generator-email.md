@@ -16,3 +16,37 @@ Y hay un detalle de diseño que conecta con el producto del vault: **el código 
 
 ## Nota de verificación
 El README **no publica ni el precio, ni la API, ni los términos, ni los límites** de `generator.email` —solo el enlace al sitio en la feature. El vault no puede cotizar el buzón temporal a partir de esta fuente.
+
+
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-emailondeck-temp-mail.md`. Este átomo describe la **pata de correo resuelta como función de biblioteca**: el bot genera el buzón él mismo vía `generator.email`, recoge el OTP solo, y el vault concluye que "en esta ruta no hay partida de correo que cotizar" y que "el coste marginal de un buzón es cero".
+
+EmailOnDeck documenta el **extremo contrario del mismo producto**: el mismo objeto técnico —una dirección desechable— servido por un proveedor que **no publica ninguna vía de consumo programable**. Su superficie es un formulario de dos pasos en el navegador ("Step 1", "Step 2", "Get Email"), y los cinco usos que declara son **QA testing de emails, free trials, perfiles de citas, compraventa de Bitcoin y trading en exchanges**; **no menciona ni una vez** el registro masivo, el mercado de cuentas, la automatización ni una API ([[2026-1026-emailondeck-casos-de-uso-de-consumo-y-no-de-registro-masivo]]).
+
+Eso obliga a precisar la afirmación del átomo en un punto que el vault necesita para el §7: **"coste marginal cero" y "no cotizable" no son lo mismo**. En la ruta del bot, el buzón no tiene precio **porque el bot lo genera**; en la ruta de EmailOnDeck, el buzón no tiene precio **porque el proveedor no lo publica y su automatización no está disponible** —y la automatización por API es justamente lo que un flujo de registro masivo necesita. La regla correcta para el vault es: **el correo desechable tiene tres regímenes distintos** —biblioteca (coste marginal cero, sin proveedor), proveedor **pagado y automatizable** (NotLetters: 0.05 ₽, web + API + IMAP), y proveedor **gratuito y manual** (EmailOnDeck: sin precio, sin API)— y solo el segundo es cotizable por unidad.
+
+La fricción que esto abre para el §7 es de **elegibilidad del insumo**: un correo gratuito que hay que usar a mano no puede servir de pata de correo a un pipeline automatizado, aunque su precio nominal sea cero. El vault no puede modelar el correo como "la partida más barata" sin distinguir antes **para qué uso** es gratis.
+
+
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-mail-tm-temp-mail.md`.
+
+Este átomo establece la **función de biblioteca** del correo: el bot genera el buzón con `generator.email` —"Auto Email Generation — Generates temporary emails via generator.email or custom domains"—, recoge el OTP por polling y **no hay partida de correo que cotizar**. Mail.tm es el **proveedor externo que hace lo mismo sin código**, y además lo publica: el alta es un efecto colateral de abrir la página —"gives you an email address and a password for it **the moment you open the site**", "**no personal details required**", "**The mailbox is created automatically**"— y la credencial es "a **unique, automatically generated password**" ([[2026-1026-mail-tm-buzon-y-contrasena-nacen-al-abrir-el-sitio]]).
+
+Consecuencia para el Editor: el átomo debe precisar su frase "el coste marginal de un buzón es cero". Con mail.tm, ese coste marginal cero **deja de ser una inferencia de diseño del bot y pasa a ser un hecho de mercado** —un proveedor lo ofrece gratis, con API y con documentación enlazada ([[2026-1026-mail-tm-alta-masiva-de-buzones-y-api-declaradas-en-la-home]]). Pero el coste no es cero en todas las dimensiones: mail.tm declara **40 MB de cuota por buzón** como única cifra de la página ([[2026-1026-mail-tm-unica-cifra-de-la-captura-40-mb-de-cuota]]) y **"kept forever" con "no limit" de unidades** ([[2026-1026-mail-tm-buzon-conservado-para-siempre-y-sin-limite-de-unidades]]), lo que convierte el buzón en **activo acumulativo** y no en consumible —la diferencia decisiva frente al modelo del bot, que retira y tira.
+
+
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-mailsac-test-email.md`. Este átomo documenta el flujo "OTP Verification — Automatic email OTP retrieval and validation" del bot de registro masivo, con el buzón generado vía `generator.email` y el código impreso en claro en la traza (`Validate OTP [483291] | 200`).
+
+MailS.ac aporta el **dato de higiene que el corpus no tenía**, enunciado por un proveedor del mismo sector: **el buzón desechable público no es privado**, y el propio proveedor lo dice y lo estructura en dos niveles. "Public and free: anyone can read an @mailsac.com inbox, so use made-up data. Private when it matters: the free plan includes one private address, and paid plans from $18 a month add custom test domains that only your team can read". Y en la misma línea, para el caso de agentes: "Use a private address or private custom domain for sensitive test emails" ([[2026-1026-mailsac-los-buzones-publicos-son-legibles-por-cualquiera]], [[2026-1026-mailsac-el-faq-declara-explicitamente-que-los-agentes-de-ia-pueden-usarlo]]).
+
+Esto **no corrige** este átomo, que sigue siendo una lectura fiel del README, pero **le añade una variable que el README no documenta**: si el buzón que el bot genera es del tipo público —anónimo y compartido—, el OTP que el bot teclea automáticamente estuvo, durante la ventana de espera, en una bandeja que **cualquiera podía leer**, y la validación automática lo convierte en un dato que además se imprime en el log. El vault no puede resolverlo porque el README **no publica el modelo de privacidad de `generator.email`**; lo que sí puede hacer es dejar la pregunta explícita y tratarla como riesgo asumido, no como flujo verificado.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-mail-tm-api-docs.md`.
+
+Este átomo documenta la **función de biblioteca** del correo en el bot: generación con `generator.email`, recogida del OTP por polling y **cero partida de correo que cotizar**. La API de mail.tm ofrece el mismo resultado como producto, y además publica **el mecanismo de espera como opción de contrato**: el paso 4 de `GET https://api.mail.tm/messages` admite "Fetch messages via the API **or listen in real-time with SSE**" ([[2026-1027-mail-tm-flujo-de-cuatro-peticiones-para-obtener-un-buzon]]).
+
+Consecuencia para el Editor: el **polling del OTP deja de ser una limitación del bot y pasa a ser una decisión de diseño del pipeline**. Con SSE, la espera del código de activación es un evento, no un temporizador, y eso elimina una latencia periódica por buzón —el modo de trabajo actual es "generar buzón, esperar, hacer polling" ([[2026-1024-chatgpt-creator-correo-temporal-y-otp-automatico-con-generator-email]]). La comparación de coste entre la función de biblioteca y el proveedor externo sigue sin resolverse por precio (mail.tm es gratis en dinero pero limitado a 8 QPS por IP, [[2026-1027-mail-tm-limite-de-8-qps-por-ip-address]]), pero **el modo de entrega del mensaje sí es ahora un parámetro de contrato del proveedor**, no un detalle de implementación.

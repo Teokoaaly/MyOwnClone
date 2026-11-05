@@ -2,7 +2,7 @@
 id: 2026-1023-hetzner-regiones-y-zonas-de-disponibilidad
 type: atom
 certainty: solid
-sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-10-23-evoxt-vms.md]
+sources: [sources/2026-10-22-hetzner-cloud.md, sources/2026-10-23-evoxt-vms.md, sources/2026-11-03-hetzner-cloud.md]
 links: ["[[2026-1023-hetzner-cpx02-1-vcpu-5-99-al-mes]]", "[[2026-1023-hetzner-trafico-20-tb-inclusivos-y-1-euro-por-tb-extra]]", "[[2026-1022-i18n-es-first-jurisdiccion-es]]"]
 ---
 
@@ -15,5 +15,11 @@ La zona no es un detalle técnico sino una decisión de coste y de cumplimiento:
 ## Nota de verificación
 La captura no publica precios de servidor por zona (la calculadora muestra el mismo precio base en las cinco), ni qué zona aplica un recargo de tráfico distinto. La lista de Availability Zones incluye HEL1 dos veces, tal como aparece transcrita en la página.
 
+## Nota de extensión 2026-11-03
+Fuente: `sources/2026-10-31-hetzner-cloud.md`, `sources/2026-11-02-hetzner-cloud.md`. La calculadora repite **exactamente la misma lista de cinco Availability Zone** —HEL1 (FIN), FSN1 (GER), NBG1 (GER), HEL1 (FIN), SIN (SG)— y el mismo texto de ubicaciones (parques propios en Falkenstein, Nuremberg y Helsinki; Hillsboro, Oregon y Ashburn, Virginia; Singapore desde 2024). **Ninguna zona nueva aparece** en el periodo 2026-10-22 → 2026-11-02, ni cambia el precio base por zona. La duplicación de HEL1 en la lista se mantiene tal cual, tal como aparece transcrita. La captura del 2026-11-01 no renderiza la calculadora, por lo que solo aporta el texto de ubicaciones, no la lista de zonas.
+
 ## [NOTA 2026-10-24 — Evoxt]
 Fuente: `sources/2026-10-23-evoxt-vms.md`. Contraste de dispersión geográfica: Evoxt declara **17 regiones** con un IX distinto en cada una (Los Angeles, Montreal, Nueva York, São Paulo, Londres, París, Ámsterdam, Fráncfort, Varsovia, Zúrich, Kuala Lumpur, Yakarta, Sídney, Hong Kong, Seúl, Osaka, Tokio) frente a las **5 zonas / 4 países** de Hetzner, y ofrece como argumento de privacidad **Zúrich** ("país políticamente neutral con leyes de privacidad fuertes"), que es el tipo de ubicación que este átomo concluye necesaria si el dato debe quedar en una jurisdicción defendible. El coste de esa dispersión no está publicado: la captura no indica qué regiones tienen capacidad ni si el precio varía por región (ver [[2026-1024-evoxt-17-regiones-con-peering-de-ix]]).
+
+## 2026-11-03 — re-verificación
+Fuente: `sources/2026-11-03-hetzner-cloud.md`. La calculadora de esta captura vuelve a listar **exactamente las mismas cinco Availability Zone** — HEL1 (FIN), FSN1 (GER), NBG1 (GER), HEL1 (FIN), SIN (SG) — con la **duplicación de HEL1 tal cual**, y el texto de ubicaciones se repite literal: disponibles en Alemania, Finlandia, Singapore y los USA, con parques propios en Falkenstein, Nuremberg y Helsinki, más Hillsboro (Oregon) y Ashburn (Virginia), y presencia en Asia con Singapore desde 2024. **Ninguna zona nueva** en el periodo 2026-10-22 → 2026-11-03, y el precio base por zona sigue siendo el mismo (€ 5.99/mes para la configuración por defecto). Ver [[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]].

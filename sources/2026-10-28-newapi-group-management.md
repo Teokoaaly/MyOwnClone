@@ -1,0 +1,44 @@
+---
+url: https://docs.newapi.pro/en/docs/guide/feature-guide/admin/group
+captured: 2026-10-28
+word_count: 209
+status: raw
+---
+
+[User Guide](https://docs.newapi.pro/en/docs) [Installation](https://docs.newapi.pro/en/docs/installation) [API Reference](https://docs.newapi.pro/en/docs/api) [AI Applications](https://docs.newapi.pro/en/docs/apps) [Skills](https://docs.newapi.pro/en/docs/skills) [Help & Support](https://docs.newapi.pro/en/docs/support) [Business Cooperation](https://docs.newapi.pro/en/docs/business)
+
+Admin Guide
+
+# Group Management
+
+Groups isolate channel access permissions and billing multipliers for different users
+
+Copy MarkdownOpen
+
+Groups isolate channel access permissions and billing multipliers for different users — users in different groups can only access channels assigned to their group. Log in with an admin account and find the "Groups" entry in System Settings or the admin panel.
+
+The group list shows all configured group names. Both users and tokens can be assigned to a specific group, and channels can be restricted to specific groups.
+
+## [How Groups Are Used](https://docs.newapi.pro/en/docs/guide/feature-guide/admin/group\#how-groups-are-used)
+
+- **User group**: Assign a group to a user when editing them in User Management
+- **Token group**: Specify the channel group a token uses when creating a token
+- **Channel group**: Enter the allowed group name(s) in the "Group" field when adding a channel
+
+When a token's group is set to `auto`, the system automatically selects an available group in priority order — useful for cross-group failover scenarios.
+
+How is this guide?
+
+GoodBad
+
+Last updated on 9/11/2026
+
+[Model Management\\
+\\
+Manage metadata and pricing for all platform models](https://docs.newapi.pro/en/docs/guide/feature-guide/admin/model) [System Settings\\
+\\
+Root-only global configuration center](https://docs.newapi.pro/en/docs/guide/feature-guide/admin/system-setting)
+
+### On this page
+
+[How Groups Are Used](https://docs.newapi.pro/en/docs/guide/feature-guide/admin/group#how-groups-are-used)

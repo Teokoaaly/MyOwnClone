@@ -1,0 +1,19 @@
+---
+id: 2026-1027-github-search-account-rotation-proxy-pool-ip-servicios
+type: atom
+certainty: solid
+sources: [sources/2026-10-27-github-search-account-rotation-proxy-pool.md]
+links: ["[[2026-1027-github-search-el-termino-creator-en-la-consulta-es-polisemico-y-no-significa-alta-de-cuentas]]", "[[2026-1027-github-search-account-rotation-proxy-pool-sin-truncamiento]]"]
+---
+
+## Claim
+
+Los últimos **4 repositorios** devueltos por `GET /search/repositories?q=account+rotation+proxy+pool` (items 10-13) son proveedores de servicios de proxy IP: `Workbuddy-codebuddy-openai-proxy` (0 stargazers, Go, MIT, topics: workbuddy, codebuddy, llm-proxy, reverse-proxy), `Jvault-Miniapp` (0 stargazers, Elixir, topics: elixir, erlang, miniapp, telegram), `Essential-tool-for-cross-border-people-iphtml-proxy-IP` (0 stargazers, language: null, topics: iphtml, proxy, socks5, https, country-city location selection, account farming, SEO ranking monitoring, e-commerce store operation, online data scraping) y `Affordable-and-Reliable-Overseas-Proxies-My-Experience-Using-IPHTML` (0 stargazers, language: null, topics: iphtml, proxy, socks5, HTTPS, country-city location selection, account farming, SEO monitoring, e-commerce). Ambos últimos (`Essential-tool-for-cross-border-people-iphtml-proxy-IP` y `Affordable-and-Reliable-Overseas-Proxies-My-Experience-Using-IPHTML`) **explicitmente documentan** en sus descripciones y topics soportar `country-city location selection`, `unlimited bandwidth`, `flexible IP rotation`, y están orientados a `account farming`, `SEO ranking monitoring` y `e-commerce store operation`. El repositorio `Jvault-Miniapp` es un "Elixir task runner for JVault Miner managing pool tapping, cycle claims, and proxy rotation" pero no especifica ubicación geográfica ni proveedor de IP. `Workbuddy-codebuddy-openai-proxy` es un gateway OpenAI-compatible con rotación de accounts pero sin enfoque geográfico de IP.
+
+## Why It Matters
+
+La presencia de dos repositorios que posicionan IPHTML como proveedor de proxies geolocalizados por país/ciudad con soporte para cases de uso de `account farming` y `SEO monitoring` indica que la consulta `account rotation proxy pool` también mapea a una **tercera categoría de mercado**: proveedores de IP residencial/datacenter para operaciones comerciales a escala. Para el vault, esto es relevante porque significa que cualquier modelo de amenaza o análisis de infraestructura que asocie exclusivamente este término con herramientas de desarrollo de LLM **omitirá el componente de mercado de proxies comerciales**. La proporción 4 de 13 (31%) de resultados orientados a servicios de proxy geolocalizados sugiere una presencia comercial notable en los resultados de búsqueda de GitHub, incluso para una consulta que parece técnica en naturaleza. Los desarrolladores que buscan "account rotation proxy pool" pueden encontrarse inadvertidamente con ofertas de servicios comerciales de proxy.
+
+## Nota de verificación
+
+Los campos `description`, `topics` y `language` de items 10-13 se leyeron directamente del JSON source. `Essential-tool-for-cross-border-people-iphtml-proxy-IP`: description contiene "country-city location selection", topics contain "iphtml", "proxy", "socks5", "https", "country-city location selection", "account farming", "SEO ranking monitoring", "e-commerce store operation", "online data scraping". `Affordable-and-Reliable-Overseas-Proxies-My-Experience-Using-IPHTML`: description contiene "country-city location selection", topics contain "iphtml", "proxy", "socks5", "HTTPS", "country-city location selection", "account farming", "SEO monitoring", "e-commerce". `Jvault-Miniapp`: description contains "proxy rotation", topics contain "elixir", "erlang", "miniapp", "telegram". `Workbuddy-codebuddy-openai-proxy`: description mentions "account pool rotation", topics contain "workbuddy", "codebuddy", "llm-proxy", "reverse-proxy".

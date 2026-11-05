@@ -1,0 +1,19 @@
+---
+id: 2026-1101-aiven-marketplaces-byoc-y-descuentos-por-compromiso-anual
+type: atom
+certainty: solid
+sources: [sources/2026-11-01-aiven-postgresql-pricing.md, sources/2026-11-03-aiven-pricing.md]
+links: ["[[2026-1031-aiven-postgresql-pricing]]", "[[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]", "[[2026-1031-hetzner-cloud]]"]
+---
+
+## Claim
+Aiven ofrece cuatro vías de compra: **marketplaces de nube** (AWS, Google Cloud, Microsoft Azure y Oracle — el gasto cuenta para los compromisos cloud existentes y va por la relación de facturación habitual), **compromiso anual y descuentos prepago** (solo para clientes elegibles, "committing to usage upfront typically unlocks better pricing than pay-as-you-go"), y **BYOC**, donde Aiven opera los servicios en la cuenta cloud del cliente: "You pay Aiven's service fee; your cloud provider bills you separately for the underlying infrastructure".
+
+## Why It Matters
+El detalle operativo importante para el vault es el BYOC: **es doble facturación**, no un descuento. Con un presupuesto duro de ≤ €4/mes ([[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]), BYOC no es una opción — es la suma de la tarifa de Aiven *más* la factura del proveedor cloud, con el agravante de que "makes total cost more sensitive to your cloud provider's pricing". La página presenta BYOC como camino a "lower TCO" para setups grandes, lo que es incompatible con la escala del vault. Los marketplaces y el compromiso anual son lo que sí reduce precio de lista para quien ya gasta con un hyperscaler — es decir, el descuento real está donde el vault no está.
+
+## 2026-11-03 — re-verificación
+La captura del 2026-11-03 confirma la lista de marketplaces (**AWS marketplace, Google marketplace, Microsoft marketplace, Oracle marketplace**) y matiza elencuadre de BYOC: aparece dos veces en la página, siempre bajo el epígrafe **"Bring Your Own Cloud (BYOC) available for larger setups"**, con el texto "Run Aiven services in your own cloud account to achieve lower TCO. Our self-service BYOC automation simplifies deployment. Contact us for more information." La mención a **"self-service BYOC automation"** es nueva respecto a la captura del 11-01: el despliegue de BYOC se presenta como automatizado y self-service, aunque **sigue siendo "available for larger setups"** y termina en "contact us" — es decir, la vía de TCO bajo sigue sin estar al alcance del vault. La página añade además que para **descuento anual o capacidad de plan más allá de los planes listados hay que contactar con Aiven**, lo que confirma que el descuento anual no es automático.
+
+## Actualización 2026-11-04
+Fuente: `sources/2026-11-04-aiven-pricing.md` (quinta captura, render completo). La FAQ "Does Aiven offer BYOC pricing, marketplace purchasing, annual commitments, or prepaid discounts?" **vuelve a renderizarse íntegra** con sus tres bloques —**Cloud marketplace** ("Purchase Aiven through AWS, Google Cloud, or Azure marketplaces. Spend counts toward your existing cloud commitments and goes through your current billing relationship — no separate procurement process"), **Annual commitments and prepaid discounts** ("Available for eligible customers. Committing to usage upfront typically unlocks better pricing than pay-as-you-go") y **BYOC** ("You pay Aiven's service fee; your cloud provider bills you separately for the underlying infrastructure… it makes total cost more sensitive to your cloud provider's pricing")—, más el cierre "For annual commitments, prepaid options, custom offers, or BYOC pricing, contact Aiven Sales". La doble facturación de BYOC queda por tanto **re-verificada en la quinta captura**. Detalle menor: la prosa de esta FAQ nombra **tres** marketplaces (AWS, Google Cloud, Azure) mientras la sección de logos muestra **cuatro** (añade Oracle) — ver [[2026-1104-aiven-el-marketplace-de-oracle-aparece-pero-la-faq-solo-nombra-tres]].

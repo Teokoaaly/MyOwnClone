@@ -14,3 +14,11 @@ Es el contrato operativo completo del canal SMS como paso de alta: saldo → com
 
 ## [NOTA 2026-10-24 — el flujo real de alta no pasa por teléfono]
 A partir de `sources/2026-10-24-chatgpt-creator-verssache.md`. Un bot público de registro masivo de cuentas de ChatGPT documenta el **flujo de alta real de la web de OpenAI en nueve pasos HTTP** —Homepage, Get CSRF, Signin, Authorize, Register, Send OTP, Validate OTP, Create Account, Callback— y **ninguno de ellos es un número de teléfono**: la verificación es por OTP de correo ([[2026-1024-chatgpt-creator-alta-por-correo-sin-telefono-en-el-flujo]]). Es decir, esta guía de cinco pasos describe **una ruta de verificación por teléfono**, no el flujo de alta que la web ejecuta. Conviven, pero no son lo mismo, y la fricción queda abierta en [[2026-1024-chatgpt-creator-alta-por-correo-sin-telefono-en-el-flujo]] para juicio humano.
+
+
+## Nota de extensión 2026-10-27
+A partir de `sources/2026-10-26-hero-sms-api-docs.md`.
+
+Este átomo documenta el **flujo de panel web de cinco pasos** para verificar ChatGPT en HeroSMS: registrarse, recargar saldo, elegir servicio y país, comprar número, recibir el código. La página de API publica la **versión programática** de ese flujo, con operaciones que corresponden una a una: `post/activations` (comprar), `get/activations` (seguir), `post/activations/{activationId}/finish` (confirmar), `get/activations/offers/{verificationType}` (consultar disponibilidad por tipo), `get/activations/stats` ([[2026-1027-hero-sms-trece-operaciones-de-activacion]]).
+
+Consecuencia para el Editor: el thread puede **dejar de tratar el flujo de cinco pasos como el único flujo de HeroSMS**. El flujo de panel es **humano y de un solo sentido**; el de API es **programático, con vuelta atrás**: `post/activations/{activationId}/replace` (sustituir el número), `post/activations/{activationId}/reactivate` (reactivarlo), `post/activations/{activationId}/prolong` (prolongarlo, con sus `options` y su `history`) y `delete/activations/{activationId}`. Es decir, **la API publica las operaciones de gestión de incidencias que el panel no expone**, y eso convierte el coste del número en un **precio con estructura de duración** y no en un precio unitario opaco ([[2026-1023-hero-sms-modelo-pay-per-use-y-tabla-real-vs-virtual]]).

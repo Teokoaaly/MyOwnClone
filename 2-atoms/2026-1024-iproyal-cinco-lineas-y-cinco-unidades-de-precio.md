@@ -15,3 +15,11 @@ La quinta unidad es la más importante: el Web Unblocker se factura **por 1000 s
 
 ## Nota de verificación
 Precios y cifras transcritos literalmente de las cinco tarjetas de `iproyal.com/pricing/`. La captura **no** publica: duración o ancho de banda incluidos en un "proxy" de ISP o datacenter, qué cubre exactamente el mes de $117 en móvil, ni el tipo de cambio, IVA o comisiones por método de pago. La captura es un **render plano**: el orden literal del texto intercala el precio, la cifra de escala y el nombre del producto en una secuencia que se repite cinco veces, de modo que la correspondencia precio↔producto está confirmada por esa repetición y no por una tabla.
+
+
+## Nota de extensión 2026-10-27
+Decodo publica en su home un tablero de **ocho líneas con cinco unidades de precio** —Web Data API **$0.15/1K**, Video Downloader **$0.08/GB**, Residential **$2/GB**, ISP **$0.27/IP**, Mobile **$2.25/GB**, Datacenter **$0.02/IP**, Site Unblocker **$0.95/1K req** y High-Speed **"Price on request"**—, más **tres herramientas gratuitas** (Chrome Proxy Extension, Firefox Add-on, Proxy Checker). Es el **segundo tablero del corpus con unidades mezcladas**, y el que más unidades añade por línea.
+
+Tres datos que este átomo deja ahora disponibles para la tabla de coste por insumo, y que **no aparecen en ningún otro proveedor medido**: **datacenter a $0,02/IP** (×25 más barato que el $1,39/IP de IPRoyal), **ISP a $0,27/IP** (×6,7 más barato que el $1,80/IP de IPRoyal) y **móvil a $2,25/GB** (la primera vez que el móvil de un proveedor se cotiza **en la misma unidad que el residencial**, lo que hace comparables las dos líneas internas de Decodo; en IPRoyal el móvil era $/mes fijo, [[2026-1024-iproyal-movil-117-al-mes-y-45m-de-ips]]).
+
+Y un patrón que el tablero hace explícito: **la línea de empresa vuelve a quedar fuera del catálogo**. "High-Speed Proxies — Price on request" es la segunda partida no cotizable de Decodo, después del Enterprise de la API — el mismo hueco que este átomo ya detectara en Proton ([[2026-1024-proton-ofrece-vpn-para-empresas-sin-precio-publicado]]). Ver [[2026-1027-decodo-tablero-de-precios-de-la-home-con-ocho-lineas-y-cinco-unidades]].

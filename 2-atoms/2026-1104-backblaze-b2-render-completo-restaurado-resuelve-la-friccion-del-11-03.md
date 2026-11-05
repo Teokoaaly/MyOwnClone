@@ -1,0 +1,16 @@
+---
+id: 2026-1104-backblaze-b2-render-completo-restaurado-resuelve-la-friccion-del-11-03
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-backblaze-b2-storage-pricing.md]
+links: ["[[2026-1103-captura-reducida-omite-detalle-ya-documentado]]", "[[2026-1102-backblaze-b2-precio-6-95-por-tb-al-mes]]", "[[2026-1102-backblaze-b2-egreso-gratis-ilimitado-via-cdn-y-partners]]", "[[2026-1103-backblaze-b2-precios-estables-en-cuatro-capturas-consecutivas]]"]
+---
+
+## Claim
+La quinta captura de `backblaze.com/cloud-storage/pricing` (**2026-11-04, 1.228 palabras**) es un **renderizado completo**, y restaura los cuatro bloques que la captura reducida del 2026-11-03 (520 palabras) había perdido: la línea "**First 10GB storage is always free**", la viñeta "Egress above 3x monthly average storage is also free through many CDN and compute partners; otherwise, overage is billed at $0.01 per GB", el formulario de contacto de ventas con sus tramos de necesidad de almacenamiento y el pie de página con enlaces. El contenido sustantivo de la captura del 11-04 es **idéntico al de la del 11-02** (1.227 palabras): el diff entre ambas solo arroja una línea de enlace escapado en el formulario y la ausencia de salto de línea final.
+
+## Why It Matters
+Esta captura **cierra empíricamente** la pregunta que [[2026-1103-captura-reducida-omite-detalle-ya-documentado]] dejó abierta ("hace falta una quinta captura o la página en vivo para cerrarlo"). La hipótesis de que la omisión del 11-03 fue un artefacto del extractor queda **confirmada por el material**: las mismas secciones reaparecen intactas dos días después, con ninguna cifra de precio alterada entre medias (ver [[2026-1103-backblaze-b2-precios-estables-en-cuatro-capturas-consecutivas]]). La regla operativa del vault queda, por tanto, en dos partes: (a) una línea ausente en una captura no está desmentida, y (b) cuando la captura siguiente la restaura, la línea queda **re-verificada** y la fricción se cierra. En la práctica esto rehabilita sin reservas dos afirmaciones que el 11-03 había dejado marcadas como "no re-verificadas": los **primeros 10 GB siempre gratis** ([[2026-1102-backblaze-b2-precio-6-95-por-tb-al-mes]]) y la **exención de egreso por partners** ([[2026-1102-backblaze-b2-egreso-gratis-ilimitado-via-cdn-y-partners]]).
+
+## [FRICTION]
+> [[2026-1103-captura-reducida-omite-detalle-ya-documentado]] (escrita el 2026-11-03, `certainty: tentative`) afirmaba que la captura del 11-03 omitía la línea "First 10GB storage is always free", la viñeta de egreso por partners y el formulario de ventas, y lo dejaba como fricción abierta con dos hipótesis no resueltas: retirada de la oferta o fallo del extractor. Esta captura del 11-04 **no contradice** al átomo viejo (el 11-03 efectivamente omitía esas líneas) sino que **resuelve su incertidumbre**: las tres reaparecen sin cambios y el resto de la página es idéntico a la del 11-02. Ambas afirmaciones —"la captura del 11-03 estaba degradada" y "las ofertas siguen vigentes"— no pueden ser simultáneamente ciertas solo si se supone que la omisión implicó una retirada; con esta captura esa suposición queda desmentida. Marcado para juicio humano, no auto-resuelto: el átomo viejo conserva su `tentative` porque su texto original sigue describiendo correctamente lo que la captura del 11-03 renderizaba.

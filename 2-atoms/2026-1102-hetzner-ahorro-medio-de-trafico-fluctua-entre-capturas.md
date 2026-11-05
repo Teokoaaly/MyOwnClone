@@ -1,0 +1,24 @@
+---
+id: 2026-1102-hetzner-ahorro-medio-de-trafico-fluctua-entre-capturas
+type: atom
+certainty: solid
+sources: [sources/2026-10-31-hetzner-cloud.md, sources/2026-11-02-hetzner-cloud.md, sources/2026-11-03-hetzner-cloud.md]
+links: ["[[2026-1023-hetzner-comparativa-trafico-20tb-contra-hyperscalers]]", "[[2026-1023-hetzner-trafico-20-tb-inclusivos-y-1-euro-por-tb-extra]]", "[[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]"]
+---
+
+## Claim
+El comparador de tráfico de la página de Hetzner Cloud cambia de cifras entre capturas del mismo mes. Con la perilla en **20 TB**, la captura del **2026-10-31** da **AWS € 1,571.91/mo**, **Azure € 1,296.59/mo**, **Google € 1,336.39/mo**, **Hetzner € 0,00/mo** y un "Average traffic cost savings with Hetzner" de **€ -5,168.16/mes**; la captura del **2026-11-02** muestra **las mismas tres cifras de hyperscaler** pero un ahorro medio de **€ -4,434.41/mes**. La captura del 2026-10-22 mostraba un tercer conjunto (AWS € 1,560.41, Azure € 1,287.11, Google € 1,326.61, ahorro € -4,785.64). Es decir, **la cifra de "ahorro medio" se mueve entre capturas sin que cambien los operandos que se muestran a la derecha**.
+
+## Why It Matters
+El egreso es la partida que decide si la infraestructura del vault se sostiene en un VPS propio o se infla al pasar a hiperescala: 20 TB inclusivos valen **€ 0,00** en Hetzner ([[2026-1023-hetzner-trafico-20-tb-inclusivos-y-1-euro-por-tb-extra]]), lo que hace irrelevante una discrepancia de ~€700/mes en la propaganda del ahorrado. Lo relevante es **metodológico**: si la cifra de ahorro del proveedor no se deriva de los números que la propia tabla muestra, entonces el argumento de marketing no puede usarse como dato duro en el thread `escala-de-hosting-barato-y-el-limite-de-4-euros`, y cualquier comparación de egreso entre proveedores debe apoyarse solo en las cifras de proveedor (AWS/Azure/Google a ~€1.300–1.570/mes frente a €0,00 en Hetzner), nunca en la media derivada. Para el objetivo de ≤ €4/mes ([[2026-1023-hetzner-presupuesto-4-euros-no-alcanza]]) la conclusión no cambia: el cero de Hetzner en egreso es el dato firme, y el ahorro medio es una claim de proveedor que se demuestra inconsistente.
+
+## [FRICTION]
+> [[2026-1023-hetzner-comparativa-trafico-20tb-contra-hyperscalers]] afirma que con la perilla en 20 TB la página da AWS € 1.560,41/mo, Azure € 1.287,11/mo, Google € 1.326,61/mo y un ahorro medio de € -4.785,64/mes, y que "el ahorro medio no se deriva de las tres cifras mostradas".
+> Este átomo presiona esa creencia porque esas cifras **cambian** en capturas posteriores (2026-10-31 y 2026-11-02) sin que el proveedor anuncie nada: las tres cifras de hyperscaler suben (AWS +€11,50, Azure +€9,48, Google +€9,78 respecto al 10-22) y el ahorro medio pasa de € -4.785,64 a € -5.168,16 y luego a € -4.434,41 **con los operandos de la tabla idénticos**.
+> Ambas no pueden ser completamente correctas en su lectura completa: o la tabla es un render dinámico que recalcula cifras y la del 2026-10-22 estaba desactualizada, o el 10-22 no era el mismo estado del widget. Marcado para juicio humano, no auto-resuelto.
+
+## Nota de verificación
+La captura del 2026-11-01 no contiene ni las cifras del comparador ni los valores de la calculadora de coste (la sección aparece vacía), por lo que no se puede fechar el momento del cambio. La atribución de las cifras a `sparecores.com` sigue siendo la que declara la propia página.
+
+## 2026-11-03 — re-verificación
+Fuente: `sources/2026-11-03-hetzner-cloud.md`. La captura del **2026-11-03** aporta un **cuarto juego de cifras** del comparador, con la perilla en 20 TB: **AWS € 1.560,28/mo**, **Azure € 1.287,00/mo**, **Google € 1.326,50/mo**, **Hetzner € 0,00/mo** y un "Average traffic cost savings with Hetzner" de **€ -5.378,26/mes** — el valor más alto de los cuatro registrados. Lo decisivo: **las tres cifras de hyperscaler también se han movido** respecto al 10-31 y al 11-02 (que compartían AWS € 1.571,91, Azure € 1.296,59 y Google € 1.336,39): AWS baja € 11,63, Azure € 9,59 y Google € 9,89, casi de vuelta a los valores del 10-22 (€ 1.560,41 / € 1.287,11 / € 1.326,61). Es decir, **por primera vez los operandos y la media se mueven juntos en la misma dirección**, lo que refina el átomo anterior: no solo cambia el "ahorro medio" con operandos fijos, sino que **el conjunto completo de la tabla es un render dinámico** que recalcula cifras de proveedor externo (sparecores.com) en cada visita. La conclusión operativa no cambia: el único dato duro sigue siendo el **€ 0,00/mo de Hetzner a 20 TB**; la media de ahorro sigue sin ser derivable de los operandos que la propia tabla muestra y no debe usarse como dato duro. Ver [[2026-1103-hetzner-cinco-capturas-estabilidad-catalogo-vs-widgets-dinamicos]] y [[2026-1023-hetzner-comparativa-trafico-20tb-contra-hyperscalers]].

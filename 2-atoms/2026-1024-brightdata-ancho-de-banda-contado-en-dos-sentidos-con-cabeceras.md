@@ -15,3 +15,7 @@ La segunda precisión útil es la del trial: el tráfico de prueba **se ve en el
 
 ## Nota de verificación
 Texto transcrito literalmente. La captura **no** publica: si el cómputo de cabeceras es exacto o una estimación, ni si hay exenciones (por ejemplo, tráfico de conexión o TLS).
+
+
+## Nota de extensión 2026-10-26
+La documentación de billing del 2026-10-25 ofrece por primera vez una **cifra de tráfico gratuito**, que es la que faltaba para poder medir el tamaño real de una respuesta antes de comprar compromiso: el **Browser API consume 5 créditos por MB**, y la cuota completa de 5.000 créditos equivale a **1.000 MB, "nearly 1 GB"** de tráfico mensual gratis ([[2026-1026-brightdata-un-credito-por-request-y-cinco-por-mb-en-browser-api]]). Eso **cuantifica por fin el "traffic used during your trial will be listed on your dashboard but will not be counted towards your bill"** que este átomo registraba: el free tier es un medidor de volumen con 1 GB de precisíon mensual. La conclusión del átomo —que las cabeceras HTTP se facturan como tráfico y que por tanto el $/GB se aplica a un volumen inflado respecto del payload— **sigue sin confirmarse ni desmentirse**: la captura de billing **no** publica el desglose de componentes del ancho de banda, solo el MB total. Se le añade un dato nuevo de orden práctico: con **5 créditos por MB**, el Browser API es **5 veces más caro por megabyte** que la petición simple del pool, de modo que medir en navegador cloud es la forma más cara de gastar la cuota.

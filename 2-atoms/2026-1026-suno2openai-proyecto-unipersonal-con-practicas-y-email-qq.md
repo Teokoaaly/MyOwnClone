@@ -1,0 +1,20 @@
+---
+id: 2026-1026-suno2openai-proyecto-unipersonal-con-practicas-y-email-qq
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-suno2openai.md]
+links: ["[[2026-1023-midjourney-proxy-popularidad-y-actividad-del-repo]]", "[[2026-1023-new-api-escala-adopcion-y-traduccion]]"]
+---
+
+## Claim
+El README termina con dos secciones que delatan la naturaleza del proyecto. *"Effect Display"* es una sola imagen. *"Internship Opportunities"* ofrece **acoger a un estudiante de tercer año con experiencia en análisis de datos y desarrollo front-end/back-end para una práctica**, con contacto por correo de QQ (dirección omitida: `[REDACTED]`) —el mismo correo que aparece en *Future Plans* como canal de sugerencias. Y el cierre pide explícitamente **"do not hesitate to star it ⭐"** como forma de apoyo. No hay sección de soporte, ni SLA, ni changelog, ni hoja de ruta con fechas, ni organization en la cabecera: es **un proyecto personal de un desarrollador individual**, con un único punto de contacto.
+
+## Why It Matters
+El vault ya tiene la escala de contraste: `new-api` declara **50,5k stars, 6.608 commits, 7 idiomas de consola, partners como Cherry Studio, Alibaba Cloud e IO.NET, y una actividad de varios commits al día** ([[2026-1023-new-api-escala-adopcion-y-traduccion]]); `midjourney-proxy` tenía 5,4k stars con **código congelado desde junio de 2024** ([[2026-1023-midjourney-proxy-popularidad-y-actividad-del-repo]]). Este repo ocupa un punto intermedio que el vault no tenía catalogado: **275 estrellas, 49 forks, 464 commits, último cambio el 19 de enero de 2025, ninguna release publicada, y una persona que ofrece prácticas y pide estrellas**.
+La lectura operativa es de **riesgo de abandono**, y el README aporta un dato nuevo que la hace más concreta: la de **rotación de cookies por endpoint** implica que el operador depende de que **el autor siga esa línea y actualice la imagen `latest`**. Sin tags, sin releases y sin changelog, **"latest" no es una versión, es una apuesta**: el vault ya tiene medido ese patrón en `new-api` con el aviso de que `latest` cambia y hay que fijar versión desde Releases ([[2026-1023-new-api-escala-adopcion-y-traduccion]]) —aquí **no hay Releases de las que fijar**, y esa es una degradación concreta de la misma advertencia.
+Y hay un dato colateral que importa para el análisis de la categoría: **el proyecto es chino y el canal de soporte es un QQ-mail**, no un proceso de issues publicado. El vault no puede afirmar si hay o no issue tracker activo; lo que sí es verificable es que **el README publica un canal de contacto personal, no un proceso**.
+
+## [FRICTION]
+> [[2026-1023-new-api-escala-adopcion-y-traduccion]] (escrita el 2026-10-22) establece la regla operativa de que **"la popularidad sí se ha convertido en mantenimiento"** en un gateway, y por tanto "no se hereda un proyecto abandonado sino uno que cambia rápido", con el matiz de que ese "cambia rápido" obliga a **fijar versión desde Releases y hacer backup antes de actualizar**.
+> Este átomo presiona esa regla desde el lado opuesto del rango: **275 estrellas no son 50,5k**, y aquí la licencia MIT no viene con ninguna estructura de mantenimiento —ni releases, ni tags publicados, ni changelog, ni socios comerciales, ni personal declarado más allá de una oferta de prácticas—. La consecuencia aritmética es que **el riesgo no es "cambia rápido y rompe" sino "no cambia y envejece"**, el mismo riesgo que el vault ya pesó en `midjourney-proxy` (código congelado desde junio de 2024), aunque aquí el último commit sea de enero de 2025 y la imagen `latest` exista en Docker Hub.
+> Ambas no pueden ser la misma regla de distribución del riesgo: o "estrellas implican mantenimiento" y 275 estrellas son poco mantenimiento, o la regla necesita una variable intermedia (organización, releases, socios comerciales, SLA) que el README no publica. Marcado para juicio humano, no auto-resuelto: **el vault no ha ejecutado la imagen, no ha verificado el estado real del repo en GitHub más allá de la captura, y no ha observado si el autor mantiene el proyecto fuera de GitHub**.

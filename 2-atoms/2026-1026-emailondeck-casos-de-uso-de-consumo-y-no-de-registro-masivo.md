@@ -1,0 +1,28 @@
+---
+id: 2026-1026-emailondeck-casos-de-uso-de-consumo-y-no-de-registro-masivo
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-emailondeck-temp-mail.md]
+links: ["[[2026-1024-notletters-correo-masivo-para-registros-y-lolzteam]]", "[[2026-1024-chatgpt-creator-alta-por-correo-sin-telefono-en-el-flujo]]", "[[2026-1024-chatgpt-creator-correo-temporal-y-otp-automatico-con-generator-email]]"]
+---
+
+## Claim
+La home de `emailondeck.com` declara **cinco** usos concretos del correo temporal y **ninguno** es el registro masivo: "Use them when you **buy or sell Bitcoins or trade cryptocurrency**, at exchanges, or locally"; "They can be used for **QA testing of emails**, **free trials** and even for **dating profiles and accounts**". El encuadre del servicio es de **privacidad personal**, no de producción de identidades: la razón declarada es "avoid SPAM, protect your online privacy, and stop you from having to give away your personal email address to every company and person on the internet".
+
+## Why It Matters
+Contrasta de forma directa con el otro proveedor de correo del corpus: NotLetters vende explícitamente "multiple mailboxes for **site registrations**" y lleva en su banner "**Great for Lolzteam Market**" ([[2026-1024-notletters-correo-masivo-para-registros-y-lolzteam]]). EmailOnDeck, con 11 años de operación y 215 millones de correos declarados, **no menciona ni una vez** el registro masivo, el mercado de cuentas, la automatización ni la API. Los dos proveedores sirven **el mismo producto técnico** —una dirección desechable— y lo venden a **dos mercados distintos**: el de la identidad desechable Anonymous-by-the-bulk y el del consumidor que no quiere dar su correo a un formulario.
+Para el producto del vault esto es un dato de segmentación, y va en la dirección contraria de la que el thread ha explorado: el bot de registro de cuentas de ChatGPT genera buzones temporales **para automatizar altas**, con polling de OTP y subida por unidad ([[2026-1024-chatgpt-creator-correo-temporal-y-otp-automatico-con-generator-email]]), y su flujo de alta se hace **sin teléfono** ([[2026-1024-chatgpt-creator-alta-por-correo-sin-telefono-en-el-flujo]]). Es decir, el mercado de "registro masivo" ya tiene su propio tipo de proveedor de correo —uno barato, orientdo a altas, con API e IMAP— y **EmailOnDeck no es una alternativa a él**: no se puede automatizar. Lo que sí ofrece es el modelo de **adopción de consumo** del mismo producto: un flujo de dos pasos, gratis, sin cuenta.
+
+## [FRICTION]
+> [[2026-1024-notletters-correo-masivo-para-registros-y-lolzteam]] concluye que NotLetters es "la **pierna del correo** de esa misma cadena [registro masivo → reventa de cuentas]" y que su valor para el vault es ser la versión **comercializada de la pata de correo** del farm privado, externalizable si el coste en casa resultara mayor.
+> Este átomo presiona ese alcance: el correo desechable **no es un insumo único**. El corpus tiene ahora dos proveedores del mismo producto técnico con **modelos de negocio opuestos** —uno dirigido al alta automatizada y revendido en markets de cuentas, otro dirigido al usuario final sin API, sin automatización y sin precio—. Si el vault trata "el correo" como una sola partida de coste de la cadena de altas, está tratando solo la mitad del mercado; si trata "el correo de registro" como una categoría única, tiene que decidir si el proveedor que **no** sirve al registro masivo (por no automatizar) cuenta o no como proveedor de esa partida. Marcado para juicio humano, no auto-resuelto: la captura no publica condiciones de uso que permitan saber si el uso automatizado está permitido o prohibido.
+
+Nota de verificación: los cinco usos y el encuadre de privacidad están transcritos literalmente del cuerpo de la home; la ausencia de mención a registro masivo, mercado de cuentas, API o automatización está comprobada sobre el texto completo de la captura.
+
+
+## Nota de extensión 2026-10-26
+A partir de `sources/2026-10-25-mail-tm-temp-mail.md`.
+
+Este átomo establece que EmailOnDeck **no menciona ni una vez** el registro masivo, el mercado de cuentas, la automatización ni una API, y que sus cinco usos declarados son de consumo (QA testing de emails, free trials, perfiles de citas, cripto). Mail.tm presenta **el otro extremo del mismo sector desde la propia home**: el bloque "Flexible" declara, para los "power users", "**API access** and a **quick way to register disposable mailboxes in bulk**", y enuncia como casos de uso "**running multiple accounts in online games, social networks** and elsewhere" —más "works for signing up on any website or service" y "Receive messages and **account activation codes**" ([[2026-1026-mail-tm-alta-masiva-de-buzones-y-api-declaradas-en-la-home]], [[2026-1026-mail-tm-correo-temporal-como-canal-de-codigos-de-activacion]]).
+
+Consecuencia para el Editor: el corpus ya tiene **tres proveedores que sí declaran el registro masivo** (NotLetters con su banner "Great for Lolzteam Market", mail.tm con API y alta masiva, el bot con su generador propio) y **uno que no** (EmailOnDeck). La segmentación que este átomo documenta —consumo frente a alta— **es real, pero es una segmentación de los proveedores, no del producto técnico**: los dos extremos se sirven por el mismo tipo de objeto. Y el dato nuevo que hay que sumar es que mail.tm **declara el caso de uso "account activation codes"**, que es exactamente la partida que el vault necesita y que el bot resuelve por polling de OTP. El límite metodológico sigue igual: **no se ha abierto `docs.mail.tm/`**, de modo que la existencia y el alcance de la API son un **claim de home**.

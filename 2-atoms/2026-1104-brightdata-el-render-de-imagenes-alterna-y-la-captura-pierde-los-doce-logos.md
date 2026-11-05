@@ -1,0 +1,22 @@
+---
+id: 2026-1104-brightdata-el-render-de-imagenes-alterna-y-la-captura-pierde-los-doce-logos
+type: atom
+certainty: solid
+sources: [sources/2026-11-04-brightdata-pricing.md]
+links: ["[[2026-1102-brightdata-doce-logos-de-clientes-enterprise-tras-los-50000]]", "[[2026-1104-brightdata-cuarta-captura-del-slug-identica-byte-a-byte-a-la-del-11-01]]", "[[2026-1102-brightdata-siete-testimonios-con-video-repetidos-tres-veces]]"]
+---
+
+## Claim
+El 2026-11-04 la captura de `brightdata.com/pricing` **vuelve al render con SVG inline vacío**, idéntico al del 2026-11-01, y **pierde los doce logotipos de cliente nombrados** que sí había resuelto la captura del 2026-11-02: los trece huecos de logo son de nuevo `data:image/svg+xml` sin contenido (`viewBox='0 0 190 30'`, `'0 0 143 28'`, … `'0 0 98 40'`), sin nombre de marca y sin URL de origen. La captura del 11-04 **tampoco** trae las tres imágenes del widget de accesibilidad `cdn.userway.org` que sí aparecían al principio de la del 11-02. En la serie de cuatro capturas del slug la resolución de imágenes alterna: 10-31 texto plano sin imágenes (343 palabras), 11-01 SVG vacío, 11-02 URLs reales de `media.brightdata.com`, 11-04 SVG vacío otra vez.
+
+## Why It Matters
+Corrige la lectura que el vault tenía hasta ahora de la serie. El átomo de los doce logos ([[2026-1102-brightdata-doce-logos-de-clientes-enterprise-tras-los-50000]]) trataba la degradación del 11-01 como una anomalía de un día, y su nota de verificación ya advertía que "dos capturas consecutivas de la misma URL, un día de diferencia, difieren en el número de hechos extraíbles". Con la captura del 11-04 la picture es más dura: **el render degradado es el estado mayoritario (2 de 3 renders con cuerpo), no la excepción**. Y como el 11-04 es byte a byte igual al 11-01 ([[2026-1104-brightdata-cuarta-captura-del-slug-identica-byte-a-byte-a-la-del-11-01]]), el ciclo no es "el 11-02 fue un día raro": es que la captura alterna entre dos serializaciones del mismo HTML.
+La consecuencia operativa es la misma que el átomo viejo ya señalaba pero ahora con más peso: **la lista de doce marcas solo es recuperable desde una de cada tres capturas**, así que cualquier pipeline que pretenda auditar la escala de clientes de Bright Data tiene que **reintentar la captura** y deduplicar por URL de logo, no asumir que la última captura sirve. Y la parte textual —los 21 enlaces a YouTube, los nombres de los siete testimonios y los ocho enlaces "See Pricing"— es invariante en todas las capturas: la inestabilidad afecta **solo a la capa de imágenes**, nunca al texto, lo que confirma que el problema es del serializador de imágenes, no de la página.
+
+## [FRICTION]
+> [[2026-1102-brightdata-doce-logos-de-clientes-enterprise-tras-los-50000]] (escrita el 2026-11-02) presenta la pérdida de los nombres de cliente en la captura del 11-01 como una degradación puntual, y su nota de verificación la describe como "una captura de la misma URL, un día de diferencia".
+> Esta nota presiona esa lectura porque la captura del 2026-11-04 **reproduce exactamente ese mismo render degradado**, con el mismo conjunto de trece `viewBox` y los mismos 55 SVG inline. Ambas no pueden ser completamente correctas: o el 11-01 fue un fallo aislado de esa noche, o el serializador alterna de forma estable entre dos salidas — y en ese segundo caso, que es el que sostiene esta nota, la afirmación de que "la lista de doce marcas solo es recuperable desde la captura del 11-02" sigue siendo cierta pero **debe leerse como una limitación permanente del pipeline de captura**, no como un accidente corregido. Marcado para juicio humano, no auto-resuelto.
+> Nota: [[2026-1102-brightdata-siete-testimonios-con-video-repetidos-tres-veces]] queda fuera de la contradicción: los siete testimonios con sus 21 vídeos se reproducen idénticos en las cuatro capturas.
+
+## Nota de verificación
+Verificado por `diff` del multiconjunto de `viewBox` entre 11-01 y 11-04 (idéntico) y por recuento de `data:image/svg+xml`: 55 en 11-01, 55 en 11-04, 0 en 11-02 (que sí tiene 55 referencias a `media.brightdata.com`). Recuento de `youtube.com/embed/`: 21 en las cuatro capturas, con los mismos 7 identificadores únicos (`j0BYFsK3k54`, `Qki-yHyCYt4`, `xUhRwFPIphI`, `fT0ndFBQ-Vs`, `6Lo0w1hxAso`, `vcfDCWutHyo`, `EcBiLXl57N0`), cada uno tres veces. La captura **no** publica: los nombres de las marcas, su URL de origen, ni qué producto consume cada cliente.

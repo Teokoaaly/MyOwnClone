@@ -1,0 +1,21 @@
+---
+id: 2026-1026-rebrowser-el-fix-solo-no-basta-y-hacen-falta-canvas-y-webgl
+type: atom
+certainty: solid
+sources: [sources/2026-10-25-rebrowser-patches.md]
+links: ["[[2026-1024-chatgpt-creator-tls-fingerprinting-con-perfiles-chrome-aleatorios]]", "[[2026-1026-brightdata-browser-api-navegadores-remotos-para-automatizar]]", "[[2026-1024-dataimpulse-sesiones-rotating-y-sticky]]"]
+---
+
+## Claim
+El README tiene una sección titulada **"The fix doesn't help, I'm still getting blocked 🤯"** y su primera frase es una corrección frontal a la promesa del propio proyecto: **"It's important to know that this fix alone won't make your browser bulletproof and undetectable."** Enumera lo que falta: **proxies, proper user-agent and fingerprints (canvas, WebGL)**, "and more". Y añade el principio de criterio: **"the less you manipulate browser internals via JS injections, the better"**, porque existen formas de detectar que objetos internos como `console` y `navigator` han sido afectados por objetos `Proxy` o por `Object.defineProperty` — *"It's tricky, but it's always a cat-and-mouse game"*. El cierre es una invitación comercial: si todo lo demás falla, usar las **soluciones en la nube de Rebrowser**.
+
+## Why It Matters
+Es la declaración más honesta del sector que el vault tiene, y corrige de paso la lectura que el propio README fuerza en la primera página. La elusión **no se resuelve con un parche**: se resuelve con un **conjunto** —red ([[2026-1024-dataimpulse-sesiones-rotating-y-sticky]]), user-agent, huella de canvas y WebGL, y comportamiento— **más** el parche de protocolo. Cada elemento de esa lista es una partida del modelo de coste del thread, y **canvas y WebGL son precisamente el tipo de partida que el vault declaró ausente**: el bot en Go declara "TLS fingerprinting con perfiles Chrome aleatorizados" y el átomo concluía que **"el fingerprint no está en ningún catálogo"** ([[2026-1024-chatgpt-creator-tls-fingerprinting-con-perfiles-chrome-aleatorios]]).
+
+El principio de criterio es lo mástransferible de la fuente: **inyectar JavaScript para disimular el navegador es en sí mismo un vector de detección**. Es la explicación técnica de por qué el sector ha ido del *plugin de inyección* —`puppeteer-extra-plugin-stealth`, "where it all started" según los propios agradecimientos de rebrowser— al *parche del código fuente*. La ruta de maduración del sector es: primero inyectar, luego parcheear, porque **la inyección deja huella en los objetos que toca**.
+
+Y el dato de negocio que cierra el átomo: la sección que admite que el fix no basta **termina en una oferta de pago**. Es el patrón open-core del sector en su forma más limpia —núcleo en GitHub, valor en la nube— y conecta con el.browser API como producto de catálogo ([[2026-1026-brightdata-browser-api-navegadores-remotos-para-automatizar]]).
+
+## [FRICTION]
+> [[2026-1024-chatgpt-creator-tls-fingerprinting-con-perfiles-chrome-aleatorios]] afirma que **"la capa dominante de un flujo de alta no es una compra, es una construcción"**, y que en consecuencia "el fingerprint no está en ningún catálogo" y no se resuelve con un presupuesto de ≤ €4/mes.
+> Este átomo presiona esa afirmación en el punto del **inventario de partidas**: el mantenedor de una de las herramientas de elusión más usadas del sector enumera lo que su parche **no** cubre y nombra tres partidas que sí son de mercado —**proxy, user-agent y fingerprints de canvas y WebGL**— que el sector vende como producto (navegador remoto con huella gestionada). Si canvas y WebGL están en catálogo, entonces "el fingerprint no está en ningún catálogo" era una afirmación sobre el bot de Go, no sobre el sector, y **la partida dominante sí es comprable** — lo que cambia la aritmética de ≤ €4/mes del thread. Pero ambas no pueden ser a la vez: o la huella de canvas/WebGL es una construcción con coste de ingeniería no cotizable, o es un producto con precio, y entonces el vault no puede seguir tracing "capa dominante = construcción" sin matizar que **es construcción en unos casos y catálogo en otros, según qué señales Cora el destino detecte primero**. Marcado para juicio humano, no auto-resuelto: la captura **no publica ningún precio** de navegador con huella gestionada ni ningún umbral en el que la compra sustituya a la construcción.
